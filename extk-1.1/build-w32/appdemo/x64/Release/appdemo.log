@@ -1,0 +1,12 @@
+﻿  wndmain.cpp
+c:\usr\w32\extk-1.1\build-w32\appdemo\wndmain.cpp(34): warning C4311: 'type cast': pointer truncation from 'const ExWidget *' to 'uint'
+c:\usr\w32\extk-1.1\build-w32\appdemo\wndmain.cpp(34): warning C4302: 'type cast': truncation from 'const ExWidget *' to 'uint'
+c:\usr\w32\extk-1.1\build-w32\appdemo\wndmain.cpp(126): warning C4311: 'type cast': pointer truncation from 'const ExWidget *' to 'uint'
+c:\usr\w32\extk-1.1\build-w32\appdemo\wndmain.cpp(126): warning C4302: 'type cast': truncation from 'const ExWidget *' to 'uint'
+c:\usr\w32\extk-1.1\build-w32\appdemo\wndmain.cpp(281): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+  Generating code
+  0 of 4994 functions ( 0.0%) were compiled, the rest were copied from previous compilation.
+    0 functions were new in current compilation
+    0 functions had inline decision re-evaluated but remain unchanged
+  Finished generating code
+  appdemo.vcxproj -> C:\usr\w32\extk-1.1\build-w32\appdemo\x64\Release\appdemo.exe

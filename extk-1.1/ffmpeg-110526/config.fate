@@ -1,0 +1,1 @@
+config:arm:armv6:arm1136jf-s:linux:gcc 4.5.1 (Sourcery G++ Lite 2010.09-50):--cross-prefix=arm-none-linux-gnueabi- --target-os=linux --arch=armv6 --cpu=arm1136jf-s

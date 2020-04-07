@@ -1,0 +1,210 @@
+
+./ac3dsp_armv6.o:     file format elf32-littlearm
+./ac3dsp_armv6.o
+architecture: arm, flags 0x00000011:
+HAS_RELOC, HAS_SYMS
+start address 0x00000000
+private flags = 5000000: [Version5 EABI]
+
+Sections:
+Idx Name          Size      VMA       LMA       File off  Algn
+  0 .text         000000e8  00000000  00000000  00000034  2**2
+                  CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
+  1 .data         00000000  00000000  00000000  0000011c  2**0
+                  CONTENTS, ALLOC, LOAD, DATA
+  2 .bss          00000000  00000000  00000000  0000011c  2**0
+                  ALLOC
+  3 .ARM.attributes 00000025  00000000  00000000  0000011c  2**0
+                  CONTENTS, READONLY
+  4 .debug_line   00000083  00000000  00000000  00000141  2**0
+                  CONTENTS, RELOC, READONLY, DEBUGGING
+  5 .debug_info   0000005c  00000000  00000000  000001c4  2**0
+                  CONTENTS, RELOC, READONLY, DEBUGGING
+  6 .debug_abbrev 00000014  00000000  00000000  00000220  2**0
+                  CONTENTS, READONLY, DEBUGGING
+  7 .debug_aranges 00000020  00000000  00000000  00000238  2**3
+                  CONTENTS, RELOC, READONLY, DEBUGGING
+SYMBOL TABLE:
+00000000 l    d  .text	00000000 .text
+00000000 l    d  .data	00000000 .data
+00000000 l    d  .bss	00000000 .bss
+00000000 l    d  .debug_info	00000000 .debug_info
+00000000 l    d  .debug_abbrev	00000000 .debug_abbrev
+00000000 l    d  .debug_line	00000000 .debug_line
+00000000 l    d  .debug_aranges	00000000 .debug_aranges
+00000000 l    d  .ARM.attributes	00000000 .ARM.attributes
+00000000 g     F .text	000000dc ff_ac3_bit_alloc_calc_bap_armv6
+00000000         *UND*	00000000 ff_ac3_bin_to_band_tab
+00000000         *UND*	00000000 ff_ac3_band_start_tab
+00000000         *UND*	00000000 memset
+
+
+
+Disassembly of section .text:
+
+00000000 <ff_ac3_bit_alloc_calc_bap_armv6>:
+   0:	e59dc000 	ldr	ip, [sp]
+   4:	e37c0d0f 	cmn	ip, #960	; 0x3c0
+   8:	0a00002f 	beq	cc <ff_ac3_bit_alloc_calc_bap_armv6+0xcc>
+   c:	e92d4ff0 	push	{r4, r5, r6, r7, r8, r9, sl, fp, lr}
+  10:	e28d5028 	add	r5, sp, #40	; 0x28
+  14:	e59f40c0 	ldr	r4, [pc, #192]	; dc <ff_ac3_bit_alloc_calc_bap_armv6+0xdc>
+  18:	e59fe0c0 	ldr	lr, [pc, #192]	; e0 <ff_ac3_bit_alloc_calc_bap_armv6+0xe0>
+  1c:	e89500e0 	ldm	r5, {r5, r6, r7}
+  20:	e7d44002 	ldrb	r4, [r4, r2]
+  24:	e0811082 	add	r1, r1, r2, lsl #1
+  28:	e0800084 	add	r0, r0, r4, lsl #1
+  2c:	e08e4004 	add	r4, lr, r4
+  30:	e0877002 	add	r7, r7, r2
+  34:	e4d4a001 	ldrb	sl, [r4], #1
+  38:	e0d090f2 	ldrsh	r9, [r0], #2
+  3c:	e59f80a0 	ldr	r8, [pc, #160]	; e4 <ff_ac3_bit_alloc_calc_bap_armv6+0xe4>
+  40:	e049900c 	sub	r9, r9, ip
+  44:	e1a0b00a 	mov	fp, sl
+  48:	e4d4a001 	ldrb	sl, [r4], #1
+  4c:	e0599005 	subs	r9, r9, r5
+  50:	b3a09000 	movlt	r9, #0
+  54:	e15a0003 	cmp	sl, r3
+  58:	e0099008 	and	r9, r9, r8
+  5c:	c043800b 	subgt	r8, r3, fp
+  60:	d04a800b 	suble	r8, sl, fp
+  64:	e0899005 	add	r9, r9, r5
+  68:	e3180001 	tst	r8, #1
+  6c:	e0872008 	add	r2, r7, r8
+  70:	1a00000f 	bne	b4 <ff_ac3_bit_alloc_calc_bap_armv6+0xb4>
+  74:	ea000009 	b	a0 <ff_ac3_bit_alloc_calc_bap_armv6+0xa0>
+  78:	e0d180f2 	ldrsh	r8, [r1], #2
+  7c:	e0d1e0f2 	ldrsh	lr, [r1], #2
+  80:	e0488009 	sub	r8, r8, r9
+  84:	e04ee009 	sub	lr, lr, r9
+  88:	e6e682d8 	usat	r8, #6, r8, asr #5
+  8c:	e6e6e2de 	usat	lr, #6, lr, asr #5
+  90:	e7d68008 	ldrb	r8, [r6, r8]
+  94:	e7d6e00e 	ldrb	lr, [r6, lr]
+  98:	e4c78001 	strb	r8, [r7], #1
+  9c:	e4c7e001 	strb	lr, [r7], #1
+  a0:	e1570002 	cmp	r7, r2
+  a4:	3afffff3 	bcc	78 <ff_ac3_bit_alloc_calc_bap_armv6+0x78>
+  a8:	e153000b 	cmp	r3, fp
+  ac:	caffffe1 	bgt	38 <ff_ac3_bit_alloc_calc_bap_armv6+0x38>
+  b0:	e8bd8ff0 	pop	{r4, r5, r6, r7, r8, r9, sl, fp, pc}
+  b4:	e0d180f2 	ldrsh	r8, [r1], #2
+  b8:	e0488009 	sub	r8, r8, r9
+  bc:	e6e682d8 	usat	r8, #6, r8, asr #5
+  c0:	e7d68008 	ldrb	r8, [r6, r8]
+  c4:	e4c78001 	strb	r8, [r7], #1
+  c8:	eafffff4 	b	a0 <ff_ac3_bit_alloc_calc_bap_armv6+0xa0>
+  cc:	e59d000c 	ldr	r0, [sp, #12]
+  d0:	e3a01000 	mov	r1, #0
+  d4:	e3a02c01 	mov	r2, #256	; 0x100
+  d8:	eafffffe 	b	0 <memset>
+			d8: R_ARM_JUMP24	memset
+	...
+			dc: R_ARM_ABS32	ff_ac3_bin_to_band_tab
+			e0: R_ARM_ABS32	ff_ac3_band_start_tab
+  e4:	00001fe0 	andeq	r1, r0, r0, ror #31
+
+Disassembly of section .ARM.attributes:
+
+00000000 <.ARM.attributes>:
+   0:	00002441 	andeq	r2, r0, r1, asr #8
+   4:	61656100 	cmnvs	r5, r0, lsl #2
+   8:	01006962 	tsteq	r0, r2, ror #18
+   c:	0000001a 	andeq	r0, r0, sl, lsl r0
+  10:	4d524105 	ldfmie	f4, [r2, #-20]	; 0xffffffec
+  14:	36333131 			; <UNDEFINED> instruction: 0x36333131
+  18:	532d464a 	teqpl	sp, #77594624	; 0x4a00000
+  1c:	08060600 	stmdaeq	r6, {r9, sl}
+  20:	2c010901 	stccs	9, cr0, [r1], {1}
+  24:	Address 0x00000024 is out of bounds.
+
+
+Disassembly of section .debug_line:
+
+00000000 <.debug_line>:
+   0:	0000007f 	andeq	r0, r0, pc, ror r0
+   4:	00340002 	eorseq	r0, r4, r2
+   8:	01020000 	mrseq	r0, (UNDEF: 2)
+   c:	000d0efb 	strdeq	r0, [sp], -fp
+  10:	01010101 	tsteq	r1, r1, lsl #2
+  14:	01000000 	mrseq	r0, (UNDEF: 0)
+  18:	6c010000 	stcvs	0, cr0, [r1], {-0}
+  1c:	76616269 	strbtvc	r6, [r1], -r9, ror #4
+  20:	65646f63 	strbvs	r6, [r4, #-3939]!	; 0xfffff09d
+  24:	72612f63 	rsbvc	r2, r1, #396	; 0x18c
+  28:	6100006d 	tstvs	r0, sp, rrx
+  2c:	73643363 	cmnvc	r4, #-1946157055	; 0x8c000001
+  30:	72615f70 	rsbvc	r5, r1, #112, 30	; 0x1c0
+  34:	2e36766d 	cfmsuba32cs	mvax3, mvax7, mvfx6, mvfx13
+  38:	00010053 	andeq	r0, r1, r3, asr r0
+  3c:	05000000 	streq	r0, [r0, #-0]
+  40:	00000002 	andeq	r0, r0, r2
+			41: R_ARM_ABS32	.text
+  44:	01170300 	tsteq	r7, r0, lsl #6
+  48:	2f2f2f2f 	svccs	0x002f2f2f
+  4c:	2f2f2f2f 	svccs	0x002f2f2f
+  50:	2f2f2f2f 	svccs	0x002f2f2f
+  54:	2f2f302f 	svccs	0x002f302f
+  58:	2f2f2f2f 	svccs	0x002f2f2f
+  5c:	2f2f2f2f 	svccs	0x002f2f2f
+  60:	2f2f2f2f 	svccs	0x002f2f2f
+  64:	2f2f302f 	svccs	0x002f302f
+  68:	2f2f2f2f 	svccs	0x002f2f2f
+  6c:	2f2f2f2f 	svccs	0x002f2f2f
+  70:	2f2f2f2f 	svccs	0x002f2f2f
+  74:	2f2f2f30 	svccs	0x002f2f30
+  78:	2f302f2f 	svccs	0x00302f2f
+  7c:	08022f2f 	stmdaeq	r2, {r0, r1, r2, r3, r5, r8, r9, sl, fp, sp}
+  80:	Address 0x00000080 is out of bounds.
+
+
+Disassembly of section .debug_info:
+
+00000000 <.debug_info>:
+   0:	00000058 	andeq	r0, r0, r8, asr r0
+   4:	00000002 	andeq	r0, r0, r2
+			6: R_ARM_ABS32	.debug_abbrev
+   8:	01040000 	mrseq	r0, (UNDEF: 4)
+	...
+			c: R_ARM_ABS32	.debug_line
+			10: R_ARM_ABS32	.text
+  14:	000000e8 	andeq	r0, r0, r8, ror #1
+			14: R_ARM_ABS32	.text
+  18:	6162696c 	cmnvs	r2, ip, ror #18
+  1c:	646f6376 	strbtvs	r6, [pc], #-886	; 24 <.debug_info+0x24>
+  20:	612f6365 	teqvs	pc, r5, ror #6
+  24:	612f6d72 	teqvs	pc, r2, ror sp	; <UNPREDICTABLE>
+  28:	73643363 	cmnvc	r4, #-1946157055	; 0x8c000001
+  2c:	72615f70 	rsbvc	r5, r1, #112, 30	; 0x1c0
+  30:	2e36766d 	cfmsuba32cs	mvax3, mvax7, mvfx6, mvfx13
+  34:	6d2f0053 	stcvs	0, cr0, [pc, #-332]!	; fffffef0 <ff_ac3_bit_alloc_calc_bap_armv6+0xfffffef0>
+  38:	772f746e 	strvc	r7, [pc, -lr, ror #8]!
+  3c:	2f6b726f 	svccs	0x006b726f
+  40:	2f73736f 	svccs	0x0073736f
+  44:	706d6666 	rsbvc	r6, sp, r6, ror #12
+  48:	47006765 	strmi	r6, [r0, -r5, ror #14]
+  4c:	4120554e 	teqmi	r0, lr, asr #10
+  50:	2e322053 	mrccs	0, 1, r2, cr2, cr3, {2}
+  54:	352e3032 	strcc	r3, [lr, #-50]!	; 0xffffffce
+  58:	80010031 	andhi	r0, r1, r1, lsr r0
+
+Disassembly of section .debug_abbrev:
+
+00000000 <.debug_abbrev>:
+   0:	10001101 	andne	r1, r0, r1, lsl #2
+   4:	12011106 	andne	r1, r1, #-2147483647	; 0x80000001
+   8:	1b080301 	blne	200c14 <ff_ac3_bit_alloc_calc_bap_armv6+0x200c14>
+   c:	13082508 	movwne	r2, #34056	; 0x8508
+  10:	00000005 	andeq	r0, r0, r5
+
+Disassembly of section .debug_aranges:
+
+00000000 <.debug_aranges>:
+   0:	0000001c 	andeq	r0, r0, ip, lsl r0
+   4:	00000002 	andeq	r0, r0, r2
+			6: R_ARM_ABS32	.debug_info
+   8:	00040000 	andeq	r0, r4, r0
+	...
+			10: R_ARM_ABS32	.text
+  14:	000000e8 	andeq	r0, r0, r8, ror #1
+	...

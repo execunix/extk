@@ -1,0 +1,44 @@
+﻿  tif_aux.c
+  tif_close.c
+  tif_codec.c
+  tif_color.c
+  tif_compress.c
+  tif_dir.c
+  tif_dirinfo.c
+c:\usr\w32\extk-1.1\tiff-3.8.2\libtiff\tif_dirinfo.c(754): warning C4996: '_lfind': The POSIX name for this item is deprecated. Instead, use the ISO C and C++ conformant name: _lfind. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.17763.0\ucrt\corecrt_search.h(74): note: see declaration of '_lfind'
+  tif_dirread.c
+  tif_dirwrite.c
+  tif_dumpmode.c
+  tif_error.c
+  tif_extension.c
+  tif_fax3.c
+  tif_fax3sm.c
+  tif_flush.c
+  tif_getimage.c
+  tif_jpeg.c
+  tif_luv.c
+  tif_lzw.c
+  tif_next.c
+  Generating Code...
+  Compiling...
+  tif_ojpeg.c
+  tif_open.c
+  tif_packbits.c
+  tif_pixarlog.c
+  tif_predict.c
+  tif_print.c
+  tif_read.c
+  tif_strip.c
+  tif_swab.c
+  tif_thunder.c
+  tif_tile.c
+  tif_version.c
+  tif_warning.c
+  tif_write.c
+  tif_zip.c
+  Generating Code...
+  libtiff.vcxproj -> C:\usr\w32\extk-1.1\build-w32\libtiff\Win32\Debug\libtiff.lib
+  0개 파일이 복사되었습니다.
+  Win32\Debug\libtiff.lib
+  1개 파일이 복사되었습니다.

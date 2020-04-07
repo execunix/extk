@@ -1,0 +1,38 @@
+﻿  exapp.cpp
+  excallback.cpp
+  excanvas.cpp
+  exdebug.cpp
+  exevent.cpp
+  exgdiobj.cpp
+  exgeomet.cpp
+  exim-draw.cpp
+  exim-io-bmp.cpp
+  exim-io-gif.cpp
+  exim-io-jpg.cpp
+  exim-io-png.cpp
+c:\usr\w32\extk-1.1\libex\exim-io-png.cpp(169): warning C4267: 'initializing': conversion from 'size_t' to 'png_uint_32', possible loss of data
+  eximage.cpp
+  exinput.cpp
+  exmemory.cpp
+c:\usr\w32\extk-1.1\libex\exmemory.cpp(20): warning C4267: 'argument': conversion from 'size_t' to 'DWORD', possible loss of data
+  exobject.cpp
+  exregion.cpp
+  exregion_p.cpp
+c:\usr\w32\extk-1.1\libex\exregion_p.cpp(607): warning C4244: '=': conversion from '__int64' to 'int', possible loss of data
+  exsearch.cpp
+  exstyle.cpp
+  Generating Code...
+  Compiling...
+  exthread.cpp
+  extimer.cpp
+  exwidget.cpp
+c:\usr\w32\extk-1.1\libex\exwidget.cpp(31): warning C4311: 'type cast': pointer truncation from 'const ExWidget *' to 'uint'
+c:\usr\w32\extk-1.1\libex\exwidget.cpp(31): warning C4302: 'type cast': truncation from 'const ExWidget *' to 'uint'
+c:\usr\w32\extk-1.1\libex\exwidget.cpp(201): warning C4311: 'type cast': pointer truncation from 'ExWidget *' to 'int'
+c:\usr\w32\extk-1.1\libex\exwidget.cpp(201): warning C4302: 'type cast': truncation from 'ExWidget *' to 'int'
+  exwindow.cpp
+  Generating Code...
+  libex.vcxproj -> C:\usr\w32\extk-1.1\build-w32\libex\x64\Debug\libex.lib
+  0개 파일이 복사되었습니다.
+  x64\Debug\libex.lib
+  1개 파일이 복사되었습니다.

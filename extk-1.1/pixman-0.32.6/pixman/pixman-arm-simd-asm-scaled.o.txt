@@ -1,0 +1,268 @@
+
+pixman-arm-simd-asm-scaled.o:     file format elf32-littlearm
+pixman-arm-simd-asm-scaled.o
+architecture: armv4, flags 0x00000011:
+HAS_RELOC, HAS_SYMS
+start address 0x00000000
+private flags = 5000000: [Version5 EABI]
+
+Sections:
+Idx Name          Size      VMA       LMA       File off  Algn
+  0 .text         00000378  00000000  00000000  00000034  2**2
+                  CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
+  1 .data         00000000  00000000  00000000  000003ac  2**0
+                  CONTENTS, ALLOC, LOAD, DATA
+  2 .bss          00000000  00000000  00000000  000003ac  2**0
+                  ALLOC
+  3 .ARM.attributes 00000017  00000000  00000000  000003ac  2**0
+                  CONTENTS, READONLY
+SYMBOL TABLE:
+00000000 l    d  .text	00000000 .text
+00000000 l    d  .data	00000000 .data
+00000000 l    d  .bss	00000000 .bss
+00000000 l    d  .ARM.attributes	00000000 .ARM.attributes
+00000000 g     F .text	00000000 .hidden pixman_scaled_nearest_scanline_0565_0565_SRC_asm_armv6
+000001bc g     F .text	00000000 .hidden pixman_scaled_nearest_scanline_8888_8888_SRC_asm_armv6
+
+
+
+Disassembly of section .text:
+
+00000000 <pixman_scaled_nearest_scanline_0565_0565_SRC_asm_armv6>:
+   0:	e59dc000 	ldr	ip, [sp]
+   4:	e92d05f0 	push	{r4, r5, r6, r7, r8, sl}
+   8:	e3e06001 	mvn	r6, #1
+   c:	e59d801c 	ldr	r8, [sp, #28]
+  10:	e00647c3 	and	r4, r6, r3, asr #15
+  14:	e093300c 	adds	r3, r3, ip
+  18:	50533008 	subspl	r3, r3, r8
+  1c:	5afffffd 	bpl	18 <pixman_scaled_nearest_scanline_0565_0565_SRC_asm_armv6+0x18>
+  20:	e2500028 	subs	r0, r0, #40	; 0x28
+  24:	ba000035 	blt	100 <pixman_scaled_nearest_scanline_0565_0565_SRC_asm_armv6+0x100>
+  28:	e3a07050 	mov	r7, #80	; 0x50
+  2c:	e027379c 	mla	r7, ip, r7, r3
+  30:	f7d2f7c7 	pld	[r2, r7, asr #15]
+  34:	e087718c 	add	r7, r7, ip, lsl #3
+  38:	e19240b4 	ldrh	r4, [r2, r4]
+  3c:	e00657c3 	and	r5, r6, r3, asr #15
+  40:	e093300c 	adds	r3, r3, ip
+  44:	e0c140b2 	strh	r4, [r1], #2
+  48:	50533008 	subspl	r3, r3, r8
+  4c:	5afffffd 	bpl	48 <pixman_scaled_nearest_scanline_0565_0565_SRC_asm_armv6+0x48>
+  50:	e19250b5 	ldrh	r5, [r2, r5]
+  54:	e00647c3 	and	r4, r6, r3, asr #15
+  58:	e093300c 	adds	r3, r3, ip
+  5c:	e0c150b2 	strh	r5, [r1], #2
+  60:	50533008 	subspl	r3, r3, r8
+  64:	5afffffd 	bpl	60 <pixman_scaled_nearest_scanline_0565_0565_SRC_asm_armv6+0x60>
+  68:	e19240b4 	ldrh	r4, [r2, r4]
+  6c:	e00657c3 	and	r5, r6, r3, asr #15
+  70:	e093300c 	adds	r3, r3, ip
+  74:	e0c140b2 	strh	r4, [r1], #2
+  78:	50533008 	subspl	r3, r3, r8
+  7c:	5afffffd 	bpl	78 <pixman_scaled_nearest_scanline_0565_0565_SRC_asm_armv6+0x78>
+  80:	e19250b5 	ldrh	r5, [r2, r5]
+  84:	e00647c3 	and	r4, r6, r3, asr #15
+  88:	e093300c 	adds	r3, r3, ip
+  8c:	e0c150b2 	strh	r5, [r1], #2
+  90:	50533008 	subspl	r3, r3, r8
+  94:	5afffffd 	bpl	90 <pixman_scaled_nearest_scanline_0565_0565_SRC_asm_armv6+0x90>
+  98:	e19240b4 	ldrh	r4, [r2, r4]
+  9c:	e00657c3 	and	r5, r6, r3, asr #15
+  a0:	e093300c 	adds	r3, r3, ip
+  a4:	e0c140b2 	strh	r4, [r1], #2
+  a8:	50533008 	subspl	r3, r3, r8
+  ac:	5afffffd 	bpl	a8 <pixman_scaled_nearest_scanline_0565_0565_SRC_asm_armv6+0xa8>
+  b0:	e19250b5 	ldrh	r5, [r2, r5]
+  b4:	e00647c3 	and	r4, r6, r3, asr #15
+  b8:	e093300c 	adds	r3, r3, ip
+  bc:	e0c150b2 	strh	r5, [r1], #2
+  c0:	50533008 	subspl	r3, r3, r8
+  c4:	5afffffd 	bpl	c0 <pixman_scaled_nearest_scanline_0565_0565_SRC_asm_armv6+0xc0>
+  c8:	e19240b4 	ldrh	r4, [r2, r4]
+  cc:	e00657c3 	and	r5, r6, r3, asr #15
+  d0:	e093300c 	adds	r3, r3, ip
+  d4:	e0c140b2 	strh	r4, [r1], #2
+  d8:	50533008 	subspl	r3, r3, r8
+  dc:	5afffffd 	bpl	d8 <pixman_scaled_nearest_scanline_0565_0565_SRC_asm_armv6+0xd8>
+  e0:	e19250b5 	ldrh	r5, [r2, r5]
+  e4:	e00647c3 	and	r4, r6, r3, asr #15
+  e8:	e093300c 	adds	r3, r3, ip
+  ec:	e0c150b2 	strh	r5, [r1], #2
+  f0:	50533008 	subspl	r3, r3, r8
+  f4:	5afffffd 	bpl	f0 <pixman_scaled_nearest_scanline_0565_0565_SRC_asm_armv6+0xf0>
+  f8:	e2500008 	subs	r0, r0, #8
+  fc:	aaffffcb 	bge	30 <pixman_scaled_nearest_scanline_0565_0565_SRC_asm_armv6+0x30>
+ 100:	e2900024 	adds	r0, r0, #36	; 0x24
+ 104:	ba000019 	blt	170 <pixman_scaled_nearest_scanline_0565_0565_SRC_asm_armv6+0x170>
+ 108:	e19240b4 	ldrh	r4, [r2, r4]
+ 10c:	e00657c3 	and	r5, r6, r3, asr #15
+ 110:	e093300c 	adds	r3, r3, ip
+ 114:	e0c140b2 	strh	r4, [r1], #2
+ 118:	50533008 	subspl	r3, r3, r8
+ 11c:	5afffffd 	bpl	118 <pixman_scaled_nearest_scanline_0565_0565_SRC_asm_armv6+0x118>
+ 120:	e19250b5 	ldrh	r5, [r2, r5]
+ 124:	e00647c3 	and	r4, r6, r3, asr #15
+ 128:	e093300c 	adds	r3, r3, ip
+ 12c:	e0c150b2 	strh	r5, [r1], #2
+ 130:	50533008 	subspl	r3, r3, r8
+ 134:	5afffffd 	bpl	130 <pixman_scaled_nearest_scanline_0565_0565_SRC_asm_armv6+0x130>
+ 138:	e19240b4 	ldrh	r4, [r2, r4]
+ 13c:	e00657c3 	and	r5, r6, r3, asr #15
+ 140:	e093300c 	adds	r3, r3, ip
+ 144:	e0c140b2 	strh	r4, [r1], #2
+ 148:	50533008 	subspl	r3, r3, r8
+ 14c:	5afffffd 	bpl	148 <pixman_scaled_nearest_scanline_0565_0565_SRC_asm_armv6+0x148>
+ 150:	e19250b5 	ldrh	r5, [r2, r5]
+ 154:	e00647c3 	and	r4, r6, r3, asr #15
+ 158:	e093300c 	adds	r3, r3, ip
+ 15c:	e0c150b2 	strh	r5, [r1], #2
+ 160:	50533008 	subspl	r3, r3, r8
+ 164:	5afffffd 	bpl	160 <pixman_scaled_nearest_scanline_0565_0565_SRC_asm_armv6+0x160>
+ 168:	e2500004 	subs	r0, r0, #4
+ 16c:	aaffffe5 	bge	108 <pixman_scaled_nearest_scanline_0565_0565_SRC_asm_armv6+0x108>
+ 170:	e3100002 	tst	r0, #2
+ 174:	0a00000b 	beq	1a8 <pixman_scaled_nearest_scanline_0565_0565_SRC_asm_armv6+0x1a8>
+ 178:	e19240b4 	ldrh	r4, [r2, r4]
+ 17c:	e00657c3 	and	r5, r6, r3, asr #15
+ 180:	e093300c 	adds	r3, r3, ip
+ 184:	e0c140b2 	strh	r4, [r1], #2
+ 188:	50533008 	subspl	r3, r3, r8
+ 18c:	5afffffd 	bpl	188 <pixman_scaled_nearest_scanline_0565_0565_SRC_asm_armv6+0x188>
+ 190:	e19250b5 	ldrh	r5, [r2, r5]
+ 194:	e00647c3 	and	r4, r6, r3, asr #15
+ 198:	e093300c 	adds	r3, r3, ip
+ 19c:	e0c150b2 	strh	r5, [r1], #2
+ 1a0:	50533008 	subspl	r3, r3, r8
+ 1a4:	5afffffd 	bpl	1a0 <pixman_scaled_nearest_scanline_0565_0565_SRC_asm_armv6+0x1a0>
+ 1a8:	e3100001 	tst	r0, #1
+ 1ac:	119240b4 	ldrhne	r4, [r2, r4]
+ 1b0:	11c140b0 	strhne	r4, [r1]
+ 1b4:	e8bd05f0 	pop	{r4, r5, r6, r7, r8, sl}
+ 1b8:	e12fff1e 	bx	lr
+			1b8: R_ARM_V4BX	*ABS*
+
+000001bc <pixman_scaled_nearest_scanline_8888_8888_SRC_asm_armv6>:
+ 1bc:	e59dc000 	ldr	ip, [sp]
+ 1c0:	e92d05f0 	push	{r4, r5, r6, r7, r8, sl}
+ 1c4:	e3e06003 	mvn	r6, #3
+ 1c8:	e59d801c 	ldr	r8, [sp, #28]
+ 1cc:	e0064743 	and	r4, r6, r3, asr #14
+ 1d0:	e093300c 	adds	r3, r3, ip
+ 1d4:	50533008 	subspl	r3, r3, r8
+ 1d8:	5afffffd 	bpl	1d4 <pixman_scaled_nearest_scanline_8888_8888_SRC_asm_armv6+0x18>
+ 1dc:	e2500028 	subs	r0, r0, #40	; 0x28
+ 1e0:	ba000035 	blt	2bc <pixman_scaled_nearest_scanline_8888_8888_SRC_asm_armv6+0x100>
+ 1e4:	e3a07030 	mov	r7, #48	; 0x30
+ 1e8:	e027379c 	mla	r7, ip, r7, r3
+ 1ec:	f7d2f747 	pld	[r2, r7, asr #14]
+ 1f0:	e087718c 	add	r7, r7, ip, lsl #3
+ 1f4:	e7924004 	ldr	r4, [r2, r4]
+ 1f8:	e0065743 	and	r5, r6, r3, asr #14
+ 1fc:	e093300c 	adds	r3, r3, ip
+ 200:	e4814004 	str	r4, [r1], #4
+ 204:	50533008 	subspl	r3, r3, r8
+ 208:	5afffffd 	bpl	204 <pixman_scaled_nearest_scanline_8888_8888_SRC_asm_armv6+0x48>
+ 20c:	e7925005 	ldr	r5, [r2, r5]
+ 210:	e0064743 	and	r4, r6, r3, asr #14
+ 214:	e093300c 	adds	r3, r3, ip
+ 218:	e4815004 	str	r5, [r1], #4
+ 21c:	50533008 	subspl	r3, r3, r8
+ 220:	5afffffd 	bpl	21c <pixman_scaled_nearest_scanline_8888_8888_SRC_asm_armv6+0x60>
+ 224:	e7924004 	ldr	r4, [r2, r4]
+ 228:	e0065743 	and	r5, r6, r3, asr #14
+ 22c:	e093300c 	adds	r3, r3, ip
+ 230:	e4814004 	str	r4, [r1], #4
+ 234:	50533008 	subspl	r3, r3, r8
+ 238:	5afffffd 	bpl	234 <pixman_scaled_nearest_scanline_8888_8888_SRC_asm_armv6+0x78>
+ 23c:	e7925005 	ldr	r5, [r2, r5]
+ 240:	e0064743 	and	r4, r6, r3, asr #14
+ 244:	e093300c 	adds	r3, r3, ip
+ 248:	e4815004 	str	r5, [r1], #4
+ 24c:	50533008 	subspl	r3, r3, r8
+ 250:	5afffffd 	bpl	24c <pixman_scaled_nearest_scanline_8888_8888_SRC_asm_armv6+0x90>
+ 254:	e7924004 	ldr	r4, [r2, r4]
+ 258:	e0065743 	and	r5, r6, r3, asr #14
+ 25c:	e093300c 	adds	r3, r3, ip
+ 260:	e4814004 	str	r4, [r1], #4
+ 264:	50533008 	subspl	r3, r3, r8
+ 268:	5afffffd 	bpl	264 <pixman_scaled_nearest_scanline_8888_8888_SRC_asm_armv6+0xa8>
+ 26c:	e7925005 	ldr	r5, [r2, r5]
+ 270:	e0064743 	and	r4, r6, r3, asr #14
+ 274:	e093300c 	adds	r3, r3, ip
+ 278:	e4815004 	str	r5, [r1], #4
+ 27c:	50533008 	subspl	r3, r3, r8
+ 280:	5afffffd 	bpl	27c <pixman_scaled_nearest_scanline_8888_8888_SRC_asm_armv6+0xc0>
+ 284:	e7924004 	ldr	r4, [r2, r4]
+ 288:	e0065743 	and	r5, r6, r3, asr #14
+ 28c:	e093300c 	adds	r3, r3, ip
+ 290:	e4814004 	str	r4, [r1], #4
+ 294:	50533008 	subspl	r3, r3, r8
+ 298:	5afffffd 	bpl	294 <pixman_scaled_nearest_scanline_8888_8888_SRC_asm_armv6+0xd8>
+ 29c:	e7925005 	ldr	r5, [r2, r5]
+ 2a0:	e0064743 	and	r4, r6, r3, asr #14
+ 2a4:	e093300c 	adds	r3, r3, ip
+ 2a8:	e4815004 	str	r5, [r1], #4
+ 2ac:	50533008 	subspl	r3, r3, r8
+ 2b0:	5afffffd 	bpl	2ac <pixman_scaled_nearest_scanline_8888_8888_SRC_asm_armv6+0xf0>
+ 2b4:	e2500008 	subs	r0, r0, #8
+ 2b8:	aaffffcb 	bge	1ec <pixman_scaled_nearest_scanline_8888_8888_SRC_asm_armv6+0x30>
+ 2bc:	e2900024 	adds	r0, r0, #36	; 0x24
+ 2c0:	ba000019 	blt	32c <pixman_scaled_nearest_scanline_8888_8888_SRC_asm_armv6+0x170>
+ 2c4:	e7924004 	ldr	r4, [r2, r4]
+ 2c8:	e0065743 	and	r5, r6, r3, asr #14
+ 2cc:	e093300c 	adds	r3, r3, ip
+ 2d0:	e4814004 	str	r4, [r1], #4
+ 2d4:	50533008 	subspl	r3, r3, r8
+ 2d8:	5afffffd 	bpl	2d4 <pixman_scaled_nearest_scanline_8888_8888_SRC_asm_armv6+0x118>
+ 2dc:	e7925005 	ldr	r5, [r2, r5]
+ 2e0:	e0064743 	and	r4, r6, r3, asr #14
+ 2e4:	e093300c 	adds	r3, r3, ip
+ 2e8:	e4815004 	str	r5, [r1], #4
+ 2ec:	50533008 	subspl	r3, r3, r8
+ 2f0:	5afffffd 	bpl	2ec <pixman_scaled_nearest_scanline_8888_8888_SRC_asm_armv6+0x130>
+ 2f4:	e7924004 	ldr	r4, [r2, r4]
+ 2f8:	e0065743 	and	r5, r6, r3, asr #14
+ 2fc:	e093300c 	adds	r3, r3, ip
+ 300:	e4814004 	str	r4, [r1], #4
+ 304:	50533008 	subspl	r3, r3, r8
+ 308:	5afffffd 	bpl	304 <pixman_scaled_nearest_scanline_8888_8888_SRC_asm_armv6+0x148>
+ 30c:	e7925005 	ldr	r5, [r2, r5]
+ 310:	e0064743 	and	r4, r6, r3, asr #14
+ 314:	e093300c 	adds	r3, r3, ip
+ 318:	e4815004 	str	r5, [r1], #4
+ 31c:	50533008 	subspl	r3, r3, r8
+ 320:	5afffffd 	bpl	31c <pixman_scaled_nearest_scanline_8888_8888_SRC_asm_armv6+0x160>
+ 324:	e2500004 	subs	r0, r0, #4
+ 328:	aaffffe5 	bge	2c4 <pixman_scaled_nearest_scanline_8888_8888_SRC_asm_armv6+0x108>
+ 32c:	e3100002 	tst	r0, #2
+ 330:	0a00000b 	beq	364 <pixman_scaled_nearest_scanline_8888_8888_SRC_asm_armv6+0x1a8>
+ 334:	e7924004 	ldr	r4, [r2, r4]
+ 338:	e0065743 	and	r5, r6, r3, asr #14
+ 33c:	e093300c 	adds	r3, r3, ip
+ 340:	e4814004 	str	r4, [r1], #4
+ 344:	50533008 	subspl	r3, r3, r8
+ 348:	5afffffd 	bpl	344 <pixman_scaled_nearest_scanline_8888_8888_SRC_asm_armv6+0x188>
+ 34c:	e7925005 	ldr	r5, [r2, r5]
+ 350:	e0064743 	and	r4, r6, r3, asr #14
+ 354:	e093300c 	adds	r3, r3, ip
+ 358:	e4815004 	str	r5, [r1], #4
+ 35c:	50533008 	subspl	r3, r3, r8
+ 360:	5afffffd 	bpl	35c <pixman_scaled_nearest_scanline_8888_8888_SRC_asm_armv6+0x1a0>
+ 364:	e3100001 	tst	r0, #1
+ 368:	17924004 	ldrne	r4, [r2, r4]
+ 36c:	15814000 	strne	r4, [r1]
+ 370:	e8bd05f0 	pop	{r4, r5, r6, r7, r8, sl}
+ 374:	e12fff1e 	bx	lr
+			374: R_ARM_V4BX	*ABS*
+
+Disassembly of section .ARM.attributes:
+
+00000000 <.ARM.attributes>:
+   0:	00001641 	andeq	r1, r0, r1, asr #12
+   4:	61656100 	cmnvs	r5, r0, lsl #2
+   8:	01006962 	tsteq	r0, r2, ror #18
+   c:	0000000c 	andeq	r0, r0, ip
+  10:	06003605 	streq	r3, [r0], -r5, lsl #12
+  14:	Address 0x00000014 is out of bounds.
+

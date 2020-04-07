@@ -1,0 +1,147 @@
+﻿  cairo-analysis-surface.c
+  cairo-arc.c
+  cairo-array.c
+  cairo-atomic.c
+  cairo-base64-stream.c
+  cairo-base85-stream.c
+  cairo-bentley-ottmann-rectangular.c
+  cairo-bentley-ottmann-rectilinear.c
+  cairo-bentley-ottmann.c
+  cairo-botor-scan-converter.c
+  cairo-boxes-intersect.c
+  cairo-boxes.c
+  cairo-cache.c
+  cairo-clip-boxes.c
+  cairo-clip-polygon.c
+  cairo-clip-region.c
+  cairo-clip-surface.c
+  cairo-clip-tor-scan-converter.c
+  cairo-clip.c
+  cairo-color.c
+  Compiling...
+  cairo-composite-rectangles.c
+  cairo-compositor.c
+  cairo-contour.c
+  cairo-damage.c
+  cairo-debug.c
+  cairo-default-context.c
+  cairo-device.c
+  cairo-error.c
+  cairo-fallback-compositor.c
+  cairo-font-face-twin-data.c
+  cairo-font-face-twin.c
+c:\usr\w32\extk-1.1\cairo-1.14.2\src\cairo-font-face-twin.c(221): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
+  cairo-font-face.c
+  cairo-font-options.c
+  cairo-freelist.c
+  cairo-ft-font.c
+c:\usr\w32\extk-1.1\cairo-1.14.2\src\cairo-ft-font.c(375): warning C4311: 'type cast': pointer truncation from 'FT_Face' to 'unsigned long'
+  cairo-gstate.c
+  cairo-hash.c
+  cairo-hull.c
+  cairo-image-compositor.c
+  cairo-image-info.c
+  Compiling...
+  cairo-image-source.c
+  cairo-image-surface.c
+  cairo-line.c
+  cairo-lzw.c
+  cairo-mask-compositor.c
+  cairo-matrix.c
+  cairo-mempool.c
+c:\usr\w32\extk-1.1\cairo-1.14.2\src\cairo-mempool.c(81): warning C4334: '<<': result of 32-bit shift implicitly converted to 64 bits (was 64-bit shift intended?)
+c:\usr\w32\extk-1.1\cairo-1.14.2\src\cairo-mempool.c(88): warning C4334: '<<': result of 32-bit shift implicitly converted to 64 bits (was 64-bit shift intended?)
+c:\usr\w32\extk-1.1\cairo-1.14.2\src\cairo-mempool.c(136): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
+c:\usr\w32\extk-1.1\cairo-1.14.2\src\cairo-mempool.c(160): warning C4334: '<<': result of 32-bit shift implicitly converted to 64 bits (was 64-bit shift intended?)
+c:\usr\w32\extk-1.1\cairo-1.14.2\src\cairo-mempool.c(163): warning C4334: '<<': result of 32-bit shift implicitly converted to 64 bits (was 64-bit shift intended?)
+c:\usr\w32\extk-1.1\cairo-1.14.2\src\cairo-mempool.c(183): warning C4334: '<<': result of 32-bit shift implicitly converted to 64 bits (was 64-bit shift intended?)
+c:\usr\w32\extk-1.1\cairo-1.14.2\src\cairo-mempool.c(219): warning C4334: '<<': result of 32-bit shift implicitly converted to 64 bits (was 64-bit shift intended?)
+c:\usr\w32\extk-1.1\cairo-1.14.2\src\cairo-mempool.c(271): warning C4334: '<<': result of 32-bit shift implicitly converted to 64 bits (was 64-bit shift intended?)
+c:\usr\w32\extk-1.1\cairo-1.14.2\src\cairo-mempool.c(276): warning C4334: '<<': result of 32-bit shift implicitly converted to 64 bits (was 64-bit shift intended?)
+c:\usr\w32\extk-1.1\cairo-1.14.2\src\cairo-mempool.c(277): warning C4334: '<<': result of 32-bit shift implicitly converted to 64 bits (was 64-bit shift intended?)
+c:\usr\w32\extk-1.1\cairo-1.14.2\src\cairo-mempool.c(292): warning C4311: 'type cast': pointer truncation from 'void *' to 'unsigned long'
+c:\usr\w32\extk-1.1\cairo-1.14.2\src\cairo-mempool.c(307): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
+c:\usr\w32\extk-1.1\cairo-1.14.2\src\cairo-mempool.c(340): warning C4334: '<<': result of 32-bit shift implicitly converted to 64 bits (was 64-bit shift intended?)
+c:\usr\w32\extk-1.1\cairo-1.14.2\src\cairo-mempool.c(359): warning C4334: '<<': result of 32-bit shift implicitly converted to 64 bits (was 64-bit shift intended?)
+  cairo-mesh-pattern-rasterizer.c
+  cairo-misc.c
+c:\usr\w32\extk-1.1\cairo-1.14.2\src\cairo-misc.c(892): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
+  cairo-mono-scan-converter.c
+  cairo-mutex.c
+  cairo-no-compositor.c
+  cairo-observer.c
+  cairo-output-stream.c
+c:\usr\w32\extk-1.1\cairo-1.14.2\src\cairo-output-stream.c(267): warning C4267: 'function': conversion from 'size_t' to 'unsigned int', possible loss of data
+c:\usr\w32\extk-1.1\cairo-1.14.2\src\cairo-output-stream.c(268): warning C4267: '+=': conversion from 'size_t' to 'unsigned long', possible loss of data
+c:\usr\w32\extk-1.1\cairo-1.14.2\src\cairo-output-stream.c(316): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
+c:\usr\w32\extk-1.1\cairo-1.14.2\src\cairo-output-stream.c(369): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
+  cairo-paginated-surface.c
+  cairo-path-bounds.c
+  cairo-path-fill.c
+  cairo-path-fixed.c
+  cairo-path-in-fill.c
+  cairo-path-stroke-boxes.c
+  Compiling...
+  cairo-path-stroke-polygon.c
+  cairo-path-stroke-traps.c
+  cairo-path-stroke-tristrip.c
+  cairo-path-stroke.c
+  cairo-path.c
+  cairo-pattern.c
+  cairo-pen.c
+  cairo-png.c
+c:\usr\w32\extk-1.1\cairo-1.14.2\src\cairo-png.c(401): warning C4267: 'function': conversion from 'size_t' to 'unsigned int', possible loss of data
+c:\usr\w32\extk-1.1\cairo-1.14.2\src\cairo-png.c(511): warning C4267: '-=': conversion from 'size_t' to 'unsigned int', possible loss of data
+c:\usr\w32\extk-1.1\cairo-1.14.2\src\cairo-png.c(528): warning C4267: 'function': conversion from 'size_t' to 'unsigned int', possible loss of data
+  cairo-polygon-intersect.c
+  cairo-polygon-reduce.c
+  cairo-polygon.c
+  cairo-raster-source-pattern.c
+  cairo-recording-surface.c
+  cairo-rectangle.c
+  cairo-rectangular-scan-converter.c
+  cairo-region.c
+  cairo-rtree.c
+  cairo-scaled-font.c
+c:\usr\w32\extk-1.1\cairo-1.14.2\src\cairo-scaled-font.c(480): warning C4312: 'type cast': conversion from 'unsigned long' to 'cairo_scaled_font_t *' of greater size
+c:\usr\w32\extk-1.1\cairo-1.14.2\src\cairo-scaled-font.c(642): warning C4311: 'type cast': pointer truncation from 'cairo_font_face_t *' to 'unsigned long'
+c:\usr\w32\extk-1.1\cairo-1.14.2\src\cairo-scaled-font.c(1985): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
+c:\usr\w32\extk-1.1\cairo-1.14.2\src\cairo-scaled-font.c(2827): warning C4312: 'type cast': conversion from 'const unsigned long' to 'cairo_scaled_font_t *' of greater size
+c:\usr\w32\extk-1.1\cairo-1.14.2\src\cairo-scaled-font.c(2855): warning C4311: 'type cast': pointer truncation from 'cairo_scaled_font_t *' to 'unsigned long'
+  cairo-shape-mask-compositor.c
+  cairo-slope.c
+  Compiling...
+  cairo-spans-compositor.c
+  cairo-spans.c
+  cairo-spline.c
+  cairo-stroke-dash.c
+  cairo-stroke-style.c
+  cairo-surface-clipper.c
+  cairo-surface-fallback.c
+  cairo-surface-observer.c
+  cairo-surface-offset.c
+  cairo-surface-snapshot.c
+  cairo-surface-subsurface.c
+  cairo-surface-wrapper.c
+  cairo-surface.c
+  cairo-time.c
+  cairo-tor-scan-converter.c
+  cairo-tor22-scan-converter.c
+  cairo-toy-font-face.c
+  cairo-traps-compositor.c
+  cairo-traps.c
+  cairo-tristrip.c
+  Compiling...
+  cairo-unicode.c
+  cairo-user-font.c
+  cairo-version.c
+  cairo-wideint.c
+  cairo.c
+c:\usr\w32\extk-1.1\cairo-1.14.2\src\cairo.c(3224): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
+c:\usr\w32\extk-1.1\cairo-1.14.2\src\cairo.c(3389): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
+  libcairo.vcxproj -> C:\usr\w32\extk-1.1\build-w32\libcairo\x64\Release\libcairo.lib
+  0개 파일이 복사되었습니다.
+  0개 파일이 복사되었습니다.
+  0개 파일이 복사되었습니다.
+  x64\Release\libcairo.lib
+  1개 파일이 복사되었습니다.

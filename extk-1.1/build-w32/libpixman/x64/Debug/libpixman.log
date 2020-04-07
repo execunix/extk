@@ -1,0 +1,43 @@
+﻿  pixman-access-accessors.c
+  pixman-access.c
+  pixman-arm.c
+  pixman-bits-image.c
+  pixman-combine-float.c
+c:\usr\w32\extk-1.1\pixman-0.32.6\pixman\pixman-combine-float.c : warning C4819: The file contains a character that cannot be represented in the current code page (949). Save the file in Unicode format to prevent data loss
+  pixman-combine32.c
+c:\usr\w32\extk-1.1\pixman-0.32.6\pixman\pixman-combine32.c : warning C4819: The file contains a character that cannot be represented in the current code page (949). Save the file in Unicode format to prevent data loss
+  pixman-conical-gradient.c
+  pixman-edge-accessors.c
+  pixman-edge.c
+  pixman-fast-path.c
+  pixman-filter.c
+  pixman-general.c
+  pixman-glyph.c
+c:\usr\w32\extk-1.1\pixman-0.32.6\pixman\pixman-glyph.c(91): warning C4267: 'return': conversion from 'size_t' to 'unsigned int', possible loss of data
+  pixman-gradient-walker.c
+  pixman-image.c
+  pixman-implementation.c
+  pixman-linear-gradient.c
+  pixman-matrix.c
+c:\usr\w32\extk-1.1\pixman-0.32.6\pixman\pixman-matrix.c(120): warning C4146: unary minus operator applied to unsigned type, result still unsigned
+c:\usr\w32\extk-1.1\pixman-0.32.6\pixman\pixman-matrix.c(128): warning C4146: unary minus operator applied to unsigned type, result still unsigned
+c:\usr\w32\extk-1.1\pixman-0.32.6\pixman\pixman-matrix.c(129): warning C4146: unary minus operator applied to unsigned type, result still unsigned
+  pixman-mmx.c
+  pixman-noop.c
+  Generating Code...
+  Compiling...
+  pixman-radial-gradient.c
+c:\usr\w32\extk-1.1\pixman-0.32.6\pixman\pixman-radial-gradient.c : warning C4819: The file contains a character that cannot be represented in the current code page (949). Save the file in Unicode format to prevent data loss
+  pixman-region16.c
+  pixman-region32.c
+  pixman-solid-fill.c
+  pixman-timer.c
+  pixman-trap.c
+  pixman-utils.c
+  pixman.c
+  Generating Code...
+  libpixman.vcxproj -> C:\usr\w32\extk-1.1\build-w32\libpixman\x64\Debug\libpixman.lib
+  0개 파일이 복사되었습니다.
+  0개 파일이 복사되었습니다.
+  x64\Debug\libpixman.lib
+  1개 파일이 복사되었습니다.

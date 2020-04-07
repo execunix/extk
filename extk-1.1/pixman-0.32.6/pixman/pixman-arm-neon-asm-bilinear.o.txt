@@ -1,0 +1,2894 @@
+
+pixman-arm-neon-asm-bilinear.o:     file format elf32-littlearm
+pixman-arm-neon-asm-bilinear.o
+architecture: armv4, flags 0x00000011:
+HAS_RELOC, HAS_SYMS
+start address 0x00000000
+private flags = 5000000: [Version5 EABI]
+
+Sections:
+Idx Name          Size      VMA       LMA       File off  Algn
+  0 .text         00002bfc  00000000  00000000  00000034  2**2
+                  CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
+  1 .data         00000000  00000000  00000000  00002c30  2**0
+                  CONTENTS, ALLOC, LOAD, DATA
+  2 .bss          00000000  00000000  00000000  00002c30  2**0
+                  ALLOC
+  3 .ARM.attributes 00000018  00000000  00000000  00002c30  2**0
+                  CONTENTS, READONLY
+SYMBOL TABLE:
+00000000 l    d  .text	00000000 .text
+00000000 l    d  .data	00000000 .data
+00000000 l    d  .bss	00000000 .bss
+00000000 l       *ABS*	00000000 FLAG_DST_WRITEONLY
+00000001 l       *ABS*	00000000 FLAG_DST_READWRITE
+00000002 l       *ABS*	00000000 FLAG_DEINTERLEAVE_32BPP
+00000028 l       *ABS*	00000000 ARGS_STACK_OFFSET
+00000000 l       *ABS*	00000000 PREFETCH_TYPE_NONE
+00000001 l       *ABS*	00000000 PREFETCH_TYPE_SIMPLE
+00000002 l       *ABS*	00000000 PREFETCH_TYPE_ADVANCED
+00000001 l       *ABS*	00000000 BILINEAR_FLAG_USE_MASK
+00000002 l       *ABS*	00000000 BILINEAR_FLAG_USE_ALL_NEON_REGS
+0000001c l       *ABS*	00000000 prefetch_offset
+00000000 l    d  .ARM.attributes	00000000 .ARM.attributes
+00000000 g     F .text	00000000 .hidden pixman_scaled_bilinear_scanline_8888_8_8888_SRC_asm_neon
+000004f4 g     F .text	00000000 .hidden pixman_scaled_bilinear_scanline_8888_8_0565_SRC_asm_neon
+00000ac0 g     F .text	00000000 .hidden pixman_scaled_bilinear_scanline_0565_8_x888_SRC_asm_neon
+000010e4 g     F .text	00000000 .hidden pixman_scaled_bilinear_scanline_0565_8_0565_SRC_asm_neon
+000017e0 g     F .text	00000000 .hidden pixman_scaled_bilinear_scanline_8888_8888_OVER_asm_neon
+00001cfc g     F .text	00000000 .hidden pixman_scaled_bilinear_scanline_8888_8_8888_OVER_asm_neon
+000022ec g     F .text	00000000 .hidden pixman_scaled_bilinear_scanline_8888_8888_ADD_asm_neon
+000026c0 g     F .text	00000000 .hidden pixman_scaled_bilinear_scanline_8888_8_8888_ADD_asm_neon
+
+
+
+Disassembly of section .text:
+
+00000000 <pixman_scaled_bilinear_scanline_8888_8_8888_SRC_asm_neon>:
+       0:	e1a0c00d 	mov	ip, sp
+       4:	e92d17f0 	push	{r4, r5, r6, r7, r8, r9, sl, ip}
+       8:	e3a0801c 	mov	r8, #28
+       c:	e89c10f0 	ldm	ip, {r4, r5, r6, r7, ip}
+      10:	e0080798 	mul	r8, r8, r7
+      14:	e0433002 	sub	r3, r3, r2
+      18:	e35c0000 	cmp	ip, #0
+      1c:	da000132 	ble	4ec <pixman_scaled_bilinear_scanline_8888_8_8888_SRC_asm_neon+0x4ec>
+      20:	eea86bb0 	vdup.16	q12, r6
+      24:	eeaa7bb0 	vdup.16	q13, r7
+      28:	eecc4b90 	vdup.8	d28, r4
+      2c:	eecd5b90 	vdup.8	d29, r5
+      30:	f25998aa 	vadd.i16	d25, d25, d26
+      34:	e35c0001 	cmp	ip, #1
+      38:	ba000020 	blt	c0 <pixman_scaled_bilinear_scanline_8888_8_8888_SRC_asm_neon+0xc0>
+      3c:	e3100004 	tst	r0, #4
+      40:	0a00001e 	beq	c0 <pixman_scaled_bilinear_scanline_8888_8_8888_SRC_asm_neon+0xc0>
+      44:	f3d7e078 	vshr.u16	q15, q12, #9
+      48:	f25888ea 	vadd.i16	q12, q12, q13
+      4c:	e1a04846 	asr	r4, r6, #16
+      50:	e0866007 	add	r6, r6, r7
+      54:	e0824104 	add	r4, r2, r4, lsl #2
+      58:	f4240783 	vld1.32	{d0}, [r4], r3
+      5c:	f424178f 	vld1.32	{d1}, [r4]
+      60:	f4a1400d 	vld1.8	{d4[0]}, [r1]!
+      64:	f5d1f01c 	pld	[r1, #28]
+      68:	f3802c2c 	vmull.u8	q1, d0, d28
+      6c:	f381282d 	vmlal.u8	q1, d1, d29
+      70:	f3970a12 	vshll.u16	d0, q1, #7
+      74:	f3920a2e 	vmlsl.u16	q0, d2, d30
+      78:	f393082e 	vmlal.u16	q0, d3, d30
+      7c:	f3b14c04 	vdup.8	d4, d4[0]
+      80:	f2920810 	vshrn.i32	d0, q0, #14
+      84:	f3b20200 	vmovn.i16	d0, q0
+      88:	f3b20101 	vuzp.8	d0, d1
+      8c:	f3f22123 	vuzp.8	d18, d19
+      90:	f3b20101 	vuzp.8	d0, d1
+      94:	f3f22123 	vuzp.8	d18, d19
+      98:	f3806c04 	vmull.u8	q3, d0, d4
+      9c:	f3c10c04 	vmull.u8	q8, d1, d4
+      a0:	f3d84256 	vrshr.u16	q10, q3, #8
+      a4:	f3d86270 	vrshr.u16	q11, q8, #8
+      a8:	f3840486 	vraddhn.i16	d0, q10, q3
+      ac:	f38614a0 	vraddhn.i16	d1, q11, q8
+      b0:	f3b20101 	vuzp.8	d0, d1
+      b4:	f3b20101 	vuzp.8	d0, d1
+      b8:	f480083d 	vst1.32	{d0[0]}, [r0 :32]!
+      bc:	e24cc001 	sub	ip, ip, #1
+      c0:	f25aa8ea 	vadd.i16	q13, q13, q13
+      c4:	f3d7e078 	vshr.u16	q15, q12, #9
+      c8:	f25888ea 	vadd.i16	q12, q12, q13
+      cc:	e35c0002 	cmp	ip, #2
+      d0:	ba00002b 	blt	184 <pixman_scaled_bilinear_scanline_8888_8_8888_SRC_asm_neon+0x184>
+      d4:	e3100008 	tst	r0, #8
+      d8:	0a000029 	beq	184 <pixman_scaled_bilinear_scanline_8888_8_8888_SRC_asm_neon+0x184>
+      dc:	e1a04846 	asr	r4, r6, #16
+      e0:	e0866007 	add	r6, r6, r7
+      e4:	e0824104 	add	r4, r2, r4, lsl #2
+      e8:	f4240783 	vld1.32	{d0}, [r4], r3
+      ec:	f424178f 	vld1.32	{d1}, [r4]
+      f0:	f3802c2c 	vmull.u8	q1, d0, d28
+      f4:	f381282d 	vmlal.u8	q1, d1, d29
+      f8:	e1a04846 	asr	r4, r6, #16
+      fc:	e0866007 	add	r6, r6, r7
+     100:	e0824104 	add	r4, r2, r4, lsl #2
+     104:	f4644783 	vld1.32	{d20}, [r4], r3
+     108:	f464578f 	vld1.32	{d21}, [r4]
+     10c:	f3c46cac 	vmull.u8	q11, d20, d28
+     110:	f3c568ad 	vmlal.u8	q11, d21, d29
+     114:	f4a1440d 	vld1.16	{d4[0]}, [r1]!
+     118:	f5d1f01c 	pld	[r1, #28]
+     11c:	f3970a12 	vshll.u16	d0, q1, #7
+     120:	f3920a2e 	vmlsl.u16	q0, d2, d30
+     124:	f393082e 	vmlal.u16	q0, d3, d30
+     128:	f3d74a36 	vshll.u16	d20, q11, #7
+     12c:	f3d64aaf 	vmlsl.u16	q10, d22, d31
+     130:	f3d748af 	vmlal.u16	q10, d23, d31
+     134:	f2920810 	vshrn.i32	d0, q0, #14
+     138:	f2921834 	vshrn.i32	d1, q10, #14
+     13c:	f3b24c04 	vdup.16	d4, d4[0]
+     140:	f3d7e078 	vshr.u16	q15, q12, #9
+     144:	f25888ea 	vadd.i16	q12, q12, q13
+     148:	f3b20200 	vmovn.i16	d0, q0
+     14c:	f3b20101 	vuzp.8	d0, d1
+     150:	f3f22123 	vuzp.8	d18, d19
+     154:	f3b20101 	vuzp.8	d0, d1
+     158:	f3f22123 	vuzp.8	d18, d19
+     15c:	f3806c04 	vmull.u8	q3, d0, d4
+     160:	f3c10c04 	vmull.u8	q8, d1, d4
+     164:	f3d84256 	vrshr.u16	q10, q3, #8
+     168:	f3d86270 	vrshr.u16	q11, q8, #8
+     16c:	f3840486 	vraddhn.i16	d0, q10, q3
+     170:	f38614a0 	vraddhn.i16	d1, q11, q8
+     174:	f3b20101 	vuzp.8	d0, d1
+     178:	f3b20101 	vuzp.8	d0, d1
+     17c:	f400078d 	vst1.32	{d0}, [r0]!
+     180:	e24cc002 	sub	ip, ip, #2
+     184:	e25cc004 	subs	ip, ip, #4
+     188:	ba00008e 	blt	3c8 <pixman_scaled_bilinear_scanline_8888_8_8888_SRC_asm_neon+0x3c8>
+     18c:	e1a08748 	asr	r8, r8, #14
+     190:	e1a04846 	asr	r4, r6, #16
+     194:	e0866007 	add	r6, r6, r7
+     198:	e0824104 	add	r4, r2, r4, lsl #2
+     19c:	f4240783 	vld1.32	{d0}, [r4], r3
+     1a0:	f424178f 	vld1.32	{d1}, [r4]
+     1a4:	f3802c2c 	vmull.u8	q1, d0, d28
+     1a8:	f381282d 	vmlal.u8	q1, d1, d29
+     1ac:	e1a04846 	asr	r4, r6, #16
+     1b0:	e0866007 	add	r6, r6, r7
+     1b4:	e0824104 	add	r4, r2, r4, lsl #2
+     1b8:	f4644783 	vld1.32	{d20}, [r4], r3
+     1bc:	f464578f 	vld1.32	{d21}, [r4]
+     1c0:	f3c46cac 	vmull.u8	q11, d20, d28
+     1c4:	f3c568ad 	vmlal.u8	q11, d21, d29
+     1c8:	e1a04846 	asr	r4, r6, #16
+     1cc:	e0866007 	add	r6, r6, r7
+     1d0:	e0824104 	add	r4, r2, r4, lsl #2
+     1d4:	f4244783 	vld1.32	{d4}, [r4], r3
+     1d8:	f424578f 	vld1.32	{d5}, [r4]
+     1dc:	f3846c2c 	vmull.u8	q3, d4, d28
+     1e0:	f385682d 	vmlal.u8	q3, d5, d29
+     1e4:	e1a04846 	asr	r4, r6, #16
+     1e8:	e0866007 	add	r6, r6, r7
+     1ec:	e0824104 	add	r4, r2, r4, lsl #2
+     1f0:	f4640783 	vld1.32	{d16}, [r4], r3
+     1f4:	f464178f 	vld1.32	{d17}, [r4]
+     1f8:	f3c02cac 	vmull.u8	q9, d16, d28
+     1fc:	f3c128ad 	vmlal.u8	q9, d17, d29
+     200:	f7d4f008 	pld	[r4, r8]
+     204:	e0444003 	sub	r4, r4, r3
+     208:	f3970a12 	vshll.u16	d0, q1, #7
+     20c:	f3920a2e 	vmlsl.u16	q0, d2, d30
+     210:	f393082e 	vmlal.u16	q0, d3, d30
+     214:	f3d74a36 	vshll.u16	d20, q11, #7
+     218:	f3d64aaf 	vmlsl.u16	q10, d22, d31
+     21c:	f3d748af 	vmlal.u16	q10, d23, d31
+     220:	f3d7e078 	vshr.u16	q15, q12, #9
+     224:	f3974a16 	vshll.u16	d4, q3, #7
+     228:	f3964a2e 	vmlsl.u16	q2, d6, d30
+     22c:	f397482e 	vmlal.u16	q2, d7, d30
+     230:	f3d70a32 	vshll.u16	d16, q9, #7
+     234:	f4e1680d 	vld1.32	{d22[0]}, [r1]!
+     238:	f5d1f01c 	pld	[r1, #28]
+     23c:	f7d4f008 	pld	[r4, r8]
+     240:	f3d20aaf 	vmlsl.u16	q8, d18, d31
+     244:	f3d308af 	vmlal.u16	q8, d19, d31
+     248:	f25888ea 	vadd.i16	q12, q12, q13
+     24c:	f2920810 	vshrn.i32	d0, q0, #14
+     250:	f2921834 	vshrn.i32	d1, q10, #14
+     254:	f2924814 	vshrn.i32	d4, q2, #14
+     258:	f2925830 	vshrn.i32	d5, q8, #14
+     25c:	f3f46c26 	vdup.32	d22, d22[0]
+     260:	f3d7e078 	vshr.u16	q15, q12, #9
+     264:	f3b20200 	vmovn.i16	d0, q0
+     268:	f3b21204 	vmovn.i16	d1, q2
+     26c:	f25888ea 	vadd.i16	q12, q12, q13
+     270:	f3b20101 	vuzp.8	d0, d1
+     274:	f3b22103 	vuzp.8	d2, d3
+     278:	f3b20101 	vuzp.8	d0, d1
+     27c:	f3b22103 	vuzp.8	d2, d3
+     280:	f3806c26 	vmull.u8	q3, d0, d22
+     284:	f3c10c26 	vmull.u8	q8, d1, d22
+     288:	f3d82256 	vrshr.u16	q9, q3, #8
+     28c:	f3d84270 	vrshr.u16	q10, q8, #8
+     290:	f3820486 	vraddhn.i16	d0, q9, q3
+     294:	f38414a0 	vraddhn.i16	d1, q10, q8
+     298:	f3b20101 	vuzp.8	d0, d1
+     29c:	f3b20101 	vuzp.8	d0, d1
+     2a0:	f4000a8d 	vst1.32	{d0-d1}, [r0]!
+     2a4:	e25cc004 	subs	ip, ip, #4
+     2a8:	ba000046 	blt	3c8 <pixman_scaled_bilinear_scanline_8888_8_8888_SRC_asm_neon+0x3c8>
+     2ac:	e1a04846 	asr	r4, r6, #16
+     2b0:	e0866007 	add	r6, r6, r7
+     2b4:	e0824104 	add	r4, r2, r4, lsl #2
+     2b8:	f4240783 	vld1.32	{d0}, [r4], r3
+     2bc:	f424178f 	vld1.32	{d1}, [r4]
+     2c0:	f3802c2c 	vmull.u8	q1, d0, d28
+     2c4:	f381282d 	vmlal.u8	q1, d1, d29
+     2c8:	e1a04846 	asr	r4, r6, #16
+     2cc:	e0866007 	add	r6, r6, r7
+     2d0:	e0824104 	add	r4, r2, r4, lsl #2
+     2d4:	f4644783 	vld1.32	{d20}, [r4], r3
+     2d8:	f464578f 	vld1.32	{d21}, [r4]
+     2dc:	f3c46cac 	vmull.u8	q11, d20, d28
+     2e0:	f3c568ad 	vmlal.u8	q11, d21, d29
+     2e4:	e1a04846 	asr	r4, r6, #16
+     2e8:	e0866007 	add	r6, r6, r7
+     2ec:	e0824104 	add	r4, r2, r4, lsl #2
+     2f0:	f4244783 	vld1.32	{d4}, [r4], r3
+     2f4:	f424578f 	vld1.32	{d5}, [r4]
+     2f8:	f3846c2c 	vmull.u8	q3, d4, d28
+     2fc:	f385682d 	vmlal.u8	q3, d5, d29
+     300:	e1a04846 	asr	r4, r6, #16
+     304:	e0866007 	add	r6, r6, r7
+     308:	e0824104 	add	r4, r2, r4, lsl #2
+     30c:	f4640783 	vld1.32	{d16}, [r4], r3
+     310:	f464178f 	vld1.32	{d17}, [r4]
+     314:	f3c02cac 	vmull.u8	q9, d16, d28
+     318:	f3c128ad 	vmlal.u8	q9, d17, d29
+     31c:	f7d4f008 	pld	[r4, r8]
+     320:	e0444003 	sub	r4, r4, r3
+     324:	f3970a12 	vshll.u16	d0, q1, #7
+     328:	f3920a2e 	vmlsl.u16	q0, d2, d30
+     32c:	f393082e 	vmlal.u16	q0, d3, d30
+     330:	f3d74a36 	vshll.u16	d20, q11, #7
+     334:	f3d64aaf 	vmlsl.u16	q10, d22, d31
+     338:	f3d748af 	vmlal.u16	q10, d23, d31
+     33c:	f3d7e078 	vshr.u16	q15, q12, #9
+     340:	f3974a16 	vshll.u16	d4, q3, #7
+     344:	f3964a2e 	vmlsl.u16	q2, d6, d30
+     348:	f397482e 	vmlal.u16	q2, d7, d30
+     34c:	f3d70a32 	vshll.u16	d16, q9, #7
+     350:	f4e1680d 	vld1.32	{d22[0]}, [r1]!
+     354:	f5d1f01c 	pld	[r1, #28]
+     358:	f7d4f008 	pld	[r4, r8]
+     35c:	f3d20aaf 	vmlsl.u16	q8, d18, d31
+     360:	f3d308af 	vmlal.u16	q8, d19, d31
+     364:	f25888ea 	vadd.i16	q12, q12, q13
+     368:	f2920810 	vshrn.i32	d0, q0, #14
+     36c:	f2921834 	vshrn.i32	d1, q10, #14
+     370:	f2924814 	vshrn.i32	d4, q2, #14
+     374:	f2925830 	vshrn.i32	d5, q8, #14
+     378:	f3f46c26 	vdup.32	d22, d22[0]
+     37c:	f3d7e078 	vshr.u16	q15, q12, #9
+     380:	f3b20200 	vmovn.i16	d0, q0
+     384:	f3b21204 	vmovn.i16	d1, q2
+     388:	f25888ea 	vadd.i16	q12, q12, q13
+     38c:	f3b20101 	vuzp.8	d0, d1
+     390:	f3b22103 	vuzp.8	d2, d3
+     394:	f3b20101 	vuzp.8	d0, d1
+     398:	f3b22103 	vuzp.8	d2, d3
+     39c:	f3806c26 	vmull.u8	q3, d0, d22
+     3a0:	f3c10c26 	vmull.u8	q8, d1, d22
+     3a4:	f3d82256 	vrshr.u16	q9, q3, #8
+     3a8:	f3d84270 	vrshr.u16	q10, q8, #8
+     3ac:	f3820486 	vraddhn.i16	d0, q9, q3
+     3b0:	f38414a0 	vraddhn.i16	d1, q10, q8
+     3b4:	f3b20101 	vuzp.8	d0, d1
+     3b8:	f3b20101 	vuzp.8	d0, d1
+     3bc:	f4000a8d 	vst1.32	{d0-d1}, [r0]!
+     3c0:	e25cc004 	subs	ip, ip, #4
+     3c4:	aaffffb8 	bge	2ac <pixman_scaled_bilinear_scanline_8888_8_8888_SRC_asm_neon+0x2ac>
+     3c8:	e31c0002 	tst	ip, #2
+     3cc:	0a000028 	beq	474 <pixman_scaled_bilinear_scanline_8888_8_8888_SRC_asm_neon+0x474>
+     3d0:	e1a04846 	asr	r4, r6, #16
+     3d4:	e0866007 	add	r6, r6, r7
+     3d8:	e0824104 	add	r4, r2, r4, lsl #2
+     3dc:	f4240783 	vld1.32	{d0}, [r4], r3
+     3e0:	f424178f 	vld1.32	{d1}, [r4]
+     3e4:	f3802c2c 	vmull.u8	q1, d0, d28
+     3e8:	f381282d 	vmlal.u8	q1, d1, d29
+     3ec:	e1a04846 	asr	r4, r6, #16
+     3f0:	e0866007 	add	r6, r6, r7
+     3f4:	e0824104 	add	r4, r2, r4, lsl #2
+     3f8:	f4644783 	vld1.32	{d20}, [r4], r3
+     3fc:	f464578f 	vld1.32	{d21}, [r4]
+     400:	f3c46cac 	vmull.u8	q11, d20, d28
+     404:	f3c568ad 	vmlal.u8	q11, d21, d29
+     408:	f4a1440d 	vld1.16	{d4[0]}, [r1]!
+     40c:	f5d1f01c 	pld	[r1, #28]
+     410:	f3970a12 	vshll.u16	d0, q1, #7
+     414:	f3920a2e 	vmlsl.u16	q0, d2, d30
+     418:	f393082e 	vmlal.u16	q0, d3, d30
+     41c:	f3d74a36 	vshll.u16	d20, q11, #7
+     420:	f3d64aaf 	vmlsl.u16	q10, d22, d31
+     424:	f3d748af 	vmlal.u16	q10, d23, d31
+     428:	f2920810 	vshrn.i32	d0, q0, #14
+     42c:	f2921834 	vshrn.i32	d1, q10, #14
+     430:	f3b24c04 	vdup.16	d4, d4[0]
+     434:	f3d7e078 	vshr.u16	q15, q12, #9
+     438:	f25888ea 	vadd.i16	q12, q12, q13
+     43c:	f3b20200 	vmovn.i16	d0, q0
+     440:	f3b20101 	vuzp.8	d0, d1
+     444:	f3f22123 	vuzp.8	d18, d19
+     448:	f3b20101 	vuzp.8	d0, d1
+     44c:	f3f22123 	vuzp.8	d18, d19
+     450:	f3806c04 	vmull.u8	q3, d0, d4
+     454:	f3c10c04 	vmull.u8	q8, d1, d4
+     458:	f3d84256 	vrshr.u16	q10, q3, #8
+     45c:	f3d86270 	vrshr.u16	q11, q8, #8
+     460:	f3840486 	vraddhn.i16	d0, q10, q3
+     464:	f38614a0 	vraddhn.i16	d1, q11, q8
+     468:	f3b20101 	vuzp.8	d0, d1
+     46c:	f3b20101 	vuzp.8	d0, d1
+     470:	f400078d 	vst1.32	{d0}, [r0]!
+     474:	e31c0001 	tst	ip, #1
+     478:	0a00001b 	beq	4ec <pixman_scaled_bilinear_scanline_8888_8_8888_SRC_asm_neon+0x4ec>
+     47c:	e1a04846 	asr	r4, r6, #16
+     480:	e0866007 	add	r6, r6, r7
+     484:	e0824104 	add	r4, r2, r4, lsl #2
+     488:	f4240783 	vld1.32	{d0}, [r4], r3
+     48c:	f424178f 	vld1.32	{d1}, [r4]
+     490:	f4a1400d 	vld1.8	{d4[0]}, [r1]!
+     494:	f5d1f01c 	pld	[r1, #28]
+     498:	f3802c2c 	vmull.u8	q1, d0, d28
+     49c:	f381282d 	vmlal.u8	q1, d1, d29
+     4a0:	f3970a12 	vshll.u16	d0, q1, #7
+     4a4:	f3920a2e 	vmlsl.u16	q0, d2, d30
+     4a8:	f393082e 	vmlal.u16	q0, d3, d30
+     4ac:	f3b14c04 	vdup.8	d4, d4[0]
+     4b0:	f2920810 	vshrn.i32	d0, q0, #14
+     4b4:	f3b20200 	vmovn.i16	d0, q0
+     4b8:	f3b20101 	vuzp.8	d0, d1
+     4bc:	f3f22123 	vuzp.8	d18, d19
+     4c0:	f3b20101 	vuzp.8	d0, d1
+     4c4:	f3f22123 	vuzp.8	d18, d19
+     4c8:	f3806c04 	vmull.u8	q3, d0, d4
+     4cc:	f3c10c04 	vmull.u8	q8, d1, d4
+     4d0:	f3d84256 	vrshr.u16	q10, q3, #8
+     4d4:	f3d86270 	vrshr.u16	q11, q8, #8
+     4d8:	f3840486 	vraddhn.i16	d0, q10, q3
+     4dc:	f38614a0 	vraddhn.i16	d1, q11, q8
+     4e0:	f3b20101 	vuzp.8	d0, d1
+     4e4:	f3b20101 	vuzp.8	d0, d1
+     4e8:	f480083d 	vst1.32	{d0[0]}, [r0 :32]!
+     4ec:	e8bd17f0 	pop	{r4, r5, r6, r7, r8, r9, sl, ip}
+     4f0:	e12fff1e 	bx	lr
+			4f0: R_ARM_V4BX	*ABS*
+
+000004f4 <pixman_scaled_bilinear_scanline_8888_8_0565_SRC_asm_neon>:
+     4f4:	e1a0c00d 	mov	ip, sp
+     4f8:	e92d17f0 	push	{r4, r5, r6, r7, r8, r9, sl, ip}
+     4fc:	e3a0801c 	mov	r8, #28
+     500:	e89c10f0 	ldm	ip, {r4, r5, r6, r7, ip}
+     504:	e0080798 	mul	r8, r8, r7
+     508:	e0433002 	sub	r3, r3, r2
+     50c:	e35c0000 	cmp	ip, #0
+     510:	da000168 	ble	ab8 <pixman_scaled_bilinear_scanline_8888_8_0565_SRC_asm_neon+0x5c4>
+     514:	eea86bb0 	vdup.16	q12, r6
+     518:	eeaa7bb0 	vdup.16	q13, r7
+     51c:	eecc4b90 	vdup.8	d28, r4
+     520:	eecd5b90 	vdup.8	d29, r5
+     524:	f25998aa 	vadd.i16	d25, d25, d26
+     528:	e35c0001 	cmp	ip, #1
+     52c:	ba000029 	blt	5d8 <pixman_scaled_bilinear_scanline_8888_8_0565_SRC_asm_neon+0xe4>
+     530:	e3100002 	tst	r0, #2
+     534:	0a000027 	beq	5d8 <pixman_scaled_bilinear_scanline_8888_8_0565_SRC_asm_neon+0xe4>
+     538:	f3d7e078 	vshr.u16	q15, q12, #9
+     53c:	f25888ea 	vadd.i16	q12, q12, q13
+     540:	e1a04846 	asr	r4, r6, #16
+     544:	e0866007 	add	r6, r6, r7
+     548:	e0824104 	add	r4, r2, r4, lsl #2
+     54c:	f4240783 	vld1.32	{d0}, [r4], r3
+     550:	f424178f 	vld1.32	{d1}, [r4]
+     554:	f4a1400d 	vld1.8	{d4[0]}, [r1]!
+     558:	f5d1f01c 	pld	[r1, #28]
+     55c:	f3802c2c 	vmull.u8	q1, d0, d28
+     560:	f381282d 	vmlal.u8	q1, d1, d29
+     564:	f3970a12 	vshll.u16	d0, q1, #7
+     568:	f3920a2e 	vmlsl.u16	q0, d2, d30
+     56c:	f393082e 	vmlal.u16	q0, d3, d30
+     570:	f3b14c04 	vdup.8	d4, d4[0]
+     574:	f2920810 	vshrn.i32	d0, q0, #14
+     578:	f3b20200 	vmovn.i16	d0, q0
+     57c:	f3b20101 	vuzp.8	d0, d1
+     580:	f3f22123 	vuzp.8	d18, d19
+     584:	f3b20101 	vuzp.8	d0, d1
+     588:	f3f22123 	vuzp.8	d18, d19
+     58c:	f3806c04 	vmull.u8	q3, d0, d4
+     590:	f3c10c04 	vmull.u8	q8, d1, d4
+     594:	f3d84256 	vrshr.u16	q10, q3, #8
+     598:	f3d86270 	vrshr.u16	q11, q8, #8
+     59c:	f3840486 	vraddhn.i16	d0, q10, q3
+     5a0:	f38614a0 	vraddhn.i16	d1, q11, q8
+     5a4:	f3b20101 	vuzp.8	d0, d1
+     5a8:	f3b20101 	vuzp.8	d0, d1
+     5ac:	f3b20101 	vuzp.8	d0, d1
+     5b0:	f3b22103 	vuzp.8	d2, d3
+     5b4:	f3b21103 	vuzp.8	d1, d3
+     5b8:	f3b20102 	vuzp.8	d0, d2
+     5bc:	f3b24301 	vshll.i8	q2, d1, #8
+     5c0:	f3b22302 	vshll.i8	q1, d2, #8
+     5c4:	f3b26300 	vshll.i8	q3, d0, #8
+     5c8:	f39b2454 	vsri.16	q1, q2, #5
+     5cc:	f3952456 	vsri.16	q1, q3, #11
+     5d0:	f480240d 	vst1.16	{d2[0]}, [r0]!
+     5d4:	e24cc001 	sub	ip, ip, #1
+     5d8:	f25aa8ea 	vadd.i16	q13, q13, q13
+     5dc:	f3d7e078 	vshr.u16	q15, q12, #9
+     5e0:	f25888ea 	vadd.i16	q12, q12, q13
+     5e4:	e35c0002 	cmp	ip, #2
+     5e8:	ba000034 	blt	6c0 <pixman_scaled_bilinear_scanline_8888_8_0565_SRC_asm_neon+0x1cc>
+     5ec:	e3100004 	tst	r0, #4
+     5f0:	0a000032 	beq	6c0 <pixman_scaled_bilinear_scanline_8888_8_0565_SRC_asm_neon+0x1cc>
+     5f4:	e1a04846 	asr	r4, r6, #16
+     5f8:	e0866007 	add	r6, r6, r7
+     5fc:	e0824104 	add	r4, r2, r4, lsl #2
+     600:	f4240783 	vld1.32	{d0}, [r4], r3
+     604:	f424178f 	vld1.32	{d1}, [r4]
+     608:	f3802c2c 	vmull.u8	q1, d0, d28
+     60c:	f381282d 	vmlal.u8	q1, d1, d29
+     610:	e1a04846 	asr	r4, r6, #16
+     614:	e0866007 	add	r6, r6, r7
+     618:	e0824104 	add	r4, r2, r4, lsl #2
+     61c:	f4644783 	vld1.32	{d20}, [r4], r3
+     620:	f464578f 	vld1.32	{d21}, [r4]
+     624:	f3c46cac 	vmull.u8	q11, d20, d28
+     628:	f3c568ad 	vmlal.u8	q11, d21, d29
+     62c:	f4a1440d 	vld1.16	{d4[0]}, [r1]!
+     630:	f5d1f01c 	pld	[r1, #28]
+     634:	f3970a12 	vshll.u16	d0, q1, #7
+     638:	f3920a2e 	vmlsl.u16	q0, d2, d30
+     63c:	f393082e 	vmlal.u16	q0, d3, d30
+     640:	f3d74a36 	vshll.u16	d20, q11, #7
+     644:	f3d64aaf 	vmlsl.u16	q10, d22, d31
+     648:	f3d748af 	vmlal.u16	q10, d23, d31
+     64c:	f2920810 	vshrn.i32	d0, q0, #14
+     650:	f2921834 	vshrn.i32	d1, q10, #14
+     654:	f3b24c04 	vdup.16	d4, d4[0]
+     658:	f3d7e078 	vshr.u16	q15, q12, #9
+     65c:	f25888ea 	vadd.i16	q12, q12, q13
+     660:	f3b20200 	vmovn.i16	d0, q0
+     664:	f3b20101 	vuzp.8	d0, d1
+     668:	f3f22123 	vuzp.8	d18, d19
+     66c:	f3b20101 	vuzp.8	d0, d1
+     670:	f3f22123 	vuzp.8	d18, d19
+     674:	f3806c04 	vmull.u8	q3, d0, d4
+     678:	f3c10c04 	vmull.u8	q8, d1, d4
+     67c:	f3d84256 	vrshr.u16	q10, q3, #8
+     680:	f3d86270 	vrshr.u16	q11, q8, #8
+     684:	f3840486 	vraddhn.i16	d0, q10, q3
+     688:	f38614a0 	vraddhn.i16	d1, q11, q8
+     68c:	f3b20101 	vuzp.8	d0, d1
+     690:	f3b20101 	vuzp.8	d0, d1
+     694:	f3b20101 	vuzp.8	d0, d1
+     698:	f3b22103 	vuzp.8	d2, d3
+     69c:	f3b21103 	vuzp.8	d1, d3
+     6a0:	f3b20102 	vuzp.8	d0, d2
+     6a4:	f3b24301 	vshll.i8	q2, d1, #8
+     6a8:	f3b22302 	vshll.i8	q1, d2, #8
+     6ac:	f3b26300 	vshll.i8	q3, d0, #8
+     6b0:	f39b2454 	vsri.16	q1, q2, #5
+     6b4:	f3952456 	vsri.16	q1, q3, #11
+     6b8:	f480280d 	vst1.32	{d2[0]}, [r0]!
+     6bc:	e24cc002 	sub	ip, ip, #2
+     6c0:	e25cc004 	subs	ip, ip, #4
+     6c4:	ba0000a0 	blt	94c <pixman_scaled_bilinear_scanline_8888_8_0565_SRC_asm_neon+0x458>
+     6c8:	e1a08748 	asr	r8, r8, #14
+     6cc:	e1a04846 	asr	r4, r6, #16
+     6d0:	e0866007 	add	r6, r6, r7
+     6d4:	e0824104 	add	r4, r2, r4, lsl #2
+     6d8:	f4240783 	vld1.32	{d0}, [r4], r3
+     6dc:	f424178f 	vld1.32	{d1}, [r4]
+     6e0:	f3802c2c 	vmull.u8	q1, d0, d28
+     6e4:	f381282d 	vmlal.u8	q1, d1, d29
+     6e8:	e1a04846 	asr	r4, r6, #16
+     6ec:	e0866007 	add	r6, r6, r7
+     6f0:	e0824104 	add	r4, r2, r4, lsl #2
+     6f4:	f4644783 	vld1.32	{d20}, [r4], r3
+     6f8:	f464578f 	vld1.32	{d21}, [r4]
+     6fc:	f3c46cac 	vmull.u8	q11, d20, d28
+     700:	f3c568ad 	vmlal.u8	q11, d21, d29
+     704:	e1a04846 	asr	r4, r6, #16
+     708:	e0866007 	add	r6, r6, r7
+     70c:	e0824104 	add	r4, r2, r4, lsl #2
+     710:	f4244783 	vld1.32	{d4}, [r4], r3
+     714:	f424578f 	vld1.32	{d5}, [r4]
+     718:	f3846c2c 	vmull.u8	q3, d4, d28
+     71c:	f385682d 	vmlal.u8	q3, d5, d29
+     720:	e1a04846 	asr	r4, r6, #16
+     724:	e0866007 	add	r6, r6, r7
+     728:	e0824104 	add	r4, r2, r4, lsl #2
+     72c:	f4640783 	vld1.32	{d16}, [r4], r3
+     730:	f464178f 	vld1.32	{d17}, [r4]
+     734:	f3c02cac 	vmull.u8	q9, d16, d28
+     738:	f3c128ad 	vmlal.u8	q9, d17, d29
+     73c:	f7d4f008 	pld	[r4, r8]
+     740:	e0444003 	sub	r4, r4, r3
+     744:	f3970a12 	vshll.u16	d0, q1, #7
+     748:	f3920a2e 	vmlsl.u16	q0, d2, d30
+     74c:	f393082e 	vmlal.u16	q0, d3, d30
+     750:	f3d74a36 	vshll.u16	d20, q11, #7
+     754:	f3d64aaf 	vmlsl.u16	q10, d22, d31
+     758:	f3d748af 	vmlal.u16	q10, d23, d31
+     75c:	f3d7e078 	vshr.u16	q15, q12, #9
+     760:	f3974a16 	vshll.u16	d4, q3, #7
+     764:	f3964a2e 	vmlsl.u16	q2, d6, d30
+     768:	f397482e 	vmlal.u16	q2, d7, d30
+     76c:	f3d70a32 	vshll.u16	d16, q9, #7
+     770:	f4e1680d 	vld1.32	{d22[0]}, [r1]!
+     774:	f5d1f01c 	pld	[r1, #28]
+     778:	f7d4f008 	pld	[r4, r8]
+     77c:	f3d20aaf 	vmlsl.u16	q8, d18, d31
+     780:	f3d308af 	vmlal.u16	q8, d19, d31
+     784:	f25888ea 	vadd.i16	q12, q12, q13
+     788:	f2920810 	vshrn.i32	d0, q0, #14
+     78c:	f2921834 	vshrn.i32	d1, q10, #14
+     790:	f2924814 	vshrn.i32	d4, q2, #14
+     794:	f2925830 	vshrn.i32	d5, q8, #14
+     798:	f3f46c26 	vdup.32	d22, d22[0]
+     79c:	f3d7e078 	vshr.u16	q15, q12, #9
+     7a0:	f3b20200 	vmovn.i16	d0, q0
+     7a4:	f3b21204 	vmovn.i16	d1, q2
+     7a8:	f25888ea 	vadd.i16	q12, q12, q13
+     7ac:	f3b20101 	vuzp.8	d0, d1
+     7b0:	f3b22103 	vuzp.8	d2, d3
+     7b4:	f3b20101 	vuzp.8	d0, d1
+     7b8:	f3b22103 	vuzp.8	d2, d3
+     7bc:	f3806c26 	vmull.u8	q3, d0, d22
+     7c0:	f3c10c26 	vmull.u8	q8, d1, d22
+     7c4:	f3d82256 	vrshr.u16	q9, q3, #8
+     7c8:	f3d84270 	vrshr.u16	q10, q8, #8
+     7cc:	f3820486 	vraddhn.i16	d0, q9, q3
+     7d0:	f38414a0 	vraddhn.i16	d1, q10, q8
+     7d4:	f3b20101 	vuzp.8	d0, d1
+     7d8:	f3b20101 	vuzp.8	d0, d1
+     7dc:	f3b20101 	vuzp.8	d0, d1
+     7e0:	f3b22103 	vuzp.8	d2, d3
+     7e4:	f3b21103 	vuzp.8	d1, d3
+     7e8:	f3b20102 	vuzp.8	d0, d2
+     7ec:	f3b24301 	vshll.i8	q2, d1, #8
+     7f0:	f3b22302 	vshll.i8	q1, d2, #8
+     7f4:	f3b26300 	vshll.i8	q3, d0, #8
+     7f8:	f39b2454 	vsri.16	q1, q2, #5
+     7fc:	f3952456 	vsri.16	q1, q3, #11
+     800:	f400274d 	vst1.16	{d2}, [r0]!
+     804:	e25cc004 	subs	ip, ip, #4
+     808:	ba00004f 	blt	94c <pixman_scaled_bilinear_scanline_8888_8_0565_SRC_asm_neon+0x458>
+     80c:	e1a04846 	asr	r4, r6, #16
+     810:	e0866007 	add	r6, r6, r7
+     814:	e0824104 	add	r4, r2, r4, lsl #2
+     818:	f4240783 	vld1.32	{d0}, [r4], r3
+     81c:	f424178f 	vld1.32	{d1}, [r4]
+     820:	f3802c2c 	vmull.u8	q1, d0, d28
+     824:	f381282d 	vmlal.u8	q1, d1, d29
+     828:	e1a04846 	asr	r4, r6, #16
+     82c:	e0866007 	add	r6, r6, r7
+     830:	e0824104 	add	r4, r2, r4, lsl #2
+     834:	f4644783 	vld1.32	{d20}, [r4], r3
+     838:	f464578f 	vld1.32	{d21}, [r4]
+     83c:	f3c46cac 	vmull.u8	q11, d20, d28
+     840:	f3c568ad 	vmlal.u8	q11, d21, d29
+     844:	e1a04846 	asr	r4, r6, #16
+     848:	e0866007 	add	r6, r6, r7
+     84c:	e0824104 	add	r4, r2, r4, lsl #2
+     850:	f4244783 	vld1.32	{d4}, [r4], r3
+     854:	f424578f 	vld1.32	{d5}, [r4]
+     858:	f3846c2c 	vmull.u8	q3, d4, d28
+     85c:	f385682d 	vmlal.u8	q3, d5, d29
+     860:	e1a04846 	asr	r4, r6, #16
+     864:	e0866007 	add	r6, r6, r7
+     868:	e0824104 	add	r4, r2, r4, lsl #2
+     86c:	f4640783 	vld1.32	{d16}, [r4], r3
+     870:	f464178f 	vld1.32	{d17}, [r4]
+     874:	f3c02cac 	vmull.u8	q9, d16, d28
+     878:	f3c128ad 	vmlal.u8	q9, d17, d29
+     87c:	f7d4f008 	pld	[r4, r8]
+     880:	e0444003 	sub	r4, r4, r3
+     884:	f3970a12 	vshll.u16	d0, q1, #7
+     888:	f3920a2e 	vmlsl.u16	q0, d2, d30
+     88c:	f393082e 	vmlal.u16	q0, d3, d30
+     890:	f3d74a36 	vshll.u16	d20, q11, #7
+     894:	f3d64aaf 	vmlsl.u16	q10, d22, d31
+     898:	f3d748af 	vmlal.u16	q10, d23, d31
+     89c:	f3d7e078 	vshr.u16	q15, q12, #9
+     8a0:	f3974a16 	vshll.u16	d4, q3, #7
+     8a4:	f3964a2e 	vmlsl.u16	q2, d6, d30
+     8a8:	f397482e 	vmlal.u16	q2, d7, d30
+     8ac:	f3d70a32 	vshll.u16	d16, q9, #7
+     8b0:	f4e1680d 	vld1.32	{d22[0]}, [r1]!
+     8b4:	f5d1f01c 	pld	[r1, #28]
+     8b8:	f7d4f008 	pld	[r4, r8]
+     8bc:	f3d20aaf 	vmlsl.u16	q8, d18, d31
+     8c0:	f3d308af 	vmlal.u16	q8, d19, d31
+     8c4:	f25888ea 	vadd.i16	q12, q12, q13
+     8c8:	f2920810 	vshrn.i32	d0, q0, #14
+     8cc:	f2921834 	vshrn.i32	d1, q10, #14
+     8d0:	f2924814 	vshrn.i32	d4, q2, #14
+     8d4:	f2925830 	vshrn.i32	d5, q8, #14
+     8d8:	f3f46c26 	vdup.32	d22, d22[0]
+     8dc:	f3d7e078 	vshr.u16	q15, q12, #9
+     8e0:	f3b20200 	vmovn.i16	d0, q0
+     8e4:	f3b21204 	vmovn.i16	d1, q2
+     8e8:	f25888ea 	vadd.i16	q12, q12, q13
+     8ec:	f3b20101 	vuzp.8	d0, d1
+     8f0:	f3b22103 	vuzp.8	d2, d3
+     8f4:	f3b20101 	vuzp.8	d0, d1
+     8f8:	f3b22103 	vuzp.8	d2, d3
+     8fc:	f3806c26 	vmull.u8	q3, d0, d22
+     900:	f3c10c26 	vmull.u8	q8, d1, d22
+     904:	f3d82256 	vrshr.u16	q9, q3, #8
+     908:	f3d84270 	vrshr.u16	q10, q8, #8
+     90c:	f3820486 	vraddhn.i16	d0, q9, q3
+     910:	f38414a0 	vraddhn.i16	d1, q10, q8
+     914:	f3b20101 	vuzp.8	d0, d1
+     918:	f3b20101 	vuzp.8	d0, d1
+     91c:	f3b20101 	vuzp.8	d0, d1
+     920:	f3b22103 	vuzp.8	d2, d3
+     924:	f3b21103 	vuzp.8	d1, d3
+     928:	f3b20102 	vuzp.8	d0, d2
+     92c:	f3b24301 	vshll.i8	q2, d1, #8
+     930:	f3b22302 	vshll.i8	q1, d2, #8
+     934:	f3b26300 	vshll.i8	q3, d0, #8
+     938:	f39b2454 	vsri.16	q1, q2, #5
+     93c:	f3952456 	vsri.16	q1, q3, #11
+     940:	f400274d 	vst1.16	{d2}, [r0]!
+     944:	e25cc004 	subs	ip, ip, #4
+     948:	aaffffaf 	bge	80c <pixman_scaled_bilinear_scanline_8888_8_0565_SRC_asm_neon+0x318>
+     94c:	e31c0002 	tst	ip, #2
+     950:	0a000031 	beq	a1c <pixman_scaled_bilinear_scanline_8888_8_0565_SRC_asm_neon+0x528>
+     954:	e1a04846 	asr	r4, r6, #16
+     958:	e0866007 	add	r6, r6, r7
+     95c:	e0824104 	add	r4, r2, r4, lsl #2
+     960:	f4240783 	vld1.32	{d0}, [r4], r3
+     964:	f424178f 	vld1.32	{d1}, [r4]
+     968:	f3802c2c 	vmull.u8	q1, d0, d28
+     96c:	f381282d 	vmlal.u8	q1, d1, d29
+     970:	e1a04846 	asr	r4, r6, #16
+     974:	e0866007 	add	r6, r6, r7
+     978:	e0824104 	add	r4, r2, r4, lsl #2
+     97c:	f4644783 	vld1.32	{d20}, [r4], r3
+     980:	f464578f 	vld1.32	{d21}, [r4]
+     984:	f3c46cac 	vmull.u8	q11, d20, d28
+     988:	f3c568ad 	vmlal.u8	q11, d21, d29
+     98c:	f4a1440d 	vld1.16	{d4[0]}, [r1]!
+     990:	f5d1f01c 	pld	[r1, #28]
+     994:	f3970a12 	vshll.u16	d0, q1, #7
+     998:	f3920a2e 	vmlsl.u16	q0, d2, d30
+     99c:	f393082e 	vmlal.u16	q0, d3, d30
+     9a0:	f3d74a36 	vshll.u16	d20, q11, #7
+     9a4:	f3d64aaf 	vmlsl.u16	q10, d22, d31
+     9a8:	f3d748af 	vmlal.u16	q10, d23, d31
+     9ac:	f2920810 	vshrn.i32	d0, q0, #14
+     9b0:	f2921834 	vshrn.i32	d1, q10, #14
+     9b4:	f3b24c04 	vdup.16	d4, d4[0]
+     9b8:	f3d7e078 	vshr.u16	q15, q12, #9
+     9bc:	f25888ea 	vadd.i16	q12, q12, q13
+     9c0:	f3b20200 	vmovn.i16	d0, q0
+     9c4:	f3b20101 	vuzp.8	d0, d1
+     9c8:	f3f22123 	vuzp.8	d18, d19
+     9cc:	f3b20101 	vuzp.8	d0, d1
+     9d0:	f3f22123 	vuzp.8	d18, d19
+     9d4:	f3806c04 	vmull.u8	q3, d0, d4
+     9d8:	f3c10c04 	vmull.u8	q8, d1, d4
+     9dc:	f3d84256 	vrshr.u16	q10, q3, #8
+     9e0:	f3d86270 	vrshr.u16	q11, q8, #8
+     9e4:	f3840486 	vraddhn.i16	d0, q10, q3
+     9e8:	f38614a0 	vraddhn.i16	d1, q11, q8
+     9ec:	f3b20101 	vuzp.8	d0, d1
+     9f0:	f3b20101 	vuzp.8	d0, d1
+     9f4:	f3b20101 	vuzp.8	d0, d1
+     9f8:	f3b22103 	vuzp.8	d2, d3
+     9fc:	f3b21103 	vuzp.8	d1, d3
+     a00:	f3b20102 	vuzp.8	d0, d2
+     a04:	f3b24301 	vshll.i8	q2, d1, #8
+     a08:	f3b22302 	vshll.i8	q1, d2, #8
+     a0c:	f3b26300 	vshll.i8	q3, d0, #8
+     a10:	f39b2454 	vsri.16	q1, q2, #5
+     a14:	f3952456 	vsri.16	q1, q3, #11
+     a18:	f480280d 	vst1.32	{d2[0]}, [r0]!
+     a1c:	e31c0001 	tst	ip, #1
+     a20:	0a000024 	beq	ab8 <pixman_scaled_bilinear_scanline_8888_8_0565_SRC_asm_neon+0x5c4>
+     a24:	e1a04846 	asr	r4, r6, #16
+     a28:	e0866007 	add	r6, r6, r7
+     a2c:	e0824104 	add	r4, r2, r4, lsl #2
+     a30:	f4240783 	vld1.32	{d0}, [r4], r3
+     a34:	f424178f 	vld1.32	{d1}, [r4]
+     a38:	f4a1400d 	vld1.8	{d4[0]}, [r1]!
+     a3c:	f5d1f01c 	pld	[r1, #28]
+     a40:	f3802c2c 	vmull.u8	q1, d0, d28
+     a44:	f381282d 	vmlal.u8	q1, d1, d29
+     a48:	f3970a12 	vshll.u16	d0, q1, #7
+     a4c:	f3920a2e 	vmlsl.u16	q0, d2, d30
+     a50:	f393082e 	vmlal.u16	q0, d3, d30
+     a54:	f3b14c04 	vdup.8	d4, d4[0]
+     a58:	f2920810 	vshrn.i32	d0, q0, #14
+     a5c:	f3b20200 	vmovn.i16	d0, q0
+     a60:	f3b20101 	vuzp.8	d0, d1
+     a64:	f3f22123 	vuzp.8	d18, d19
+     a68:	f3b20101 	vuzp.8	d0, d1
+     a6c:	f3f22123 	vuzp.8	d18, d19
+     a70:	f3806c04 	vmull.u8	q3, d0, d4
+     a74:	f3c10c04 	vmull.u8	q8, d1, d4
+     a78:	f3d84256 	vrshr.u16	q10, q3, #8
+     a7c:	f3d86270 	vrshr.u16	q11, q8, #8
+     a80:	f3840486 	vraddhn.i16	d0, q10, q3
+     a84:	f38614a0 	vraddhn.i16	d1, q11, q8
+     a88:	f3b20101 	vuzp.8	d0, d1
+     a8c:	f3b20101 	vuzp.8	d0, d1
+     a90:	f3b20101 	vuzp.8	d0, d1
+     a94:	f3b22103 	vuzp.8	d2, d3
+     a98:	f3b21103 	vuzp.8	d1, d3
+     a9c:	f3b20102 	vuzp.8	d0, d2
+     aa0:	f3b24301 	vshll.i8	q2, d1, #8
+     aa4:	f3b22302 	vshll.i8	q1, d2, #8
+     aa8:	f3b26300 	vshll.i8	q3, d0, #8
+     aac:	f39b2454 	vsri.16	q1, q2, #5
+     ab0:	f3952456 	vsri.16	q1, q3, #11
+     ab4:	f480240d 	vst1.16	{d2[0]}, [r0]!
+     ab8:	e8bd17f0 	pop	{r4, r5, r6, r7, r8, r9, sl, ip}
+     abc:	e12fff1e 	bx	lr
+			abc: R_ARM_V4BX	*ABS*
+
+00000ac0 <pixman_scaled_bilinear_scanline_0565_8_x888_SRC_asm_neon>:
+     ac0:	e1a0c00d 	mov	ip, sp
+     ac4:	e92d17f0 	push	{r4, r5, r6, r7, r8, r9, sl, ip}
+     ac8:	e3a0801c 	mov	r8, #28
+     acc:	e89c10f0 	ldm	ip, {r4, r5, r6, r7, ip}
+     ad0:	e0080798 	mul	r8, r8, r7
+     ad4:	e0433002 	sub	r3, r3, r2
+     ad8:	e35c0000 	cmp	ip, #0
+     adc:	da00017e 	ble	10dc <pixman_scaled_bilinear_scanline_0565_8_x888_SRC_asm_neon+0x61c>
+     ae0:	eea86bb0 	vdup.16	q12, r6
+     ae4:	eeaa7bb0 	vdup.16	q13, r7
+     ae8:	eecc4b90 	vdup.8	d28, r4
+     aec:	eecd5b90 	vdup.8	d29, r5
+     af0:	f25998aa 	vadd.i16	d25, d25, d26
+     af4:	e35c0001 	cmp	ip, #1
+     af8:	ba000028 	blt	ba0 <pixman_scaled_bilinear_scanline_0565_8_x888_SRC_asm_neon+0xe0>
+     afc:	e3100004 	tst	r0, #4
+     b00:	0a000026 	beq	ba0 <pixman_scaled_bilinear_scanline_0565_8_x888_SRC_asm_neon+0xe0>
+     b04:	f3d7e078 	vshr.u16	q15, q12, #9
+     b08:	f25888ea 	vadd.i16	q12, q12, q13
+     b0c:	e1a04846 	asr	r4, r6, #16
+     b10:	e0866007 	add	r6, r6, r7
+     b14:	e0824084 	add	r4, r2, r4, lsl #1
+     b18:	f4a41803 	vld1.32	{d1[0]}, [r4], r3
+     b1c:	f4a4188f 	vld1.32	{d1[1]}, [r4]
+     b20:	f2950511 	vshl.s16	d0, d1, #5
+     b24:	f29b2511 	vshl.s16	d2, d1, #11
+     b28:	f39b1411 	vsri.16	d1, d1, #5
+     b2c:	f39a0410 	vsri.16	d0, d0, #6
+     b30:	f39b2412 	vsri.16	d2, d2, #5
+     b34:	f3981011 	vshr.u16	d1, d1, #8
+     b38:	f3980412 	vsri.16	d0, d2, #8
+     b3c:	f3b60181 	vzip.16	d0, d1
+     b40:	f4a1400d 	vld1.8	{d4[0]}, [r1]!
+     b44:	f5d1f01c 	pld	[r1, #28]
+     b48:	f3802c2c 	vmull.u8	q1, d0, d28
+     b4c:	f381282d 	vmlal.u8	q1, d1, d29
+     b50:	f3970a12 	vshll.u16	d0, q1, #7
+     b54:	f3920a2e 	vmlsl.u16	q0, d2, d30
+     b58:	f393082e 	vmlal.u16	q0, d3, d30
+     b5c:	f3b14c04 	vdup.8	d4, d4[0]
+     b60:	f2920810 	vshrn.i32	d0, q0, #14
+     b64:	f3b20200 	vmovn.i16	d0, q0
+     b68:	f3b20101 	vuzp.8	d0, d1
+     b6c:	f3f22123 	vuzp.8	d18, d19
+     b70:	f3b20101 	vuzp.8	d0, d1
+     b74:	f3f22123 	vuzp.8	d18, d19
+     b78:	f3806c04 	vmull.u8	q3, d0, d4
+     b7c:	f3c10c04 	vmull.u8	q8, d1, d4
+     b80:	f3d84256 	vrshr.u16	q10, q3, #8
+     b84:	f3d86270 	vrshr.u16	q11, q8, #8
+     b88:	f3840486 	vraddhn.i16	d0, q10, q3
+     b8c:	f38614a0 	vraddhn.i16	d1, q11, q8
+     b90:	f3b20101 	vuzp.8	d0, d1
+     b94:	f3b20101 	vuzp.8	d0, d1
+     b98:	f480083d 	vst1.32	{d0[0]}, [r0 :32]!
+     b9c:	e24cc001 	sub	ip, ip, #1
+     ba0:	f25aa8ea 	vadd.i16	q13, q13, q13
+     ba4:	f3d7e078 	vshr.u16	q15, q12, #9
+     ba8:	f25888ea 	vadd.i16	q12, q12, q13
+     bac:	e35c0002 	cmp	ip, #2
+     bb0:	ba000035 	blt	c8c <pixman_scaled_bilinear_scanline_0565_8_x888_SRC_asm_neon+0x1cc>
+     bb4:	e3100008 	tst	r0, #8
+     bb8:	0a000033 	beq	c8c <pixman_scaled_bilinear_scanline_0565_8_x888_SRC_asm_neon+0x1cc>
+     bbc:	e1a04846 	asr	r4, r6, #16
+     bc0:	e0866007 	add	r6, r6, r7
+     bc4:	e0824084 	add	r4, r2, r4, lsl #1
+     bc8:	e1a05846 	asr	r5, r6, #16
+     bcc:	e0866007 	add	r6, r6, r7
+     bd0:	e0825085 	add	r5, r2, r5, lsl #1
+     bd4:	f4e46803 	vld1.32	{d22[0]}, [r4], r3
+     bd8:	f4e57803 	vld1.32	{d23[0]}, [r5], r3
+     bdc:	f4e4688f 	vld1.32	{d22[1]}, [r4]
+     be0:	f4e5788f 	vld1.32	{d23[1]}, [r5]
+     be4:	f2c84836 	vshrn.i16	d20, q11, #8
+     be8:	f28d1836 	vshrn.i16	d1, q11, #3
+     bec:	f3d56576 	vsli.16	q11, q11, #5
+     bf0:	f3cb4434 	vsri.8	d20, d20, #5
+     bf4:	f38a1411 	vsri.8	d1, d1, #6
+     bf8:	f28e0836 	vshrn.i16	d0, q11, #2
+     bfc:	f3b201a4 	vzip.8	d0, d20
+     c00:	f3b211a5 	vzip.8	d1, d21
+     c04:	f3f241a5 	vzip.8	d20, d21
+     c08:	f3b20181 	vzip.8	d0, d1
+     c0c:	f3802c2c 	vmull.u8	q1, d0, d28
+     c10:	f381282d 	vmlal.u8	q1, d1, d29
+     c14:	f3c46cac 	vmull.u8	q11, d20, d28
+     c18:	f3c568ad 	vmlal.u8	q11, d21, d29
+     c1c:	f4a1440d 	vld1.16	{d4[0]}, [r1]!
+     c20:	f5d1f01c 	pld	[r1, #28]
+     c24:	f3970a12 	vshll.u16	d0, q1, #7
+     c28:	f3920a2e 	vmlsl.u16	q0, d2, d30
+     c2c:	f393082e 	vmlal.u16	q0, d3, d30
+     c30:	f3d74a36 	vshll.u16	d20, q11, #7
+     c34:	f3d64aaf 	vmlsl.u16	q10, d22, d31
+     c38:	f3d748af 	vmlal.u16	q10, d23, d31
+     c3c:	f2920810 	vshrn.i32	d0, q0, #14
+     c40:	f2921834 	vshrn.i32	d1, q10, #14
+     c44:	f3b24c04 	vdup.16	d4, d4[0]
+     c48:	f3d7e078 	vshr.u16	q15, q12, #9
+     c4c:	f25888ea 	vadd.i16	q12, q12, q13
+     c50:	f3b20200 	vmovn.i16	d0, q0
+     c54:	f3b20101 	vuzp.8	d0, d1
+     c58:	f3f22123 	vuzp.8	d18, d19
+     c5c:	f3b20101 	vuzp.8	d0, d1
+     c60:	f3f22123 	vuzp.8	d18, d19
+     c64:	f3806c04 	vmull.u8	q3, d0, d4
+     c68:	f3c10c04 	vmull.u8	q8, d1, d4
+     c6c:	f3d84256 	vrshr.u16	q10, q3, #8
+     c70:	f3d86270 	vrshr.u16	q11, q8, #8
+     c74:	f3840486 	vraddhn.i16	d0, q10, q3
+     c78:	f38614a0 	vraddhn.i16	d1, q11, q8
+     c7c:	f3b20101 	vuzp.8	d0, d1
+     c80:	f3b20101 	vuzp.8	d0, d1
+     c84:	f400078d 	vst1.32	{d0}, [r0]!
+     c88:	e24cc002 	sub	ip, ip, #2
+     c8c:	e25cc004 	subs	ip, ip, #4
+     c90:	ba0000b6 	blt	f70 <pixman_scaled_bilinear_scanline_0565_8_x888_SRC_asm_neon+0x4b0>
+     c94:	e1a087c8 	asr	r8, r8, #15
+     c98:	e1a04846 	asr	r4, r6, #16
+     c9c:	e0866007 	add	r6, r6, r7
+     ca0:	e0824084 	add	r4, r2, r4, lsl #1
+     ca4:	e1a05846 	asr	r5, r6, #16
+     ca8:	e0866007 	add	r6, r6, r7
+     cac:	e0825085 	add	r5, r2, r5, lsl #1
+     cb0:	f4e46803 	vld1.32	{d22[0]}, [r4], r3
+     cb4:	f4e57803 	vld1.32	{d23[0]}, [r5], r3
+     cb8:	f4e4688f 	vld1.32	{d22[1]}, [r4]
+     cbc:	f4e5788f 	vld1.32	{d23[1]}, [r5]
+     cc0:	f2c84836 	vshrn.i16	d20, q11, #8
+     cc4:	f28d1836 	vshrn.i16	d1, q11, #3
+     cc8:	f3d56576 	vsli.16	q11, q11, #5
+     ccc:	f3cb4434 	vsri.8	d20, d20, #5
+     cd0:	f38a1411 	vsri.8	d1, d1, #6
+     cd4:	f28e0836 	vshrn.i16	d0, q11, #2
+     cd8:	e1a04846 	asr	r4, r6, #16
+     cdc:	e0866007 	add	r6, r6, r7
+     ce0:	e0824084 	add	r4, r2, r4, lsl #1
+     ce4:	e1a05846 	asr	r5, r6, #16
+     ce8:	e0866007 	add	r6, r6, r7
+     cec:	e0825085 	add	r5, r2, r5, lsl #1
+     cf0:	f4e42803 	vld1.32	{d18[0]}, [r4], r3
+     cf4:	f3b201a4 	vzip.8	d0, d20
+     cf8:	f4e53803 	vld1.32	{d19[0]}, [r5], r3
+     cfc:	f3b211a5 	vzip.8	d1, d21
+     d00:	f4e4288f 	vld1.32	{d18[1]}, [r4]
+     d04:	f3f241a5 	vzip.8	d20, d21
+     d08:	f4e5388f 	vld1.32	{d19[1]}, [r5]
+     d0c:	f3b20181 	vzip.8	d0, d1
+     d10:	f2c80832 	vshrn.i16	d16, q9, #8
+     d14:	f28d5832 	vshrn.i16	d5, q9, #3
+     d18:	f3d52572 	vsli.16	q9, q9, #5
+     d1c:	f3cb0430 	vsri.8	d16, d16, #5
+     d20:	f38a5415 	vsri.8	d5, d5, #6
+     d24:	f28e4832 	vshrn.i16	d4, q9, #2
+     d28:	f3802c2c 	vmull.u8	q1, d0, d28
+     d2c:	f3b241a0 	vzip.8	d4, d16
+     d30:	f381282d 	vmlal.u8	q1, d1, d29
+     d34:	f3b251a1 	vzip.8	d5, d17
+     d38:	f3c46cac 	vmull.u8	q11, d20, d28
+     d3c:	f3f201a1 	vzip.8	d16, d17
+     d40:	f3c568ad 	vmlal.u8	q11, d21, d29
+     d44:	f3b24185 	vzip.8	d4, d5
+     d48:	f3846c2c 	vmull.u8	q3, d4, d28
+     d4c:	f385682d 	vmlal.u8	q3, d5, d29
+     d50:	f3c02cac 	vmull.u8	q9, d16, d28
+     d54:	f3c128ad 	vmlal.u8	q9, d17, d29
+     d58:	f7d4f008 	pld	[r4, r8]
+     d5c:	e0444003 	sub	r4, r4, r3
+     d60:	f3970a12 	vshll.u16	d0, q1, #7
+     d64:	f3920a2e 	vmlsl.u16	q0, d2, d30
+     d68:	f393082e 	vmlal.u16	q0, d3, d30
+     d6c:	f3d74a36 	vshll.u16	d20, q11, #7
+     d70:	f3d64aaf 	vmlsl.u16	q10, d22, d31
+     d74:	f3d748af 	vmlal.u16	q10, d23, d31
+     d78:	f3d7e078 	vshr.u16	q15, q12, #9
+     d7c:	f3974a16 	vshll.u16	d4, q3, #7
+     d80:	f3964a2e 	vmlsl.u16	q2, d6, d30
+     d84:	f397482e 	vmlal.u16	q2, d7, d30
+     d88:	f3d70a32 	vshll.u16	d16, q9, #7
+     d8c:	f4e1680d 	vld1.32	{d22[0]}, [r1]!
+     d90:	f5d1f01c 	pld	[r1, #28]
+     d94:	f7d4f008 	pld	[r4, r8]
+     d98:	f3d20aaf 	vmlsl.u16	q8, d18, d31
+     d9c:	f3d308af 	vmlal.u16	q8, d19, d31
+     da0:	f25888ea 	vadd.i16	q12, q12, q13
+     da4:	f2920810 	vshrn.i32	d0, q0, #14
+     da8:	f2921834 	vshrn.i32	d1, q10, #14
+     dac:	f2924814 	vshrn.i32	d4, q2, #14
+     db0:	f2925830 	vshrn.i32	d5, q8, #14
+     db4:	f3f46c26 	vdup.32	d22, d22[0]
+     db8:	f3d7e078 	vshr.u16	q15, q12, #9
+     dbc:	f3b20200 	vmovn.i16	d0, q0
+     dc0:	f3b21204 	vmovn.i16	d1, q2
+     dc4:	f25888ea 	vadd.i16	q12, q12, q13
+     dc8:	f3b20101 	vuzp.8	d0, d1
+     dcc:	f3b22103 	vuzp.8	d2, d3
+     dd0:	f3b20101 	vuzp.8	d0, d1
+     dd4:	f3b22103 	vuzp.8	d2, d3
+     dd8:	f3806c26 	vmull.u8	q3, d0, d22
+     ddc:	f3c10c26 	vmull.u8	q8, d1, d22
+     de0:	f3d82256 	vrshr.u16	q9, q3, #8
+     de4:	f3d84270 	vrshr.u16	q10, q8, #8
+     de8:	f3820486 	vraddhn.i16	d0, q9, q3
+     dec:	f38414a0 	vraddhn.i16	d1, q10, q8
+     df0:	f3b20101 	vuzp.8	d0, d1
+     df4:	f3b20101 	vuzp.8	d0, d1
+     df8:	f4000a8d 	vst1.32	{d0-d1}, [r0]!
+     dfc:	e25cc004 	subs	ip, ip, #4
+     e00:	ba00005a 	blt	f70 <pixman_scaled_bilinear_scanline_0565_8_x888_SRC_asm_neon+0x4b0>
+     e04:	e1a04846 	asr	r4, r6, #16
+     e08:	e0866007 	add	r6, r6, r7
+     e0c:	e0824084 	add	r4, r2, r4, lsl #1
+     e10:	e1a05846 	asr	r5, r6, #16
+     e14:	e0866007 	add	r6, r6, r7
+     e18:	e0825085 	add	r5, r2, r5, lsl #1
+     e1c:	f4e46803 	vld1.32	{d22[0]}, [r4], r3
+     e20:	f4e57803 	vld1.32	{d23[0]}, [r5], r3
+     e24:	f4e4688f 	vld1.32	{d22[1]}, [r4]
+     e28:	f4e5788f 	vld1.32	{d23[1]}, [r5]
+     e2c:	f2c84836 	vshrn.i16	d20, q11, #8
+     e30:	f28d1836 	vshrn.i16	d1, q11, #3
+     e34:	f3d56576 	vsli.16	q11, q11, #5
+     e38:	f3cb4434 	vsri.8	d20, d20, #5
+     e3c:	f38a1411 	vsri.8	d1, d1, #6
+     e40:	f28e0836 	vshrn.i16	d0, q11, #2
+     e44:	e1a04846 	asr	r4, r6, #16
+     e48:	e0866007 	add	r6, r6, r7
+     e4c:	e0824084 	add	r4, r2, r4, lsl #1
+     e50:	e1a05846 	asr	r5, r6, #16
+     e54:	e0866007 	add	r6, r6, r7
+     e58:	e0825085 	add	r5, r2, r5, lsl #1
+     e5c:	f4e42803 	vld1.32	{d18[0]}, [r4], r3
+     e60:	f3b201a4 	vzip.8	d0, d20
+     e64:	f4e53803 	vld1.32	{d19[0]}, [r5], r3
+     e68:	f3b211a5 	vzip.8	d1, d21
+     e6c:	f4e4288f 	vld1.32	{d18[1]}, [r4]
+     e70:	f3f241a5 	vzip.8	d20, d21
+     e74:	f4e5388f 	vld1.32	{d19[1]}, [r5]
+     e78:	f3b20181 	vzip.8	d0, d1
+     e7c:	f2c80832 	vshrn.i16	d16, q9, #8
+     e80:	f28d5832 	vshrn.i16	d5, q9, #3
+     e84:	f3d52572 	vsli.16	q9, q9, #5
+     e88:	f3cb0430 	vsri.8	d16, d16, #5
+     e8c:	f38a5415 	vsri.8	d5, d5, #6
+     e90:	f28e4832 	vshrn.i16	d4, q9, #2
+     e94:	f3802c2c 	vmull.u8	q1, d0, d28
+     e98:	f3b241a0 	vzip.8	d4, d16
+     e9c:	f381282d 	vmlal.u8	q1, d1, d29
+     ea0:	f3b251a1 	vzip.8	d5, d17
+     ea4:	f3c46cac 	vmull.u8	q11, d20, d28
+     ea8:	f3f201a1 	vzip.8	d16, d17
+     eac:	f3c568ad 	vmlal.u8	q11, d21, d29
+     eb0:	f3b24185 	vzip.8	d4, d5
+     eb4:	f3846c2c 	vmull.u8	q3, d4, d28
+     eb8:	f385682d 	vmlal.u8	q3, d5, d29
+     ebc:	f3c02cac 	vmull.u8	q9, d16, d28
+     ec0:	f3c128ad 	vmlal.u8	q9, d17, d29
+     ec4:	f7d4f008 	pld	[r4, r8]
+     ec8:	e0444003 	sub	r4, r4, r3
+     ecc:	f3970a12 	vshll.u16	d0, q1, #7
+     ed0:	f3920a2e 	vmlsl.u16	q0, d2, d30
+     ed4:	f393082e 	vmlal.u16	q0, d3, d30
+     ed8:	f3d74a36 	vshll.u16	d20, q11, #7
+     edc:	f3d64aaf 	vmlsl.u16	q10, d22, d31
+     ee0:	f3d748af 	vmlal.u16	q10, d23, d31
+     ee4:	f3d7e078 	vshr.u16	q15, q12, #9
+     ee8:	f3974a16 	vshll.u16	d4, q3, #7
+     eec:	f3964a2e 	vmlsl.u16	q2, d6, d30
+     ef0:	f397482e 	vmlal.u16	q2, d7, d30
+     ef4:	f3d70a32 	vshll.u16	d16, q9, #7
+     ef8:	f4e1680d 	vld1.32	{d22[0]}, [r1]!
+     efc:	f5d1f01c 	pld	[r1, #28]
+     f00:	f7d4f008 	pld	[r4, r8]
+     f04:	f3d20aaf 	vmlsl.u16	q8, d18, d31
+     f08:	f3d308af 	vmlal.u16	q8, d19, d31
+     f0c:	f25888ea 	vadd.i16	q12, q12, q13
+     f10:	f2920810 	vshrn.i32	d0, q0, #14
+     f14:	f2921834 	vshrn.i32	d1, q10, #14
+     f18:	f2924814 	vshrn.i32	d4, q2, #14
+     f1c:	f2925830 	vshrn.i32	d5, q8, #14
+     f20:	f3f46c26 	vdup.32	d22, d22[0]
+     f24:	f3d7e078 	vshr.u16	q15, q12, #9
+     f28:	f3b20200 	vmovn.i16	d0, q0
+     f2c:	f3b21204 	vmovn.i16	d1, q2
+     f30:	f25888ea 	vadd.i16	q12, q12, q13
+     f34:	f3b20101 	vuzp.8	d0, d1
+     f38:	f3b22103 	vuzp.8	d2, d3
+     f3c:	f3b20101 	vuzp.8	d0, d1
+     f40:	f3b22103 	vuzp.8	d2, d3
+     f44:	f3806c26 	vmull.u8	q3, d0, d22
+     f48:	f3c10c26 	vmull.u8	q8, d1, d22
+     f4c:	f3d82256 	vrshr.u16	q9, q3, #8
+     f50:	f3d84270 	vrshr.u16	q10, q8, #8
+     f54:	f3820486 	vraddhn.i16	d0, q9, q3
+     f58:	f38414a0 	vraddhn.i16	d1, q10, q8
+     f5c:	f3b20101 	vuzp.8	d0, d1
+     f60:	f3b20101 	vuzp.8	d0, d1
+     f64:	f4000a8d 	vst1.32	{d0-d1}, [r0]!
+     f68:	e25cc004 	subs	ip, ip, #4
+     f6c:	aaffffa4 	bge	e04 <pixman_scaled_bilinear_scanline_0565_8_x888_SRC_asm_neon+0x344>
+     f70:	e31c0002 	tst	ip, #2
+     f74:	0a000032 	beq	1044 <pixman_scaled_bilinear_scanline_0565_8_x888_SRC_asm_neon+0x584>
+     f78:	e1a04846 	asr	r4, r6, #16
+     f7c:	e0866007 	add	r6, r6, r7
+     f80:	e0824084 	add	r4, r2, r4, lsl #1
+     f84:	e1a05846 	asr	r5, r6, #16
+     f88:	e0866007 	add	r6, r6, r7
+     f8c:	e0825085 	add	r5, r2, r5, lsl #1
+     f90:	f4e46803 	vld1.32	{d22[0]}, [r4], r3
+     f94:	f4e57803 	vld1.32	{d23[0]}, [r5], r3
+     f98:	f4e4688f 	vld1.32	{d22[1]}, [r4]
+     f9c:	f4e5788f 	vld1.32	{d23[1]}, [r5]
+     fa0:	f2c84836 	vshrn.i16	d20, q11, #8
+     fa4:	f28d1836 	vshrn.i16	d1, q11, #3
+     fa8:	f3d56576 	vsli.16	q11, q11, #5
+     fac:	f3cb4434 	vsri.8	d20, d20, #5
+     fb0:	f38a1411 	vsri.8	d1, d1, #6
+     fb4:	f28e0836 	vshrn.i16	d0, q11, #2
+     fb8:	f3b201a4 	vzip.8	d0, d20
+     fbc:	f3b211a5 	vzip.8	d1, d21
+     fc0:	f3f241a5 	vzip.8	d20, d21
+     fc4:	f3b20181 	vzip.8	d0, d1
+     fc8:	f3802c2c 	vmull.u8	q1, d0, d28
+     fcc:	f381282d 	vmlal.u8	q1, d1, d29
+     fd0:	f3c46cac 	vmull.u8	q11, d20, d28
+     fd4:	f3c568ad 	vmlal.u8	q11, d21, d29
+     fd8:	f4a1440d 	vld1.16	{d4[0]}, [r1]!
+     fdc:	f5d1f01c 	pld	[r1, #28]
+     fe0:	f3970a12 	vshll.u16	d0, q1, #7
+     fe4:	f3920a2e 	vmlsl.u16	q0, d2, d30
+     fe8:	f393082e 	vmlal.u16	q0, d3, d30
+     fec:	f3d74a36 	vshll.u16	d20, q11, #7
+     ff0:	f3d64aaf 	vmlsl.u16	q10, d22, d31
+     ff4:	f3d748af 	vmlal.u16	q10, d23, d31
+     ff8:	f2920810 	vshrn.i32	d0, q0, #14
+     ffc:	f2921834 	vshrn.i32	d1, q10, #14
+    1000:	f3b24c04 	vdup.16	d4, d4[0]
+    1004:	f3d7e078 	vshr.u16	q15, q12, #9
+    1008:	f25888ea 	vadd.i16	q12, q12, q13
+    100c:	f3b20200 	vmovn.i16	d0, q0
+    1010:	f3b20101 	vuzp.8	d0, d1
+    1014:	f3f22123 	vuzp.8	d18, d19
+    1018:	f3b20101 	vuzp.8	d0, d1
+    101c:	f3f22123 	vuzp.8	d18, d19
+    1020:	f3806c04 	vmull.u8	q3, d0, d4
+    1024:	f3c10c04 	vmull.u8	q8, d1, d4
+    1028:	f3d84256 	vrshr.u16	q10, q3, #8
+    102c:	f3d86270 	vrshr.u16	q11, q8, #8
+    1030:	f3840486 	vraddhn.i16	d0, q10, q3
+    1034:	f38614a0 	vraddhn.i16	d1, q11, q8
+    1038:	f3b20101 	vuzp.8	d0, d1
+    103c:	f3b20101 	vuzp.8	d0, d1
+    1040:	f400078d 	vst1.32	{d0}, [r0]!
+    1044:	e31c0001 	tst	ip, #1
+    1048:	0a000023 	beq	10dc <pixman_scaled_bilinear_scanline_0565_8_x888_SRC_asm_neon+0x61c>
+    104c:	e1a04846 	asr	r4, r6, #16
+    1050:	e0866007 	add	r6, r6, r7
+    1054:	e0824084 	add	r4, r2, r4, lsl #1
+    1058:	f4a41803 	vld1.32	{d1[0]}, [r4], r3
+    105c:	f4a4188f 	vld1.32	{d1[1]}, [r4]
+    1060:	f2950511 	vshl.s16	d0, d1, #5
+    1064:	f29b2511 	vshl.s16	d2, d1, #11
+    1068:	f39b1411 	vsri.16	d1, d1, #5
+    106c:	f39a0410 	vsri.16	d0, d0, #6
+    1070:	f39b2412 	vsri.16	d2, d2, #5
+    1074:	f3981011 	vshr.u16	d1, d1, #8
+    1078:	f3980412 	vsri.16	d0, d2, #8
+    107c:	f3b60181 	vzip.16	d0, d1
+    1080:	f4a1400d 	vld1.8	{d4[0]}, [r1]!
+    1084:	f5d1f01c 	pld	[r1, #28]
+    1088:	f3802c2c 	vmull.u8	q1, d0, d28
+    108c:	f381282d 	vmlal.u8	q1, d1, d29
+    1090:	f3970a12 	vshll.u16	d0, q1, #7
+    1094:	f3920a2e 	vmlsl.u16	q0, d2, d30
+    1098:	f393082e 	vmlal.u16	q0, d3, d30
+    109c:	f3b14c04 	vdup.8	d4, d4[0]
+    10a0:	f2920810 	vshrn.i32	d0, q0, #14
+    10a4:	f3b20200 	vmovn.i16	d0, q0
+    10a8:	f3b20101 	vuzp.8	d0, d1
+    10ac:	f3f22123 	vuzp.8	d18, d19
+    10b0:	f3b20101 	vuzp.8	d0, d1
+    10b4:	f3f22123 	vuzp.8	d18, d19
+    10b8:	f3806c04 	vmull.u8	q3, d0, d4
+    10bc:	f3c10c04 	vmull.u8	q8, d1, d4
+    10c0:	f3d84256 	vrshr.u16	q10, q3, #8
+    10c4:	f3d86270 	vrshr.u16	q11, q8, #8
+    10c8:	f3840486 	vraddhn.i16	d0, q10, q3
+    10cc:	f38614a0 	vraddhn.i16	d1, q11, q8
+    10d0:	f3b20101 	vuzp.8	d0, d1
+    10d4:	f3b20101 	vuzp.8	d0, d1
+    10d8:	f480083d 	vst1.32	{d0[0]}, [r0 :32]!
+    10dc:	e8bd17f0 	pop	{r4, r5, r6, r7, r8, r9, sl, ip}
+    10e0:	e12fff1e 	bx	lr
+			10e0: R_ARM_V4BX	*ABS*
+
+000010e4 <pixman_scaled_bilinear_scanline_0565_8_0565_SRC_asm_neon>:
+    10e4:	e1a0c00d 	mov	ip, sp
+    10e8:	e92d17f0 	push	{r4, r5, r6, r7, r8, r9, sl, ip}
+    10ec:	e3a0801c 	mov	r8, #28
+    10f0:	e89c10f0 	ldm	ip, {r4, r5, r6, r7, ip}
+    10f4:	e0080798 	mul	r8, r8, r7
+    10f8:	e0433002 	sub	r3, r3, r2
+    10fc:	e35c0000 	cmp	ip, #0
+    1100:	da0001b4 	ble	17d8 <pixman_scaled_bilinear_scanline_0565_8_0565_SRC_asm_neon+0x6f4>
+    1104:	eea86bb0 	vdup.16	q12, r6
+    1108:	eeaa7bb0 	vdup.16	q13, r7
+    110c:	eecc4b90 	vdup.8	d28, r4
+    1110:	eecd5b90 	vdup.8	d29, r5
+    1114:	f25998aa 	vadd.i16	d25, d25, d26
+    1118:	e35c0001 	cmp	ip, #1
+    111c:	ba000031 	blt	11e8 <pixman_scaled_bilinear_scanline_0565_8_0565_SRC_asm_neon+0x104>
+    1120:	e3100002 	tst	r0, #2
+    1124:	0a00002f 	beq	11e8 <pixman_scaled_bilinear_scanline_0565_8_0565_SRC_asm_neon+0x104>
+    1128:	f3d7e078 	vshr.u16	q15, q12, #9
+    112c:	f25888ea 	vadd.i16	q12, q12, q13
+    1130:	e1a04846 	asr	r4, r6, #16
+    1134:	e0866007 	add	r6, r6, r7
+    1138:	e0824084 	add	r4, r2, r4, lsl #1
+    113c:	f4a41803 	vld1.32	{d1[0]}, [r4], r3
+    1140:	f4a4188f 	vld1.32	{d1[1]}, [r4]
+    1144:	f2950511 	vshl.s16	d0, d1, #5
+    1148:	f29b2511 	vshl.s16	d2, d1, #11
+    114c:	f39b1411 	vsri.16	d1, d1, #5
+    1150:	f39a0410 	vsri.16	d0, d0, #6
+    1154:	f39b2412 	vsri.16	d2, d2, #5
+    1158:	f3981011 	vshr.u16	d1, d1, #8
+    115c:	f3980412 	vsri.16	d0, d2, #8
+    1160:	f3b60181 	vzip.16	d0, d1
+    1164:	f4a1400d 	vld1.8	{d4[0]}, [r1]!
+    1168:	f5d1f01c 	pld	[r1, #28]
+    116c:	f3802c2c 	vmull.u8	q1, d0, d28
+    1170:	f381282d 	vmlal.u8	q1, d1, d29
+    1174:	f3970a12 	vshll.u16	d0, q1, #7
+    1178:	f3920a2e 	vmlsl.u16	q0, d2, d30
+    117c:	f393082e 	vmlal.u16	q0, d3, d30
+    1180:	f3b14c04 	vdup.8	d4, d4[0]
+    1184:	f2920810 	vshrn.i32	d0, q0, #14
+    1188:	f3b20200 	vmovn.i16	d0, q0
+    118c:	f3b20101 	vuzp.8	d0, d1
+    1190:	f3f22123 	vuzp.8	d18, d19
+    1194:	f3b20101 	vuzp.8	d0, d1
+    1198:	f3f22123 	vuzp.8	d18, d19
+    119c:	f3806c04 	vmull.u8	q3, d0, d4
+    11a0:	f3c10c04 	vmull.u8	q8, d1, d4
+    11a4:	f3d84256 	vrshr.u16	q10, q3, #8
+    11a8:	f3d86270 	vrshr.u16	q11, q8, #8
+    11ac:	f3840486 	vraddhn.i16	d0, q10, q3
+    11b0:	f38614a0 	vraddhn.i16	d1, q11, q8
+    11b4:	f3b20101 	vuzp.8	d0, d1
+    11b8:	f3b20101 	vuzp.8	d0, d1
+    11bc:	f3b20101 	vuzp.8	d0, d1
+    11c0:	f3b22103 	vuzp.8	d2, d3
+    11c4:	f3b21103 	vuzp.8	d1, d3
+    11c8:	f3b20102 	vuzp.8	d0, d2
+    11cc:	f3b24301 	vshll.i8	q2, d1, #8
+    11d0:	f3b22302 	vshll.i8	q1, d2, #8
+    11d4:	f3b26300 	vshll.i8	q3, d0, #8
+    11d8:	f39b2454 	vsri.16	q1, q2, #5
+    11dc:	f3952456 	vsri.16	q1, q3, #11
+    11e0:	f480240d 	vst1.16	{d2[0]}, [r0]!
+    11e4:	e24cc001 	sub	ip, ip, #1
+    11e8:	f25aa8ea 	vadd.i16	q13, q13, q13
+    11ec:	f3d7e078 	vshr.u16	q15, q12, #9
+    11f0:	f25888ea 	vadd.i16	q12, q12, q13
+    11f4:	e35c0002 	cmp	ip, #2
+    11f8:	ba00003e 	blt	12f8 <pixman_scaled_bilinear_scanline_0565_8_0565_SRC_asm_neon+0x214>
+    11fc:	e3100004 	tst	r0, #4
+    1200:	0a00003c 	beq	12f8 <pixman_scaled_bilinear_scanline_0565_8_0565_SRC_asm_neon+0x214>
+    1204:	e1a04846 	asr	r4, r6, #16
+    1208:	e0866007 	add	r6, r6, r7
+    120c:	e0824084 	add	r4, r2, r4, lsl #1
+    1210:	e1a05846 	asr	r5, r6, #16
+    1214:	e0866007 	add	r6, r6, r7
+    1218:	e0825085 	add	r5, r2, r5, lsl #1
+    121c:	f4e46803 	vld1.32	{d22[0]}, [r4], r3
+    1220:	f4e57803 	vld1.32	{d23[0]}, [r5], r3
+    1224:	f4e4688f 	vld1.32	{d22[1]}, [r4]
+    1228:	f4e5788f 	vld1.32	{d23[1]}, [r5]
+    122c:	f2c84836 	vshrn.i16	d20, q11, #8
+    1230:	f28d1836 	vshrn.i16	d1, q11, #3
+    1234:	f3d56576 	vsli.16	q11, q11, #5
+    1238:	f3cb4434 	vsri.8	d20, d20, #5
+    123c:	f38a1411 	vsri.8	d1, d1, #6
+    1240:	f28e0836 	vshrn.i16	d0, q11, #2
+    1244:	f3b201a4 	vzip.8	d0, d20
+    1248:	f3b211a5 	vzip.8	d1, d21
+    124c:	f3f241a5 	vzip.8	d20, d21
+    1250:	f3b20181 	vzip.8	d0, d1
+    1254:	f3802c2c 	vmull.u8	q1, d0, d28
+    1258:	f381282d 	vmlal.u8	q1, d1, d29
+    125c:	f3c46cac 	vmull.u8	q11, d20, d28
+    1260:	f3c568ad 	vmlal.u8	q11, d21, d29
+    1264:	f4a1440d 	vld1.16	{d4[0]}, [r1]!
+    1268:	f5d1f01c 	pld	[r1, #28]
+    126c:	f3970a12 	vshll.u16	d0, q1, #7
+    1270:	f3920a2e 	vmlsl.u16	q0, d2, d30
+    1274:	f393082e 	vmlal.u16	q0, d3, d30
+    1278:	f3d74a36 	vshll.u16	d20, q11, #7
+    127c:	f3d64aaf 	vmlsl.u16	q10, d22, d31
+    1280:	f3d748af 	vmlal.u16	q10, d23, d31
+    1284:	f2920810 	vshrn.i32	d0, q0, #14
+    1288:	f2921834 	vshrn.i32	d1, q10, #14
+    128c:	f3b24c04 	vdup.16	d4, d4[0]
+    1290:	f3d7e078 	vshr.u16	q15, q12, #9
+    1294:	f25888ea 	vadd.i16	q12, q12, q13
+    1298:	f3b20200 	vmovn.i16	d0, q0
+    129c:	f3b20101 	vuzp.8	d0, d1
+    12a0:	f3f22123 	vuzp.8	d18, d19
+    12a4:	f3b20101 	vuzp.8	d0, d1
+    12a8:	f3f22123 	vuzp.8	d18, d19
+    12ac:	f3806c04 	vmull.u8	q3, d0, d4
+    12b0:	f3c10c04 	vmull.u8	q8, d1, d4
+    12b4:	f3d84256 	vrshr.u16	q10, q3, #8
+    12b8:	f3d86270 	vrshr.u16	q11, q8, #8
+    12bc:	f3840486 	vraddhn.i16	d0, q10, q3
+    12c0:	f38614a0 	vraddhn.i16	d1, q11, q8
+    12c4:	f3b20101 	vuzp.8	d0, d1
+    12c8:	f3b20101 	vuzp.8	d0, d1
+    12cc:	f3b20101 	vuzp.8	d0, d1
+    12d0:	f3b22103 	vuzp.8	d2, d3
+    12d4:	f3b21103 	vuzp.8	d1, d3
+    12d8:	f3b20102 	vuzp.8	d0, d2
+    12dc:	f3b24301 	vshll.i8	q2, d1, #8
+    12e0:	f3b22302 	vshll.i8	q1, d2, #8
+    12e4:	f3b26300 	vshll.i8	q3, d0, #8
+    12e8:	f39b2454 	vsri.16	q1, q2, #5
+    12ec:	f3952456 	vsri.16	q1, q3, #11
+    12f0:	f480280d 	vst1.32	{d2[0]}, [r0]!
+    12f4:	e24cc002 	sub	ip, ip, #2
+    12f8:	e25cc004 	subs	ip, ip, #4
+    12fc:	ba0000c8 	blt	1624 <pixman_scaled_bilinear_scanline_0565_8_0565_SRC_asm_neon+0x540>
+    1300:	e1a087c8 	asr	r8, r8, #15
+    1304:	e1a04846 	asr	r4, r6, #16
+    1308:	e0866007 	add	r6, r6, r7
+    130c:	e0824084 	add	r4, r2, r4, lsl #1
+    1310:	e1a05846 	asr	r5, r6, #16
+    1314:	e0866007 	add	r6, r6, r7
+    1318:	e0825085 	add	r5, r2, r5, lsl #1
+    131c:	f4e46803 	vld1.32	{d22[0]}, [r4], r3
+    1320:	f4e57803 	vld1.32	{d23[0]}, [r5], r3
+    1324:	f4e4688f 	vld1.32	{d22[1]}, [r4]
+    1328:	f4e5788f 	vld1.32	{d23[1]}, [r5]
+    132c:	f2c84836 	vshrn.i16	d20, q11, #8
+    1330:	f28d1836 	vshrn.i16	d1, q11, #3
+    1334:	f3d56576 	vsli.16	q11, q11, #5
+    1338:	f3cb4434 	vsri.8	d20, d20, #5
+    133c:	f38a1411 	vsri.8	d1, d1, #6
+    1340:	f28e0836 	vshrn.i16	d0, q11, #2
+    1344:	e1a04846 	asr	r4, r6, #16
+    1348:	e0866007 	add	r6, r6, r7
+    134c:	e0824084 	add	r4, r2, r4, lsl #1
+    1350:	e1a05846 	asr	r5, r6, #16
+    1354:	e0866007 	add	r6, r6, r7
+    1358:	e0825085 	add	r5, r2, r5, lsl #1
+    135c:	f4e42803 	vld1.32	{d18[0]}, [r4], r3
+    1360:	f3b201a4 	vzip.8	d0, d20
+    1364:	f4e53803 	vld1.32	{d19[0]}, [r5], r3
+    1368:	f3b211a5 	vzip.8	d1, d21
+    136c:	f4e4288f 	vld1.32	{d18[1]}, [r4]
+    1370:	f3f241a5 	vzip.8	d20, d21
+    1374:	f4e5388f 	vld1.32	{d19[1]}, [r5]
+    1378:	f3b20181 	vzip.8	d0, d1
+    137c:	f2c80832 	vshrn.i16	d16, q9, #8
+    1380:	f28d5832 	vshrn.i16	d5, q9, #3
+    1384:	f3d52572 	vsli.16	q9, q9, #5
+    1388:	f3cb0430 	vsri.8	d16, d16, #5
+    138c:	f38a5415 	vsri.8	d5, d5, #6
+    1390:	f28e4832 	vshrn.i16	d4, q9, #2
+    1394:	f3802c2c 	vmull.u8	q1, d0, d28
+    1398:	f3b241a0 	vzip.8	d4, d16
+    139c:	f381282d 	vmlal.u8	q1, d1, d29
+    13a0:	f3b251a1 	vzip.8	d5, d17
+    13a4:	f3c46cac 	vmull.u8	q11, d20, d28
+    13a8:	f3f201a1 	vzip.8	d16, d17
+    13ac:	f3c568ad 	vmlal.u8	q11, d21, d29
+    13b0:	f3b24185 	vzip.8	d4, d5
+    13b4:	f3846c2c 	vmull.u8	q3, d4, d28
+    13b8:	f385682d 	vmlal.u8	q3, d5, d29
+    13bc:	f3c02cac 	vmull.u8	q9, d16, d28
+    13c0:	f3c128ad 	vmlal.u8	q9, d17, d29
+    13c4:	f7d4f008 	pld	[r4, r8]
+    13c8:	e0444003 	sub	r4, r4, r3
+    13cc:	f3970a12 	vshll.u16	d0, q1, #7
+    13d0:	f3920a2e 	vmlsl.u16	q0, d2, d30
+    13d4:	f393082e 	vmlal.u16	q0, d3, d30
+    13d8:	f3d74a36 	vshll.u16	d20, q11, #7
+    13dc:	f3d64aaf 	vmlsl.u16	q10, d22, d31
+    13e0:	f3d748af 	vmlal.u16	q10, d23, d31
+    13e4:	f3d7e078 	vshr.u16	q15, q12, #9
+    13e8:	f3974a16 	vshll.u16	d4, q3, #7
+    13ec:	f3964a2e 	vmlsl.u16	q2, d6, d30
+    13f0:	f397482e 	vmlal.u16	q2, d7, d30
+    13f4:	f3d70a32 	vshll.u16	d16, q9, #7
+    13f8:	f4e1680d 	vld1.32	{d22[0]}, [r1]!
+    13fc:	f5d1f01c 	pld	[r1, #28]
+    1400:	f7d4f008 	pld	[r4, r8]
+    1404:	f3d20aaf 	vmlsl.u16	q8, d18, d31
+    1408:	f3d308af 	vmlal.u16	q8, d19, d31
+    140c:	f25888ea 	vadd.i16	q12, q12, q13
+    1410:	f2920810 	vshrn.i32	d0, q0, #14
+    1414:	f2921834 	vshrn.i32	d1, q10, #14
+    1418:	f2924814 	vshrn.i32	d4, q2, #14
+    141c:	f2925830 	vshrn.i32	d5, q8, #14
+    1420:	f3f46c26 	vdup.32	d22, d22[0]
+    1424:	f3d7e078 	vshr.u16	q15, q12, #9
+    1428:	f3b20200 	vmovn.i16	d0, q0
+    142c:	f3b21204 	vmovn.i16	d1, q2
+    1430:	f25888ea 	vadd.i16	q12, q12, q13
+    1434:	f3b20101 	vuzp.8	d0, d1
+    1438:	f3b22103 	vuzp.8	d2, d3
+    143c:	f3b20101 	vuzp.8	d0, d1
+    1440:	f3b22103 	vuzp.8	d2, d3
+    1444:	f3806c26 	vmull.u8	q3, d0, d22
+    1448:	f3c10c26 	vmull.u8	q8, d1, d22
+    144c:	f3d82256 	vrshr.u16	q9, q3, #8
+    1450:	f3d84270 	vrshr.u16	q10, q8, #8
+    1454:	f3820486 	vraddhn.i16	d0, q9, q3
+    1458:	f38414a0 	vraddhn.i16	d1, q10, q8
+    145c:	f3b20101 	vuzp.8	d0, d1
+    1460:	f3b20101 	vuzp.8	d0, d1
+    1464:	f3b20101 	vuzp.8	d0, d1
+    1468:	f3b22103 	vuzp.8	d2, d3
+    146c:	f3b21103 	vuzp.8	d1, d3
+    1470:	f3b20102 	vuzp.8	d0, d2
+    1474:	f3b24301 	vshll.i8	q2, d1, #8
+    1478:	f3b22302 	vshll.i8	q1, d2, #8
+    147c:	f3b26300 	vshll.i8	q3, d0, #8
+    1480:	f39b2454 	vsri.16	q1, q2, #5
+    1484:	f3952456 	vsri.16	q1, q3, #11
+    1488:	f400274d 	vst1.16	{d2}, [r0]!
+    148c:	e25cc004 	subs	ip, ip, #4
+    1490:	ba000063 	blt	1624 <pixman_scaled_bilinear_scanline_0565_8_0565_SRC_asm_neon+0x540>
+    1494:	e1a04846 	asr	r4, r6, #16
+    1498:	e0866007 	add	r6, r6, r7
+    149c:	e0824084 	add	r4, r2, r4, lsl #1
+    14a0:	e1a05846 	asr	r5, r6, #16
+    14a4:	e0866007 	add	r6, r6, r7
+    14a8:	e0825085 	add	r5, r2, r5, lsl #1
+    14ac:	f4e46803 	vld1.32	{d22[0]}, [r4], r3
+    14b0:	f4e57803 	vld1.32	{d23[0]}, [r5], r3
+    14b4:	f4e4688f 	vld1.32	{d22[1]}, [r4]
+    14b8:	f4e5788f 	vld1.32	{d23[1]}, [r5]
+    14bc:	f2c84836 	vshrn.i16	d20, q11, #8
+    14c0:	f28d1836 	vshrn.i16	d1, q11, #3
+    14c4:	f3d56576 	vsli.16	q11, q11, #5
+    14c8:	f3cb4434 	vsri.8	d20, d20, #5
+    14cc:	f38a1411 	vsri.8	d1, d1, #6
+    14d0:	f28e0836 	vshrn.i16	d0, q11, #2
+    14d4:	e1a04846 	asr	r4, r6, #16
+    14d8:	e0866007 	add	r6, r6, r7
+    14dc:	e0824084 	add	r4, r2, r4, lsl #1
+    14e0:	e1a05846 	asr	r5, r6, #16
+    14e4:	e0866007 	add	r6, r6, r7
+    14e8:	e0825085 	add	r5, r2, r5, lsl #1
+    14ec:	f4e42803 	vld1.32	{d18[0]}, [r4], r3
+    14f0:	f3b201a4 	vzip.8	d0, d20
+    14f4:	f4e53803 	vld1.32	{d19[0]}, [r5], r3
+    14f8:	f3b211a5 	vzip.8	d1, d21
+    14fc:	f4e4288f 	vld1.32	{d18[1]}, [r4]
+    1500:	f3f241a5 	vzip.8	d20, d21
+    1504:	f4e5388f 	vld1.32	{d19[1]}, [r5]
+    1508:	f3b20181 	vzip.8	d0, d1
+    150c:	f2c80832 	vshrn.i16	d16, q9, #8
+    1510:	f28d5832 	vshrn.i16	d5, q9, #3
+    1514:	f3d52572 	vsli.16	q9, q9, #5
+    1518:	f3cb0430 	vsri.8	d16, d16, #5
+    151c:	f38a5415 	vsri.8	d5, d5, #6
+    1520:	f28e4832 	vshrn.i16	d4, q9, #2
+    1524:	f3802c2c 	vmull.u8	q1, d0, d28
+    1528:	f3b241a0 	vzip.8	d4, d16
+    152c:	f381282d 	vmlal.u8	q1, d1, d29
+    1530:	f3b251a1 	vzip.8	d5, d17
+    1534:	f3c46cac 	vmull.u8	q11, d20, d28
+    1538:	f3f201a1 	vzip.8	d16, d17
+    153c:	f3c568ad 	vmlal.u8	q11, d21, d29
+    1540:	f3b24185 	vzip.8	d4, d5
+    1544:	f3846c2c 	vmull.u8	q3, d4, d28
+    1548:	f385682d 	vmlal.u8	q3, d5, d29
+    154c:	f3c02cac 	vmull.u8	q9, d16, d28
+    1550:	f3c128ad 	vmlal.u8	q9, d17, d29
+    1554:	f7d4f008 	pld	[r4, r8]
+    1558:	e0444003 	sub	r4, r4, r3
+    155c:	f3970a12 	vshll.u16	d0, q1, #7
+    1560:	f3920a2e 	vmlsl.u16	q0, d2, d30
+    1564:	f393082e 	vmlal.u16	q0, d3, d30
+    1568:	f3d74a36 	vshll.u16	d20, q11, #7
+    156c:	f3d64aaf 	vmlsl.u16	q10, d22, d31
+    1570:	f3d748af 	vmlal.u16	q10, d23, d31
+    1574:	f3d7e078 	vshr.u16	q15, q12, #9
+    1578:	f3974a16 	vshll.u16	d4, q3, #7
+    157c:	f3964a2e 	vmlsl.u16	q2, d6, d30
+    1580:	f397482e 	vmlal.u16	q2, d7, d30
+    1584:	f3d70a32 	vshll.u16	d16, q9, #7
+    1588:	f4e1680d 	vld1.32	{d22[0]}, [r1]!
+    158c:	f5d1f01c 	pld	[r1, #28]
+    1590:	f7d4f008 	pld	[r4, r8]
+    1594:	f3d20aaf 	vmlsl.u16	q8, d18, d31
+    1598:	f3d308af 	vmlal.u16	q8, d19, d31
+    159c:	f25888ea 	vadd.i16	q12, q12, q13
+    15a0:	f2920810 	vshrn.i32	d0, q0, #14
+    15a4:	f2921834 	vshrn.i32	d1, q10, #14
+    15a8:	f2924814 	vshrn.i32	d4, q2, #14
+    15ac:	f2925830 	vshrn.i32	d5, q8, #14
+    15b0:	f3f46c26 	vdup.32	d22, d22[0]
+    15b4:	f3d7e078 	vshr.u16	q15, q12, #9
+    15b8:	f3b20200 	vmovn.i16	d0, q0
+    15bc:	f3b21204 	vmovn.i16	d1, q2
+    15c0:	f25888ea 	vadd.i16	q12, q12, q13
+    15c4:	f3b20101 	vuzp.8	d0, d1
+    15c8:	f3b22103 	vuzp.8	d2, d3
+    15cc:	f3b20101 	vuzp.8	d0, d1
+    15d0:	f3b22103 	vuzp.8	d2, d3
+    15d4:	f3806c26 	vmull.u8	q3, d0, d22
+    15d8:	f3c10c26 	vmull.u8	q8, d1, d22
+    15dc:	f3d82256 	vrshr.u16	q9, q3, #8
+    15e0:	f3d84270 	vrshr.u16	q10, q8, #8
+    15e4:	f3820486 	vraddhn.i16	d0, q9, q3
+    15e8:	f38414a0 	vraddhn.i16	d1, q10, q8
+    15ec:	f3b20101 	vuzp.8	d0, d1
+    15f0:	f3b20101 	vuzp.8	d0, d1
+    15f4:	f3b20101 	vuzp.8	d0, d1
+    15f8:	f3b22103 	vuzp.8	d2, d3
+    15fc:	f3b21103 	vuzp.8	d1, d3
+    1600:	f3b20102 	vuzp.8	d0, d2
+    1604:	f3b24301 	vshll.i8	q2, d1, #8
+    1608:	f3b22302 	vshll.i8	q1, d2, #8
+    160c:	f3b26300 	vshll.i8	q3, d0, #8
+    1610:	f39b2454 	vsri.16	q1, q2, #5
+    1614:	f3952456 	vsri.16	q1, q3, #11
+    1618:	f400274d 	vst1.16	{d2}, [r0]!
+    161c:	e25cc004 	subs	ip, ip, #4
+    1620:	aaffff9b 	bge	1494 <pixman_scaled_bilinear_scanline_0565_8_0565_SRC_asm_neon+0x3b0>
+    1624:	e31c0002 	tst	ip, #2
+    1628:	0a00003b 	beq	171c <pixman_scaled_bilinear_scanline_0565_8_0565_SRC_asm_neon+0x638>
+    162c:	e1a04846 	asr	r4, r6, #16
+    1630:	e0866007 	add	r6, r6, r7
+    1634:	e0824084 	add	r4, r2, r4, lsl #1
+    1638:	e1a05846 	asr	r5, r6, #16
+    163c:	e0866007 	add	r6, r6, r7
+    1640:	e0825085 	add	r5, r2, r5, lsl #1
+    1644:	f4e46803 	vld1.32	{d22[0]}, [r4], r3
+    1648:	f4e57803 	vld1.32	{d23[0]}, [r5], r3
+    164c:	f4e4688f 	vld1.32	{d22[1]}, [r4]
+    1650:	f4e5788f 	vld1.32	{d23[1]}, [r5]
+    1654:	f2c84836 	vshrn.i16	d20, q11, #8
+    1658:	f28d1836 	vshrn.i16	d1, q11, #3
+    165c:	f3d56576 	vsli.16	q11, q11, #5
+    1660:	f3cb4434 	vsri.8	d20, d20, #5
+    1664:	f38a1411 	vsri.8	d1, d1, #6
+    1668:	f28e0836 	vshrn.i16	d0, q11, #2
+    166c:	f3b201a4 	vzip.8	d0, d20
+    1670:	f3b211a5 	vzip.8	d1, d21
+    1674:	f3f241a5 	vzip.8	d20, d21
+    1678:	f3b20181 	vzip.8	d0, d1
+    167c:	f3802c2c 	vmull.u8	q1, d0, d28
+    1680:	f381282d 	vmlal.u8	q1, d1, d29
+    1684:	f3c46cac 	vmull.u8	q11, d20, d28
+    1688:	f3c568ad 	vmlal.u8	q11, d21, d29
+    168c:	f4a1440d 	vld1.16	{d4[0]}, [r1]!
+    1690:	f5d1f01c 	pld	[r1, #28]
+    1694:	f3970a12 	vshll.u16	d0, q1, #7
+    1698:	f3920a2e 	vmlsl.u16	q0, d2, d30
+    169c:	f393082e 	vmlal.u16	q0, d3, d30
+    16a0:	f3d74a36 	vshll.u16	d20, q11, #7
+    16a4:	f3d64aaf 	vmlsl.u16	q10, d22, d31
+    16a8:	f3d748af 	vmlal.u16	q10, d23, d31
+    16ac:	f2920810 	vshrn.i32	d0, q0, #14
+    16b0:	f2921834 	vshrn.i32	d1, q10, #14
+    16b4:	f3b24c04 	vdup.16	d4, d4[0]
+    16b8:	f3d7e078 	vshr.u16	q15, q12, #9
+    16bc:	f25888ea 	vadd.i16	q12, q12, q13
+    16c0:	f3b20200 	vmovn.i16	d0, q0
+    16c4:	f3b20101 	vuzp.8	d0, d1
+    16c8:	f3f22123 	vuzp.8	d18, d19
+    16cc:	f3b20101 	vuzp.8	d0, d1
+    16d0:	f3f22123 	vuzp.8	d18, d19
+    16d4:	f3806c04 	vmull.u8	q3, d0, d4
+    16d8:	f3c10c04 	vmull.u8	q8, d1, d4
+    16dc:	f3d84256 	vrshr.u16	q10, q3, #8
+    16e0:	f3d86270 	vrshr.u16	q11, q8, #8
+    16e4:	f3840486 	vraddhn.i16	d0, q10, q3
+    16e8:	f38614a0 	vraddhn.i16	d1, q11, q8
+    16ec:	f3b20101 	vuzp.8	d0, d1
+    16f0:	f3b20101 	vuzp.8	d0, d1
+    16f4:	f3b20101 	vuzp.8	d0, d1
+    16f8:	f3b22103 	vuzp.8	d2, d3
+    16fc:	f3b21103 	vuzp.8	d1, d3
+    1700:	f3b20102 	vuzp.8	d0, d2
+    1704:	f3b24301 	vshll.i8	q2, d1, #8
+    1708:	f3b22302 	vshll.i8	q1, d2, #8
+    170c:	f3b26300 	vshll.i8	q3, d0, #8
+    1710:	f39b2454 	vsri.16	q1, q2, #5
+    1714:	f3952456 	vsri.16	q1, q3, #11
+    1718:	f480280d 	vst1.32	{d2[0]}, [r0]!
+    171c:	e31c0001 	tst	ip, #1
+    1720:	0a00002c 	beq	17d8 <pixman_scaled_bilinear_scanline_0565_8_0565_SRC_asm_neon+0x6f4>
+    1724:	e1a04846 	asr	r4, r6, #16
+    1728:	e0866007 	add	r6, r6, r7
+    172c:	e0824084 	add	r4, r2, r4, lsl #1
+    1730:	f4a41803 	vld1.32	{d1[0]}, [r4], r3
+    1734:	f4a4188f 	vld1.32	{d1[1]}, [r4]
+    1738:	f2950511 	vshl.s16	d0, d1, #5
+    173c:	f29b2511 	vshl.s16	d2, d1, #11
+    1740:	f39b1411 	vsri.16	d1, d1, #5
+    1744:	f39a0410 	vsri.16	d0, d0, #6
+    1748:	f39b2412 	vsri.16	d2, d2, #5
+    174c:	f3981011 	vshr.u16	d1, d1, #8
+    1750:	f3980412 	vsri.16	d0, d2, #8
+    1754:	f3b60181 	vzip.16	d0, d1
+    1758:	f4a1400d 	vld1.8	{d4[0]}, [r1]!
+    175c:	f5d1f01c 	pld	[r1, #28]
+    1760:	f3802c2c 	vmull.u8	q1, d0, d28
+    1764:	f381282d 	vmlal.u8	q1, d1, d29
+    1768:	f3970a12 	vshll.u16	d0, q1, #7
+    176c:	f3920a2e 	vmlsl.u16	q0, d2, d30
+    1770:	f393082e 	vmlal.u16	q0, d3, d30
+    1774:	f3b14c04 	vdup.8	d4, d4[0]
+    1778:	f2920810 	vshrn.i32	d0, q0, #14
+    177c:	f3b20200 	vmovn.i16	d0, q0
+    1780:	f3b20101 	vuzp.8	d0, d1
+    1784:	f3f22123 	vuzp.8	d18, d19
+    1788:	f3b20101 	vuzp.8	d0, d1
+    178c:	f3f22123 	vuzp.8	d18, d19
+    1790:	f3806c04 	vmull.u8	q3, d0, d4
+    1794:	f3c10c04 	vmull.u8	q8, d1, d4
+    1798:	f3d84256 	vrshr.u16	q10, q3, #8
+    179c:	f3d86270 	vrshr.u16	q11, q8, #8
+    17a0:	f3840486 	vraddhn.i16	d0, q10, q3
+    17a4:	f38614a0 	vraddhn.i16	d1, q11, q8
+    17a8:	f3b20101 	vuzp.8	d0, d1
+    17ac:	f3b20101 	vuzp.8	d0, d1
+    17b0:	f3b20101 	vuzp.8	d0, d1
+    17b4:	f3b22103 	vuzp.8	d2, d3
+    17b8:	f3b21103 	vuzp.8	d1, d3
+    17bc:	f3b20102 	vuzp.8	d0, d2
+    17c0:	f3b24301 	vshll.i8	q2, d1, #8
+    17c4:	f3b22302 	vshll.i8	q1, d2, #8
+    17c8:	f3b26300 	vshll.i8	q3, d0, #8
+    17cc:	f39b2454 	vsri.16	q1, q2, #5
+    17d0:	f3952456 	vsri.16	q1, q3, #11
+    17d4:	f480240d 	vst1.16	{d2[0]}, [r0]!
+    17d8:	e8bd17f0 	pop	{r4, r5, r6, r7, r8, r9, sl, ip}
+    17dc:	e12fff1e 	bx	lr
+			17dc: R_ARM_V4BX	*ABS*
+
+000017e0 <pixman_scaled_bilinear_scanline_8888_8888_OVER_asm_neon>:
+    17e0:	e1a0c00d 	mov	ip, sp
+    17e4:	e92d03f0 	push	{r4, r5, r6, r7, r8, r9}
+    17e8:	e3a0701c 	mov	r7, #28
+    17ec:	e89c1070 	ldm	ip, {r4, r5, r6, ip}
+    17f0:	e0070697 	mul	r7, r7, r6
+    17f4:	e0422001 	sub	r2, r2, r1
+    17f8:	e35c0000 	cmp	ip, #0
+    17fc:	da00013c 	ble	1cf4 <pixman_scaled_bilinear_scanline_8888_8888_OVER_asm_neon+0x514>
+    1800:	eea85bb0 	vdup.16	q12, r5
+    1804:	eeaa6bb0 	vdup.16	q13, r6
+    1808:	eecc3b90 	vdup.8	d28, r3
+    180c:	eecd4b90 	vdup.8	d29, r4
+    1810:	f25998aa 	vadd.i16	d25, d25, d26
+    1814:	e35c0001 	cmp	ip, #1
+    1818:	ba000022 	blt	18a8 <pixman_scaled_bilinear_scanline_8888_8888_OVER_asm_neon+0xc8>
+    181c:	e3100004 	tst	r0, #4
+    1820:	0a000020 	beq	18a8 <pixman_scaled_bilinear_scanline_8888_8888_OVER_asm_neon+0xc8>
+    1824:	f3d7e078 	vshr.u16	q15, q12, #9
+    1828:	f25888ea 	vadd.i16	q12, q12, q13
+    182c:	e1a03845 	asr	r3, r5, #16
+    1830:	e0855006 	add	r5, r5, r6
+    1834:	e0813103 	add	r3, r1, r3, lsl #2
+    1838:	f4230782 	vld1.32	{d0}, [r3], r2
+    183c:	f423178f 	vld1.32	{d1}, [r3]
+    1840:	f4e0280f 	vld1.32	{d18[0]}, [r0]
+    1844:	f5d0f070 	pld	[r0, #112]	; 0x70
+    1848:	f3802c2c 	vmull.u8	q1, d0, d28
+    184c:	f381282d 	vmlal.u8	q1, d1, d29
+    1850:	f3970a12 	vshll.u16	d0, q1, #7
+    1854:	f3920a2e 	vmlsl.u16	q0, d2, d30
+    1858:	f393082e 	vmlal.u16	q0, d3, d30
+    185c:	f2920810 	vshrn.i32	d0, q0, #14
+    1860:	f3b20200 	vmovn.i16	d0, q0
+    1864:	f3b20101 	vuzp.8	d0, d1
+    1868:	f3f22123 	vuzp.8	d18, d19
+    186c:	f3b20101 	vuzp.8	d0, d1
+    1870:	f3f22123 	vuzp.8	d18, d19
+    1874:	f3bc5c01 	vdup.32	d5, d1[1]
+    1878:	f3b05585 	vmvn	d5, d5
+    187c:	f3826c85 	vmull.u8	q3, d18, d5
+    1880:	f3c30c85 	vmull.u8	q8, d19, d5
+    1884:	f3d84256 	vrshr.u16	q10, q3, #8
+    1888:	f3d86270 	vrshr.u16	q11, q8, #8
+    188c:	f3c42486 	vraddhn.i16	d18, q10, q3
+    1890:	f3c634a0 	vraddhn.i16	d19, q11, q8
+    1894:	f30200d0 	vqadd.u8	q0, q9, q0
+    1898:	f3b20101 	vuzp.8	d0, d1
+    189c:	f3b20101 	vuzp.8	d0, d1
+    18a0:	f480083d 	vst1.32	{d0[0]}, [r0 :32]!
+    18a4:	e24cc001 	sub	ip, ip, #1
+    18a8:	f25aa8ea 	vadd.i16	q13, q13, q13
+    18ac:	f3d7e078 	vshr.u16	q15, q12, #9
+    18b0:	f25888ea 	vadd.i16	q12, q12, q13
+    18b4:	e35c0002 	cmp	ip, #2
+    18b8:	ba00002d 	blt	1974 <pixman_scaled_bilinear_scanline_8888_8888_OVER_asm_neon+0x194>
+    18bc:	e3100008 	tst	r0, #8
+    18c0:	0a00002b 	beq	1974 <pixman_scaled_bilinear_scanline_8888_8888_OVER_asm_neon+0x194>
+    18c4:	e1a03845 	asr	r3, r5, #16
+    18c8:	e0855006 	add	r5, r5, r6
+    18cc:	e0813103 	add	r3, r1, r3, lsl #2
+    18d0:	f4230782 	vld1.32	{d0}, [r3], r2
+    18d4:	f423178f 	vld1.32	{d1}, [r3]
+    18d8:	f3802c2c 	vmull.u8	q1, d0, d28
+    18dc:	f381282d 	vmlal.u8	q1, d1, d29
+    18e0:	e1a03845 	asr	r3, r5, #16
+    18e4:	e0855006 	add	r5, r5, r6
+    18e8:	e0813103 	add	r3, r1, r3, lsl #2
+    18ec:	f4634782 	vld1.32	{d20}, [r3], r2
+    18f0:	f463578f 	vld1.32	{d21}, [r3]
+    18f4:	f3c46cac 	vmull.u8	q11, d20, d28
+    18f8:	f3c568ad 	vmlal.u8	q11, d21, d29
+    18fc:	f460278f 	vld1.32	{d18}, [r0]
+    1900:	f5d0f070 	pld	[r0, #112]	; 0x70
+    1904:	f3970a12 	vshll.u16	d0, q1, #7
+    1908:	f3920a2e 	vmlsl.u16	q0, d2, d30
+    190c:	f393082e 	vmlal.u16	q0, d3, d30
+    1910:	f3d74a36 	vshll.u16	d20, q11, #7
+    1914:	f3d64aaf 	vmlsl.u16	q10, d22, d31
+    1918:	f3d748af 	vmlal.u16	q10, d23, d31
+    191c:	f2920810 	vshrn.i32	d0, q0, #14
+    1920:	f2921834 	vshrn.i32	d1, q10, #14
+    1924:	f3d7e078 	vshr.u16	q15, q12, #9
+    1928:	f25888ea 	vadd.i16	q12, q12, q13
+    192c:	f3b20200 	vmovn.i16	d0, q0
+    1930:	f3b20101 	vuzp.8	d0, d1
+    1934:	f3f22123 	vuzp.8	d18, d19
+    1938:	f3b20101 	vuzp.8	d0, d1
+    193c:	f3f22123 	vuzp.8	d18, d19
+    1940:	f3bc5c01 	vdup.32	d5, d1[1]
+    1944:	f3b05585 	vmvn	d5, d5
+    1948:	f3826c85 	vmull.u8	q3, d18, d5
+    194c:	f3c30c85 	vmull.u8	q8, d19, d5
+    1950:	f3d84256 	vrshr.u16	q10, q3, #8
+    1954:	f3d86270 	vrshr.u16	q11, q8, #8
+    1958:	f3c42486 	vraddhn.i16	d18, q10, q3
+    195c:	f3c634a0 	vraddhn.i16	d19, q11, q8
+    1960:	f30200d0 	vqadd.u8	q0, q9, q0
+    1964:	f3b20101 	vuzp.8	d0, d1
+    1968:	f3b20101 	vuzp.8	d0, d1
+    196c:	f400078d 	vst1.32	{d0}, [r0]!
+    1970:	e24cc002 	sub	ip, ip, #2
+    1974:	e25cc004 	subs	ip, ip, #4
+    1978:	ba000090 	blt	1bc0 <pixman_scaled_bilinear_scanline_8888_8888_OVER_asm_neon+0x3e0>
+    197c:	e1a07747 	asr	r7, r7, #14
+    1980:	e1a03845 	asr	r3, r5, #16
+    1984:	e0855006 	add	r5, r5, r6
+    1988:	e0813103 	add	r3, r1, r3, lsl #2
+    198c:	e1a04845 	asr	r4, r5, #16
+    1990:	e0855006 	add	r5, r5, r6
+    1994:	e0814104 	add	r4, r1, r4, lsl #2
+    1998:	f4636782 	vld1.32	{d22}, [r3], r2
+    199c:	f463778f 	vld1.32	{d23}, [r3]
+    19a0:	e1a08845 	asr	r8, r5, #16
+    19a4:	e0855006 	add	r5, r5, r6
+    19a8:	e0818108 	add	r8, r1, r8, lsl #2
+    19ac:	f3c60cac 	vmull.u8	q8, d22, d28
+    19b0:	f3c708ad 	vmlal.u8	q8, d23, d29
+    19b4:	f4646782 	vld1.32	{d22}, [r4], r2
+    19b8:	f464778f 	vld1.32	{d23}, [r4]
+    19bc:	e1a09845 	asr	r9, r5, #16
+    19c0:	e0855006 	add	r5, r5, r6
+    19c4:	e0819109 	add	r9, r1, r9, lsl #2
+    19c8:	f3c62cac 	vmull.u8	q9, d22, d28
+    19cc:	f3c728ad 	vmlal.u8	q9, d23, d29
+    19d0:	f4686782 	vld1.32	{d22}, [r8], r2
+    19d4:	f468778f 	vld1.32	{d23}, [r8]
+    19d8:	f3c64cac 	vmull.u8	q10, d22, d28
+    19dc:	f3c748ad 	vmlal.u8	q10, d23, d29
+    19e0:	f3970a30 	vshll.u16	d0, q8, #7
+    19e4:	f3900aae 	vmlsl.u16	q0, d16, d30
+    19e8:	f39108ae 	vmlal.u16	q0, d17, d30
+    19ec:	f7d9f007 	pld	[r9, r7]
+    19f0:	f4690782 	vld1.32	{d16}, [r9], r2
+    19f4:	f469178f 	vld1.32	{d17}, [r9]
+    19f8:	f7d9f007 	pld	[r9, r7]
+    19fc:	f3c06cac 	vmull.u8	q11, d16, d28
+    1a00:	f3c168ad 	vmlal.u8	q11, d17, d29
+    1a04:	f3972a32 	vshll.u16	d2, q9, #7
+    1a08:	f3922aaf 	vmlsl.u16	q1, d18, d31
+    1a0c:	f39328af 	vmlal.u16	q1, d19, d31
+    1a10:	f3d7e078 	vshr.u16	q15, q12, #9
+    1a14:	f25888ea 	vadd.i16	q12, q12, q13
+    1a18:	e25cc004 	subs	ip, ip, #4
+    1a1c:	ba000047 	blt	1b40 <pixman_scaled_bilinear_scanline_8888_8888_OVER_asm_neon+0x360>
+    1a20:	f3974a34 	vshll.u16	d4, q10, #7
+    1a24:	e1a03845 	asr	r3, r5, #16
+    1a28:	e0855006 	add	r5, r5, r6
+    1a2c:	e0813103 	add	r3, r1, r3, lsl #2
+    1a30:	f3944aae 	vmlsl.u16	q2, d20, d30
+    1a34:	e1a04845 	asr	r4, r5, #16
+    1a38:	e0855006 	add	r5, r5, r6
+    1a3c:	e0814104 	add	r4, r1, r4, lsl #2
+    1a40:	f39548ae 	vmlal.u16	q2, d21, d30
+    1a44:	f3976a36 	vshll.u16	d6, q11, #7
+    1a48:	f4634782 	vld1.32	{d20}, [r3], r2
+    1a4c:	f3966aaf 	vmlsl.u16	q3, d22, d31
+    1a50:	f39768af 	vmlal.u16	q3, d23, d31
+    1a54:	f463578f 	vld1.32	{d21}, [r3]
+    1a58:	f3c40cac 	vmull.u8	q8, d20, d28
+    1a5c:	f3c508ad 	vmlal.u8	q8, d21, d29
+    1a60:	f2920810 	vshrn.i32	d0, q0, #14
+    1a64:	f2921812 	vshrn.i32	d1, q1, #14
+    1a68:	f4202aaf 	vld1.32	{d2-d3}, [r0 :128]
+    1a6c:	f7d0f007 	pld	[r0, r7]
+    1a70:	f2924814 	vshrn.i32	d4, q2, #14
+    1a74:	f3d7e078 	vshr.u16	q15, q12, #9
+    1a78:	f4646782 	vld1.32	{d22}, [r4], r2
+    1a7c:	f2925816 	vshrn.i32	d5, q3, #14
+    1a80:	f3b26200 	vmovn.i16	d6, q0
+    1a84:	f464778f 	vld1.32	{d23}, [r4]
+    1a88:	f3c62cac 	vmull.u8	q9, d22, d28
+    1a8c:	e1a08845 	asr	r8, r5, #16
+    1a90:	e0855006 	add	r5, r5, r6
+    1a94:	e0818108 	add	r8, r1, r8, lsl #2
+    1a98:	e1a09845 	asr	r9, r5, #16
+    1a9c:	e0855006 	add	r5, r5, r6
+    1aa0:	e0819109 	add	r9, r1, r9, lsl #2
+    1aa4:	f3c728ad 	vmlal.u8	q9, d23, d29
+    1aa8:	f3b27204 	vmovn.i16	d7, q2
+    1aac:	f4686782 	vld1.32	{d22}, [r8], r2
+    1ab0:	f3b26107 	vuzp.8	d6, d7
+    1ab4:	f3b22103 	vuzp.8	d2, d3
+    1ab8:	f3b26107 	vuzp.8	d6, d7
+    1abc:	f3b22103 	vuzp.8	d2, d3
+    1ac0:	f3bc4c07 	vdup.32	d4, d7[1]
+    1ac4:	f468778f 	vld1.32	{d23}, [r8]
+    1ac8:	f3b04584 	vmvn	d4, d4
+    1acc:	f3c64cac 	vmull.u8	q10, d22, d28
+    1ad0:	f3c748ad 	vmlal.u8	q10, d23, d29
+    1ad4:	f3c26c04 	vmull.u8	q11, d2, d4
+    1ad8:	f3834c04 	vmull.u8	q2, d3, d4
+    1adc:	f3970a30 	vshll.u16	d0, q8, #7
+    1ae0:	f3900aae 	vmlsl.u16	q0, d16, d30
+    1ae4:	f3982276 	vrshr.u16	q1, q11, #8
+    1ae8:	f39108ae 	vmlal.u16	q0, d17, d30
+    1aec:	f3d80254 	vrshr.u16	q8, q2, #8
+    1af0:	f3822426 	vraddhn.i16	d2, q1, q11
+    1af4:	f3803484 	vraddhn.i16	d3, q8, q2
+    1af8:	f7d9f007 	pld	[r9, r7]
+    1afc:	f4690782 	vld1.32	{d16}, [r9], r2
+    1b00:	f3026056 	vqadd.u8	q3, q1, q3
+    1b04:	f469178f 	vld1.32	{d17}, [r9]
+    1b08:	f7d9f007 	pld	[r9, r7]
+    1b0c:	f3c06cac 	vmull.u8	q11, d16, d28
+    1b10:	f3c168ad 	vmlal.u8	q11, d17, d29
+    1b14:	f3b26107 	vuzp.8	d6, d7
+    1b18:	f3972a32 	vshll.u16	d2, q9, #7
+    1b1c:	f3b26107 	vuzp.8	d6, d7
+    1b20:	f3922aaf 	vmlsl.u16	q1, d18, d31
+    1b24:	f25888ea 	vadd.i16	q12, q12, q13
+    1b28:	f39328af 	vmlal.u16	q1, d19, d31
+    1b2c:	f3d7e078 	vshr.u16	q15, q12, #9
+    1b30:	f25888ea 	vadd.i16	q12, q12, q13
+    1b34:	f4006aad 	vst1.32	{d6-d7}, [r0 :128]!
+    1b38:	e25cc004 	subs	ip, ip, #4
+    1b3c:	aaffffb7 	bge	1a20 <pixman_scaled_bilinear_scanline_8888_8888_OVER_asm_neon+0x240>
+    1b40:	f3974a34 	vshll.u16	d4, q10, #7
+    1b44:	f3944aae 	vmlsl.u16	q2, d20, d30
+    1b48:	f39548ae 	vmlal.u16	q2, d21, d30
+    1b4c:	f3976a36 	vshll.u16	d6, q11, #7
+    1b50:	f3966aaf 	vmlsl.u16	q3, d22, d31
+    1b54:	f39768af 	vmlal.u16	q3, d23, d31
+    1b58:	f2920810 	vshrn.i32	d0, q0, #14
+    1b5c:	f2921812 	vshrn.i32	d1, q1, #14
+    1b60:	f4202aaf 	vld1.32	{d2-d3}, [r0 :128]
+    1b64:	f5d0f070 	pld	[r0, #112]	; 0x70
+    1b68:	f2924814 	vshrn.i32	d4, q2, #14
+    1b6c:	f3d7e078 	vshr.u16	q15, q12, #9
+    1b70:	f2925816 	vshrn.i32	d5, q3, #14
+    1b74:	f3b26200 	vmovn.i16	d6, q0
+    1b78:	f3b27204 	vmovn.i16	d7, q2
+    1b7c:	f3b26107 	vuzp.8	d6, d7
+    1b80:	f3b22103 	vuzp.8	d2, d3
+    1b84:	f3b26107 	vuzp.8	d6, d7
+    1b88:	f3b22103 	vuzp.8	d2, d3
+    1b8c:	f3bc4c07 	vdup.32	d4, d7[1]
+    1b90:	f3b04584 	vmvn	d4, d4
+    1b94:	f3c26c04 	vmull.u8	q11, d2, d4
+    1b98:	f3834c04 	vmull.u8	q2, d3, d4
+    1b9c:	f3982276 	vrshr.u16	q1, q11, #8
+    1ba0:	f3d84254 	vrshr.u16	q10, q2, #8
+    1ba4:	f3822426 	vraddhn.i16	d2, q1, q11
+    1ba8:	f3843484 	vraddhn.i16	d3, q10, q2
+    1bac:	f3026056 	vqadd.u8	q3, q1, q3
+    1bb0:	f3b26107 	vuzp.8	d6, d7
+    1bb4:	f3b26107 	vuzp.8	d6, d7
+    1bb8:	f25888ea 	vadd.i16	q12, q12, q13
+    1bbc:	f4006aad 	vst1.32	{d6-d7}, [r0 :128]!
+    1bc0:	e31c0002 	tst	ip, #2
+    1bc4:	0a00002a 	beq	1c74 <pixman_scaled_bilinear_scanline_8888_8888_OVER_asm_neon+0x494>
+    1bc8:	e1a03845 	asr	r3, r5, #16
+    1bcc:	e0855006 	add	r5, r5, r6
+    1bd0:	e0813103 	add	r3, r1, r3, lsl #2
+    1bd4:	f4230782 	vld1.32	{d0}, [r3], r2
+    1bd8:	f423178f 	vld1.32	{d1}, [r3]
+    1bdc:	f3802c2c 	vmull.u8	q1, d0, d28
+    1be0:	f381282d 	vmlal.u8	q1, d1, d29
+    1be4:	e1a03845 	asr	r3, r5, #16
+    1be8:	e0855006 	add	r5, r5, r6
+    1bec:	e0813103 	add	r3, r1, r3, lsl #2
+    1bf0:	f4634782 	vld1.32	{d20}, [r3], r2
+    1bf4:	f463578f 	vld1.32	{d21}, [r3]
+    1bf8:	f3c46cac 	vmull.u8	q11, d20, d28
+    1bfc:	f3c568ad 	vmlal.u8	q11, d21, d29
+    1c00:	f460278f 	vld1.32	{d18}, [r0]
+    1c04:	f5d0f070 	pld	[r0, #112]	; 0x70
+    1c08:	f3970a12 	vshll.u16	d0, q1, #7
+    1c0c:	f3920a2e 	vmlsl.u16	q0, d2, d30
+    1c10:	f393082e 	vmlal.u16	q0, d3, d30
+    1c14:	f3d74a36 	vshll.u16	d20, q11, #7
+    1c18:	f3d64aaf 	vmlsl.u16	q10, d22, d31
+    1c1c:	f3d748af 	vmlal.u16	q10, d23, d31
+    1c20:	f2920810 	vshrn.i32	d0, q0, #14
+    1c24:	f2921834 	vshrn.i32	d1, q10, #14
+    1c28:	f3d7e078 	vshr.u16	q15, q12, #9
+    1c2c:	f25888ea 	vadd.i16	q12, q12, q13
+    1c30:	f3b20200 	vmovn.i16	d0, q0
+    1c34:	f3b20101 	vuzp.8	d0, d1
+    1c38:	f3f22123 	vuzp.8	d18, d19
+    1c3c:	f3b20101 	vuzp.8	d0, d1
+    1c40:	f3f22123 	vuzp.8	d18, d19
+    1c44:	f3bc5c01 	vdup.32	d5, d1[1]
+    1c48:	f3b05585 	vmvn	d5, d5
+    1c4c:	f3826c85 	vmull.u8	q3, d18, d5
+    1c50:	f3c30c85 	vmull.u8	q8, d19, d5
+    1c54:	f3d84256 	vrshr.u16	q10, q3, #8
+    1c58:	f3d86270 	vrshr.u16	q11, q8, #8
+    1c5c:	f3c42486 	vraddhn.i16	d18, q10, q3
+    1c60:	f3c634a0 	vraddhn.i16	d19, q11, q8
+    1c64:	f30200d0 	vqadd.u8	q0, q9, q0
+    1c68:	f3b20101 	vuzp.8	d0, d1
+    1c6c:	f3b20101 	vuzp.8	d0, d1
+    1c70:	f400078d 	vst1.32	{d0}, [r0]!
+    1c74:	e31c0001 	tst	ip, #1
+    1c78:	0a00001d 	beq	1cf4 <pixman_scaled_bilinear_scanline_8888_8888_OVER_asm_neon+0x514>
+    1c7c:	e1a03845 	asr	r3, r5, #16
+    1c80:	e0855006 	add	r5, r5, r6
+    1c84:	e0813103 	add	r3, r1, r3, lsl #2
+    1c88:	f4230782 	vld1.32	{d0}, [r3], r2
+    1c8c:	f423178f 	vld1.32	{d1}, [r3]
+    1c90:	f4e0280f 	vld1.32	{d18[0]}, [r0]
+    1c94:	f5d0f070 	pld	[r0, #112]	; 0x70
+    1c98:	f3802c2c 	vmull.u8	q1, d0, d28
+    1c9c:	f381282d 	vmlal.u8	q1, d1, d29
+    1ca0:	f3970a12 	vshll.u16	d0, q1, #7
+    1ca4:	f3920a2e 	vmlsl.u16	q0, d2, d30
+    1ca8:	f393082e 	vmlal.u16	q0, d3, d30
+    1cac:	f2920810 	vshrn.i32	d0, q0, #14
+    1cb0:	f3b20200 	vmovn.i16	d0, q0
+    1cb4:	f3b20101 	vuzp.8	d0, d1
+    1cb8:	f3f22123 	vuzp.8	d18, d19
+    1cbc:	f3b20101 	vuzp.8	d0, d1
+    1cc0:	f3f22123 	vuzp.8	d18, d19
+    1cc4:	f3bc5c01 	vdup.32	d5, d1[1]
+    1cc8:	f3b05585 	vmvn	d5, d5
+    1ccc:	f3826c85 	vmull.u8	q3, d18, d5
+    1cd0:	f3c30c85 	vmull.u8	q8, d19, d5
+    1cd4:	f3d84256 	vrshr.u16	q10, q3, #8
+    1cd8:	f3d86270 	vrshr.u16	q11, q8, #8
+    1cdc:	f3c42486 	vraddhn.i16	d18, q10, q3
+    1ce0:	f3c634a0 	vraddhn.i16	d19, q11, q8
+    1ce4:	f30200d0 	vqadd.u8	q0, q9, q0
+    1ce8:	f3b20101 	vuzp.8	d0, d1
+    1cec:	f3b20101 	vuzp.8	d0, d1
+    1cf0:	f480083d 	vst1.32	{d0[0]}, [r0 :32]!
+    1cf4:	e8bd03f0 	pop	{r4, r5, r6, r7, r8, r9}
+    1cf8:	e12fff1e 	bx	lr
+			1cf8: R_ARM_V4BX	*ABS*
+
+00001cfc <pixman_scaled_bilinear_scanline_8888_8_8888_OVER_asm_neon>:
+    1cfc:	e1a0c00d 	mov	ip, sp
+    1d00:	e92d17f0 	push	{r4, r5, r6, r7, r8, r9, sl, ip}
+    1d04:	e3a0801c 	mov	r8, #28
+    1d08:	e89c10f0 	ldm	ip, {r4, r5, r6, r7, ip}
+    1d0c:	e0080798 	mul	r8, r8, r7
+    1d10:	e0433002 	sub	r3, r3, r2
+    1d14:	e35c0000 	cmp	ip, #0
+    1d18:	da000171 	ble	22e4 <pixman_scaled_bilinear_scanline_8888_8_8888_OVER_asm_neon+0x5e8>
+    1d1c:	eea86bb0 	vdup.16	q12, r6
+    1d20:	eeaa7bb0 	vdup.16	q13, r7
+    1d24:	eecc4b90 	vdup.8	d28, r4
+    1d28:	eecd5b90 	vdup.8	d29, r5
+    1d2c:	f25998aa 	vadd.i16	d25, d25, d26
+    1d30:	e35c0001 	cmp	ip, #1
+    1d34:	ba00002b 	blt	1de8 <pixman_scaled_bilinear_scanline_8888_8_8888_OVER_asm_neon+0xec>
+    1d38:	e3100004 	tst	r0, #4
+    1d3c:	0a000029 	beq	1de8 <pixman_scaled_bilinear_scanline_8888_8_8888_OVER_asm_neon+0xec>
+    1d40:	f3d7e078 	vshr.u16	q15, q12, #9
+    1d44:	f25888ea 	vadd.i16	q12, q12, q13
+    1d48:	e1a04846 	asr	r4, r6, #16
+    1d4c:	e0866007 	add	r6, r6, r7
+    1d50:	e0824104 	add	r4, r2, r4, lsl #2
+    1d54:	f4240783 	vld1.32	{d0}, [r4], r3
+    1d58:	f424178f 	vld1.32	{d1}, [r4]
+    1d5c:	f4a1400d 	vld1.8	{d4[0]}, [r1]!
+    1d60:	f5d1f01c 	pld	[r1, #28]
+    1d64:	f4e0280f 	vld1.32	{d18[0]}, [r0]
+    1d68:	f5d0f070 	pld	[r0, #112]	; 0x70
+    1d6c:	f3802c2c 	vmull.u8	q1, d0, d28
+    1d70:	f381282d 	vmlal.u8	q1, d1, d29
+    1d74:	f3970a12 	vshll.u16	d0, q1, #7
+    1d78:	f3920a2e 	vmlsl.u16	q0, d2, d30
+    1d7c:	f393082e 	vmlal.u16	q0, d3, d30
+    1d80:	f3b14c04 	vdup.8	d4, d4[0]
+    1d84:	f2920810 	vshrn.i32	d0, q0, #14
+    1d88:	f3b20200 	vmovn.i16	d0, q0
+    1d8c:	f3b20101 	vuzp.8	d0, d1
+    1d90:	f3f22123 	vuzp.8	d18, d19
+    1d94:	f3b20101 	vuzp.8	d0, d1
+    1d98:	f3f22123 	vuzp.8	d18, d19
+    1d9c:	f3806c04 	vmull.u8	q3, d0, d4
+    1da0:	f3c10c04 	vmull.u8	q8, d1, d4
+    1da4:	f3d84256 	vrshr.u16	q10, q3, #8
+    1da8:	f3d86270 	vrshr.u16	q11, q8, #8
+    1dac:	f3840486 	vraddhn.i16	d0, q10, q3
+    1db0:	f38614a0 	vraddhn.i16	d1, q11, q8
+    1db4:	f3bc5c01 	vdup.32	d5, d1[1]
+    1db8:	f3b05585 	vmvn	d5, d5
+    1dbc:	f3826c85 	vmull.u8	q3, d18, d5
+    1dc0:	f3c30c85 	vmull.u8	q8, d19, d5
+    1dc4:	f3d84256 	vrshr.u16	q10, q3, #8
+    1dc8:	f3d86270 	vrshr.u16	q11, q8, #8
+    1dcc:	f3c42486 	vraddhn.i16	d18, q10, q3
+    1dd0:	f3c634a0 	vraddhn.i16	d19, q11, q8
+    1dd4:	f30200d0 	vqadd.u8	q0, q9, q0
+    1dd8:	f3b20101 	vuzp.8	d0, d1
+    1ddc:	f3b20101 	vuzp.8	d0, d1
+    1de0:	f480083d 	vst1.32	{d0[0]}, [r0 :32]!
+    1de4:	e24cc001 	sub	ip, ip, #1
+    1de8:	f25aa8ea 	vadd.i16	q13, q13, q13
+    1dec:	f3d7e078 	vshr.u16	q15, q12, #9
+    1df0:	f25888ea 	vadd.i16	q12, q12, q13
+    1df4:	e35c0002 	cmp	ip, #2
+    1df8:	ba000036 	blt	1ed8 <pixman_scaled_bilinear_scanline_8888_8_8888_OVER_asm_neon+0x1dc>
+    1dfc:	e3100008 	tst	r0, #8
+    1e00:	0a000034 	beq	1ed8 <pixman_scaled_bilinear_scanline_8888_8_8888_OVER_asm_neon+0x1dc>
+    1e04:	e1a04846 	asr	r4, r6, #16
+    1e08:	e0866007 	add	r6, r6, r7
+    1e0c:	e0824104 	add	r4, r2, r4, lsl #2
+    1e10:	f4240783 	vld1.32	{d0}, [r4], r3
+    1e14:	f424178f 	vld1.32	{d1}, [r4]
+    1e18:	f3802c2c 	vmull.u8	q1, d0, d28
+    1e1c:	f381282d 	vmlal.u8	q1, d1, d29
+    1e20:	e1a04846 	asr	r4, r6, #16
+    1e24:	e0866007 	add	r6, r6, r7
+    1e28:	e0824104 	add	r4, r2, r4, lsl #2
+    1e2c:	f4644783 	vld1.32	{d20}, [r4], r3
+    1e30:	f464578f 	vld1.32	{d21}, [r4]
+    1e34:	f3c46cac 	vmull.u8	q11, d20, d28
+    1e38:	f3c568ad 	vmlal.u8	q11, d21, d29
+    1e3c:	f4a1440d 	vld1.16	{d4[0]}, [r1]!
+    1e40:	f5d1f01c 	pld	[r1, #28]
+    1e44:	f460278f 	vld1.32	{d18}, [r0]
+    1e48:	f5d0f070 	pld	[r0, #112]	; 0x70
+    1e4c:	f3970a12 	vshll.u16	d0, q1, #7
+    1e50:	f3920a2e 	vmlsl.u16	q0, d2, d30
+    1e54:	f393082e 	vmlal.u16	q0, d3, d30
+    1e58:	f3d74a36 	vshll.u16	d20, q11, #7
+    1e5c:	f3d64aaf 	vmlsl.u16	q10, d22, d31
+    1e60:	f3d748af 	vmlal.u16	q10, d23, d31
+    1e64:	f2920810 	vshrn.i32	d0, q0, #14
+    1e68:	f2921834 	vshrn.i32	d1, q10, #14
+    1e6c:	f3b24c04 	vdup.16	d4, d4[0]
+    1e70:	f3d7e078 	vshr.u16	q15, q12, #9
+    1e74:	f25888ea 	vadd.i16	q12, q12, q13
+    1e78:	f3b20200 	vmovn.i16	d0, q0
+    1e7c:	f3b20101 	vuzp.8	d0, d1
+    1e80:	f3f22123 	vuzp.8	d18, d19
+    1e84:	f3b20101 	vuzp.8	d0, d1
+    1e88:	f3f22123 	vuzp.8	d18, d19
+    1e8c:	f3806c04 	vmull.u8	q3, d0, d4
+    1e90:	f3c10c04 	vmull.u8	q8, d1, d4
+    1e94:	f3d84256 	vrshr.u16	q10, q3, #8
+    1e98:	f3d86270 	vrshr.u16	q11, q8, #8
+    1e9c:	f3840486 	vraddhn.i16	d0, q10, q3
+    1ea0:	f38614a0 	vraddhn.i16	d1, q11, q8
+    1ea4:	f3bc5c01 	vdup.32	d5, d1[1]
+    1ea8:	f3b05585 	vmvn	d5, d5
+    1eac:	f3826c85 	vmull.u8	q3, d18, d5
+    1eb0:	f3c30c85 	vmull.u8	q8, d19, d5
+    1eb4:	f3d84256 	vrshr.u16	q10, q3, #8
+    1eb8:	f3d86270 	vrshr.u16	q11, q8, #8
+    1ebc:	f3c42486 	vraddhn.i16	d18, q10, q3
+    1ec0:	f3c634a0 	vraddhn.i16	d19, q11, q8
+    1ec4:	f30200d0 	vqadd.u8	q0, q9, q0
+    1ec8:	f3b20101 	vuzp.8	d0, d1
+    1ecc:	f3b20101 	vuzp.8	d0, d1
+    1ed0:	f400078d 	vst1.32	{d0}, [r0]!
+    1ed4:	e24cc002 	sub	ip, ip, #2
+    1ed8:	e25cc004 	subs	ip, ip, #4
+    1edc:	ba0000a1 	blt	2168 <pixman_scaled_bilinear_scanline_8888_8_8888_OVER_asm_neon+0x46c>
+    1ee0:	e1a08748 	asr	r8, r8, #14
+    1ee4:	e1a04846 	asr	r4, r6, #16
+    1ee8:	e0866007 	add	r6, r6, r7
+    1eec:	e0824104 	add	r4, r2, r4, lsl #2
+    1ef0:	f4240783 	vld1.32	{d0}, [r4], r3
+    1ef4:	e1a05846 	asr	r5, r6, #16
+    1ef8:	e0866007 	add	r6, r6, r7
+    1efc:	e0825105 	add	r5, r2, r5, lsl #2
+    1f00:	f424178f 	vld1.32	{d1}, [r4]
+    1f04:	e1a09846 	asr	r9, r6, #16
+    1f08:	e0866007 	add	r6, r6, r7
+    1f0c:	e0829109 	add	r9, r2, r9, lsl #2
+    1f10:	f4252783 	vld1.32	{d2}, [r5], r3
+    1f14:	e1a0a846 	asr	sl, r6, #16
+    1f18:	e0866007 	add	r6, r6, r7
+    1f1c:	e082a10a 	add	sl, r2, sl, lsl #2
+    1f20:	f425378f 	vld1.32	{d3}, [r5]
+    1f24:	f3804c2c 	vmull.u8	q2, d0, d28
+    1f28:	f3826c2c 	vmull.u8	q3, d2, d28
+    1f2c:	f381482d 	vmlal.u8	q2, d1, d29
+    1f30:	f383682d 	vmlal.u8	q3, d3, d29
+    1f34:	f3970a14 	vshll.u16	d0, q2, #7
+    1f38:	f3972a16 	vshll.u16	d2, q3, #7
+    1f3c:	f3940a2e 	vmlsl.u16	q0, d4, d30
+    1f40:	f3962a2f 	vmlsl.u16	q1, d6, d31
+    1f44:	f395082e 	vmlal.u16	q0, d5, d30
+    1f48:	f397282f 	vmlal.u16	q1, d7, d31
+    1f4c:	f2920810 	vshrn.i32	d0, q0, #14
+    1f50:	f2921812 	vshrn.i32	d1, q1, #14
+    1f54:	f4292783 	vld1.32	{d2}, [r9], r3
+    1f58:	f429378f 	vld1.32	{d3}, [r9]
+    1f5c:	f7daf008 	pld	[sl, r8]
+    1f60:	f42a4783 	vld1.32	{d4}, [sl], r3
+    1f64:	f42a578f 	vld1.32	{d5}, [sl]
+    1f68:	f7daf008 	pld	[sl, r8]
+    1f6c:	f3826c2c 	vmull.u8	q3, d2, d28
+    1f70:	f383682d 	vmlal.u8	q3, d3, d29
+    1f74:	f3842c2c 	vmull.u8	q1, d4, d28
+    1f78:	f385282d 	vmlal.u8	q1, d5, d29
+    1f7c:	f3d7e078 	vshr.u16	q15, q12, #9
+    1f80:	f4e1680d 	vld1.32	{d22[0]}, [r1]!
+    1f84:	f5d1f01c 	pld	[r1, #28]
+    1f88:	f25888ea 	vadd.i16	q12, q12, q13
+    1f8c:	f3f20200 	vmovn.i16	d16, q0
+    1f90:	e25cc004 	subs	ip, ip, #4
+    1f94:	ba00004f 	blt	20d8 <pixman_scaled_bilinear_scanline_8888_8_8888_OVER_asm_neon+0x3dc>
+    1f98:	f3d72a16 	vshll.u16	d18, q3, #7
+    1f9c:	e1a04846 	asr	r4, r6, #16
+    1fa0:	e0866007 	add	r6, r6, r7
+    1fa4:	e0824104 	add	r4, r2, r4, lsl #2
+    1fa8:	f3d74a12 	vshll.u16	d20, q1, #7
+    1fac:	f4240783 	vld1.32	{d0}, [r4], r3
+    1fb0:	e1a05846 	asr	r5, r6, #16
+    1fb4:	e0866007 	add	r6, r6, r7
+    1fb8:	e0825105 	add	r5, r2, r5, lsl #2
+    1fbc:	f3d62a2e 	vmlsl.u16	q9, d6, d30
+    1fc0:	f3d24a2f 	vmlsl.u16	q10, d2, d31
+    1fc4:	f424178f 	vld1.32	{d1}, [r4]
+    1fc8:	e1a09846 	asr	r9, r6, #16
+    1fcc:	e0866007 	add	r6, r6, r7
+    1fd0:	e0829109 	add	r9, r2, r9, lsl #2
+    1fd4:	f3d7282e 	vmlal.u16	q9, d7, d30
+    1fd8:	f3d3482f 	vmlal.u16	q10, d3, d31
+    1fdc:	f4252783 	vld1.32	{d2}, [r5], r3
+    1fe0:	e1a0a846 	asr	sl, r6, #16
+    1fe4:	e0866007 	add	r6, r6, r7
+    1fe8:	e082a10a 	add	sl, r2, sl, lsl #2
+    1fec:	f3d7e078 	vshr.u16	q15, q12, #9
+    1ff0:	f25888ea 	vadd.i16	q12, q12, q13
+    1ff4:	f425378f 	vld1.32	{d3}, [r5]
+    1ff8:	f3f46c26 	vdup.32	d22, d22[0]
+    1ffc:	f2d22832 	vshrn.i32	d18, q9, #14
+    2000:	f2d23834 	vshrn.i32	d19, q10, #14
+    2004:	f3804c2c 	vmull.u8	q2, d0, d28
+    2008:	f3826c2c 	vmull.u8	q3, d2, d28
+    200c:	f3f21222 	vmovn.i16	d17, q9
+    2010:	f4602aaf 	vld1.32	{d18-d19}, [r0 :128]
+    2014:	f5d0f070 	pld	[r0, #112]	; 0x70
+    2018:	f381482d 	vmlal.u8	q2, d1, d29
+    201c:	f383682d 	vmlal.u8	q3, d3, d29
+    2020:	f3f20121 	vuzp.8	d16, d17
+    2024:	f3f22123 	vuzp.8	d18, d19
+    2028:	f3970a14 	vshll.u16	d0, q2, #7
+    202c:	f3972a16 	vshll.u16	d2, q3, #7
+    2030:	f3f20121 	vuzp.8	d16, d17
+    2034:	f3f22123 	vuzp.8	d18, d19
+    2038:	f3940a2e 	vmlsl.u16	q0, d4, d30
+    203c:	f3962a2f 	vmlsl.u16	q1, d6, d31
+    2040:	f3c04ca6 	vmull.u8	q10, d16, d22
+    2044:	f3c16ca6 	vmull.u8	q11, d17, d22
+    2048:	f395082e 	vmlal.u16	q0, d5, d30
+    204c:	f397282f 	vmlal.u16	q1, d7, d31
+    2050:	f3d84374 	vrsra.u16	q10, q10, #8
+    2054:	f3d86376 	vrsra.u16	q11, q11, #8
+    2058:	f2920810 	vshrn.i32	d0, q0, #14
+    205c:	f2921812 	vshrn.i32	d1, q1, #14
+    2060:	f2c80874 	vrshrn.i16	d16, q10, #8
+    2064:	f2c81876 	vrshrn.i16	d17, q11, #8
+    2068:	f4292783 	vld1.32	{d2}, [r9], r3
+    206c:	f3fc6c21 	vdup.32	d22, d17[1]
+    2070:	f429378f 	vld1.32	{d3}, [r9]
+    2074:	f3f065a6 	vmvn	d22, d22
+    2078:	f7daf008 	pld	[sl, r8]
+    207c:	f42a4783 	vld1.32	{d4}, [sl], r3
+    2080:	f3c24ca6 	vmull.u8	q10, d18, d22
+    2084:	f3c36ca6 	vmull.u8	q11, d19, d22
+    2088:	f42a578f 	vld1.32	{d5}, [sl]
+    208c:	f7daf008 	pld	[sl, r8]
+    2090:	f3826c2c 	vmull.u8	q3, d2, d28
+    2094:	f3d82274 	vrshr.u16	q9, q10, #8
+    2098:	f3d8e276 	vrshr.u16	q15, q11, #8
+    209c:	f383682d 	vmlal.u8	q3, d3, d29
+    20a0:	f3842c2c 	vmull.u8	q1, d4, d28
+    20a4:	f3c224a4 	vraddhn.i16	d18, q9, q10
+    20a8:	f3ce34a6 	vraddhn.i16	d19, q15, q11
+    20ac:	f385282d 	vmlal.u8	q1, d5, d29
+    20b0:	f3d7e078 	vshr.u16	q15, q12, #9
+    20b4:	f34020f2 	vqadd.u8	q9, q8, q9
+    20b8:	f4e1680d 	vld1.32	{d22[0]}, [r1]!
+    20bc:	f3f22123 	vuzp.8	d18, d19
+    20c0:	f25888ea 	vadd.i16	q12, q12, q13
+    20c4:	f3f22123 	vuzp.8	d18, d19
+    20c8:	f3f20200 	vmovn.i16	d16, q0
+    20cc:	f4402aad 	vst1.32	{d18-d19}, [r0 :128]!
+    20d0:	e25cc004 	subs	ip, ip, #4
+    20d4:	aaffffaf 	bge	1f98 <pixman_scaled_bilinear_scanline_8888_8_8888_OVER_asm_neon+0x29c>
+    20d8:	f3d72a16 	vshll.u16	d18, q3, #7
+    20dc:	f3d74a12 	vshll.u16	d20, q1, #7
+    20e0:	f3d62a2e 	vmlsl.u16	q9, d6, d30
+    20e4:	f3d24a2f 	vmlsl.u16	q10, d2, d31
+    20e8:	f3d7282e 	vmlal.u16	q9, d7, d30
+    20ec:	f3d3482f 	vmlal.u16	q10, d3, d31
+    20f0:	f3d7e078 	vshr.u16	q15, q12, #9
+    20f4:	f25888ea 	vadd.i16	q12, q12, q13
+    20f8:	f3f46c26 	vdup.32	d22, d22[0]
+    20fc:	f2d22832 	vshrn.i32	d18, q9, #14
+    2100:	f2d23834 	vshrn.i32	d19, q10, #14
+    2104:	f3f21222 	vmovn.i16	d17, q9
+    2108:	f4602aaf 	vld1.32	{d18-d19}, [r0 :128]
+    210c:	f7d0f008 	pld	[r0, r8]
+    2110:	f3f20121 	vuzp.8	d16, d17
+    2114:	f3f22123 	vuzp.8	d18, d19
+    2118:	f3f20121 	vuzp.8	d16, d17
+    211c:	f3f22123 	vuzp.8	d18, d19
+    2120:	f3c04ca6 	vmull.u8	q10, d16, d22
+    2124:	f3c16ca6 	vmull.u8	q11, d17, d22
+    2128:	f3d84374 	vrsra.u16	q10, q10, #8
+    212c:	f3d86376 	vrsra.u16	q11, q11, #8
+    2130:	f2c80874 	vrshrn.i16	d16, q10, #8
+    2134:	f2c81876 	vrshrn.i16	d17, q11, #8
+    2138:	f3fc6c21 	vdup.32	d22, d17[1]
+    213c:	f3f065a6 	vmvn	d22, d22
+    2140:	f3c24ca6 	vmull.u8	q10, d18, d22
+    2144:	f3c36ca6 	vmull.u8	q11, d19, d22
+    2148:	f3d82274 	vrshr.u16	q9, q10, #8
+    214c:	f3980276 	vrshr.u16	q0, q11, #8
+    2150:	f3c224a4 	vraddhn.i16	d18, q9, q10
+    2154:	f3c03426 	vraddhn.i16	d19, q0, q11
+    2158:	f34020f2 	vqadd.u8	q9, q8, q9
+    215c:	f3f22123 	vuzp.8	d18, d19
+    2160:	f3f22123 	vuzp.8	d18, d19
+    2164:	f4402aad 	vst1.32	{d18-d19}, [r0 :128]!
+    2168:	e31c0002 	tst	ip, #2
+    216c:	0a000033 	beq	2240 <pixman_scaled_bilinear_scanline_8888_8_8888_OVER_asm_neon+0x544>
+    2170:	e1a04846 	asr	r4, r6, #16
+    2174:	e0866007 	add	r6, r6, r7
+    2178:	e0824104 	add	r4, r2, r4, lsl #2
+    217c:	f4240783 	vld1.32	{d0}, [r4], r3
+    2180:	f424178f 	vld1.32	{d1}, [r4]
+    2184:	f3802c2c 	vmull.u8	q1, d0, d28
+    2188:	f381282d 	vmlal.u8	q1, d1, d29
+    218c:	e1a04846 	asr	r4, r6, #16
+    2190:	e0866007 	add	r6, r6, r7
+    2194:	e0824104 	add	r4, r2, r4, lsl #2
+    2198:	f4644783 	vld1.32	{d20}, [r4], r3
+    219c:	f464578f 	vld1.32	{d21}, [r4]
+    21a0:	f3c46cac 	vmull.u8	q11, d20, d28
+    21a4:	f3c568ad 	vmlal.u8	q11, d21, d29
+    21a8:	f4a1440d 	vld1.16	{d4[0]}, [r1]!
+    21ac:	f5d1f01c 	pld	[r1, #28]
+    21b0:	f460278f 	vld1.32	{d18}, [r0]
+    21b4:	f5d0f070 	pld	[r0, #112]	; 0x70
+    21b8:	f3970a12 	vshll.u16	d0, q1, #7
+    21bc:	f3920a2e 	vmlsl.u16	q0, d2, d30
+    21c0:	f393082e 	vmlal.u16	q0, d3, d30
+    21c4:	f3d74a36 	vshll.u16	d20, q11, #7
+    21c8:	f3d64aaf 	vmlsl.u16	q10, d22, d31
+    21cc:	f3d748af 	vmlal.u16	q10, d23, d31
+    21d0:	f2920810 	vshrn.i32	d0, q0, #14
+    21d4:	f2921834 	vshrn.i32	d1, q10, #14
+    21d8:	f3b24c04 	vdup.16	d4, d4[0]
+    21dc:	f3d7e078 	vshr.u16	q15, q12, #9
+    21e0:	f25888ea 	vadd.i16	q12, q12, q13
+    21e4:	f3b20200 	vmovn.i16	d0, q0
+    21e8:	f3b20101 	vuzp.8	d0, d1
+    21ec:	f3f22123 	vuzp.8	d18, d19
+    21f0:	f3b20101 	vuzp.8	d0, d1
+    21f4:	f3f22123 	vuzp.8	d18, d19
+    21f8:	f3806c04 	vmull.u8	q3, d0, d4
+    21fc:	f3c10c04 	vmull.u8	q8, d1, d4
+    2200:	f3d84256 	vrshr.u16	q10, q3, #8
+    2204:	f3d86270 	vrshr.u16	q11, q8, #8
+    2208:	f3840486 	vraddhn.i16	d0, q10, q3
+    220c:	f38614a0 	vraddhn.i16	d1, q11, q8
+    2210:	f3bc5c01 	vdup.32	d5, d1[1]
+    2214:	f3b05585 	vmvn	d5, d5
+    2218:	f3826c85 	vmull.u8	q3, d18, d5
+    221c:	f3c30c85 	vmull.u8	q8, d19, d5
+    2220:	f3d84256 	vrshr.u16	q10, q3, #8
+    2224:	f3d86270 	vrshr.u16	q11, q8, #8
+    2228:	f3c42486 	vraddhn.i16	d18, q10, q3
+    222c:	f3c634a0 	vraddhn.i16	d19, q11, q8
+    2230:	f30200d0 	vqadd.u8	q0, q9, q0
+    2234:	f3b20101 	vuzp.8	d0, d1
+    2238:	f3b20101 	vuzp.8	d0, d1
+    223c:	f400078d 	vst1.32	{d0}, [r0]!
+    2240:	e31c0001 	tst	ip, #1
+    2244:	0a000026 	beq	22e4 <pixman_scaled_bilinear_scanline_8888_8_8888_OVER_asm_neon+0x5e8>
+    2248:	e1a04846 	asr	r4, r6, #16
+    224c:	e0866007 	add	r6, r6, r7
+    2250:	e0824104 	add	r4, r2, r4, lsl #2
+    2254:	f4240783 	vld1.32	{d0}, [r4], r3
+    2258:	f424178f 	vld1.32	{d1}, [r4]
+    225c:	f4a1400d 	vld1.8	{d4[0]}, [r1]!
+    2260:	f5d1f01c 	pld	[r1, #28]
+    2264:	f4e0280f 	vld1.32	{d18[0]}, [r0]
+    2268:	f5d0f070 	pld	[r0, #112]	; 0x70
+    226c:	f3802c2c 	vmull.u8	q1, d0, d28
+    2270:	f381282d 	vmlal.u8	q1, d1, d29
+    2274:	f3970a12 	vshll.u16	d0, q1, #7
+    2278:	f3920a2e 	vmlsl.u16	q0, d2, d30
+    227c:	f393082e 	vmlal.u16	q0, d3, d30
+    2280:	f3b14c04 	vdup.8	d4, d4[0]
+    2284:	f2920810 	vshrn.i32	d0, q0, #14
+    2288:	f3b20200 	vmovn.i16	d0, q0
+    228c:	f3b20101 	vuzp.8	d0, d1
+    2290:	f3f22123 	vuzp.8	d18, d19
+    2294:	f3b20101 	vuzp.8	d0, d1
+    2298:	f3f22123 	vuzp.8	d18, d19
+    229c:	f3806c04 	vmull.u8	q3, d0, d4
+    22a0:	f3c10c04 	vmull.u8	q8, d1, d4
+    22a4:	f3d84256 	vrshr.u16	q10, q3, #8
+    22a8:	f3d86270 	vrshr.u16	q11, q8, #8
+    22ac:	f3840486 	vraddhn.i16	d0, q10, q3
+    22b0:	f38614a0 	vraddhn.i16	d1, q11, q8
+    22b4:	f3bc5c01 	vdup.32	d5, d1[1]
+    22b8:	f3b05585 	vmvn	d5, d5
+    22bc:	f3826c85 	vmull.u8	q3, d18, d5
+    22c0:	f3c30c85 	vmull.u8	q8, d19, d5
+    22c4:	f3d84256 	vrshr.u16	q10, q3, #8
+    22c8:	f3d86270 	vrshr.u16	q11, q8, #8
+    22cc:	f3c42486 	vraddhn.i16	d18, q10, q3
+    22d0:	f3c634a0 	vraddhn.i16	d19, q11, q8
+    22d4:	f30200d0 	vqadd.u8	q0, q9, q0
+    22d8:	f3b20101 	vuzp.8	d0, d1
+    22dc:	f3b20101 	vuzp.8	d0, d1
+    22e0:	f480083d 	vst1.32	{d0[0]}, [r0 :32]!
+    22e4:	e8bd17f0 	pop	{r4, r5, r6, r7, r8, r9, sl, ip}
+    22e8:	e12fff1e 	bx	lr
+			22e8: R_ARM_V4BX	*ABS*
+
+000022ec <pixman_scaled_bilinear_scanline_8888_8888_ADD_asm_neon>:
+    22ec:	e1a0c00d 	mov	ip, sp
+    22f0:	e92d03f0 	push	{r4, r5, r6, r7, r8, r9}
+    22f4:	e3a0701c 	mov	r7, #28
+    22f8:	e89c1070 	ldm	ip, {r4, r5, r6, ip}
+    22fc:	e0070697 	mul	r7, r7, r6
+    2300:	e0422001 	sub	r2, r2, r1
+    2304:	e35c0000 	cmp	ip, #0
+    2308:	da0000ea 	ble	26b8 <pixman_scaled_bilinear_scanline_8888_8888_ADD_asm_neon+0x3cc>
+    230c:	eea85bb0 	vdup.16	q12, r5
+    2310:	eeaa6bb0 	vdup.16	q13, r6
+    2314:	eecc3b90 	vdup.8	d28, r3
+    2318:	eecd4b90 	vdup.8	d29, r4
+    231c:	f25998aa 	vadd.i16	d25, d25, d26
+    2320:	e35c0001 	cmp	ip, #1
+    2324:	ba000014 	blt	237c <pixman_scaled_bilinear_scanline_8888_8888_ADD_asm_neon+0x90>
+    2328:	e3100004 	tst	r0, #4
+    232c:	0a000012 	beq	237c <pixman_scaled_bilinear_scanline_8888_8888_ADD_asm_neon+0x90>
+    2330:	f3d7e078 	vshr.u16	q15, q12, #9
+    2334:	f25888ea 	vadd.i16	q12, q12, q13
+    2338:	e1a03845 	asr	r3, r5, #16
+    233c:	e0855006 	add	r5, r5, r6
+    2340:	e0813103 	add	r3, r1, r3, lsl #2
+    2344:	f4230782 	vld1.32	{d0}, [r3], r2
+    2348:	f423178f 	vld1.32	{d1}, [r3]
+    234c:	f4e0280f 	vld1.32	{d18[0]}, [r0]
+    2350:	f5d0f070 	pld	[r0, #112]	; 0x70
+    2354:	f3802c2c 	vmull.u8	q1, d0, d28
+    2358:	f381282d 	vmlal.u8	q1, d1, d29
+    235c:	f3970a12 	vshll.u16	d0, q1, #7
+    2360:	f3920a2e 	vmlsl.u16	q0, d2, d30
+    2364:	f393082e 	vmlal.u16	q0, d3, d30
+    2368:	f2920810 	vshrn.i32	d0, q0, #14
+    236c:	f3b20200 	vmovn.i16	d0, q0
+    2370:	f30200d0 	vqadd.u8	q0, q9, q0
+    2374:	f480083d 	vst1.32	{d0[0]}, [r0 :32]!
+    2378:	e24cc001 	sub	ip, ip, #1
+    237c:	f25aa8ea 	vadd.i16	q13, q13, q13
+    2380:	f3d7e078 	vshr.u16	q15, q12, #9
+    2384:	f25888ea 	vadd.i16	q12, q12, q13
+    2388:	e35c0002 	cmp	ip, #2
+    238c:	ba00001f 	blt	2410 <pixman_scaled_bilinear_scanline_8888_8888_ADD_asm_neon+0x124>
+    2390:	e3100008 	tst	r0, #8
+    2394:	0a00001d 	beq	2410 <pixman_scaled_bilinear_scanline_8888_8888_ADD_asm_neon+0x124>
+    2398:	e1a03845 	asr	r3, r5, #16
+    239c:	e0855006 	add	r5, r5, r6
+    23a0:	e0813103 	add	r3, r1, r3, lsl #2
+    23a4:	f4230782 	vld1.32	{d0}, [r3], r2
+    23a8:	f423178f 	vld1.32	{d1}, [r3]
+    23ac:	f3802c2c 	vmull.u8	q1, d0, d28
+    23b0:	f381282d 	vmlal.u8	q1, d1, d29
+    23b4:	e1a03845 	asr	r3, r5, #16
+    23b8:	e0855006 	add	r5, r5, r6
+    23bc:	e0813103 	add	r3, r1, r3, lsl #2
+    23c0:	f4634782 	vld1.32	{d20}, [r3], r2
+    23c4:	f463578f 	vld1.32	{d21}, [r3]
+    23c8:	f3c46cac 	vmull.u8	q11, d20, d28
+    23cc:	f3c568ad 	vmlal.u8	q11, d21, d29
+    23d0:	f460278f 	vld1.32	{d18}, [r0]
+    23d4:	f5d0f070 	pld	[r0, #112]	; 0x70
+    23d8:	f3970a12 	vshll.u16	d0, q1, #7
+    23dc:	f3920a2e 	vmlsl.u16	q0, d2, d30
+    23e0:	f393082e 	vmlal.u16	q0, d3, d30
+    23e4:	f3d74a36 	vshll.u16	d20, q11, #7
+    23e8:	f3d64aaf 	vmlsl.u16	q10, d22, d31
+    23ec:	f3d748af 	vmlal.u16	q10, d23, d31
+    23f0:	f2920810 	vshrn.i32	d0, q0, #14
+    23f4:	f2921834 	vshrn.i32	d1, q10, #14
+    23f8:	f3d7e078 	vshr.u16	q15, q12, #9
+    23fc:	f25888ea 	vadd.i16	q12, q12, q13
+    2400:	f3b20200 	vmovn.i16	d0, q0
+    2404:	f30200d0 	vqadd.u8	q0, q9, q0
+    2408:	f400078d 	vst1.32	{d0}, [r0]!
+    240c:	e24cc002 	sub	ip, ip, #2
+    2410:	e25cc004 	subs	ip, ip, #4
+    2414:	ba000076 	blt	25f4 <pixman_scaled_bilinear_scanline_8888_8888_ADD_asm_neon+0x308>
+    2418:	e1a07747 	asr	r7, r7, #14
+    241c:	e1a03845 	asr	r3, r5, #16
+    2420:	e0855006 	add	r5, r5, r6
+    2424:	e0813103 	add	r3, r1, r3, lsl #2
+    2428:	f4230782 	vld1.32	{d0}, [r3], r2
+    242c:	f423178f 	vld1.32	{d1}, [r3]
+    2430:	f3802c2c 	vmull.u8	q1, d0, d28
+    2434:	f381282d 	vmlal.u8	q1, d1, d29
+    2438:	e1a03845 	asr	r3, r5, #16
+    243c:	e0855006 	add	r5, r5, r6
+    2440:	e0813103 	add	r3, r1, r3, lsl #2
+    2444:	f4634782 	vld1.32	{d20}, [r3], r2
+    2448:	f463578f 	vld1.32	{d21}, [r3]
+    244c:	f3c46cac 	vmull.u8	q11, d20, d28
+    2450:	f3c568ad 	vmlal.u8	q11, d21, d29
+    2454:	e1a03845 	asr	r3, r5, #16
+    2458:	e0855006 	add	r5, r5, r6
+    245c:	e0813103 	add	r3, r1, r3, lsl #2
+    2460:	f4234782 	vld1.32	{d4}, [r3], r2
+    2464:	f423578f 	vld1.32	{d5}, [r3]
+    2468:	f3846c2c 	vmull.u8	q3, d4, d28
+    246c:	f385682d 	vmlal.u8	q3, d5, d29
+    2470:	e1a03845 	asr	r3, r5, #16
+    2474:	e0855006 	add	r5, r5, r6
+    2478:	e0813103 	add	r3, r1, r3, lsl #2
+    247c:	f4630782 	vld1.32	{d16}, [r3], r2
+    2480:	f463178f 	vld1.32	{d17}, [r3]
+    2484:	f3c02cac 	vmull.u8	q9, d16, d28
+    2488:	f3c128ad 	vmlal.u8	q9, d17, d29
+    248c:	f7d3f007 	pld	[r3, r7]
+    2490:	e0433002 	sub	r3, r3, r2
+    2494:	f3970a12 	vshll.u16	d0, q1, #7
+    2498:	f3920a2e 	vmlsl.u16	q0, d2, d30
+    249c:	f393082e 	vmlal.u16	q0, d3, d30
+    24a0:	f3d74a36 	vshll.u16	d20, q11, #7
+    24a4:	f3d64aaf 	vmlsl.u16	q10, d22, d31
+    24a8:	f3d748af 	vmlal.u16	q10, d23, d31
+    24ac:	f3d7e078 	vshr.u16	q15, q12, #9
+    24b0:	f3974a16 	vshll.u16	d4, q3, #7
+    24b4:	f3964a2e 	vmlsl.u16	q2, d6, d30
+    24b8:	f397482e 	vmlal.u16	q2, d7, d30
+    24bc:	f3d70a32 	vshll.u16	d16, q9, #7
+    24c0:	f4202a8f 	vld1.32	{d2-d3}, [r0]
+    24c4:	f5d0f070 	pld	[r0, #112]	; 0x70
+    24c8:	f7d3f007 	pld	[r3, r7]
+    24cc:	f3d20aaf 	vmlsl.u16	q8, d18, d31
+    24d0:	f3d308af 	vmlal.u16	q8, d19, d31
+    24d4:	f25888ea 	vadd.i16	q12, q12, q13
+    24d8:	f2920810 	vshrn.i32	d0, q0, #14
+    24dc:	f2921834 	vshrn.i32	d1, q10, #14
+    24e0:	f2924814 	vshrn.i32	d4, q2, #14
+    24e4:	f2925830 	vshrn.i32	d5, q8, #14
+    24e8:	f3d7e078 	vshr.u16	q15, q12, #9
+    24ec:	f3b20200 	vmovn.i16	d0, q0
+    24f0:	f3b21204 	vmovn.i16	d1, q2
+    24f4:	f25888ea 	vadd.i16	q12, q12, q13
+    24f8:	f3020050 	vqadd.u8	q0, q1, q0
+    24fc:	f4000a8d 	vst1.32	{d0-d1}, [r0]!
+    2500:	e25cc004 	subs	ip, ip, #4
+    2504:	ba00003a 	blt	25f4 <pixman_scaled_bilinear_scanline_8888_8888_ADD_asm_neon+0x308>
+    2508:	e1a03845 	asr	r3, r5, #16
+    250c:	e0855006 	add	r5, r5, r6
+    2510:	e0813103 	add	r3, r1, r3, lsl #2
+    2514:	f4230782 	vld1.32	{d0}, [r3], r2
+    2518:	f423178f 	vld1.32	{d1}, [r3]
+    251c:	f3802c2c 	vmull.u8	q1, d0, d28
+    2520:	f381282d 	vmlal.u8	q1, d1, d29
+    2524:	e1a03845 	asr	r3, r5, #16
+    2528:	e0855006 	add	r5, r5, r6
+    252c:	e0813103 	add	r3, r1, r3, lsl #2
+    2530:	f4634782 	vld1.32	{d20}, [r3], r2
+    2534:	f463578f 	vld1.32	{d21}, [r3]
+    2538:	f3c46cac 	vmull.u8	q11, d20, d28
+    253c:	f3c568ad 	vmlal.u8	q11, d21, d29
+    2540:	e1a03845 	asr	r3, r5, #16
+    2544:	e0855006 	add	r5, r5, r6
+    2548:	e0813103 	add	r3, r1, r3, lsl #2
+    254c:	f4234782 	vld1.32	{d4}, [r3], r2
+    2550:	f423578f 	vld1.32	{d5}, [r3]
+    2554:	f3846c2c 	vmull.u8	q3, d4, d28
+    2558:	f385682d 	vmlal.u8	q3, d5, d29
+    255c:	e1a03845 	asr	r3, r5, #16
+    2560:	e0855006 	add	r5, r5, r6
+    2564:	e0813103 	add	r3, r1, r3, lsl #2
+    2568:	f4630782 	vld1.32	{d16}, [r3], r2
+    256c:	f463178f 	vld1.32	{d17}, [r3]
+    2570:	f3c02cac 	vmull.u8	q9, d16, d28
+    2574:	f3c128ad 	vmlal.u8	q9, d17, d29
+    2578:	f7d3f007 	pld	[r3, r7]
+    257c:	e0433002 	sub	r3, r3, r2
+    2580:	f3970a12 	vshll.u16	d0, q1, #7
+    2584:	f3920a2e 	vmlsl.u16	q0, d2, d30
+    2588:	f393082e 	vmlal.u16	q0, d3, d30
+    258c:	f3d74a36 	vshll.u16	d20, q11, #7
+    2590:	f3d64aaf 	vmlsl.u16	q10, d22, d31
+    2594:	f3d748af 	vmlal.u16	q10, d23, d31
+    2598:	f3d7e078 	vshr.u16	q15, q12, #9
+    259c:	f3974a16 	vshll.u16	d4, q3, #7
+    25a0:	f3964a2e 	vmlsl.u16	q2, d6, d30
+    25a4:	f397482e 	vmlal.u16	q2, d7, d30
+    25a8:	f3d70a32 	vshll.u16	d16, q9, #7
+    25ac:	f4202a8f 	vld1.32	{d2-d3}, [r0]
+    25b0:	f5d0f070 	pld	[r0, #112]	; 0x70
+    25b4:	f7d3f007 	pld	[r3, r7]
+    25b8:	f3d20aaf 	vmlsl.u16	q8, d18, d31
+    25bc:	f3d308af 	vmlal.u16	q8, d19, d31
+    25c0:	f25888ea 	vadd.i16	q12, q12, q13
+    25c4:	f2920810 	vshrn.i32	d0, q0, #14
+    25c8:	f2921834 	vshrn.i32	d1, q10, #14
+    25cc:	f2924814 	vshrn.i32	d4, q2, #14
+    25d0:	f2925830 	vshrn.i32	d5, q8, #14
+    25d4:	f3d7e078 	vshr.u16	q15, q12, #9
+    25d8:	f3b20200 	vmovn.i16	d0, q0
+    25dc:	f3b21204 	vmovn.i16	d1, q2
+    25e0:	f25888ea 	vadd.i16	q12, q12, q13
+    25e4:	f3020050 	vqadd.u8	q0, q1, q0
+    25e8:	f4000a8d 	vst1.32	{d0-d1}, [r0]!
+    25ec:	e25cc004 	subs	ip, ip, #4
+    25f0:	aaffffc4 	bge	2508 <pixman_scaled_bilinear_scanline_8888_8888_ADD_asm_neon+0x21c>
+    25f4:	e31c0002 	tst	ip, #2
+    25f8:	0a00001c 	beq	2670 <pixman_scaled_bilinear_scanline_8888_8888_ADD_asm_neon+0x384>
+    25fc:	e1a03845 	asr	r3, r5, #16
+    2600:	e0855006 	add	r5, r5, r6
+    2604:	e0813103 	add	r3, r1, r3, lsl #2
+    2608:	f4230782 	vld1.32	{d0}, [r3], r2
+    260c:	f423178f 	vld1.32	{d1}, [r3]
+    2610:	f3802c2c 	vmull.u8	q1, d0, d28
+    2614:	f381282d 	vmlal.u8	q1, d1, d29
+    2618:	e1a03845 	asr	r3, r5, #16
+    261c:	e0855006 	add	r5, r5, r6
+    2620:	e0813103 	add	r3, r1, r3, lsl #2
+    2624:	f4634782 	vld1.32	{d20}, [r3], r2
+    2628:	f463578f 	vld1.32	{d21}, [r3]
+    262c:	f3c46cac 	vmull.u8	q11, d20, d28
+    2630:	f3c568ad 	vmlal.u8	q11, d21, d29
+    2634:	f460278f 	vld1.32	{d18}, [r0]
+    2638:	f5d0f070 	pld	[r0, #112]	; 0x70
+    263c:	f3970a12 	vshll.u16	d0, q1, #7
+    2640:	f3920a2e 	vmlsl.u16	q0, d2, d30
+    2644:	f393082e 	vmlal.u16	q0, d3, d30
+    2648:	f3d74a36 	vshll.u16	d20, q11, #7
+    264c:	f3d64aaf 	vmlsl.u16	q10, d22, d31
+    2650:	f3d748af 	vmlal.u16	q10, d23, d31
+    2654:	f2920810 	vshrn.i32	d0, q0, #14
+    2658:	f2921834 	vshrn.i32	d1, q10, #14
+    265c:	f3d7e078 	vshr.u16	q15, q12, #9
+    2660:	f25888ea 	vadd.i16	q12, q12, q13
+    2664:	f3b20200 	vmovn.i16	d0, q0
+    2668:	f30200d0 	vqadd.u8	q0, q9, q0
+    266c:	f400078d 	vst1.32	{d0}, [r0]!
+    2670:	e31c0001 	tst	ip, #1
+    2674:	0a00000f 	beq	26b8 <pixman_scaled_bilinear_scanline_8888_8888_ADD_asm_neon+0x3cc>
+    2678:	e1a03845 	asr	r3, r5, #16
+    267c:	e0855006 	add	r5, r5, r6
+    2680:	e0813103 	add	r3, r1, r3, lsl #2
+    2684:	f4230782 	vld1.32	{d0}, [r3], r2
+    2688:	f423178f 	vld1.32	{d1}, [r3]
+    268c:	f4e0280f 	vld1.32	{d18[0]}, [r0]
+    2690:	f5d0f070 	pld	[r0, #112]	; 0x70
+    2694:	f3802c2c 	vmull.u8	q1, d0, d28
+    2698:	f381282d 	vmlal.u8	q1, d1, d29
+    269c:	f3970a12 	vshll.u16	d0, q1, #7
+    26a0:	f3920a2e 	vmlsl.u16	q0, d2, d30
+    26a4:	f393082e 	vmlal.u16	q0, d3, d30
+    26a8:	f2920810 	vshrn.i32	d0, q0, #14
+    26ac:	f3b20200 	vmovn.i16	d0, q0
+    26b0:	f30200d0 	vqadd.u8	q0, q9, q0
+    26b4:	f480083d 	vst1.32	{d0[0]}, [r0 :32]!
+    26b8:	e8bd03f0 	pop	{r4, r5, r6, r7, r8, r9}
+    26bc:	e12fff1e 	bx	lr
+			26bc: R_ARM_V4BX	*ABS*
+
+000026c0 <pixman_scaled_bilinear_scanline_8888_8_8888_ADD_asm_neon>:
+    26c0:	e1a0c00d 	mov	ip, sp
+    26c4:	e92d17f0 	push	{r4, r5, r6, r7, r8, r9, sl, ip}
+    26c8:	e3a0801c 	mov	r8, #28
+    26cc:	e89c10f0 	ldm	ip, {r4, r5, r6, r7, ip}
+    26d0:	e0080798 	mul	r8, r8, r7
+    26d4:	e0433002 	sub	r3, r3, r2
+    26d8:	e35c0000 	cmp	ip, #0
+    26dc:	da000144 	ble	2bf4 <pixman_scaled_bilinear_scanline_8888_8_8888_ADD_asm_neon+0x534>
+    26e0:	eea86bb0 	vdup.16	q12, r6
+    26e4:	eeaa7bb0 	vdup.16	q13, r7
+    26e8:	eecc4b90 	vdup.8	d28, r4
+    26ec:	eecd5b90 	vdup.8	d29, r5
+    26f0:	f25998aa 	vadd.i16	d25, d25, d26
+    26f4:	e35c0001 	cmp	ip, #1
+    26f8:	ba000023 	blt	278c <pixman_scaled_bilinear_scanline_8888_8_8888_ADD_asm_neon+0xcc>
+    26fc:	e3100004 	tst	r0, #4
+    2700:	0a000021 	beq	278c <pixman_scaled_bilinear_scanline_8888_8_8888_ADD_asm_neon+0xcc>
+    2704:	f3d7e078 	vshr.u16	q15, q12, #9
+    2708:	f25888ea 	vadd.i16	q12, q12, q13
+    270c:	e1a04846 	asr	r4, r6, #16
+    2710:	e0866007 	add	r6, r6, r7
+    2714:	e0824104 	add	r4, r2, r4, lsl #2
+    2718:	f4240783 	vld1.32	{d0}, [r4], r3
+    271c:	f424178f 	vld1.32	{d1}, [r4]
+    2720:	f4a1400d 	vld1.8	{d4[0]}, [r1]!
+    2724:	f5d1f01c 	pld	[r1, #28]
+    2728:	f4e0280f 	vld1.32	{d18[0]}, [r0]
+    272c:	f5d0f070 	pld	[r0, #112]	; 0x70
+    2730:	f3802c2c 	vmull.u8	q1, d0, d28
+    2734:	f381282d 	vmlal.u8	q1, d1, d29
+    2738:	f3970a12 	vshll.u16	d0, q1, #7
+    273c:	f3920a2e 	vmlsl.u16	q0, d2, d30
+    2740:	f393082e 	vmlal.u16	q0, d3, d30
+    2744:	f3b14c04 	vdup.8	d4, d4[0]
+    2748:	f2920810 	vshrn.i32	d0, q0, #14
+    274c:	f3b20200 	vmovn.i16	d0, q0
+    2750:	f3b20101 	vuzp.8	d0, d1
+    2754:	f3f22123 	vuzp.8	d18, d19
+    2758:	f3b20101 	vuzp.8	d0, d1
+    275c:	f3f22123 	vuzp.8	d18, d19
+    2760:	f3806c04 	vmull.u8	q3, d0, d4
+    2764:	f3c10c04 	vmull.u8	q8, d1, d4
+    2768:	f3d84256 	vrshr.u16	q10, q3, #8
+    276c:	f3d86270 	vrshr.u16	q11, q8, #8
+    2770:	f3840486 	vraddhn.i16	d0, q10, q3
+    2774:	f38614a0 	vraddhn.i16	d1, q11, q8
+    2778:	f30200d0 	vqadd.u8	q0, q9, q0
+    277c:	f3b20101 	vuzp.8	d0, d1
+    2780:	f3b20101 	vuzp.8	d0, d1
+    2784:	f480083d 	vst1.32	{d0[0]}, [r0 :32]!
+    2788:	e24cc001 	sub	ip, ip, #1
+    278c:	f25aa8ea 	vadd.i16	q13, q13, q13
+    2790:	f3d7e078 	vshr.u16	q15, q12, #9
+    2794:	f25888ea 	vadd.i16	q12, q12, q13
+    2798:	e35c0002 	cmp	ip, #2
+    279c:	ba00002e 	blt	285c <pixman_scaled_bilinear_scanline_8888_8_8888_ADD_asm_neon+0x19c>
+    27a0:	e3100008 	tst	r0, #8
+    27a4:	0a00002c 	beq	285c <pixman_scaled_bilinear_scanline_8888_8_8888_ADD_asm_neon+0x19c>
+    27a8:	e1a04846 	asr	r4, r6, #16
+    27ac:	e0866007 	add	r6, r6, r7
+    27b0:	e0824104 	add	r4, r2, r4, lsl #2
+    27b4:	f4240783 	vld1.32	{d0}, [r4], r3
+    27b8:	f424178f 	vld1.32	{d1}, [r4]
+    27bc:	f3802c2c 	vmull.u8	q1, d0, d28
+    27c0:	f381282d 	vmlal.u8	q1, d1, d29
+    27c4:	e1a04846 	asr	r4, r6, #16
+    27c8:	e0866007 	add	r6, r6, r7
+    27cc:	e0824104 	add	r4, r2, r4, lsl #2
+    27d0:	f4644783 	vld1.32	{d20}, [r4], r3
+    27d4:	f464578f 	vld1.32	{d21}, [r4]
+    27d8:	f3c46cac 	vmull.u8	q11, d20, d28
+    27dc:	f3c568ad 	vmlal.u8	q11, d21, d29
+    27e0:	f4a1440d 	vld1.16	{d4[0]}, [r1]!
+    27e4:	f5d1f01c 	pld	[r1, #28]
+    27e8:	f460278f 	vld1.32	{d18}, [r0]
+    27ec:	f5d0f070 	pld	[r0, #112]	; 0x70
+    27f0:	f3970a12 	vshll.u16	d0, q1, #7
+    27f4:	f3920a2e 	vmlsl.u16	q0, d2, d30
+    27f8:	f393082e 	vmlal.u16	q0, d3, d30
+    27fc:	f3d74a36 	vshll.u16	d20, q11, #7
+    2800:	f3d64aaf 	vmlsl.u16	q10, d22, d31
+    2804:	f3d748af 	vmlal.u16	q10, d23, d31
+    2808:	f2920810 	vshrn.i32	d0, q0, #14
+    280c:	f2921834 	vshrn.i32	d1, q10, #14
+    2810:	f3b24c04 	vdup.16	d4, d4[0]
+    2814:	f3d7e078 	vshr.u16	q15, q12, #9
+    2818:	f25888ea 	vadd.i16	q12, q12, q13
+    281c:	f3b20200 	vmovn.i16	d0, q0
+    2820:	f3b20101 	vuzp.8	d0, d1
+    2824:	f3f22123 	vuzp.8	d18, d19
+    2828:	f3b20101 	vuzp.8	d0, d1
+    282c:	f3f22123 	vuzp.8	d18, d19
+    2830:	f3806c04 	vmull.u8	q3, d0, d4
+    2834:	f3c10c04 	vmull.u8	q8, d1, d4
+    2838:	f3d84256 	vrshr.u16	q10, q3, #8
+    283c:	f3d86270 	vrshr.u16	q11, q8, #8
+    2840:	f3840486 	vraddhn.i16	d0, q10, q3
+    2844:	f38614a0 	vraddhn.i16	d1, q11, q8
+    2848:	f30200d0 	vqadd.u8	q0, q9, q0
+    284c:	f3b20101 	vuzp.8	d0, d1
+    2850:	f3b20101 	vuzp.8	d0, d1
+    2854:	f400078d 	vst1.32	{d0}, [r0]!
+    2858:	e24cc002 	sub	ip, ip, #2
+    285c:	e25cc004 	subs	ip, ip, #4
+    2860:	ba000094 	blt	2ab8 <pixman_scaled_bilinear_scanline_8888_8_8888_ADD_asm_neon+0x3f8>
+    2864:	e1a08748 	asr	r8, r8, #14
+    2868:	e1a04846 	asr	r4, r6, #16
+    286c:	e0866007 	add	r6, r6, r7
+    2870:	e0824104 	add	r4, r2, r4, lsl #2
+    2874:	f4240783 	vld1.32	{d0}, [r4], r3
+    2878:	f424178f 	vld1.32	{d1}, [r4]
+    287c:	f3802c2c 	vmull.u8	q1, d0, d28
+    2880:	f381282d 	vmlal.u8	q1, d1, d29
+    2884:	e1a04846 	asr	r4, r6, #16
+    2888:	e0866007 	add	r6, r6, r7
+    288c:	e0824104 	add	r4, r2, r4, lsl #2
+    2890:	f4644783 	vld1.32	{d20}, [r4], r3
+    2894:	f464578f 	vld1.32	{d21}, [r4]
+    2898:	f3c46cac 	vmull.u8	q11, d20, d28
+    289c:	f3c568ad 	vmlal.u8	q11, d21, d29
+    28a0:	e1a04846 	asr	r4, r6, #16
+    28a4:	e0866007 	add	r6, r6, r7
+    28a8:	e0824104 	add	r4, r2, r4, lsl #2
+    28ac:	f4244783 	vld1.32	{d4}, [r4], r3
+    28b0:	f424578f 	vld1.32	{d5}, [r4]
+    28b4:	f3846c2c 	vmull.u8	q3, d4, d28
+    28b8:	f385682d 	vmlal.u8	q3, d5, d29
+    28bc:	e1a04846 	asr	r4, r6, #16
+    28c0:	e0866007 	add	r6, r6, r7
+    28c4:	e0824104 	add	r4, r2, r4, lsl #2
+    28c8:	f4640783 	vld1.32	{d16}, [r4], r3
+    28cc:	f464178f 	vld1.32	{d17}, [r4]
+    28d0:	f3c02cac 	vmull.u8	q9, d16, d28
+    28d4:	f3c128ad 	vmlal.u8	q9, d17, d29
+    28d8:	f7d4f008 	pld	[r4, r8]
+    28dc:	e0444003 	sub	r4, r4, r3
+    28e0:	f3970a12 	vshll.u16	d0, q1, #7
+    28e4:	f3920a2e 	vmlsl.u16	q0, d2, d30
+    28e8:	f393082e 	vmlal.u16	q0, d3, d30
+    28ec:	f3d74a36 	vshll.u16	d20, q11, #7
+    28f0:	f3d64aaf 	vmlsl.u16	q10, d22, d31
+    28f4:	f3d748af 	vmlal.u16	q10, d23, d31
+    28f8:	f3d7e078 	vshr.u16	q15, q12, #9
+    28fc:	f3974a16 	vshll.u16	d4, q3, #7
+    2900:	f3964a2e 	vmlsl.u16	q2, d6, d30
+    2904:	f397482e 	vmlal.u16	q2, d7, d30
+    2908:	f3d70a32 	vshll.u16	d16, q9, #7
+    290c:	f4e1680d 	vld1.32	{d22[0]}, [r1]!
+    2910:	f5d1f01c 	pld	[r1, #28]
+    2914:	f4202a8f 	vld1.32	{d2-d3}, [r0]
+    2918:	f5d0f070 	pld	[r0, #112]	; 0x70
+    291c:	f7d4f008 	pld	[r4, r8]
+    2920:	f3d20aaf 	vmlsl.u16	q8, d18, d31
+    2924:	f3d308af 	vmlal.u16	q8, d19, d31
+    2928:	f25888ea 	vadd.i16	q12, q12, q13
+    292c:	f2920810 	vshrn.i32	d0, q0, #14
+    2930:	f2921834 	vshrn.i32	d1, q10, #14
+    2934:	f2924814 	vshrn.i32	d4, q2, #14
+    2938:	f2925830 	vshrn.i32	d5, q8, #14
+    293c:	f3f46c26 	vdup.32	d22, d22[0]
+    2940:	f3d7e078 	vshr.u16	q15, q12, #9
+    2944:	f3b20200 	vmovn.i16	d0, q0
+    2948:	f3b21204 	vmovn.i16	d1, q2
+    294c:	f25888ea 	vadd.i16	q12, q12, q13
+    2950:	f3b20101 	vuzp.8	d0, d1
+    2954:	f3b22103 	vuzp.8	d2, d3
+    2958:	f3b20101 	vuzp.8	d0, d1
+    295c:	f3b22103 	vuzp.8	d2, d3
+    2960:	f3806c26 	vmull.u8	q3, d0, d22
+    2964:	f3c10c26 	vmull.u8	q8, d1, d22
+    2968:	f3d82256 	vrshr.u16	q9, q3, #8
+    296c:	f3d84270 	vrshr.u16	q10, q8, #8
+    2970:	f3820486 	vraddhn.i16	d0, q9, q3
+    2974:	f38414a0 	vraddhn.i16	d1, q10, q8
+    2978:	f3020050 	vqadd.u8	q0, q1, q0
+    297c:	f3b20101 	vuzp.8	d0, d1
+    2980:	f3b20101 	vuzp.8	d0, d1
+    2984:	f4000a8d 	vst1.32	{d0-d1}, [r0]!
+    2988:	e25cc004 	subs	ip, ip, #4
+    298c:	ba000049 	blt	2ab8 <pixman_scaled_bilinear_scanline_8888_8_8888_ADD_asm_neon+0x3f8>
+    2990:	e1a04846 	asr	r4, r6, #16
+    2994:	e0866007 	add	r6, r6, r7
+    2998:	e0824104 	add	r4, r2, r4, lsl #2
+    299c:	f4240783 	vld1.32	{d0}, [r4], r3
+    29a0:	f424178f 	vld1.32	{d1}, [r4]
+    29a4:	f3802c2c 	vmull.u8	q1, d0, d28
+    29a8:	f381282d 	vmlal.u8	q1, d1, d29
+    29ac:	e1a04846 	asr	r4, r6, #16
+    29b0:	e0866007 	add	r6, r6, r7
+    29b4:	e0824104 	add	r4, r2, r4, lsl #2
+    29b8:	f4644783 	vld1.32	{d20}, [r4], r3
+    29bc:	f464578f 	vld1.32	{d21}, [r4]
+    29c0:	f3c46cac 	vmull.u8	q11, d20, d28
+    29c4:	f3c568ad 	vmlal.u8	q11, d21, d29
+    29c8:	e1a04846 	asr	r4, r6, #16
+    29cc:	e0866007 	add	r6, r6, r7
+    29d0:	e0824104 	add	r4, r2, r4, lsl #2
+    29d4:	f4244783 	vld1.32	{d4}, [r4], r3
+    29d8:	f424578f 	vld1.32	{d5}, [r4]
+    29dc:	f3846c2c 	vmull.u8	q3, d4, d28
+    29e0:	f385682d 	vmlal.u8	q3, d5, d29
+    29e4:	e1a04846 	asr	r4, r6, #16
+    29e8:	e0866007 	add	r6, r6, r7
+    29ec:	e0824104 	add	r4, r2, r4, lsl #2
+    29f0:	f4640783 	vld1.32	{d16}, [r4], r3
+    29f4:	f464178f 	vld1.32	{d17}, [r4]
+    29f8:	f3c02cac 	vmull.u8	q9, d16, d28
+    29fc:	f3c128ad 	vmlal.u8	q9, d17, d29
+    2a00:	f7d4f008 	pld	[r4, r8]
+    2a04:	e0444003 	sub	r4, r4, r3
+    2a08:	f3970a12 	vshll.u16	d0, q1, #7
+    2a0c:	f3920a2e 	vmlsl.u16	q0, d2, d30
+    2a10:	f393082e 	vmlal.u16	q0, d3, d30
+    2a14:	f3d74a36 	vshll.u16	d20, q11, #7
+    2a18:	f3d64aaf 	vmlsl.u16	q10, d22, d31
+    2a1c:	f3d748af 	vmlal.u16	q10, d23, d31
+    2a20:	f3d7e078 	vshr.u16	q15, q12, #9
+    2a24:	f3974a16 	vshll.u16	d4, q3, #7
+    2a28:	f3964a2e 	vmlsl.u16	q2, d6, d30
+    2a2c:	f397482e 	vmlal.u16	q2, d7, d30
+    2a30:	f3d70a32 	vshll.u16	d16, q9, #7
+    2a34:	f4e1680d 	vld1.32	{d22[0]}, [r1]!
+    2a38:	f5d1f01c 	pld	[r1, #28]
+    2a3c:	f4202a8f 	vld1.32	{d2-d3}, [r0]
+    2a40:	f5d0f070 	pld	[r0, #112]	; 0x70
+    2a44:	f7d4f008 	pld	[r4, r8]
+    2a48:	f3d20aaf 	vmlsl.u16	q8, d18, d31
+    2a4c:	f3d308af 	vmlal.u16	q8, d19, d31
+    2a50:	f25888ea 	vadd.i16	q12, q12, q13
+    2a54:	f2920810 	vshrn.i32	d0, q0, #14
+    2a58:	f2921834 	vshrn.i32	d1, q10, #14
+    2a5c:	f2924814 	vshrn.i32	d4, q2, #14
+    2a60:	f2925830 	vshrn.i32	d5, q8, #14
+    2a64:	f3f46c26 	vdup.32	d22, d22[0]
+    2a68:	f3d7e078 	vshr.u16	q15, q12, #9
+    2a6c:	f3b20200 	vmovn.i16	d0, q0
+    2a70:	f3b21204 	vmovn.i16	d1, q2
+    2a74:	f25888ea 	vadd.i16	q12, q12, q13
+    2a78:	f3b20101 	vuzp.8	d0, d1
+    2a7c:	f3b22103 	vuzp.8	d2, d3
+    2a80:	f3b20101 	vuzp.8	d0, d1
+    2a84:	f3b22103 	vuzp.8	d2, d3
+    2a88:	f3806c26 	vmull.u8	q3, d0, d22
+    2a8c:	f3c10c26 	vmull.u8	q8, d1, d22
+    2a90:	f3d82256 	vrshr.u16	q9, q3, #8
+    2a94:	f3d84270 	vrshr.u16	q10, q8, #8
+    2a98:	f3820486 	vraddhn.i16	d0, q9, q3
+    2a9c:	f38414a0 	vraddhn.i16	d1, q10, q8
+    2aa0:	f3020050 	vqadd.u8	q0, q1, q0
+    2aa4:	f3b20101 	vuzp.8	d0, d1
+    2aa8:	f3b20101 	vuzp.8	d0, d1
+    2aac:	f4000a8d 	vst1.32	{d0-d1}, [r0]!
+    2ab0:	e25cc004 	subs	ip, ip, #4
+    2ab4:	aaffffb5 	bge	2990 <pixman_scaled_bilinear_scanline_8888_8_8888_ADD_asm_neon+0x2d0>
+    2ab8:	e31c0002 	tst	ip, #2
+    2abc:	0a00002b 	beq	2b70 <pixman_scaled_bilinear_scanline_8888_8_8888_ADD_asm_neon+0x4b0>
+    2ac0:	e1a04846 	asr	r4, r6, #16
+    2ac4:	e0866007 	add	r6, r6, r7
+    2ac8:	e0824104 	add	r4, r2, r4, lsl #2
+    2acc:	f4240783 	vld1.32	{d0}, [r4], r3
+    2ad0:	f424178f 	vld1.32	{d1}, [r4]
+    2ad4:	f3802c2c 	vmull.u8	q1, d0, d28
+    2ad8:	f381282d 	vmlal.u8	q1, d1, d29
+    2adc:	e1a04846 	asr	r4, r6, #16
+    2ae0:	e0866007 	add	r6, r6, r7
+    2ae4:	e0824104 	add	r4, r2, r4, lsl #2
+    2ae8:	f4644783 	vld1.32	{d20}, [r4], r3
+    2aec:	f464578f 	vld1.32	{d21}, [r4]
+    2af0:	f3c46cac 	vmull.u8	q11, d20, d28
+    2af4:	f3c568ad 	vmlal.u8	q11, d21, d29
+    2af8:	f4a1440d 	vld1.16	{d4[0]}, [r1]!
+    2afc:	f5d1f01c 	pld	[r1, #28]
+    2b00:	f460278f 	vld1.32	{d18}, [r0]
+    2b04:	f5d0f070 	pld	[r0, #112]	; 0x70
+    2b08:	f3970a12 	vshll.u16	d0, q1, #7
+    2b0c:	f3920a2e 	vmlsl.u16	q0, d2, d30
+    2b10:	f393082e 	vmlal.u16	q0, d3, d30
+    2b14:	f3d74a36 	vshll.u16	d20, q11, #7
+    2b18:	f3d64aaf 	vmlsl.u16	q10, d22, d31
+    2b1c:	f3d748af 	vmlal.u16	q10, d23, d31
+    2b20:	f2920810 	vshrn.i32	d0, q0, #14
+    2b24:	f2921834 	vshrn.i32	d1, q10, #14
+    2b28:	f3b24c04 	vdup.16	d4, d4[0]
+    2b2c:	f3d7e078 	vshr.u16	q15, q12, #9
+    2b30:	f25888ea 	vadd.i16	q12, q12, q13
+    2b34:	f3b20200 	vmovn.i16	d0, q0
+    2b38:	f3b20101 	vuzp.8	d0, d1
+    2b3c:	f3f22123 	vuzp.8	d18, d19
+    2b40:	f3b20101 	vuzp.8	d0, d1
+    2b44:	f3f22123 	vuzp.8	d18, d19
+    2b48:	f3806c04 	vmull.u8	q3, d0, d4
+    2b4c:	f3c10c04 	vmull.u8	q8, d1, d4
+    2b50:	f3d84256 	vrshr.u16	q10, q3, #8
+    2b54:	f3d86270 	vrshr.u16	q11, q8, #8
+    2b58:	f3840486 	vraddhn.i16	d0, q10, q3
+    2b5c:	f38614a0 	vraddhn.i16	d1, q11, q8
+    2b60:	f30200d0 	vqadd.u8	q0, q9, q0
+    2b64:	f3b20101 	vuzp.8	d0, d1
+    2b68:	f3b20101 	vuzp.8	d0, d1
+    2b6c:	f400078d 	vst1.32	{d0}, [r0]!
+    2b70:	e31c0001 	tst	ip, #1
+    2b74:	0a00001e 	beq	2bf4 <pixman_scaled_bilinear_scanline_8888_8_8888_ADD_asm_neon+0x534>
+    2b78:	e1a04846 	asr	r4, r6, #16
+    2b7c:	e0866007 	add	r6, r6, r7
+    2b80:	e0824104 	add	r4, r2, r4, lsl #2
+    2b84:	f4240783 	vld1.32	{d0}, [r4], r3
+    2b88:	f424178f 	vld1.32	{d1}, [r4]
+    2b8c:	f4a1400d 	vld1.8	{d4[0]}, [r1]!
+    2b90:	f5d1f01c 	pld	[r1, #28]
+    2b94:	f4e0280f 	vld1.32	{d18[0]}, [r0]
+    2b98:	f5d0f070 	pld	[r0, #112]	; 0x70
+    2b9c:	f3802c2c 	vmull.u8	q1, d0, d28
+    2ba0:	f381282d 	vmlal.u8	q1, d1, d29
+    2ba4:	f3970a12 	vshll.u16	d0, q1, #7
+    2ba8:	f3920a2e 	vmlsl.u16	q0, d2, d30
+    2bac:	f393082e 	vmlal.u16	q0, d3, d30
+    2bb0:	f3b14c04 	vdup.8	d4, d4[0]
+    2bb4:	f2920810 	vshrn.i32	d0, q0, #14
+    2bb8:	f3b20200 	vmovn.i16	d0, q0
+    2bbc:	f3b20101 	vuzp.8	d0, d1
+    2bc0:	f3f22123 	vuzp.8	d18, d19
+    2bc4:	f3b20101 	vuzp.8	d0, d1
+    2bc8:	f3f22123 	vuzp.8	d18, d19
+    2bcc:	f3806c04 	vmull.u8	q3, d0, d4
+    2bd0:	f3c10c04 	vmull.u8	q8, d1, d4
+    2bd4:	f3d84256 	vrshr.u16	q10, q3, #8
+    2bd8:	f3d86270 	vrshr.u16	q11, q8, #8
+    2bdc:	f3840486 	vraddhn.i16	d0, q10, q3
+    2be0:	f38614a0 	vraddhn.i16	d1, q11, q8
+    2be4:	f30200d0 	vqadd.u8	q0, q9, q0
+    2be8:	f3b20101 	vuzp.8	d0, d1
+    2bec:	f3b20101 	vuzp.8	d0, d1
+    2bf0:	f480083d 	vst1.32	{d0[0]}, [r0 :32]!
+    2bf4:	e8bd17f0 	pop	{r4, r5, r6, r7, r8, r9, sl, ip}
+    2bf8:	e12fff1e 	bx	lr
+			2bf8: R_ARM_V4BX	*ABS*
+
+Disassembly of section .ARM.attributes:
+
+00000000 <.ARM.attributes>:
+   0:	00001741 	andeq	r1, r0, r1, asr #14
+   4:	61656100 	cmnvs	r5, r0, lsl #2
+   8:	01006962 	tsteq	r0, r2, ror #18
+   c:	0000000d 	andeq	r0, r0, sp
+  10:	00413705 	subeq	r3, r1, r5, lsl #14
+  14:	01080106 	tsteq	r8, r6, lsl #2

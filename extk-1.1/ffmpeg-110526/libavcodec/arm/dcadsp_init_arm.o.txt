@@ -1,0 +1,360 @@
+
+./dcadsp_init_arm.o:     file format elf32-littlearm
+./dcadsp_init_arm.o
+architecture: arm, flags 0x00000011:
+HAS_RELOC, HAS_SYMS
+start address 0x00000000
+private flags = 5000000: [Version5 EABI]
+
+Sections:
+Idx Name          Size      VMA       LMA       File off  Algn
+  0 .text         00000000  00000000  00000000  00000034  2**0
+                  CONTENTS, ALLOC, LOAD, READONLY, CODE
+  1 .data         00000000  00000000  00000000  00000034  2**0
+                  CONTENTS, ALLOC, LOAD, DATA
+  2 .bss          00000000  00000000  00000000  00000034  2**0
+                  ALLOC
+  3 .debug_abbrev 0000009d  00000000  00000000  00000034  2**0
+                  CONTENTS, READONLY, DEBUGGING
+  4 .debug_info   000000bf  00000000  00000000  000000d1  2**0
+                  CONTENTS, RELOC, READONLY, DEBUGGING
+  5 .debug_line   0000006a  00000000  00000000  00000190  2**0
+                  CONTENTS, RELOC, READONLY, DEBUGGING
+  6 .text.unlikely 00000004  00000000  00000000  000001fc  2**2
+                  CONTENTS, ALLOC, LOAD, READONLY, CODE
+  7 .ARM.extab.text.unlikely 00000000  00000000  00000000  00000200  2**0
+                  CONTENTS, ALLOC, LOAD, READONLY, DATA
+  8 .ARM.exidx.text.unlikely 00000008  00000000  00000000  00000200  2**2
+                  CONTENTS, ALLOC, LOAD, RELOC, READONLY, DATA
+  9 .debug_pubnames 00000029  00000000  00000000  00000208  2**0
+                  CONTENTS, RELOC, READONLY, DEBUGGING
+ 10 .debug_pubtypes 00000036  00000000  00000000  00000231  2**0
+                  CONTENTS, RELOC, READONLY, DEBUGGING
+ 11 .debug_aranges 00000020  00000000  00000000  00000267  2**0
+                  CONTENTS, RELOC, READONLY, DEBUGGING
+ 12 .debug_ranges 00000010  00000000  00000000  00000287  2**0
+                  CONTENTS, RELOC, READONLY, DEBUGGING
+ 13 .debug_str    00000071  00000000  00000000  00000297  2**0
+                  CONTENTS, READONLY, DEBUGGING
+ 14 .comment      0000002b  00000000  00000000  00000308  2**0
+                  CONTENTS, READONLY
+ 15 .note.GNU-stack 00000000  00000000  00000000  00000333  2**0
+                  CONTENTS, READONLY
+ 16 .ARM.attributes 00000035  00000000  00000000  00000333  2**0
+                  CONTENTS, READONLY
+ 17 .debug_frame  00000020  00000000  00000000  00000368  2**2
+                  CONTENTS, RELOC, READONLY, DEBUGGING
+SYMBOL TABLE:
+00000000 l    df *ABS*	00000000 dcadsp_init_arm.c
+00000000 l    d  .text	00000000 .text
+00000000 l    d  .data	00000000 .data
+00000000 l    d  .bss	00000000 .bss
+00000000 l    d  .debug_abbrev	00000000 .debug_abbrev
+00000000 l    d  .debug_info	00000000 .debug_info
+00000000 l    d  .debug_line	00000000 .debug_line
+00000000 l    d  .text.unlikely	00000000 .text.unlikely
+00000000 l    d  .ARM.extab.text.unlikely	00000000 .ARM.extab.text.unlikely
+00000000 l    d  .ARM.exidx.text.unlikely	00000000 .ARM.exidx.text.unlikely
+00000000 l    d  .debug_pubnames	00000000 .debug_pubnames
+00000000 l    d  .debug_pubtypes	00000000 .debug_pubtypes
+00000000 l    d  .debug_aranges	00000000 .debug_aranges
+00000000 l    d  .debug_ranges	00000000 .debug_ranges
+00000000 l    d  .debug_str	00000000 .debug_str
+00000000 l    d  .note.GNU-stack	00000000 .note.GNU-stack
+00000000 l    d  .debug_frame	00000000 .debug_frame
+00000000 l    d  .comment	00000000 .comment
+00000000 l    d  .ARM.attributes	00000000 .ARM.attributes
+00000000 g     F .text.unlikely	00000004 ff_dcadsp_init_arm
+00000000         *UND*	00000000 __aeabi_unwind_cpp_pr0
+
+
+
+Disassembly of section .debug_abbrev:
+
+00000000 <.debug_abbrev>:
+   0:	25011101 	strcs	r1, [r1, #-257]	; 0xfffffeff
+   4:	030b130e 	movweq	r1, #45838	; 0xb30e
+   8:	110e1b0e 	tstne	lr, lr, lsl #22
+   c:	55015201 	strpl	r5, [r1, #-513]	; 0xfffffdff
+  10:	00061006 	andeq	r1, r6, r6
+  14:	01130200 	tsteq	r3, r0, lsl #4
+  18:	0b0b0e03 	bleq	2c382c <ff_dcadsp_init_arm+0x2c382c>
+  1c:	0b3b0b3a 	bleq	ec2d0c <ff_dcadsp_init_arm+0xec2d0c>
+  20:	00001301 	andeq	r1, r0, r1, lsl #6
+  24:	03000d03 	movweq	r0, #3331	; 0xd03
+  28:	3b0b3a0e 	blcc	2ce868 <ff_dcadsp_init_arm+0x2ce868>
+  2c:	3813490b 	ldmdacc	r3, {r0, r1, r3, r8, fp, lr}
+  30:	0400000a 	streq	r0, [r0], #-10
+  34:	0c270115 	stfeqs	f0, [r7], #-84	; 0xffffffac
+  38:	00001301 	andeq	r1, r0, r1, lsl #6
+  3c:	49000505 	stmdbmi	r0, {r0, r2, r8, sl}
+  40:	06000013 			; <UNDEFINED> instruction: 0x06000013
+  44:	0b0b000f 	bleq	2c0088 <ff_dcadsp_init_arm+0x2c0088>
+  48:	00001349 	andeq	r1, r0, r9, asr #6
+  4c:	0b002407 	bleq	9070 <ff_dcadsp_init_arm+0x9070>
+  50:	030b3e0b 	movweq	r3, #48651	; 0xbe0b
+  54:	0800000e 	stmdaeq	r0, {r1, r2, r3}
+  58:	13490026 	movtne	r0, #36902	; 0x9026
+  5c:	24090000 	strcs	r0, [r9], #-0
+  60:	3e0b0b00 	vmlacc.f64	d0, d11, d0
+  64:	0008030b 	andeq	r0, r8, fp, lsl #6
+  68:	00160a00 	andseq	r0, r6, r0, lsl #20
+  6c:	0b3a0e03 	bleq	e83880 <ff_dcadsp_init_arm+0xe83880>
+  70:	13490b3b 	movtne	r0, #39739	; 0x9b3b
+  74:	2e0b0000 	cdpcs	0, 0, cr0, cr11, cr0, {0}
+  78:	030c3f01 	movweq	r3, #52993	; 0xcf01
+  7c:	3b0b3a0e 	blcc	2ce8bc <ff_dcadsp_init_arm+0x2ce8bc>
+  80:	110c270b 	tstne	ip, fp, lsl #14
+  84:	40011201 	andmi	r1, r1, r1, lsl #4
+  88:	0013010a 	andseq	r0, r3, sl, lsl #2
+  8c:	00050c00 	andeq	r0, r5, r0, lsl #24
+  90:	0b3a0803 	bleq	e820a4 <ff_dcadsp_init_arm+0xe820a4>
+  94:	13490b3b 	movtne	r0, #39739	; 0x9b3b
+  98:	00000a02 	andeq	r0, r0, r2, lsl #20
+	...
+
+Disassembly of section .debug_info:
+
+00000000 <.debug_info>:
+   0:	000000bb 	strheq	r0, [r0], -fp
+   4:	00000002 	andeq	r0, r0, r2
+			6: R_ARM_ABS32	.debug_abbrev
+   8:	01040000 	mrseq	r0, (UNDEF: 4)
+   c:	00000036 	andeq	r0, r0, r6, lsr r0
+			c: R_ARM_ABS32	.debug_str
+  10:	00004201 	andeq	r4, r0, r1, lsl #4
+			11: R_ARM_ABS32	.debug_str
+  14:	00002100 	andeq	r2, r0, r0, lsl #2
+			15: R_ARM_ABS32	.debug_str
+	...
+			21: R_ARM_ABS32	.debug_ranges
+			25: R_ARM_ABS32	.debug_line
+  28:	00630200 	rsbeq	r0, r3, r0, lsl #4
+			2a: R_ARM_ABS32	.debug_str
+  2c:	02040000 	andeq	r0, r4, #0
+  30:	00004416 	andeq	r4, r0, r6, lsl r4
+  34:	00060300 	andeq	r0, r6, r0, lsl #6
+			36: R_ARM_ABS32	.debug_str
+  38:	17020000 	strne	r0, [r2, -r0]
+  3c:	00000083 	andeq	r0, r0, r3, lsl #1
+  40:	00002302 	andeq	r2, r0, r2, lsl #6
+  44:	00640104 	rsbeq	r0, r4, r4, lsl #2
+  48:	64050000 	strvs	r0, [r5], #-0
+  4c:	05000000 	streq	r0, [r0, #-0]
+  50:	00000071 	andeq	r0, r0, r1, ror r0
+  54:	00007105 	andeq	r7, r0, r5, lsl #2
+  58:	007c0500 	rsbseq	r0, ip, r0, lsl #10
+  5c:	6a050000 	bvs	140064 <ff_dcadsp_init_arm+0x140064>
+  60:	00000000 	andeq	r0, r0, r0
+  64:	006a0406 	rsbeq	r0, sl, r6, lsl #8
+  68:	04070000 	streq	r0, [r7], #-0
+  6c:	00000004 	andeq	r0, r0, r4
+			6d: R_ARM_ABS32	.debug_str
+  70:	77040600 	strvc	r0, [r4, -r0, lsl #12]
+  74:	08000000 	stmdaeq	r0, {}	; <UNPREDICTABLE>
+  78:	0000006a 	andeq	r0, r0, sl, rrx
+  7c:	69050409 	stmdbvs	r5, {r0, r3, sl}
+  80:	0600746e 	streq	r7, [r0], -lr, ror #8
+  84:	00004404 	andeq	r4, r0, r4, lsl #8
+  88:	00630a00 	rsbeq	r0, r3, r0, lsl #20
+			8a: R_ARM_ABS32	.debug_str
+  8c:	19020000 	stmdbne	r2, {}	; <UNPREDICTABLE>
+  90:	00000029 	andeq	r0, r0, r9, lsr #32
+  94:	000e010b 	andeq	r0, lr, fp, lsl #2
+			96: R_ARM_ABS32	.debug_str
+  98:	1c010000 	stcne	0, cr0, [r1], {-0}
+  9c:	00000001 	andeq	r0, r0, r1
+			9d: R_ARM_ABS32	.text.unlikely
+  a0:	00000400 	andeq	r0, r0, r0, lsl #8
+			a1: R_ARM_ABS32	.text.unlikely
+  a4:	007d0200 	rsbseq	r0, sp, r0, lsl #4
+  a8:	000000b8 	strheq	r0, [r0], -r8
+  ac:	0100730c 	tsteq	r0, ip, lsl #6
+  b0:	0000b81c 	andeq	fp, r0, ip, lsl r8
+  b4:	00500100 	subseq	r0, r0, r0, lsl #2
+  b8:	00890406 	addeq	r0, r9, r6, lsl #8
+  bc:	Address 0x000000bc is out of bounds.
+
+
+Disassembly of section .debug_line:
+
+00000000 <.debug_line>:
+   0:	00000066 	andeq	r0, r0, r6, rrx
+   4:	00500002 	subseq	r0, r0, r2
+   8:	01020000 	mrseq	r0, (UNDEF: 2)
+   c:	000d0efb 	strdeq	r0, [sp], -fp
+  10:	01010101 	tsteq	r1, r1, lsl #2
+  14:	01000000 	mrseq	r0, (UNDEF: 0)
+  18:	6c010000 	stcvs	0, cr0, [r1], {-0}
+  1c:	76616269 	strbtvc	r6, [r1], -r9, ror #4
+  20:	65646f63 	strbvs	r6, [r4, #-3939]!	; 0xfffff09d
+  24:	72612f63 	rsbvc	r2, r1, #396	; 0x18c
+  28:	2f2e006d 	svccs	0x002e006d
+  2c:	6162696c 	cmnvs	r2, ip, ror #18
+  30:	646f6376 	strbtvs	r6, [pc], #-886	; 38 <.debug_line+0x38>
+  34:	00006365 	andeq	r6, r0, r5, ror #6
+  38:	64616364 	strbtvs	r6, [r1], #-868	; 0xfffffc9c
+  3c:	695f7073 	ldmdbvs	pc, {r0, r1, r4, r5, r6, ip, sp, lr}^	; <UNPREDICTABLE>
+  40:	5f74696e 	svcpl	0x0074696e
+  44:	2e6d7261 	cdpcs	2, 6, cr7, cr13, cr1, {3}
+  48:	00010063 	andeq	r0, r1, r3, rrx
+  4c:	61636400 	cmnvs	r3, r0, lsl #8
+  50:	2e707364 	cdpcs	3, 7, cr7, cr0, cr4, {3}
+  54:	00020068 	andeq	r0, r2, r8, rrx
+  58:	05000000 	streq	r0, [r0, #-0]
+  5c:	00000002 	andeq	r0, r0, r2
+			5d: R_ARM_ABS32	.text.unlikely
+  60:	011c0300 	tsteq	ip, r0, lsl #6
+  64:	00020215 	andeq	r0, r2, r5, lsl r2
+  68:	Address 0x00000068 is out of bounds.
+
+
+Disassembly of section .text.unlikely:
+
+00000000 <ff_dcadsp_init_arm>:
+   0:	e12fff1e 	bx	lr
+
+Disassembly of section .ARM.exidx.text.unlikely:
+
+00000000 <.ARM.exidx.text.unlikely>:
+   0:	00000000 	andeq	r0, r0, r0
+			0: R_ARM_PREL31	.text.unlikely
+			0: R_ARM_NONE	__aeabi_unwind_cpp_pr0
+   4:	80b0b0b0 	ldrhthi	fp, [r0], r0
+
+Disassembly of section .debug_pubnames:
+
+00000000 <.debug_pubnames>:
+   0:	00000025 	andeq	r0, r0, r5, lsr #32
+   4:	00000002 	andeq	r0, r0, r2
+			6: R_ARM_ABS32	.debug_info
+   8:	00bf0000 	adcseq	r0, pc, r0
+   c:	00940000 	addseq	r0, r4, r0
+  10:	66660000 	strbtvs	r0, [r6], -r0
+  14:	6163645f 	cmnvs	r3, pc, asr r4
+  18:	5f707364 	svcpl	0x00707364
+  1c:	74696e69 	strbtvc	r6, [r9], #-3689	; 0xfffff197
+  20:	6d72615f 	ldfvse	f6, [r2, #-380]!	; 0xfffffe84
+  24:	00000000 	andeq	r0, r0, r0
+	...
+
+Disassembly of section .debug_pubtypes:
+
+00000000 <.debug_pubtypes>:
+   0:	00000032 	andeq	r0, r0, r2, lsr r0
+   4:	00000002 	andeq	r0, r0, r2
+			6: R_ARM_ABS32	.debug_info
+   8:	00bf0000 	adcseq	r0, pc, r0
+   c:	00290000 	eoreq	r0, r9, r0
+  10:	43440000 	movtmi	r0, #16384	; 0x4000
+  14:	50534441 	subspl	r4, r3, r1, asr #8
+  18:	746e6f43 	strbtvc	r6, [lr], #-3907	; 0xfffff0bd
+  1c:	00747865 	rsbseq	r7, r4, r5, ror #16
+  20:	00000089 	andeq	r0, r0, r9, lsl #1
+  24:	44414344 	strbmi	r4, [r1], #-836	; 0xfffffcbc
+  28:	6f435053 	svcvs	0x00435053
+  2c:	7865746e 	stmdavc	r5!, {r1, r2, r3, r5, r6, sl, ip, sp, lr}^
+  30:	00000074 	andeq	r0, r0, r4, ror r0
+	...
+
+Disassembly of section .debug_aranges:
+
+00000000 <.debug_aranges>:
+   0:	0000001c 	andeq	r0, r0, ip, lsl r0
+   4:	00000002 	andeq	r0, r0, r2
+			6: R_ARM_ABS32	.debug_info
+   8:	00040000 	andeq	r0, r4, r0
+	...
+			10: R_ARM_ABS32	.text.unlikely
+  14:	00000004 	andeq	r0, r0, r4
+	...
+
+Disassembly of section .debug_ranges:
+
+00000000 <.debug_ranges>:
+   0:	00000000 	andeq	r0, r0, r0
+			0: R_ARM_ABS32	.text.unlikely
+   4:	00000004 	andeq	r0, r0, r4
+			4: R_ARM_ABS32	.text.unlikely
+	...
+
+Disassembly of section .debug_str:
+
+00000000 <.debug_str>:
+   0:	616f6c66 	cmnvs	pc, r6, ror #24
+   4:	666c0074 			; <UNDEFINED> instruction: 0x666c0074
+   8:	69665f65 	stmdbvs	r6!, {r0, r2, r5, r6, r8, r9, sl, fp, ip, lr}^
+   c:	66660072 			; <UNDEFINED> instruction: 0x66660072
+  10:	6163645f 	cmnvs	r3, pc, asr r4
+  14:	5f707364 	svcpl	0x00707364
+  18:	74696e69 	strbtvc	r6, [r9], #-3689	; 0xfffff197
+  1c:	6d72615f 	ldfvse	f6, [r2, #-380]!	; 0xfffffe84
+  20:	6e6d2f00 	cdpvs	15, 6, cr2, cr13, cr0, {0}
+  24:	6f772f74 	svcvs	0x00772f74
+  28:	6f2f6b72 	svcvs	0x002f6b72
+  2c:	662f7373 			; <UNDEFINED> instruction: 0x662f7373
+  30:	65706d66 	ldrbvs	r6, [r0, #-3430]!	; 0xfffff29a
+  34:	4e470067 	cdpmi	0, 4, cr0, cr7, cr7, {3}
+  38:	20432055 	subcs	r2, r3, r5, asr r0
+  3c:	2e352e34 	mrccs	14, 1, r2, cr5, cr4, {1}
+  40:	696c0032 	stmdbvs	ip!, {r1, r4, r5}^
+  44:	63766162 	cmnvs	r6, #-2147483624	; 0x80000018
+  48:	6365646f 	cmnvs	r5, #1862270976	; 0x6f000000
+  4c:	6d72612f 	ldfvse	f6, [r2, #-188]!	; 0xffffff44
+  50:	6163642f 	cmnvs	r3, pc, lsr #8
+  54:	5f707364 	svcpl	0x00707364
+  58:	74696e69 	strbtvc	r6, [r9], #-3689	; 0xfffff197
+  5c:	6d72615f 	ldfvse	f6, [r2, #-380]!	; 0xfffffe84
+  60:	4400632e 	strmi	r6, [r0], #-814	; 0xfffffcd2
+  64:	53444143 	movtpl	r4, #16707	; 0x4143
+  68:	6e6f4350 	mcrvs	3, 3, r4, cr15, cr0, {2}
+  6c:	74786574 	ldrbtvc	r6, [r8], #-1396	; 0xfffffa8c
+	...
+
+Disassembly of section .comment:
+
+00000000 <.comment>:
+   0:	43434700 	movtmi	r4, #14080	; 0x3700
+   4:	5328203a 	teqpl	r8, #58	; 0x3a
+   8:	6372756f 	cmnvs	r2, #465567744	; 0x1bc00000
+   c:	20797265 	rsbscs	r7, r9, r5, ror #4
+  10:	202b2b47 	eorcs	r2, fp, r7, asr #22
+  14:	6574694c 	ldrbvs	r6, [r4, #-2380]!	; 0xfffff6b4
+  18:	31303220 	teqcc	r0, r0, lsr #4
+  1c:	33302e31 	teqcc	r0, #784	; 0x310
+  20:	2931342d 	ldmdbcs	r1!, {r0, r2, r3, r5, sl, ip, sp}
+  24:	352e3420 	strcc	r3, [lr, #-1056]!	; 0xfffffbe0
+  28:	Address 0x00000028 is out of bounds.
+
+
+Disassembly of section .ARM.attributes:
+
+00000000 <.ARM.attributes>:
+   0:	00003441 	andeq	r3, r0, r1, asr #8
+   4:	61656100 	cmnvs	r5, r0, lsl #2
+   8:	01006962 	tsteq	r0, r2, ror #18
+   c:	0000002a 	andeq	r0, r0, sl, lsr #32
+  10:	4d524105 	ldfmie	f4, [r2, #-20]	; 0xffffffec
+  14:	36333131 			; <UNDEFINED> instruction: 0x36333131
+  18:	532d464a 	teqpl	sp, #77594624	; 0x4a00000
+  1c:	08060600 	stmdaeq	r6, {r9, sl}
+  20:	12010901 	andne	r0, r1, #16384	; 0x4000
+  24:	15011404 	strne	r1, [r1, #-1028]	; 0xfffffbfc
+  28:	18031701 	stmdane	r3, {r0, r8, r9, sl, ip}
+  2c:	1a011901 	bne	46438 <ff_dcadsp_init_arm+0x46438>
+  30:	2c021e02 	stccs	14, cr1, [r2], {2}
+  34:	Address 0x00000034 is out of bounds.
+
+
+Disassembly of section .debug_frame:
+
+00000000 <.debug_frame>:
+   0:	0000000c 	andeq	r0, r0, ip
+   4:	ffffffff 			; <UNDEFINED> instruction: 0xffffffff
+   8:	7c020001 	stcvc	0, cr0, [r2], {1}
+   c:	000d0c0e 	andeq	r0, sp, lr, lsl #24
+  10:	0000000c 	andeq	r0, r0, ip
+	...
+			14: R_ARM_ABS32	.debug_frame
+			18: R_ARM_ABS32	.text.unlikely
+  1c:	00000004 	andeq	r0, r0, r4

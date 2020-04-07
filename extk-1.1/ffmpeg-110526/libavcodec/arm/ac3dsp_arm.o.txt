@@ -1,0 +1,165 @@
+
+./ac3dsp_arm.o:     file format elf32-littlearm
+./ac3dsp_arm.o
+architecture: arm, flags 0x00000011:
+HAS_RELOC, HAS_SYMS
+start address 0x00000000
+private flags = 5000000: [Version5 EABI]
+
+Sections:
+Idx Name          Size      VMA       LMA       File off  Algn
+  0 .text         00000064  00000000  00000000  00000034  2**0
+                  CONTENTS, ALLOC, LOAD, READONLY, CODE
+  1 .data         00000000  00000000  00000000  00000098  2**0
+                  CONTENTS, ALLOC, LOAD, DATA
+  2 .bss          00000000  00000000  00000000  00000098  2**0
+                  ALLOC
+  3 .ARM.attributes 00000025  00000000  00000000  00000098  2**0
+                  CONTENTS, READONLY
+  4 .debug_line   00000063  00000000  00000000  000000bd  2**0
+                  CONTENTS, RELOC, READONLY, DEBUGGING
+  5 .debug_info   0000005a  00000000  00000000  00000120  2**0
+                  CONTENTS, RELOC, READONLY, DEBUGGING
+  6 .debug_abbrev 00000014  00000000  00000000  0000017a  2**0
+                  CONTENTS, READONLY, DEBUGGING
+  7 .debug_aranges 00000020  00000000  00000000  00000190  2**3
+                  CONTENTS, RELOC, READONLY, DEBUGGING
+SYMBOL TABLE:
+00000000 l    d  .text	00000000 .text
+00000000 l    d  .data	00000000 .data
+00000000 l    d  .bss	00000000 .bss
+00000000 l    d  .debug_info	00000000 .debug_info
+00000000 l    d  .debug_abbrev	00000000 .debug_abbrev
+00000000 l    d  .debug_line	00000000 .debug_line
+00000000 l    d  .debug_aranges	00000000 .debug_aranges
+00000000 l    d  .ARM.attributes	00000000 .ARM.attributes
+00000000 g     F .text	00000064 ff_ac3_compute_mantissa_size_arm
+
+
+
+Disassembly of section .text:
+
+00000000 <ff_ac3_compute_mantissa_size_arm>:
+   0:	e92d41f0 	push	{r4, r5, r6, r7, r8, lr}
+   4:	e89001f0 	ldm	r0, {r4, r5, r6, r7, r8}
+   8:	e1a03000 	mov	r3, r0
+   c:	e3a00000 	mov	r0, #0
+  10:	e4d1e001 	ldrb	lr, [r1], #1
+  14:	e2522001 	subs	r2, r2, #1
+  18:	ba00000f 	blt	5c <ff_ac3_compute_mantissa_size_arm+0x5c>
+  1c:	e35e0004 	cmp	lr, #4
+  20:	ca000008 	bgt	48 <ff_ac3_compute_mantissa_size_arm+0x48>
+  24:	e25ee001 	subs	lr, lr, #1
+  28:	b2844001 	addlt	r4, r4, #1
+  2c:	02855001 	addeq	r5, r5, #1
+  30:	dafffff6 	ble	10 <ff_ac3_compute_mantissa_size_arm+0x10>
+  34:	e25ee002 	subs	lr, lr, #2
+  38:	b2866001 	addlt	r6, r6, #1
+  3c:	02877001 	addeq	r7, r7, #1
+  40:	c2888001 	addgt	r8, r8, #1
+  44:	eafffff1 	b	10 <ff_ac3_compute_mantissa_size_arm+0x10>
+  48:	e35e000e 	cmp	lr, #14
+  4c:	b24ee001 	sublt	lr, lr, #1
+  50:	c2800010 	addgt	r0, r0, #16
+  54:	d080000e 	addle	r0, r0, lr
+  58:	eaffffec 	b	10 <ff_ac3_compute_mantissa_size_arm+0x10>
+  5c:	e88301f0 	stm	r3, {r4, r5, r6, r7, r8}
+  60:	e8bd81f0 	pop	{r4, r5, r6, r7, r8, pc}
+
+Disassembly of section .ARM.attributes:
+
+00000000 <.ARM.attributes>:
+   0:	00002441 	andeq	r2, r0, r1, asr #8
+   4:	61656100 	cmnvs	r5, r0, lsl #2
+   8:	01006962 	tsteq	r0, r2, ror #18
+   c:	0000001a 	andeq	r0, r0, sl, lsl r0
+  10:	4d524105 	ldfmie	f4, [r2, #-20]	; 0xffffffec
+  14:	36333131 			; <UNDEFINED> instruction: 0x36333131
+  18:	532d464a 	teqpl	sp, #77594624	; 0x4a00000
+  1c:	08060600 	stmdaeq	r6, {r9, sl}
+  20:	2c010901 	stccs	9, cr0, [r1], {1}
+  24:	Address 0x00000024 is out of bounds.
+
+
+Disassembly of section .debug_line:
+
+00000000 <.debug_line>:
+   0:	0000005f 	andeq	r0, r0, pc, asr r0
+   4:	00320002 	eorseq	r0, r2, r2
+   8:	01020000 	mrseq	r0, (UNDEF: 2)
+   c:	000d0efb 	strdeq	r0, [sp], -fp
+  10:	01010101 	tsteq	r1, r1, lsl #2
+  14:	01000000 	mrseq	r0, (UNDEF: 0)
+  18:	6c010000 	stcvs	0, cr0, [r1], {-0}
+  1c:	76616269 	strbtvc	r6, [r1], -r9, ror #4
+  20:	65646f63 	strbvs	r6, [r4, #-3939]!	; 0xfffff09d
+  24:	72612f63 	rsbvc	r2, r1, #396	; 0x18c
+  28:	6100006d 	tstvs	r0, sp, rrx
+  2c:	73643363 	cmnvc	r4, #-1946157055	; 0x8c000001
+  30:	72615f70 	rsbvc	r5, r1, #112, 30	; 0x1c0
+  34:	00532e6d 	subseq	r2, r3, sp, ror #28
+  38:	00000001 	andeq	r0, r0, r1
+  3c:	00020500 	andeq	r0, r2, r0, lsl #10
+			3f: R_ARM_ABS32	.text
+  40:	03000000 	movweq	r0, #0
+  44:	2f2f0117 	svccs	0x002f0117
+  48:	2f2f302f 	svccs	0x002f302f
+  4c:	2f2f2f2f 	svccs	0x002f2f2f
+  50:	2f2f2f2f 	svccs	0x002f2f2f
+  54:	302f2f2f 	eorcc	r2, pc, pc, lsr #30
+  58:	2f2f2f2f 	svccs	0x002f2f2f
+  5c:	02022f30 	andeq	r2, r2, #48, 30	; 0xc0
+  60:	Address 0x00000060 is out of bounds.
+
+
+Disassembly of section .debug_info:
+
+00000000 <.debug_info>:
+   0:	00000056 	andeq	r0, r0, r6, asr r0
+   4:	00000002 	andeq	r0, r0, r2
+			6: R_ARM_ABS32	.debug_abbrev
+   8:	01040000 	mrseq	r0, (UNDEF: 4)
+	...
+			c: R_ARM_ABS32	.debug_line
+			10: R_ARM_ABS32	.text
+  14:	00000064 	andeq	r0, r0, r4, rrx
+			14: R_ARM_ABS32	.text
+  18:	6162696c 	cmnvs	r2, ip, ror #18
+  1c:	646f6376 	strbtvs	r6, [pc], #-886	; 24 <.debug_info+0x24>
+  20:	612f6365 	teqvs	pc, r5, ror #6
+  24:	612f6d72 	teqvs	pc, r2, ror sp	; <UNPREDICTABLE>
+  28:	73643363 	cmnvc	r4, #-1946157055	; 0x8c000001
+  2c:	72615f70 	rsbvc	r5, r1, #112, 30	; 0x1c0
+  30:	00532e6d 	subseq	r2, r3, sp, ror #28
+  34:	746e6d2f 	strbtvc	r6, [lr], #-3375	; 0xfffff2d1
+  38:	726f772f 	rsbvc	r7, pc, #12320768	; 0xbc0000
+  3c:	736f2f6b 	cmnvc	pc, #428	; 0x1ac
+  40:	66662f73 	uqsub16vs	r2, r6, r3
+  44:	6765706d 	strbvs	r7, [r5, -sp, rrx]!
+  48:	554e4700 	strbpl	r4, [lr, #-1792]	; 0xfffff900
+  4c:	20534120 	subscs	r4, r3, r0, lsr #2
+  50:	30322e32 	eorscc	r2, r2, r2, lsr lr
+  54:	0031352e 	eorseq	r3, r1, lr, lsr #10
+  58:	Address 0x00000058 is out of bounds.
+
+
+Disassembly of section .debug_abbrev:
+
+00000000 <.debug_abbrev>:
+   0:	10001101 	andne	r1, r0, r1, lsl #2
+   4:	12011106 	andne	r1, r1, #-2147483647	; 0x80000001
+   8:	1b080301 	blne	200c14 <ff_ac3_compute_mantissa_size_arm+0x200c14>
+   c:	13082508 	movwne	r2, #34056	; 0x8508
+  10:	00000005 	andeq	r0, r0, r5
+
+Disassembly of section .debug_aranges:
+
+00000000 <.debug_aranges>:
+   0:	0000001c 	andeq	r0, r0, ip, lsl r0
+   4:	00000002 	andeq	r0, r0, r2
+			6: R_ARM_ABS32	.debug_info
+   8:	00040000 	andeq	r0, r4, r0
+	...
+			10: R_ARM_ABS32	.text
+  14:	00000064 	andeq	r0, r0, r4, rrx
+	...

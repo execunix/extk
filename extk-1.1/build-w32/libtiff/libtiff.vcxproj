@@ -1,0 +1,231 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{C5E2D20D-3465-485B-A9FE-8AF68CF52956}</ProjectGuid>
+    <RootNamespace>libtiff</RootNamespace>
+    <Keyword>Win32Proj</Keyword>
+    <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <PlatformToolset>v141</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <PlatformToolset>v141</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <PlatformToolset>v141</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <PlatformToolset>v141</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>15.0.28307.799</_ProjectFileVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <OutDir>$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(Platform)\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <OutDir>$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(Platform)\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <OutDir>$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(Platform)\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <OutDir>$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(Platform)\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>../../tiff-3.8.2;../extk/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_DEPRECATE;WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <PrecompiledHeader />
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+    </ClCompile>
+    <Lib>
+      <OutputFile>$(OutDir)libtiff.lib</OutputFile>
+    </Lib>
+    <PostBuildEvent>
+      <Command>xcopy ..\..\tiff-3.8.2\libtiff\tiff*.h ..\extk\include\ /d /y
+xcopy "$(OutDir)$(TargetFileName)" "..\extk\$(OutDir)" /d /y
+</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>../../tiff-3.8.2;../extk/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_DEPRECATE;WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <Lib>
+      <OutputFile>$(OutDir)libtiff.lib</OutputFile>
+    </Lib>
+    <PostBuildEvent>
+      <Command>xcopy ..\..\tiff-3.8.2\libtiff\tiff*.h ..\extk\include\ /d /y
+xcopy "$(OutDir)$(TargetFileName)" "..\extk\$(OutDir)" /d /y
+</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <Optimization>MaxSpeed</Optimization>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <AdditionalIncludeDirectories>../../tiff-3.8.2;../extk/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_DEPRECATE;WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <PrecompiledHeader />
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <Lib>
+      <OutputFile>$(OutDir)libtiff.lib</OutputFile>
+    </Lib>
+    <PostBuildEvent>
+      <Command>xcopy ..\..\tiff-3.8.2\libtiff\tiff*.h ..\extk\include\ /d /y
+xcopy "$(OutDir)$(TargetFileName)" "..\extk\$(OutDir)" /d /y
+</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <Optimization>MaxSpeed</Optimization>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <AdditionalIncludeDirectories>../../tiff-3.8.2;../extk/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_DEPRECATE;WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <Lib>
+      <OutputFile>$(OutDir)libtiff.lib</OutputFile>
+    </Lib>
+    <PostBuildEvent>
+      <Command>xcopy ..\..\tiff-3.8.2\libtiff\tiff*.h ..\extk\include\ /d /y
+xcopy "$(OutDir)$(TargetFileName)" "..\extk\$(OutDir)" /d /y
+</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\tiff-3.8.2\libtiff\t4.h" />
+    <ClInclude Include="..\..\tiff-3.8.2\libtiff\tiff.h" />
+    <ClInclude Include="..\..\tiff-3.8.2\libtiff\tiffconf.h" />
+    <ClInclude Include="..\..\tiff-3.8.2\libtiff\tiffio.h" />
+    <ClInclude Include="..\..\tiff-3.8.2\libtiff\tiffiop.h" />
+    <ClInclude Include="..\..\tiff-3.8.2\libtiff\tiffvers.h" />
+    <ClInclude Include="..\..\tiff-3.8.2\libtiff\tif_config.h" />
+    <ClInclude Include="..\..\tiff-3.8.2\libtiff\tif_dir.h" />
+    <ClInclude Include="..\..\tiff-3.8.2\libtiff\tif_fax3.h" />
+    <ClInclude Include="..\..\tiff-3.8.2\libtiff\tif_predict.h" />
+    <ClInclude Include="..\..\tiff-3.8.2\libtiff\uvcode.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\tiff-3.8.2\libtiff\tif_aux.c" />
+    <ClCompile Include="..\..\tiff-3.8.2\libtiff\tif_close.c" />
+    <ClCompile Include="..\..\tiff-3.8.2\libtiff\tif_codec.c" />
+    <ClCompile Include="..\..\tiff-3.8.2\libtiff\tif_color.c" />
+    <ClCompile Include="..\..\tiff-3.8.2\libtiff\tif_compress.c" />
+    <ClCompile Include="..\..\tiff-3.8.2\libtiff\tif_dir.c" />
+    <ClCompile Include="..\..\tiff-3.8.2\libtiff\tif_dirinfo.c" />
+    <ClCompile Include="..\..\tiff-3.8.2\libtiff\tif_dirread.c" />
+    <ClCompile Include="..\..\tiff-3.8.2\libtiff\tif_dirwrite.c" />
+    <ClCompile Include="..\..\tiff-3.8.2\libtiff\tif_dumpmode.c" />
+    <ClCompile Include="..\..\tiff-3.8.2\libtiff\tif_error.c" />
+    <ClCompile Include="..\..\tiff-3.8.2\libtiff\tif_extension.c" />
+    <ClCompile Include="..\..\tiff-3.8.2\libtiff\tif_fax3.c" />
+    <ClCompile Include="..\..\tiff-3.8.2\libtiff\tif_fax3sm.c" />
+    <ClCompile Include="..\..\tiff-3.8.2\libtiff\tif_flush.c" />
+    <ClCompile Include="..\..\tiff-3.8.2\libtiff\tif_getimage.c" />
+    <ClCompile Include="..\..\tiff-3.8.2\libtiff\tif_jpeg.c" />
+    <ClCompile Include="..\..\tiff-3.8.2\libtiff\tif_luv.c" />
+    <ClCompile Include="..\..\tiff-3.8.2\libtiff\tif_lzw.c" />
+    <ClCompile Include="..\..\tiff-3.8.2\libtiff\tif_next.c" />
+    <ClCompile Include="..\..\tiff-3.8.2\libtiff\tif_ojpeg.c" />
+    <ClCompile Include="..\..\tiff-3.8.2\libtiff\tif_open.c" />
+    <ClCompile Include="..\..\tiff-3.8.2\libtiff\tif_packbits.c" />
+    <ClCompile Include="..\..\tiff-3.8.2\libtiff\tif_pixarlog.c" />
+    <ClCompile Include="..\..\tiff-3.8.2\libtiff\tif_predict.c" />
+    <ClCompile Include="..\..\tiff-3.8.2\libtiff\tif_print.c" />
+    <ClCompile Include="..\..\tiff-3.8.2\libtiff\tif_read.c" />
+    <ClCompile Include="..\..\tiff-3.8.2\libtiff\tif_strip.c" />
+    <ClCompile Include="..\..\tiff-3.8.2\libtiff\tif_swab.c" />
+    <ClCompile Include="..\..\tiff-3.8.2\libtiff\tif_thunder.c" />
+    <ClCompile Include="..\..\tiff-3.8.2\libtiff\tif_tile.c" />
+    <ClCompile Include="..\..\tiff-3.8.2\libtiff\tif_version.c" />
+    <ClCompile Include="..\..\tiff-3.8.2\libtiff\tif_warning.c" />
+    <ClCompile Include="..\..\tiff-3.8.2\libtiff\tif_write.c" />
+    <ClCompile Include="..\..\tiff-3.8.2\libtiff\tif_zip.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="ReadMe.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\libjpeg\libjpeg.vcxproj">
+      <Project>{0c51b52e-7b25-4d60-95b4-e60f947ad82c}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

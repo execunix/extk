@@ -1,0 +1,165 @@
+/*
+ * Copyright (C) 2007 C.H Park <execunix@gmail.com>
+ * SPDX-License-Identifier:     GPL-2.0+
+ */
+
+#include <eximage.h>
+
+ExImage::~ExImage() {
+    if (crs) cairo_surface_destroy(crs);
+    if (bits) free(bits);
+}
+
+ExImage* // static
+ExImage::create(int width, int height, int type) {
+    ExImage* image = new ExImage;
+    assert(image != NULL);
+    image->flags |= Ex_ImageFreeMemory;
+    if (image->init(width, height, type)) {
+        delete image;
+        image = NULL;
+    }
+    return image;
+}
+
+int ExImage::init(int width, int height, int type) {
+    setInfo(width, height, type);
+    this->flags |= Ex_ImageAlloc;
+    if ((this->bits = (uchar*)malloc(getBitsSize())) == NULL) {
+        exerror(L"%s(%d,%d,%p) - malloc fail.\n", __funcw__, width, height, type);
+        this->clear();
+        return -1;
+    }
+    return 0;
+}
+
+int ExImage::setInfo(int width, int height, int type) {
+    assert(this->bits == NULL);
+    int bpp = getBitsPerPixel(type);
+    if (bpp == 0 || width <= 0 || height <= 0) {
+        exerror(L"%s(%d,%d,%p) - invalid param.\n", __funcw__, width, height, type);
+        return -1;
+    }
+    this->flags |= Ex_ImageQuery;
+    this->type = type;
+    this->bpp = bpp;
+    this->bpl = getBytesPerLine(width, bpp);
+    this->width = width;
+    this->height = height;
+    return 0;
+}
+
+int ExImage::load(const wchar* fname, bool query) {
+    if (crs != NULL || bits != NULL) {
+        exerror(L"%s - loaded\n", __funcw__);
+        clear();
+    }
+ 
+    if (!(fname && *fname)) {
+        exerror(L"%s - invalid filename.\n", __funcw__);
+        return -1;
+    }
+    const wchar* ext = NULL;
+    for (const wchar* p = fname; *p; p++)
+        if (*p == '.') ext = p + 1;
+    if (ext == NULL) {
+        exerror(L"%s(%s) - invalid extension.\n", __funcw__, fname);
+        return NULL;
+    }
+    HANDLE hFile = CreateFile(fname, GENERIC_READ, 0, NULL,
+                              OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+    if (hFile == INVALID_HANDLE_VALUE) {
+        exerror(L"%s(%s) - CreateFile fail.\n", __funcw__, fname);
+        return NULL;
+    }
+    int r = -1;
+    DWORD dwRead = 0;
+    unsigned char hdr[8];
+    ReadFile(hFile, hdr, 8, &dwRead, NULL);
+    SetFilePointer(hFile, 0, NULL, FILE_BEGIN);
+    if (_wcsnicmp(ext, L"png", 3) == 0) {
+        assert(hdr[0] == 0x89 && hdr[1] == 'P' && hdr[2] == 'N' && hdr[3] == 'G');
+        this->format = Ex_IMM_PNG;
+        r = this->loadPng(hFile, fname, query);
+        goto clean;
+    }
+#if 1
+    if (_wcsnicmp(ext, L"bmp", 3) == 0) {
+        assert(hdr[0] == 'B' && hdr[1] == 'M');
+        this->format = Ex_IMM_BMP;
+        r = this->loadBmp(hFile, fname, query);
+        goto clean;
+    }
+    if (_wcsnicmp(ext, L"jp", 2) == 0) {
+        CloseHandle(hFile);
+        assert(hdr[0] == 0xff && hdr[1] == 0xd8);
+        this->format = Ex_IMM_JPG;
+        r = this->loadJpg(NULL, fname, query);
+        goto done;
+    }
+#endif
+    exerror(L"%s(%s) - unknown image format.\n", __funcw__, fname);
+clean:
+    CloseHandle(hFile);
+done:
+    if (r == 0 && bpp == 32 &&
+        type == Ex_IMAGE_DIRECT_8888 &&
+        format == Ex_IMM_PNG) {
+        preMultiply();
+    }
+    if (r == 0) {
+        cairo_status_t status;
+        cairo_format_t format = CAIRO_FORMAT_ARGB32;
+        int stride = cairo_format_stride_for_width(format, width);
+        crs = cairo_image_surface_create_for_data(bits, format, width, height, stride);
+        assert(stride == bpl);
+        status = cairo_surface_status(crs);
+        if (status != CAIRO_STATUS_SUCCESS) {
+            exerror("%s: %s\n", __func__, cairo_status_to_string(status));
+            //cairo_surface_destroy(crs);
+            clear();
+            return -1;
+        }
+    }
+    return r;
+}
+
+void ExImage::preMultiply() {
+    // color_type == PNG_COLOR_TYPE_RGB_ALPHA
+    for (int h = 0; h < height; h++) {
+        uchar* dp = bits + bpl * h;
+        for (int w = 0; w < width; w++) {
+            /* Premultiplies data and converts RGBA bytes => native endian */
+            register uint color = *(uint*)dp;
+            register uint alpha = color >> 24;
+            if (alpha == 0) {
+                *(uint*)dp = 0;
+            } else if (alpha != 0xff) {
+#if 1 // rb simd
+                register uint t1 = color & 0x00ff00ff; // rb
+                register uint t2 = (color >> 8) & 0xff; // g
+                color &= 0xff000000;
+                t1 = (t1*alpha) + 0x00800080;
+                t1 = (t1 + ((t1 >> 8) & 0x00ff00ff)) >> 8;
+                t2 = (t2*alpha) + 0x80;
+                t2 = (t2 + (t2 >> 8)) >> 8;
+                color |= ((t1 & 0x00ff00ff) | (t2 << 8));
+#else
+                register uint t1 = color & 0xff;
+                register uint t2 = (color >> 8) & 0xff;
+                register uint t3 = (color >> 16) & 0xff;
+                color &= 0xff000000;
+                t1 = (t1*alpha) + 0x80;
+                t1 = (t1 + (t1 >> 8)) >> 8;
+                t2 = (t2*alpha) + 0x80;
+                t2 = (t2 + (t2 >> 8)) >> 8;
+                t3 = (t3*alpha) + 0x80;
+                t3 = (t3 + (t3 >> 8)) >> 8;
+                color |= (t1 | (t2 << 8) | (t3 << 16));
+#endif
+                *(uint*)dp = color;
+            }
+            dp += 4;
+        } // for w
+    } // for h
+}
