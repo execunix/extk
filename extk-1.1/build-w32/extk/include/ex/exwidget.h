@@ -173,11 +173,12 @@ protected:
     void addRenderFlags(int value); // Ex_RenderDamaged Ex_RenderRebuild
     void addUpdateRegion(const ExRegion& rgn);
     void subUpdateRegion(const ExRegion& rgn);
+    void resetArea();
 public:
     virtual int setVisible(bool show);
     bool isVisible();
     int vanish(ExWindow* window);
-    int layout();
+    int layout(const ExArea& ar);
     int damage();
     int damage(const ExRect& clip);
     bool isOpaque() const { return getFlags(Ex_Opaque) || !opaqueRgn.empty(); }
@@ -199,9 +200,9 @@ public:
     void setOpaqueRegion(const ExRegion& op);
     void setOpaque(bool set);
     void setSelect(const ExRect& rect) { select = rect; }
-    void setArea(const ExArea& area);
-    void setSize(const ExSize& size);
-    void setPos(const ExPoint& pos);
+    void setArea(const ExArea& area) { this->area = area; resetArea(); }
+    void setSize(const ExSize& size) { area.size = size; resetArea(); }
+    void setPos(const ExPoint& pos) { area.pos = pos; resetArea(); }
     void toBack() { if (parent) parent->attachHead(this); }
     void toFront() { if (parent) parent->attachTail(this); }
 public: // widget flags operation

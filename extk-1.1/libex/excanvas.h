@@ -25,8 +25,8 @@ public:
     virtual ~ExCanvas();
     explicit ExCanvas();
 public:
-    int init(ExWindow* window);
-    int size(int w, int h) { return 0; } // tbd
+    int init(ExWindow* window, ExSize* sz = NULL);
+    int resize(int w, int h);
     int newFace(int id, const char* faceName);
     int setFont(int id, int size);
     virtual int deleteMemGC();

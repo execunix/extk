@@ -534,10 +534,7 @@ proc_leave:
 }
 
 int ExWindow::flush() {
-    if (hwnd)
-        flushFunc(this, &mergedRgn);
-    else
-        render();
+    flushFunc(this, &mergedRgn);
     return 0;
 }
 
@@ -547,10 +544,11 @@ int ExWindow::paint() {
 }
 
 void ExWindow::onExFlush(ExWindow* window, const ExRegion* updateRgn) {
-    if (hwnd == NULL || canvas == NULL)
-        return;
+    // updateRgn is filled after render call.
+    this->render();
 
-    render();
+    if (!(hwnd && canvas && canvas->gc))
+        return;
 
     HDC hdc = GetDC(hwnd);
     HRGN hrgn = ExRegionToGdi(hdc, updateRgn);
@@ -567,8 +565,6 @@ void ExWindow::onExFlush(ExWindow* window, const ExRegion* updateRgn) {
     bmi.bmiHeader.biSizeImage = 0; // This may be set to zero for BI_RGB bitmaps
     SetDIBitsToDevice(hdc, 0, 0, canvas->gc->width, canvas->gc->height,
                       0, 0, 0, canvas->gc->height, canvas->gc->bits, &bmi, DIB_RGB_COLORS);
-    //BitBlt(hdc, clip.ul.x, clip.ul.y, clip.width(), clip.height(),
-    //       *memdc, clip.ul.x, clip.ul.y, SRCCOPY);
 
     SelectClipRgn(hdc, NULL);
     DeleteObject(hrgn);
@@ -577,16 +573,17 @@ void ExWindow::onExFlush(ExWindow* window, const ExRegion* updateRgn) {
 }
 
 void ExWindow::onWmPaint(ExWindow* window, const ExRegion* updateRgn) {
-    if (hwnd == NULL || canvas == NULL)
-        return;
+    // updateRgn is filled after render call.
+    this->render();
 
-    render();
+    assert(hwnd && canvas && canvas->gc);
 
     PAINTSTRUCT ps;
     HDC hdc = BeginPaint(hwnd, &ps);
 #if 1 // use gdi ClipRgn
     ExRect clip(ps.rcPaint);
-    HRGN hrgn = ExRegionToGdi(hdc, &ExRegion(clip));
+    HRGN hrgn = CreateRectRgnIndirect(&ps.rcPaint);
+    SelectClipRgn(hdc, hrgn);
     // rcPaint : Specifies a RECT structure that specifies the upper left and lower right corners
     //           of the rectangle in which the painting is requested.
     logdra1(L"[0x%p] WM_PAINT hdc=0x%p x=%d y=%d w=%d h=%d\n",
@@ -604,8 +601,7 @@ void ExWindow::onWmPaint(ExWindow* window, const ExRegion* updateRgn) {
     bmi.bmiHeader.biSizeImage = 0; // This may be set to zero for BI_RGB bitmaps
     SetDIBitsToDevice(hdc, 0, 0, canvas->gc->width, canvas->gc->height,
                       0, 0, 0, canvas->gc->height, canvas->gc->bits, &bmi, DIB_RGB_COLORS);
-    //BitBlt(hdc, clip.ul.x, clip.ul.y, clip.width(), clip.height(),
-    //       *memdc, clip.ul.x, clip.ul.y, SRCCOPY);
+
 #if 1 // use gdi ClipRgn
     SelectClipRgn(hdc, NULL);
     DeleteObject(hrgn);
@@ -652,10 +648,21 @@ int ExWindow::basicWndProc(ExCbInfo* cbinfo) {
             cbinfo->event->lResult = 1;
             return Ex_Break;
         }
+        case WM_SIZE: {
+            int width = LOWORD(lParam);
+            int height = HIWORD(lParam);
+            logproc(L"[0x%p] WM_SIZE wParam=0x%d xPos=%d yPos=%d\n", hwnd, wParam, width, height);
+            if (width > 800 && height > 480) {
+                ExArea ar(0, 0, width, height);
+                if (area.size != ar.size)
+                    layout(ar);
+            }
+            return Ex_Continue;
+        }
         case WM_MOUSEMOVE: {
             UINT fwKeys = (UINT)wParam;
-            LONG xPos = LOWORD(lParam);
-            LONG yPos = HIWORD(lParam);
+            int xPos = LOWORD(lParam);
+            int yPos = HIWORD(lParam);
             logpro0(L"[0x%p] WM_MOUSEMOVE     fwKeys=0x%p xPos=%d yPos=%d\n", hwnd, fwKeys, xPos, yPos);
             if (wgtCapture != NULL) {
                 if (wgtCapture == wgtEntered &&
@@ -699,8 +706,8 @@ int ExWindow::basicWndProc(ExCbInfo* cbinfo) {
         }
         case WM_LBUTTONDOWN: {
             UINT fwKeys = (UINT)wParam;
-            LONG xPos = LOWORD(lParam);
-            LONG yPos = HIWORD(lParam);
+            int xPos = LOWORD(lParam);
+            int yPos = HIWORD(lParam);
             logpro0(L"[0x%p] WM_LBUTTONDOWN   fwKeys=0x%p xPos=%d yPos=%d\n", hwnd, fwKeys, xPos, yPos);
             ExWidget* wgttmp = NULL;
             ExWidget* widget = getSelectable(ExPoint(xPos, yPos));
@@ -779,8 +786,8 @@ int ExWindow::basicWndProc(ExCbInfo* cbinfo) {
 #if 0
         case WM_LBUTTONDBLCLK: {
             UINT fwKeys = (UINT)wParam;
-            LONG xPos = LOWORD(lParam);
-            LONG yPos = HIWORD(lParam);
+            int xPos = LOWORD(lParam);
+            int yPos = HIWORD(lParam);
             logproc(L"[0x%p] WM_LBUTTONDBLCLK fwKeys=0x%p xPos=%d yPos=%d\n", hwnd, fwKeys, xPos, yPos);
             /*	Only windows that have the CS_DBLCLKS style can receive WM_LBUTTONDBLCLK
                 messages, which the OS generates when the user presses, releases, and
@@ -797,8 +804,8 @@ int ExWindow::basicWndProc(ExCbInfo* cbinfo) {
 #endif
         case WM_LBUTTONUP: {
             UINT fwKeys = (UINT)wParam;
-            LONG xPos = LOWORD(lParam);
-            LONG yPos = HIWORD(lParam);
+            int xPos = LOWORD(lParam);
+            int yPos = HIWORD(lParam);
             logpro0(L"[0x%p] WM_LBUTTONUP     fwKeys=0x%p xPos=%d yPos=%d\n", hwnd, fwKeys, xPos, yPos);
             ExWidget* wgttmp = wgtPressed;
             ExApp::but_timer.stop();

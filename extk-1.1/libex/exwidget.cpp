@@ -312,6 +312,16 @@ void ExWidget::subUpdateRegion(const ExRegion& rgn) {
     }
 }
 
+void ExWidget::resetArea() {
+    if (isVisible() && !(getFlags(Ex_ResetExtent))) {
+        // marks that the old area should be updated
+        if (extent.valid())
+            addUpdateRegion(ExRegion(extent));
+        addRenderFlags(Ex_RenderRebuild);
+    }
+    flags |= Ex_ResetExtent;
+}
+
 int ExWidget::setVisible(bool show) {
     if (!getFlags(Ex_Visible) == !show)
         return 1;
@@ -347,12 +357,29 @@ int ExWidget::vanish(ExWindow* window) {
     return 0;
 }
 
-int ExWidget::layout() { // tbd
-    if (!getFlags(Ex_Visible))
-        return -1;
+int ExWidget::layout(const ExArea& ar) {
+    // Layout is to determine its own area relative to the parent,
+    // regardless of whether it is visible or not.
+    area = ar;
+    if (parent == NULL) {
+        rect.l = 0;
+        rect.t = 0;
+        rect.r = area.w;
+        rect.b = area.h;
+    } else {
+        rect.l = area.x + parent->rect.l;
+        rect.t = area.y + parent->rect.t;
+        rect.r = area.w + rect.l;
+        rect.b = area.h + rect.t;
+    }
+
+    flags |= Ex_ResetExtent; // mark as reset visibleRgn
+    addRenderFlags(Ex_RenderRebuild);
+
     invokeCallback(Ex_CbLayout, &ExCbInfo(Ex_CbLayout, Ex_LayoutInit, NULL, &area));
-    // tbd
+    // tbd - do recurs ?
     invokeCallback(Ex_CbLayout, &ExCbInfo(Ex_CbLayout, Ex_LayoutDone, NULL, &area));
+
     return 0;
 }
 
@@ -547,29 +574,6 @@ void ExWidget::setOpaque(bool set) {
     else
         flags &= ~Ex_Opaque;
     addRenderFlags(Ex_RenderRebuild);
-}
-
-void ExWidget::setArea(const ExArea& area) {
-    if (isVisible() && !(getFlags(Ex_ResetExtent))) {
-        // marks that the old area should be updated
-        if (extent.valid())
-            addUpdateRegion(ExRegion(extent));
-        addRenderFlags(Ex_RenderRebuild);
-    }
-    flags |= Ex_ResetExtent;
-    this->area = area;
-}
-
-void ExWidget::setSize(const ExSize& size) {
-    ExArea a = area;
-    a.size = size;
-    setArea(a);
-}
-
-void ExWidget::setPos(const ExPoint& pos) {
-    ExArea a = area;
-    a.pos = pos;
-    setArea(a);
 }
 
 ExWidget* // static

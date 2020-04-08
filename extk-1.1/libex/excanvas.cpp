@@ -3,6 +3,7 @@
  * SPDX-License-Identifier:     GPL-2.0+
  */
 
+#include <exapp.h>
 #include <excanvas.h>
 #include <exwindow.h>
 #include <ft2build.h>
@@ -47,13 +48,20 @@ ExCanvas::ExCanvas()
     refcnt++;
 }
 
-int ExCanvas::init(ExWindow* window) {
+int ExCanvas::init(ExWindow* window, ExSize* sz) {
     wnd = window;
     wnd->canvas = this;
     if (ftLib == NULL &&
         FT_Init_FreeType(&ftLib))
         dprint1(L"FT_Init_FreeType fail.");
-    return createMemGC(wnd->area.w, wnd->area.h);
+    if (sz == NULL)
+        sz = window ? &wnd->area.size : &ExApp::smSize;
+    return createMemGC(sz->w, sz->h);
+}
+
+int ExCanvas::resize(int w, int h) {
+    deleteMemGC();
+    return createMemGC(w, h);
 }
 
 // create cairo font

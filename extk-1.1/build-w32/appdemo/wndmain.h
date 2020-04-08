@@ -9,6 +9,7 @@
 
 class WndMain : public ExWindow {
 public:
+    wchar respath[256];
     ExWidget panes[3];
     ExWidget btns0[5];
     ExWidget btns1[6];
@@ -38,6 +39,7 @@ public:
     void STDCALL onExFlush(WndMain* w, const ExRegion* updateRgn) { ExWindow::onExFlush(w, updateRgn); } // apitest
     void STDCALL onWmPaint(WndMain* w, const ExRegion* updateRgn) { ExWindow::onWmPaint(w, updateRgn); } // apitest
     int STDCALL onDestroyed(WndMain* w, ExCbInfo* cbinfo);
+    int STDCALL onLayout(WndMain* widget, ExCbInfo* cbinfo);
     int STDCALL onActMain(WndMain* widget, ExCbInfo* cbinfo);
     int STDCALL onActBkgd(WndMain* widget, ExCbInfo* cbinfo);
     int STDCALL onActBtns(ExWidget* widget, ExCbInfo* cbinfo);
@@ -53,6 +55,7 @@ public:
     double toy_alpha, toy_delta, toy_scale;
     void STDCALL onDrawToy(ExCanvas* canvas, const WndMain* w, const ExRegion* damage);
     int STDCALL onTimerToy(WndMain* w, ExCbInfo* cbinfo);
+    void STDCALL onFlushBackBuf(WndMain* w, const ExRegion* updateRgn);
     void STDCALL onDrawBackBuf(ExCanvas* canvas, const ExWidget* w, const ExRegion* damage);
     int STDCALL onBackBufUpdater(ExTimer* timer, ExCbInfo* cbinfo);
 };

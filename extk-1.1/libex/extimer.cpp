@@ -26,7 +26,7 @@ public:
     void  clearList();
     void  remove(ExTimer* timer);
     void  active(ExTimer* timer);
-    ulong invoke(const ulong tick_count);
+    ulong invoke(ulong tick_count);
 };
 
 void ExTimerList::clearList() {
@@ -54,8 +54,12 @@ void ExTimerList::active(ExTimer* timer) {
         ExWakeupMainThread();
 }
 
-ulong ExTimerList::invoke(const ulong tick_count) {
+ulong ExTimerList::invoke(ulong tick_count) {
     long waittick;
+#if DEBUG
+    // To avoid racking caused by matching breakpoints when debugging.
+    tick_count = GetTickCount();
+#endif
     while (!empty()) {
         ExTimer* timer = *begin();
         waittick = timer->value - tick_count;
@@ -91,7 +95,7 @@ ulong ExTimerList::invoke(const ulong tick_count) {
 
 static ExTimerList exTimerList;
 
-ulong ExTimerListInvoke(const ulong tickCount) {
+ulong ExTimerListInvoke(ulong tickCount) {
     return exTimerList.invoke(tickCount);
 }
 

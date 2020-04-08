@@ -6,9 +6,6 @@
 #include <exapp.h>
 #include <exinput.h>
 
-static int sm_width = 800;
-static int sm_height = 480;
-
 // app private variables
 //
 ulong exTickCount = 0;
@@ -47,6 +44,7 @@ HINSTANCE    ExApp::hPrevInstance = 0;
 LPTSTR       ExApp::lpCmdLine = NULL;
 int          ExApp::nCmdShow = 0;
 int          ExApp::retCode = 0;             // 0:EXIT_SUCCESS,1:EXIT_FAILURE
+ExSize       ExApp::smSize; // SystemMetrics
 ExEvent      ExApp::event;
 
 int          ExApp::halt = 0;
@@ -270,16 +268,16 @@ int ExApp::init(HINSTANCE hInstance,
     exTickCount = GetTickCount();
     memset(&event, 0, sizeof(ExEvent));
 #if 1
-    sm_width = GetSystemMetrics(SM_CXSCREEN);
-    sm_height = GetSystemMetrics(SM_CYSCREEN);
+    smSize.w = GetSystemMetrics(SM_CXSCREEN);
+    smSize.h = GetSystemMetrics(SM_CYSCREEN);
 #else
     HDC hdc = GetDC(GetDesktopWindow());
     if (hdc != NULL) {
-        sm_width = GetDeviceCaps(hdc, HORZRES);
-        sm_height = GetDeviceCaps(hdc, VERTRES);
+        smSize.w = GetDeviceCaps(hdc, HORZRES);
+        smSize.h = GetDeviceCaps(hdc, VERTRES);
     }
 #endif
-    dprintf(L"%s() width=%d height=%d\n", __funcw__, sm_width, sm_height);
+    dprintf(L"%s() width=%d height=%d\n", __funcw__, smSize.w, smSize.h);
 
     if (ExWindow::classInit(hInstance) != Ex_Continue)
         return retCode;

@@ -100,7 +100,7 @@ ExTimer::start()
     the initial time period has expired.
 */
 
-ulong ExTimerListInvoke(const ulong tickCount);
+ulong ExTimerListInvoke(ulong tickCount);
 void  ExTimerListClear();
 
 #endif//__extimer_h__

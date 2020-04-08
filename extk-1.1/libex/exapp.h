@@ -34,6 +34,7 @@ public:
     static LPTSTR       lpCmdLine;
     static int          nCmdShow;
     static int          retCode; // 0:EXIT_SUCCESS,1:EXIT_FAILURE
+    static ExSize       smSize; // SystemMetrics
     static ExEvent      event;
     static int          halt;
     static ExTimer      but_timer;

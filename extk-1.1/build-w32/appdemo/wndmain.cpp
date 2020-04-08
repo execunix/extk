@@ -359,6 +359,50 @@ void WndMain::onDrawBackBuf(ExCanvas* canvas, const ExWidget* w, const ExRegion*
     }
 }
 
+int WndMain::onLayout(WndMain* widget, ExCbInfo* cbinfo) {
+    const ExArea* ar = (ExArea*)cbinfo->data;
+    dprintf(L"%s(%s) %d (%d,%d-%dx%d)\n", __funcw__, widget->getName(),
+            cbinfo->subtype, ar->x, ar->y, ar->w, ar->h);
+    ExArea a(0, 0, ar->w, ar->h);
+    if (cbinfo->subtype == Ex_LayoutInit) {
+        if (widget == this) {
+            a.inset(a.w * 2 / 100, a.h * 2 / 100);
+            ExArea a0(a.x, a.y, a.w, a.h * 12 / 100); a0.y += (a.h * 88 / 100);
+            ExArea a1(a.x, a.y, a.w * 18 / 100, a.h * 84 / 100);
+            ExArea a2(a.x, a.y, a.w * 18 / 100, a.h * 84 / 100); a2.x += (a.w * 82 / 100);
+            panes[0].layout(a0);
+            panes[1].layout(a1);
+            panes[2].layout(a2);
+        } else if (widget == &panes[0]) {
+            int margin_w = a.w * 2 / 100; // 2 %
+            int margin_h = a.h * 8 / 100; // 8 %
+            a.inset(margin_w, margin_h);
+            int gap_x = a.w * 3 / 100; // 3 %
+            int grid_x = (a.w + gap_x) / 5;
+            ExSize sz(grid_x - gap_x, a.h);
+            ExPoint pt(a.x, a.y);
+            for (int i = 0; i < 5; i++) {
+                btns0[i].layout(ExArea(pt, sz));
+                pt.x += grid_x;
+            }
+        } else if (widget == &panes[1] || widget == &panes[2]) {
+            int margin_w = a.w * 8 / 100; // 8 %
+            int margin_h = a.h * 3 / 100; // 3 %
+            a.inset(margin_w, margin_h);
+            int gap_y = a.h * 4 / 100; // 4 %
+            int grid_y = (a.h + gap_y) / 6;
+            ExSize sz(a.w, grid_y - gap_y);
+            ExPoint pt(a.x, a.y);
+            ExWidget* btns = widget == &panes[1] ? btns1 : btns2;
+            for (int i = 0; i < 6; i++) {
+                btns[i].layout(ExArea(pt, sz));
+                pt.y += grid_y;
+            }
+        }
+    }
+    return Ex_Continue;
+}
+
 int WndMain::onActMain(WndMain* widget, ExCbInfo* cbinfo) {
     if (widget == this) {
         static ExPoint but_pt(0);
@@ -500,19 +544,20 @@ int WndMain::onTimer(ExTimer* timer, ExCbInfo* cbinfo)
 
 int WndMain::initCanvas() {
     canvas = new ExCanvas;
-    canvas->init(this);
+    canvas->init(this, &ExApp::smSize);
 
     char faceName[256];
-    sprintf(faceName, "%S/res/%s", exModulePath, "NanumGothic.ttf");
+    sprintf(faceName, "%S/%s", respath, "NanumGothic.ttf");
     if (canvas->newFace(0, faceName) != 0)
         return -1;
-    sprintf(faceName, "%S/res/%s", exModulePath, "NanumGothicBold.ttf");
+    sprintf(faceName, "%S/%s", respath, "NanumGothicBold.ttf");
     if (canvas->newFace(1, faceName) != 0)
         return -1;
     return 0;
 }
 
 int WndMain::initBtn(ExWidget* parent, ExWidget* btn, const wchar* name, const ExArea* area) {
+    if (!area) area = &ExArea(0, 0, 1, 1); // make visible
     btn->init(parent, name, area);
     //btn->setFlags(Ex_Opaque);
     btn->setFlags(Ex_Selectable | Ex_AutoHighlight);
@@ -530,24 +575,49 @@ int WndMain::onDestroyed(WndMain* w, ExCbInfo* cbinfo) {
 }
 
 int WndMain::onHandler(WndMain* w, ExCbInfo* cbinfo) {
-    dprintf(L"handler WM_0x%04x\n", cbinfo->event->message);
+    dprintf(L"handler WM_0x%04x:0x%04x\n", cbinfo->event->message, cbinfo->event->msg.message);
     return Ex_Continue;
 }
 
 int WndMain::onFilter(WndMain* w, ExCbInfo* cbinfo) {
-    dprintf(L"filter WM_0x%04x\n", cbinfo->event->msg.message);
+    dprintf(L"filter WM_0x%04x\n", cbinfo->event->message);
+    static int i = 0;
+    ++i;
+    if (i == 20) {
+        removeHandler(ExCallback(this, &WndMain::onHandler));
+    } else if (i == 40) {
+        addHandler(this, &WndMain::onHandler);
+        i = 0;
+    }
     return Ex_Continue;
+}
+
+void WndMain::onFlushBackBuf(WndMain* w, const ExRegion* updateRgn) {
+    // updateRgn is filled after render call.
+    wndBackBuf.render();
+    // update to pseudo display.
+#if 1
+    wgtBackViewer.damage();
+#else
+    // When using a real secondary display ...
+    ExRect clip(updateRgn->extent);
+    clip.offset(wgtBackViewer.getRect().ul);
+    wgtBackViewer.damage(clip);
+#endif
 }
 
 int WndMain::onBackBufUpdater(ExTimer* timer, ExCbInfo* cbinfo) {
     backBufCnt++;
-    if (backBufCnt > 300)
+    if (backBufCnt > 500)
         backBufCnt = 0;
+    ExArea ar = wgtBackBtn.area;
+    if (ar.pos.x++ > 180)
+        ar.pos.x = 0;
+    wgtBackBtn.setArea(ar);
     // render backbuf
     wndBackBuf.damage();
-    wndBackBuf.render();
     // flush to window
-    wgtBackViewer.damage();
+    wndBackBuf.flush();
     return Ex_Continue;
 }
 
@@ -557,21 +627,34 @@ public:
     void STDCALL onFlush(WndMain* w, const ExRegion* updateRgn) {}
 };
 
+#define FLUSH_TEST() //do { flush(); Sleep(1000); } while (0)
+#define DISP_AT_ONCE 1
+
 int WndMain::start() {
+    struct _stat statbuf;
+    swprintf(respath, L"%s/res", exModulePath);
+    if (_wstat(respath, &statbuf))
+        swprintf(respath, L"%s/../../res", exModulePath);
+
     if (initCanvas() != 0) {
         return -1;
     }
     wchar fname[256];
-    swprintf(fname, L"%s/res/%s", exModulePath, L"S01090.bmp");
+    swprintf(fname, L"%s/%s", respath, L"S01090.bmp");
     if (imgBkgd0.load(fname) != 0) {
         dprintf(L"%s: imgBkgd0.load(%s) fail\n", __funcw__, fname);
         return -1;
     }
-    swprintf(fname, L"%s/res/%s", exModulePath, L"S01051.PNG");
+    swprintf(fname, L"%s/%s", respath, L"S01051.PNG");
     if (imgBkgd1.load(fname) != 0) {
         dprintf(L"%s: imgBkgd1.load(%s) fail\n", __funcw__, fname);
         return -1;
     }
+
+    ExApp::mainWnd = this;
+
+    backBufCnt = 0;
+    img_pt0.set(0, 0);
 
     drawFunc = ExDrawFunc(&::onDrawBkgd, this); // test
     drawFunc = ExDrawFunc(this, &WndMain::onDrawBkgd);
@@ -584,10 +667,20 @@ int WndMain::start() {
     paintFunc = ExFlushFunc(this, &WndMain::onWmPaint); // apitest
     flushFunc = ExFlushFunc((ExWindow*)this, &ExWindow::onExFlush);
     paintFunc = ExFlushFunc((ExWindow*)this, &ExWindow::onWmPaint);
+#if DISP_AT_ONCE
+    ExWidget::init(NULL/*parent*/, L"WndMain", NULL);
+#else
     init(L"WndMain", 0, WS_OVERLAPPEDWINDOW | WS_VISIBLE, NULL);
     //init(L"WndMain", 0, WS_VISIBLE, NULL);
+    // ==> render() #1
+#endif
     setFlags(Ex_Selectable);
-    img_pt0.set(0, 0);
+
+#if DISP_AT_ONCE
+#else
+    showWindow(); // show logo
+    Sleep(500); // test
+#endif
 
     wgtBkgd.init(this, L"imgBkgd1", &ExArea(300, 300, imgBkgd1.width, imgBkgd1.height));
     wgtBkgd.addCallback(this, &WndMain::onActBkgd, Ex_CbActivate);
@@ -595,15 +688,16 @@ int WndMain::start() {
     wgtBkgd.setFlags(Ex_Selectable);
     //wgtBkgd.setFlags(Ex_Opaque);
     img_pt1 = wgtBkgd.area.pos;
-
-    showWindow(); // show logo
+    FLUSH_TEST();
+    // ==> render() #2
 
     addCallback(this, &WndMain::onDestroyed, Ex_CbDestroyed);
     addCallback(&onUnrealized, this, Ex_CbUnrealized);
     addCallback(&onRealized, this, Ex_CbRealized);
+    addCallback(this, &WndMain::onLayout, Ex_CbLayout);
     addCallback(this, &WndMain::onActMain, Ex_CbActivate);
     addCallback([](void* data, ExWidget* widget, ExCbInfo* cbinfo)->int {
-        dprintf(L"%s Activate %d\n", widget->getName(), cbinfo->type);
+        dprintf(L"%s Activate %d,%d\n", widget->getName(), cbinfo->type, cbinfo->subtype);
         return Ex_Continue; }, this, Ex_CbActivate);
 
     panes[0].init(this, L"pan0", &ExArea(20, 400, 760, 60));
@@ -612,6 +706,10 @@ int WndMain::start() {
     panes[0].drawFunc = ExDrawFunc(this, &WndMain::onDrawPane);
     panes[1].drawFunc = ExDrawFunc(this, &WndMain::onDrawPane);
     panes[2].drawFunc = ExDrawFunc(this, &WndMain::onDrawPane);
+    panes[0].addCallback(this, &WndMain::onLayout, Ex_CbLayout);
+    panes[1].addCallback(this, &WndMain::onLayout, Ex_CbLayout);
+    panes[2].addCallback(this, &WndMain::onLayout, Ex_CbLayout);
+
     panes[0].addCallback(this, &WndMain::onActMain, Ex_CbActivate);
     panes[0].setFlags(Ex_Selectable);
 #if 1
@@ -623,28 +721,29 @@ int WndMain::start() {
     panes[0].setFlags(Ex_Opaque);
 #endif
     panes[2].setFlags(Ex_Visible, Ex_BitFalse);
+    FLUSH_TEST();
 
-    initBtn(&panes[0], &btns0[0], L"btns0-0", &ExArea(20 + 148 * 0, 10, 140, 40));
-    initBtn(&panes[0], &btns0[1], L"btns0-1", &ExArea(20 + 148 * 1, 10, 140, 40));
-    initBtn(&panes[0], &btns0[2], L"btns0-2", &ExArea(20 + 148 * 2, 10, 140, 40));
-    initBtn(&panes[0], &btns0[3], L"btns0-3", &ExArea(20 + 148 * 3, 10, 140, 40));
-    initBtn(&panes[0], &btns0[4], L"btns0-4", &ExArea(20 + 148 * 4, 10, 140, 40));
+    initBtn(&panes[0], &btns0[0], L"btns0-0", NULL);
+    initBtn(&panes[0], &btns0[1], L"btns0-1", NULL);
+    initBtn(&panes[0], &btns0[2], L"btns0-2", NULL);
+    initBtn(&panes[0], &btns0[3], L"btns0-3", NULL);
+    initBtn(&panes[0], &btns0[4], L"btns0-4", NULL);
 
-    initBtn(&panes[1], &btns1[0], L"btns1-0", &ExArea(20, 10 + 50 * 0, 80, 40));
-    initBtn(&panes[1], &btns1[1], L"btns1-1", &ExArea(20, 10 + 50 * 1, 80, 40));
-    initBtn(&panes[1], &btns1[2], L"btns1-2", &ExArea(20, 10 + 50 * 2, 80, 40));
-    initBtn(&panes[1], &btns1[3], L"btns1-3", &ExArea(20, 10 + 50 * 3, 80, 40));
-    initBtn(&panes[1], &btns1[4], L"btns1-4", &ExArea(20, 10 + 50 * 4, 80, 40));
-    initBtn(&panes[1], &btns1[5], L"btns1-5", &ExArea(20, 10 + 50 * 5, 80, 40));
+    initBtn(&panes[1], &btns1[0], L"btns1-0", NULL);
+    initBtn(&panes[1], &btns1[1], L"btns1-1", NULL);
+    initBtn(&panes[1], &btns1[2], L"btns1-2", NULL);
+    initBtn(&panes[1], &btns1[3], L"btns1-3", NULL);
+    initBtn(&panes[1], &btns1[4], L"btns1-4", NULL);
+    initBtn(&panes[1], &btns1[5], L"btns1-5", NULL);
 
-    initBtn(&panes[2], &btns2[0], L"btns2-0", &ExArea(20, 10 + 50 * 0, 80, 40));
-    initBtn(&panes[2], &btns2[1], L"btns2-1", &ExArea(20, 10 + 50 * 1, 80, 40));
-    initBtn(&panes[2], &btns2[2], L"btns2-2", &ExArea(20, 10 + 50 * 2, 80, 40));
-    initBtn(&panes[2], &btns2[3], L"btns2-3", &ExArea(20, 10 + 50 * 3, 80, 40));
-    initBtn(&panes[2], &btns2[4], L"btns2-4", &ExArea(20, 10 + 50 * 4, 80, 40));
-    initBtn(&panes[2], &btns2[5], L"btns2-5", &ExArea(20, 10 + 50 * 5, 80, 40));
+    initBtn(&panes[2], &btns2[0], L"btns2-0", NULL);
+    initBtn(&panes[2], &btns2[1], L"btns2-1", NULL);
+    initBtn(&panes[2], &btns2[2], L"btns2-2", NULL);
+    initBtn(&panes[2], &btns2[3], L"btns2-3", NULL);
+    initBtn(&panes[2], &btns2[4], L"btns2-4", NULL);
+    initBtn(&panes[2], &btns2[5], L"btns2-5", NULL);
 
-    ExApp::mainWnd = this;
+    FLUSH_TEST();
 
     timer.setCallback(this, &WndMain::onTimer);
 
@@ -666,28 +765,36 @@ int WndMain::start() {
 
     (int&)timerToy.userdata = 0;
     timerToy.setCallback(this, &WndMain::onTimerToy, this);
-    timerToy.start(0, 50); // 20Hz
+    timerToy.start(2000, 50); // 20Hz
 
     addFilter([](void* data, ExWindow* window, ExCbInfo* cbinfo)->int {
         dprintf(L"[%s] WM_0x%04x\n", window->getName(), cbinfo->event->msg.message);
-        return Ex_Continue; }, NULL);
+        static int i = 0; if (++i > 10) { i = 0; return Ex_Remove; }
+        return Ex_Continue; }, NULL); // How can it be removed? return Ex_Remove
     addFilter(this, &WndMain::onFilter);
     addHandler(this, &WndMain::onHandler);
 
     wndBackBuf.init(L"wndBackBuf", &ExArea(0, 0, 360, 240));
     wndBackBuf.canvas = new ExCanvas;
     wndBackBuf.canvas->init(&wndBackBuf);
+    wndBackBuf.flushFunc = ExFlushFunc(this, &WndMain::onFlushBackBuf);
     wgtBackBtn.init(&wndBackBuf, L"wgtBackBtn", &ExArea(20, 20, 120, 40));
     wndBackBuf.drawFunc = ExDrawFunc(this, &WndMain::onDrawBackBuf);
     wgtBackBtn.drawFunc = ExDrawFunc(this, &WndMain::onDrawBtns);
+    wndBackBuf.flush();
 
     wgtBackViewer.init(this, L"wgtBackViewer", &ExArea(80, 40, 360, 240));
     wgtBackViewer.drawFunc = ExDrawFunc(this, &WndMain::onDrawBackBuf);
 
     backBufUpdater.setCallback(this, &WndMain::onBackBufUpdater);
-    backBufUpdater.start(1, 33);
-    backBufCnt = 0;
+    backBufUpdater.start(2000, 16); // 60Hz
 
+    layout(area);
+#if DISP_AT_ONCE
+    init(L"WndMain", 0, WS_OVERLAPPEDWINDOW | WS_VISIBLE, NULL);
+    return 0;
+#else
     return damage();
+#endif
 }
 
