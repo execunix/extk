@@ -30,6 +30,7 @@ public:
     WndMain() : ExWindow() {}
 public:
     int start();
+    int initInput();
     int initCanvas();
     int initBtn(ExWidget* parent, ExWidget* btn, const wchar* name);
     void STDCALL onExFlush(WndMain* w, const ExRegion* updateRgn) { ExWindow::onExFlush(w, updateRgn); } // apitest

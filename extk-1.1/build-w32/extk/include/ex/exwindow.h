@@ -51,11 +51,10 @@ protected: // now allow new & delete
 public:
     virtual ~ExWindow();
     explicit ExWindow();
-    int init(const wchar* name, const ExArea* area);
-    static ExWindow* create(const wchar* name, const ExArea* area);
-    int init(LPCTSTR lpWindowName, DWORD dwExStyle, DWORD dwStyle, const ExArea* area);
-    static ExWindow* create(LPCTSTR lpWindowName, DWORD dwExStyle, DWORD dwStyle, const ExArea* area);
+    int init(const wchar* name, int w, int h);
+    static ExWindow* create(const wchar* name, int w, int h);
     virtual int destroy();
+    int showWindow(DWORD dwExStyle, DWORD dwStyle, int x = CW_USEDEFAULT, int y = CW_USEDEFAULT);
     int showWindow(); // ShowWindow(hwnd, SW_SHOWNORMAL); flush();
     int hideWindow(); // ShowWindow(hwnd, SW_HIDE);
 protected:

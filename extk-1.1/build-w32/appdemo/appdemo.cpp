@@ -148,7 +148,7 @@ int app_test() {
     //char aaa2[sizeof(ExCallback) == 8 ? 1 : -1];
     //char aaa2[sizeof(ExCallback) == 16 ? 1 : -1];
 #endif
-    std::list<int> intList;
+    std::list<ExInput> inputList;
 
     dprint1(L"sizeof(ExCbInfo)=%d\n", sizeof(ExCbInfo));
     dprint1(L"sizeof(ExCallback)=%d\n", sizeof(ExCallback));
@@ -156,7 +156,7 @@ int app_test() {
     dprint1(L"sizeof(ExWindow)=%d\n", sizeof(ExWindow));
     dprint1(L"sizeof(ExTimer)=%d\n", sizeof(ExTimer));
     dprint1(L"sizeof(ExApp)=%d\n", sizeof(ExApp));
-    dprint1(L"sizeof(intList)=%d\n", sizeof(intList));
+    dprint1(L"sizeof(inputList)=%d\n", sizeof(inputList));
 
     ExWindow top;
     ExWidget w1;

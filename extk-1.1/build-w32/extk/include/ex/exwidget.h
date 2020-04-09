@@ -155,8 +155,8 @@ public:
     void dumpBackToFront(ExWidget* end = NULL);
     void dumpFrontToBack(ExWidget* end = NULL);
 
-    int init(ExWidget* parent, const wchar* name, const ExArea* area);
-    static ExWidget* create(ExWidget* parent, const wchar* name, const ExArea* area);
+    int init(ExWidget* parent, const wchar* name = NULL, const ExArea* area = NULL);
+    static ExWidget* create(ExWidget* parent, const wchar* name = NULL, const ExArea* area = NULL);
     virtual int destroy(); // the widget family hierarchy marks Ex_Destroyed, broadcast Ex_CbDestroyed
 #if 1 // deprecated - traditional legacy compatibility.
     virtual int realize(); // visible widgets only, marks Ex_Realized and broadcast Ex_CbRealized.

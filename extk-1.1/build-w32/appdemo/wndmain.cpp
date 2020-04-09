@@ -542,6 +542,42 @@ int WndMain::onTimer(ExTimer* timer, ExCbInfo* cbinfo)
     return Ex_Continue;
 }
 
+static ExInput* inp1;
+static ExInput* inp2;
+static HANDLE hWakeupNoti;
+static HANDLE hStorageNoti;
+
+int WndMain::initInput() {
+    static ExTimer launchInputTimer;
+    launchInputTimer.setCallback([](void* d, ExTimer* t, ExCbInfo*)->int {
+        dprintf(L"launchInputTimer: %d\n", exTickCount);
+
+        hWakeupNoti = CreateEvent(NULL, FALSE, TRUE, L"AppDemo"); // tbd
+        inp1 = ExInput::add(hWakeupNoti, [](void* d, ExInput* input, ExCbInfo* cbinfo)->int {
+            dprintf(L"hWakeupNoti signaled...\n");
+            return Ex_Continue; }, NULL);
+
+        hStorageNoti = FindFirstChangeNotification(L"\\", TRUE, FILE_NOTIFY_CHANGE_DIR_NAME);
+        inp2 = ExInput::add(hStorageNoti, [](void* d, ExInput* input, ExCbInfo* cbinfo)->int {
+            dprintf(L"hStorageNoti root fs changed...\n");
+            FindNextChangeNotification(hStorageNoti);
+            return Ex_Continue; }, NULL);
+
+        static ExTimer signalInputTimer;
+        signalInputTimer.setCallback([](void* d, ExTimer* t, ExCbInfo*)->int {
+            ((int&)t->userdata)++;
+            // emulate initial state.
+            if (((int&)t->userdata) % 2)
+                SetEvent(hWakeupNoti);
+            else
+                SetEvent(hStorageNoti);
+            return Ex_Continue; }, NULL);
+        signalInputTimer.start(1, 1000);
+        return Ex_Continue; }, NULL);
+    launchInputTimer.start(1000);
+    return 0;
+}
+
 int WndMain::initCanvas() {
     canvas = new ExCanvas;
     canvas->init(this, &ExApp::smSize);
@@ -780,7 +816,8 @@ int WndMain::start() {
     backBufUpdater.setCallback(this, &WndMain::onBackBufUpdater);
     backBufUpdater.start(1, 16); // 60Hz
 
-    //layout(area);
+    initInput();
+
     addFilter([](void* data, ExWindow* window, ExCbInfo* cbinfo)->int {
         dprintf(L"[%s] WM_0x%04x\n", window->getName(), cbinfo->event->message);
         if (cbinfo->event->message == WM_CREATE) {
@@ -813,6 +850,7 @@ int WndMain::start() {
     showWindow(0, WS_OVERLAPPEDWINDOW | WS_VISIBLE);
     return 0;
 #else
+    layout(area);
     return damage();
 #endif
 }

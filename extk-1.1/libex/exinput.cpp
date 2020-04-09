@@ -162,9 +162,8 @@ int ExInputList::invoke(ulong waittick)
             assert(input.handle == pHandles[n]);
             if (input.fRemoved)
                 continue; // discard
-            if (input.handle != pHandles[dwWaitRet - WAIT_OBJECT_0])
-                continue;
-            if (WaitForSingleObject(input.handle, 0) != WAIT_OBJECT_0)
+            if (input.handle != pHandles[dwWaitRet - WAIT_OBJECT_0] &&
+                WaitForSingleObject(input.handle, 0) != WAIT_OBJECT_0)
                 continue;
             assert(input.callback.func);
             int r = input.callback(&input, &ExCbInfo(Ex_CbInput));

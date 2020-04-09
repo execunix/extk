@@ -29,11 +29,42 @@ public:
     int resize(int w, int h);
     int newFace(int id, const char* faceName);
     int setFont(int id, int size);
+    virtual void* begin(const ExRegion* clip) { return NULL; };
+    virtual void* end() { return NULL; };
     virtual int deleteMemGC();
     virtual int createMemGC(int width, int height); // sample
     void setRegion(const ExRegion* srcrgn);
 public:
     Ex_DECLARE_TYPEINFO(ExCanvas, ExObject);
+};
+
+class ExCairoCanvas : public ExCanvas {
+protected:
+    // tbd
+public:
+    void* begin(const ExRegion* clip) { return NULL; };
+    void* end() { return NULL; };
+    // tbd
+    Ex_DECLARE_TYPEINFO(ExCairoCanvas, ExCanvas);
+};
+
+class ExImageCanvas : public ExCanvas {
+protected:
+    // tbd
+public:
+    void* begin(const ExRegion* clip) { return NULL; };
+    void* end() { return NULL; };
+    // tbd
+    Ex_DECLARE_TYPEINFO(ExImageCanvas, ExCanvas);
+};
+
+class ExGdiCanvas : public ExCanvas {
+protected:
+public:
+    void* begin(const ExRegion* clip) { return NULL; };
+    void* end() { return NULL; };
+    // tbd
+    Ex_DECLARE_TYPEINFO(ExGdiCanvas, ExCanvas);
 };
 
 // for thread model
