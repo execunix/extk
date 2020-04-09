@@ -197,8 +197,10 @@ void ExWidget::setName(const wchar* text) {
     wchar buf[20];
     if (name != NULL)
         free(name);
-    if (text == NULL)
-        text = _itow((int)this, buf, 16);
+    if (text == NULL) {
+        swprintf(buf, L"%p", this);
+        text = buf;
+    }
     name = exwcsdup(text);
 }
 
@@ -208,9 +210,9 @@ int ExWidget::init(ExWidget* parent, const wchar* name, const ExArea* area) {
     if (area) this->area = *area;
     if (calcExtent()) { // is valid ?
         flags |= Ex_DamageFamily;
-        flags |= Ex_Visible; // default visible
         addRenderFlags(Ex_RenderRebuild); // for setup visibleRgn
     }
+    flags |= Ex_Visible; // default visible
     return 0;
 }
 
@@ -330,8 +332,7 @@ int ExWidget::setVisible(bool show) {
         vanish(getWindow());
         flags &= ~Ex_Visible;
     } else if (calcExtent()) { // tbd
-        flags |= Ex_DamageFamily;
-        flags |= Ex_Visible;
+        flags |= (Ex_Visible | Ex_DamageFamily);
         addRenderFlags(Ex_RenderRebuild);
     }
     return 0;

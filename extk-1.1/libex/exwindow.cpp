@@ -73,44 +73,18 @@ ExWindow::ExWindow()
     paintFunc = ExFlushFunc(this, &ExWindow::onWmPaint);
 }
 
-int ExWindow::init(const wchar* name, const ExArea* area) {
-    ExWidget::init(NULL/*parent*/, name, area);
+int ExWindow::init(const wchar* name, int w, int h) {
+    ExWidget::init(NULL/*parent*/, name, &ExArea(0, 0, w, h));
     renderFlags |= Ex_RenderRebuild;
     return 0;
 }
 
 ExWindow* // static
-ExWindow::create(const wchar* name, const ExArea* area) {
+ExWindow::create(const wchar* name, int w, int h) {
     ExWindow* window = new ExWindow();
     assert(window != NULL);
     window->flags |= Ex_FreeMemory;
-    window->init(name, area);
-    return window;
-}
-
-int ExWindow::init(LPCTSTR lpWindowName, DWORD dwExStyle, DWORD dwStyle, const ExArea* area) {
-    ExWidget::init(NULL/*parent*/, lpWindowName, area);
-    this->dwExStyle = dwExStyle;
-    this->dwStyle = dwStyle;
-
-    HWND hwndParent = NULL;
-    //HWND hwndParent = parent->getWindow()->getHwnd(); // tbd
-    HWND hwnd = CreateWindowEx(dwExStyle, getClassName(), lpWindowName, dwStyle,
-                               this->area.x, this->area.y, this->area.w, this->area.h,
-                               hwndParent, NULL, ExApp::hInstance, (PVOID)this);
-    assert(this->hwnd && this->hwnd == hwnd);
-    if (!(this->hwnd && this->hwnd == hwnd))
-        return -1;
-    renderFlags |= Ex_RenderRebuild;
-    return 0;
-}
-
-ExWindow* // static
-ExWindow::create(LPCTSTR lpWindowName, DWORD dwExStyle, DWORD dwStyle, const ExArea* area) {
-    ExWindow* window = new ExWindow();
-    assert(window != NULL);
-    window->flags |= Ex_FreeMemory;
-    window->init(lpWindowName, dwExStyle, dwStyle, area);
+    window->init(name, w, h);
     return window;
 }
 
@@ -127,6 +101,23 @@ int ExWindow::destroy() {
         DestroyWindow(hwnd); // send WM_DESTROY
     }
     return 0;
+}
+
+int ExWindow::showWindow(DWORD dwExStyle, DWORD dwStyle, int x, int y) {
+    renderFlags |= Ex_RenderRebuild;
+    this->dwExStyle = dwExStyle;
+    this->dwStyle = dwStyle;
+
+    HWND hwnd = NULL;
+    HWND hwndParent = NULL;
+    LPCTSTR lpWindowName = name;
+    HINSTANCE hInstance = ExApp::hInstance;
+    //if (parent) hwndParent = parent->getWindow()->getHwnd(); // tbd
+    hwnd = CreateWindowEx(dwExStyle, getClassName(), lpWindowName, dwStyle,
+                          x, y, this->area.w, this->area.h,
+                          hwndParent, NULL, hInstance, (PVOID)this);
+    assert(this->hwnd && this->hwnd == hwnd);
+    return showWindow();
 }
 
 int ExWindow::showWindow() {
@@ -648,14 +639,30 @@ int ExWindow::basicWndProc(ExCbInfo* cbinfo) {
             cbinfo->event->lResult = 1;
             return Ex_Break;
         }
+#if 0
+        case WM_NCCALCSIZE: {
+            RECT* rc = (RECT*)lParam;
+            //NCCALCSIZE_PARAMS* rc = (NCCALCSIZE_PARAMS*)lParam;
+            logproc(L"[0x%p] WM_NCCALCSIZE wParam=%d %d,%d-%d,%d\n", hwnd, wParam,
+                    rc->left, rc->top, rc->right, rc->bottom);
+            cbinfo->event->lResult = 0;
+            return Ex_Break;
+        }
+#endif
         case WM_SIZE: {
             int width = LOWORD(lParam);
             int height = HIWORD(lParam);
-            logproc(L"[0x%p] WM_SIZE wParam=0x%d xPos=%d yPos=%d\n", hwnd, wParam, width, height);
-            if (width > 800 && height > 480) {
-                ExArea ar(0, 0, width, height);
-                if (area.size != ar.size)
+            logproc(L"[0x%p] WM_SIZE wParam=0x%d w=%d h=%d\n", hwnd, wParam, width, height);
+            if (wParam != SIZE_MINIMIZED) {
+                if (width < 640)
+                    width = 640;
+                if (height < 360)
+                    height = 360;
+                ExSize sz(width, height);
+                if (this->area.size != sz) {
+                    ExArea ar(this->area.pos, sz);
                     layout(ar);
+                }
             }
             return Ex_Continue;
         }
@@ -904,6 +911,7 @@ ExWindow::sysWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
 #endif
 
     // attach
+#ifdef _WIN32_WCE
     if (message == WM_CREATE) {
         window = (ExWindow*)((LPCREATESTRUCT)lParam)->lpCreateParams;
         assert(window && !window->hwnd);
@@ -912,9 +920,18 @@ ExWindow::sysWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
         logproc(L"[0x%p][0x%p] WM_CREATE\n", hwnd, window);
         // If an application processes this message, it should return 0 to continue creation of the window.
         // If the application returns -1, the window is destroyed and the CreateWindowEx or CreateWindow function returns a NULL handle.
-        //cbinfo->event->lResult = 0;
         return 0;
     }
+#else
+    if (message == WM_NCCREATE) {
+        window = (ExWindow*)((LPCREATESTRUCT)lParam)->lpCreateParams;
+        assert(window && !window->hwnd);
+        attachWindow(hwnd, window);
+        window->hwnd = hwnd;
+        logproc(L"[0x%p][0x%p] WM_NCCREATE\n", hwnd, window);
+        return TRUE;
+    }
+#endif
 #if 0 // tbd
     if (message == WM_GETMINMAXINFO) {
         logproc(L"[0x%p] WM_GETMINMAXINFO\n", hwnd);
@@ -951,7 +968,6 @@ ExWindow::sysWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
             PostQuitMessage(ExApp::retCode); // stop main loop
         }
         // An application should return zero if it processes this message.
-        //cbinfo->event->lResult = 0;
         return 0;
     }
 

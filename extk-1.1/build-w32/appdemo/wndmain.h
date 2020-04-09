@@ -27,15 +27,11 @@ public:
     int backBufCnt;
 public:
     ~WndMain() {}
-    WndMain(int w, int h) : ExWindow() {
-        area.x = CW_USEDEFAULT;
-        area.y = CW_USEDEFAULT;
-        area.w = w; area.h = h;
-    }
+    WndMain() : ExWindow() {}
 public:
     int start();
     int initCanvas();
-    int initBtn(ExWidget* parent, ExWidget* btn, const wchar* name, const ExArea* area);
+    int initBtn(ExWidget* parent, ExWidget* btn, const wchar* name);
     void STDCALL onExFlush(WndMain* w, const ExRegion* updateRgn) { ExWindow::onExFlush(w, updateRgn); } // apitest
     void STDCALL onWmPaint(WndMain* w, const ExRegion* updateRgn) { ExWindow::onWmPaint(w, updateRgn); } // apitest
     int STDCALL onDestroyed(WndMain* w, ExCbInfo* cbinfo);

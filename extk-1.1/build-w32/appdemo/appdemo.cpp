@@ -112,7 +112,7 @@ void cb_test() {
 
 #ifdef DEBUG
 void exwindow_apitest() {
-    ExWindow* wnd0 = ExWindow::create(L"TopWindow", 0, 0, &ExArea(0, 0, 800, 480));
+    ExWindow* wnd0 = ExWindow::create(L"TopWindow", 800, 480);
     ExWidget* wgt1 = ExWidget::create(wnd0, L"Child1", &ExArea(100, 100, 100, 40));
     ExWidget* wgt2 = ExWidget::create(wnd0, L"Child2", &ExArea(200, 200, 100, 40));
     wnd0->realize();
@@ -121,7 +121,7 @@ void exwindow_apitest() {
     ExWindow* top = new ExWindow;
     ExWidget* ch1 = new ExWidget;
     ExWidget* ch2 = new ExWidget;
-    top->init(L"Top", 0, 0, &ExArea(0, 0, 800, 480));
+    top->init(L"Top", 800, 480);
     ch1->init(top, L"Ch1", &ExArea(100, 100, 100, 40));
     ch2->init(top, L"Ch2", &ExArea(200, 200, 100, 40));
     ExWidget* backWgt = top->getChildHead();
@@ -267,9 +267,9 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
     // startup
     // tbd - parse args
-    //WndMain wndMain(1280 + 16, 720 + 24); // test
+    //WndMain wndMain; // test
     //WndMain* wndMain = WndMain::create(...); // test
-    WndMain* wndMain = new WndMain(1280 + 16, 720 + 24);
+    WndMain* wndMain = new WndMain;
     wndMain->setFlags(Ex_FreeMemory); // tbd
     if (wndMain->start() != 0)
         return EXIT_FAILURE;

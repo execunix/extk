@@ -56,10 +56,6 @@ void ExTimerList::active(ExTimer* timer) {
 
 ulong ExTimerList::invoke(ulong tick_count) {
     long waittick;
-#if DEBUG
-    // To avoid racking caused by matching breakpoints when debugging.
-    tick_count = GetTickCount();
-#endif
     while (!empty()) {
         ExTimer* timer = *begin();
         waittick = timer->value - tick_count;
@@ -86,6 +82,11 @@ ulong ExTimerList::invoke(ulong tick_count) {
         timer->value += timer->repeat;
         if (timer->value - tick_count < 1)
             timer->value = tick_count + 1;
+#ifdef DEBUG
+        // To avoid racking caused by matching breakpoints when debugging.
+        long errtick = GetTickCount() - tick_count;
+        if (errtick > 3000) timer->value += errtick;
+#endif
         timer->fActived = 1;
         insert(timer);
     }
