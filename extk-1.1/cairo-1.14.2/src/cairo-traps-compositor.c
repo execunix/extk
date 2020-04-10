@@ -148,7 +148,7 @@ static void blt_in(void *closure,
 
     _cairo_box_from_integers (&info->boxes.chunks.base[0], x, y, w, h);
 
-    _cairo_color_init_rgba (&color, 0, 0, 0, coverage / (double) 0xffff);
+    _cairo_color_init_rgba (&color, 0, 0, 0, coverage / (floatt) 0xffff);
     info->compositor->fill_boxes (info->dst,
 				  CAIRO_OPERATOR_IN, &color,
 				  &info->boxes);
@@ -1616,7 +1616,7 @@ struct composite_opacity_info {
     cairo_surface_t *dst;
     cairo_surface_t *src;
     int src_x, src_y;
-    double opacity;
+    floatt opacity;
 };
 
 static void composite_opacity(void *closure,
@@ -1684,7 +1684,7 @@ composite_opacity_boxes (const cairo_traps_compositor_t *compositor,
     info.src_x = src_x;
     info.src_y = src_y;
 
-    info.opacity = mask->color.alpha / (double) 0xffff;
+    info.opacity = mask->color.alpha / (floatt) 0xffff;
 
     /* XXX for lots of boxes create a clip region for the fully opaque areas */
     for (i = 0; i < clip->num_boxes; i++)
@@ -1937,7 +1937,7 @@ static void composite_box(void *closure,
 	cairo_solid_pattern_t solid;
 	int mask_x, mask_y;
 
-	_cairo_color_init_rgba (&color, 0, 0, 0, coverage / (double)0xffff);
+	_cairo_color_init_rgba (&color, 0, 0, 0, coverage / (floatt)0xffff);
 	_cairo_pattern_init_solid (&solid, &color);
 
 	mask = compositor->pattern_to_surface (info->dst, &solid.base, FALSE,
@@ -2117,7 +2117,7 @@ _cairo_traps_compositor_stroke (const cairo_compositor_t *_compositor,
 				const cairo_stroke_style_t *style,
 				const cairo_matrix_t	*ctm,
 				const cairo_matrix_t	*ctm_inverse,
-				double			 tolerance,
+				floatt			 tolerance,
 				cairo_antialias_t	 antialias)
 {
     const cairo_traps_compositor_t *compositor = (cairo_traps_compositor_t *)_compositor;
@@ -2183,7 +2183,7 @@ _cairo_traps_compositor_stroke (const cairo_compositor_t *_compositor,
 				    const cairo_stroke_style_t	*stroke_style,
 				    const cairo_matrix_t	*ctm,
 				    const cairo_matrix_t	*ctm_inverse,
-				    double			 tolerance,
+				    floatt			 tolerance,
 				    cairo_traps_t		*traps);
 	composite_traps_info_t info;
 	unsigned flags;
@@ -2212,7 +2212,7 @@ _cairo_traps_compositor_fill (const cairo_compositor_t *_compositor,
 			      cairo_composite_rectangles_t *extents,
 			      const cairo_path_fixed_t	*path,
 			      cairo_fill_rule_t		 fill_rule,
-			      double			 tolerance,
+			      floatt			 tolerance,
 			      cairo_antialias_t		 antialias)
 {
     const cairo_traps_compositor_t *compositor = (cairo_traps_compositor_t *)_compositor;

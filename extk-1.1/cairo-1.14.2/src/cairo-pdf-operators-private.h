@@ -60,8 +60,8 @@ typedef cairo_int_status_t
 
 typedef struct _cairo_pdf_glyph {
     unsigned int glyph_index;
-    double x_position;
-    double x_advance;
+    floatt x_position;
+    floatt x_advance;
 } cairo_pdf_glyph_t;
 
 typedef struct _cairo_pdf_operators {
@@ -81,20 +81,20 @@ typedef struct _cairo_pdf_operators {
     cairo_matrix_t text_matrix; /* PDF text matrix (Tlm in the PDF reference) */
     cairo_matrix_t cairo_to_pdftext; /* translate cairo coords to PDF text space */
     cairo_matrix_t font_matrix_inverse;
-    double cur_x; /* Current position in PDF text space (Tm in the PDF reference) */
-    double cur_y;
+    floatt cur_x; /* Current position in PDF text space (Tm in the PDF reference) */
+    floatt cur_y;
     int hex_width;
     cairo_bool_t is_latin;
     int num_glyphs;
-    double glyph_buf_x_pos;
+    floatt glyph_buf_x_pos;
     cairo_pdf_glyph_t glyphs[PDF_GLYPH_BUFFER_SIZE];
 
     /* PDF line style */
     cairo_bool_t         has_line_style;
-    double		 line_width;
+    floatt		 line_width;
     cairo_line_cap_t	 line_cap;
     cairo_line_join_t	 line_join;
-    double		 miter_limit;
+    floatt		 miter_limit;
     cairo_bool_t         has_dashes;
 } cairo_pdf_operators_t;
 
@@ -140,7 +140,7 @@ _cairo_pdf_operators_clip (cairo_pdf_operators_t	*pdf_operators,
 cairo_private cairo_int_status_t
 _cairo_pdf_operators_emit_stroke_style (cairo_pdf_operators_t		*pdf_operators,
 					const cairo_stroke_style_t	*style,
-					double				 scale);
+					floatt				 scale);
 
 cairo_private cairo_int_status_t
 _cairo_pdf_operators_stroke (cairo_pdf_operators_t	*pdf_operators,

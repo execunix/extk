@@ -336,17 +336,17 @@ typedef struct _twin_scaled_properties {
 
 	cairo_bool_t snap; /* hint outlines */
 
-	double weight; /* unhinted pen width */
-	double penx, peny; /* hinted pen width */
-	double marginl, marginr; /* hinted side margins */
+	floatt weight; /* unhinted pen width */
+	floatt penx, peny; /* hinted pen width */
+	floatt marginl, marginr; /* hinted side margins */
 
-	double stretch; /* stretch factor */
+	floatt stretch; /* stretch factor */
 } twin_scaled_properties_t;
 
 static void
 compute_hinting_scale (cairo_t *cr,
-		       double x, double y,
-		       double *scale, double *inv)
+		       floatt x, floatt y,
+		       floatt *scale, floatt *inv)
 {
     cairo_user_to_device_distance (cr, &x, &y);
     *scale = x == 0 ? y : y == 0 ? x :sqrt (x*x + y*y);
@@ -355,10 +355,10 @@ compute_hinting_scale (cairo_t *cr,
 
 static void
 compute_hinting_scales (cairo_t *cr,
-			double *x_scale, double *x_scale_inv,
-			double *y_scale, double *y_scale_inv)
+			floatt *x_scale, floatt *x_scale_inv,
+			floatt *y_scale, floatt *y_scale_inv)
 {
-    double x, y;
+    floatt x, y;
 
     x = 1; y = 0;
     compute_hinting_scale (cr, x, y, x_scale, x_scale_inv);
@@ -375,12 +375,12 @@ compute_hinting_scales (cairo_t *cr,
 
 static void
 twin_hint_pen_and_margins(cairo_t *cr,
-			  double *penx, double *peny,
-			  double *marginl, double *marginr)
+			  floatt *penx, floatt *peny,
+			  floatt *marginl, floatt *marginr)
 {
-    double x_scale, x_scale_inv;
-    double y_scale, y_scale_inv;
-    double margin;
+    floatt x_scale, x_scale_inv;
+    floatt y_scale, y_scale_inv;
+    floatt margin;
 
     compute_hinting_scales (cr,
 			    &x_scale, &x_scale_inv,
@@ -473,10 +473,10 @@ twin_scaled_font_init (cairo_scaled_font_t  *scaled_font,
 typedef struct {
     int n_snap_x;
     int8_t snap_x[TWIN_GLYPH_MAX_SNAP_X];
-    double snapped_x[TWIN_GLYPH_MAX_SNAP_X];
+    floatt snapped_x[TWIN_GLYPH_MAX_SNAP_X];
     int n_snap_y;
     int8_t snap_y[TWIN_GLYPH_MAX_SNAP_Y];
-    double snapped_y[TWIN_GLYPH_MAX_SNAP_Y];
+    floatt snapped_y[TWIN_GLYPH_MAX_SNAP_Y];
 } twin_snap_info_t;
 
 #define twin_glyph_left(g)      ((g)[0])
@@ -497,8 +497,8 @@ twin_compute_snap (cairo_t             *cr,
 {
     int			s, n;
     const signed char	*snap;
-    double x_scale, x_scale_inv;
-    double y_scale, y_scale_inv;
+    floatt x_scale, x_scale_inv;
+    floatt y_scale, y_scale_inv;
 
     compute_hinting_scales (cr,
 			    &x_scale, &x_scale_inv,
@@ -523,8 +523,8 @@ twin_compute_snap (cairo_t             *cr,
     }
 }
 
-static double
-twin_snap (int8_t v, int n, int8_t *snap, double *snapped)
+static floatt
+twin_snap (int8_t v, int n, int8_t *snap, floatt *snapped)
 {
     int	s;
 
@@ -544,9 +544,9 @@ twin_snap (int8_t v, int n, int8_t *snap, double *snapped)
 	    int before = snap[s];
 	    int after = snap[s+1];
 	    int dist = after - before;
-	    double snap_before = snapped[s];
-	    double snap_after = snapped[s+1];
-	    double dist_before = v - before;
+	    floatt snap_before = snapped[s];
+	    floatt snap_after = snapped[s+1];
+	    floatt dist_before = v - before;
 	    return snap_before + (snap_after - snap_before) * dist_before / dist;
 	}
     }
@@ -562,14 +562,14 @@ twin_scaled_font_render_glyph (cairo_scaled_font_t  *scaled_font,
 			       cairo_t              *cr,
 			       cairo_text_extents_t *metrics)
 {
-    double x1, y1, x2, y2, x3, y3;
-    double marginl;
+    floatt x1, y1, x2, y2, x3, y3;
+    floatt marginl;
     twin_scaled_properties_t *props;
     twin_snap_info_t info;
     const int8_t *b;
     const int8_t *g;
     int8_t w;
-    double gw;
+    floatt gw;
 
     props = cairo_scaled_font_get_user_data (scaled_font, &twin_properties_key);
 
@@ -602,14 +602,14 @@ twin_scaled_font_render_glyph (cairo_scaled_font_t  *scaled_font,
 
     /* monospace */
     if (props->face_props->monospace) {
-	double monow = F(24);
-	double extra =  props->penx + props->marginl + props->marginr;
+	floatt monow = F(24);
+	floatt extra =  props->penx + props->marginl + props->marginr;
 	cairo_scale (cr, (monow + extra) / (gw + extra), 1);
 	gw = monow;
 
 	/* resnap margin for new transform */
 	{
-	    double x, y, x_scale, x_scale_inv;
+	    floatt x, y, x_scale, x_scale_inv;
 	    x = 1; y = 0;
 	    compute_hinting_scale (cr, x, y, &x_scale, &x_scale_inv);
 	    marginl = SNAPXI (marginl);

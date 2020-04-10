@@ -86,12 +86,12 @@ typedef struct _cairo_user_scaled_font {
 
     /* space to compute extents in, and factors to convert back to user space */
     cairo_matrix_t extent_scale;
-    double extent_x_scale;
-    double extent_y_scale;
+    floatt extent_x_scale;
+    floatt extent_y_scale;
 
     /* multiplier for metrics hinting */
-    double snap_x_scale;
-    double snap_y_scale;
+    floatt snap_x_scale;
+    floatt snap_y_scale;
 
 } cairo_user_scaled_font_t;
 
@@ -178,8 +178,8 @@ _cairo_user_scaled_glyph_init (void			 *abstract_font,
 
 	if (extents.width == 0.) {
 	    cairo_box_t bbox;
-	    double x1, y1, x2, y2;
-	    double x_scale, y_scale;
+	    floatt x1, y1, x2, y2;
+	    floatt x_scale, y_scale;
 
 	    /* Compute extents.x/y/width/height from recording_surface,
 	     * in font space.
@@ -305,8 +305,8 @@ not_implemented:
 
 static cairo_int_status_t
 _cairo_user_text_to_glyphs (void		      *abstract_font,
-			    double		       x,
-			    double		       y,
+			    floatt		       x,
+			    floatt		       y,
 			    const wchar_t	      *ucs2, // extk
 			    int			       ucs2_len,
 			    cairo_glyph_t	     **glyphs,
@@ -347,8 +347,8 @@ _cairo_user_text_to_glyphs (void		      *abstract_font,
 
 	/* Convert from font space to user space and add x,y */
 	for (i = 0; i < *num_glyphs; i++) {
-	    double gx = (*glyphs)[i].x;
-	    double gy = (*glyphs)[i].y;
+	    floatt gx = (*glyphs)[i].x;
+	    floatt gy = (*glyphs)[i].y;
 
 	    cairo_matrix_transform_point (&scaled_font->base.font_matrix,
 					  &gx, &gy);
@@ -422,7 +422,7 @@ _cairo_user_font_face_scaled_font_create (void                        *abstract_
      * extents in.  This is to minimize error caused by the cairo_fixed_t
      * representation. */
     {
-	double fixed_scale, x_scale, y_scale;
+	floatt fixed_scale, x_scale, y_scale;
 
 	user_scaled_font->extent_scale = user_scaled_font->base.scale_inverse;
 	status = _cairo_matrix_compute_basis_scale_factors (&user_scaled_font->extent_scale,

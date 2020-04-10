@@ -74,7 +74,7 @@ struct _cairo_pattern {
     cairo_bool_t		has_component_alpha;
 
     cairo_matrix_t		matrix;
-    double			opacity;
+    floatt			opacity;
 };
 
 struct _cairo_solid_pattern {
@@ -89,7 +89,7 @@ typedef struct _cairo_surface_pattern {
 } cairo_surface_pattern_t;
 
 typedef struct _cairo_gradient_stop {
-    double offset;
+    floatt offset;
     cairo_color_stop_t color;
 } cairo_gradient_stop_t;
 
@@ -258,7 +258,7 @@ _cairo_gradient_pattern_is_solid (const cairo_gradient_pattern_t *gradient,
 
 cairo_private void
 _cairo_gradient_pattern_fit_to_range (const cairo_gradient_pattern_t *gradient,
-				      double			      max_value,
+				      floatt			      max_value,
 				      cairo_matrix_t                 *out_matrix,
 				      cairo_circle_double_t	      out_circle[2]);
 
@@ -267,27 +267,27 @@ _cairo_radial_pattern_focus_is_inside (const cairo_radial_pattern_t *radial);
 
 cairo_private void
 _cairo_gradient_pattern_box_to_parameter (const cairo_gradient_pattern_t *gradient,
-					  double x0, double y0,
-					  double x1, double y1,
-					  double tolerance,
-					  double out_range[2]);
+					  floatt x0, floatt y0,
+					  floatt x1, floatt y1,
+					  floatt tolerance,
+					  floatt out_range[2]);
 
 cairo_private void
 _cairo_gradient_pattern_interpolate (const cairo_gradient_pattern_t *gradient,
-				     double			     t,
+				     floatt			     t,
 				     cairo_circle_double_t	    *out_circle);
 
 cairo_private void
 _cairo_pattern_alpha_range (const cairo_pattern_t *pattern,
-			    double                *out_min,
-			    double                *out_max);
+			    floatt                *out_min,
+			    floatt                *out_max);
 
 cairo_private cairo_bool_t
 _cairo_mesh_pattern_coord_box (const cairo_mesh_pattern_t *mesh,
-			       double                     *out_xmin,
-			       double                     *out_ymin,
-			       double                     *out_xmax,
-			       double                     *out_ymax);
+			       floatt                     *out_xmin,
+			       floatt                     *out_ymin,
+			       floatt                     *out_xmax,
+			       floatt                     *out_ymax);
 
 cairo_private void
 _cairo_pattern_sampled_area (const cairo_pattern_t *pattern,
@@ -339,8 +339,8 @@ _cairo_mesh_pattern_rasterize (const cairo_mesh_pattern_t *mesh,
 			       int                         width,
 			       int                         height,
 			       int                         stride,
-			       double                      x_offset,
-			       double                      y_offset);
+			       floatt                      x_offset,
+			       floatt                      y_offset);
 
 cairo_private cairo_surface_t *
 _cairo_raster_source_pattern_acquire (const cairo_pattern_t *abstract_pattern,

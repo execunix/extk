@@ -71,8 +71,8 @@ _cairo_cogl_context_reset_static_data (void)
 
 static cairo_status_t
 _cairo_cogl_context_rectangle_real (cairo_cogl_context_t *cr,
-				    double x, double y,
-				    double width, double height)
+				    floatt x, floatt y,
+				    floatt width, floatt height)
 {
     cairo_status_t status;
     status = cr->dev->backend_parent.rectangle (cr, x, y, width, height);
@@ -128,7 +128,7 @@ _cairo_cogl_context_restore (void *abstract_cr)
 }
 
 static cairo_status_t
-_cairo_cogl_context_translate (void *abstract_cr, double tx, double ty)
+_cairo_cogl_context_translate (void *abstract_cr, floatt tx, floatt ty)
 {
     cairo_cogl_context_t *cr = abstract_cr;
 
@@ -143,7 +143,7 @@ _cairo_cogl_context_translate (void *abstract_cr, double tx, double ty)
 }
 
 static cairo_status_t
-_cairo_cogl_context_scale (void *abstract_cr, double sx, double sy)
+_cairo_cogl_context_scale (void *abstract_cr, floatt sx, floatt sy)
 {
     cairo_cogl_context_t *cr = abstract_cr;
 
@@ -158,7 +158,7 @@ _cairo_cogl_context_scale (void *abstract_cr, double sx, double sy)
 }
 
 static cairo_status_t
-_cairo_cogl_context_rotate (void *abstract_cr, double theta)
+_cairo_cogl_context_rotate (void *abstract_cr, floatt theta)
 {
     cairo_cogl_context_t *cr = abstract_cr;
 
@@ -262,7 +262,7 @@ _cairo_cogl_context_new_sub_path (void *abstract_cr)
 }
 
 static cairo_status_t
-_cairo_cogl_context_move_to (void *abstract_cr, double x, double y)
+_cairo_cogl_context_move_to (void *abstract_cr, floatt x, floatt y)
 {
     cairo_cogl_context_t *cr = abstract_cr;
     cairo_status_t status;
@@ -285,7 +285,7 @@ _cairo_cogl_context_move_to (void *abstract_cr, double x, double y)
 }
 
 static cairo_status_t
-_cairo_cogl_context_line_to (void *abstract_cr, double x, double y)
+_cairo_cogl_context_line_to (void *abstract_cr, floatt x, floatt y)
 {
     cairo_cogl_context_t *cr = abstract_cr;
     cairo_status_t status;
@@ -312,9 +312,9 @@ _cairo_cogl_context_line_to (void *abstract_cr, double x, double y)
 
 static cairo_status_t
 _cairo_cogl_context_curve_to (void *abstract_cr,
-			       double x1, double y1,
-			       double x2, double y2,
-			       double x3, double y3)
+			       floatt x1, floatt y1,
+			       floatt x2, floatt y2,
+			       floatt x3, floatt y3)
 {
     cairo_cogl_context_t *cr = abstract_cr;
     cairo_status_t status;
@@ -352,8 +352,8 @@ _cairo_cogl_context_curve_to (void *abstract_cr,
 
 static cairo_status_t
 _cairo_cogl_context_arc (void *abstract_cr,
-			  double xc, double yc, double radius,
-			  double angle1, double angle2,
+			  floatt xc, floatt yc, floatt radius,
+			  floatt angle1, floatt angle2,
 			  cairo_bool_t forward)
 {
     cairo_cogl_context_t *cr = abstract_cr;
@@ -405,7 +405,7 @@ _cairo_cogl_context_arc (void *abstract_cr,
 }
 
 static cairo_status_t
-_cairo_cogl_context_rel_move_to (void *abstract_cr, double dx, double dy)
+_cairo_cogl_context_rel_move_to (void *abstract_cr, floatt dx, floatt dy)
 {
     cairo_cogl_context_t *cr = abstract_cr;
     cairo_status_t status;
@@ -428,7 +428,7 @@ _cairo_cogl_context_rel_move_to (void *abstract_cr, double dx, double dy)
 }
 
 static cairo_status_t
-_cairo_cogl_context_rel_line_to (void *abstract_cr, double dx, double dy)
+_cairo_cogl_context_rel_line_to (void *abstract_cr, floatt dx, floatt dy)
 {
     cairo_cogl_context_t *cr = abstract_cr;
     cairo_status_t status;
@@ -456,9 +456,9 @@ _cairo_cogl_context_rel_line_to (void *abstract_cr, double dx, double dy)
 
 static cairo_status_t
 _cairo_cogl_context_rel_curve_to (void *abstract_cr,
-				   double dx1, double dy1,
-				   double dx2, double dy2,
-				   double dx3, double dy3)
+				   floatt dx1, floatt dy1,
+				   floatt dx2, floatt dy2,
+				   floatt dx3, floatt dy3)
 {
     cairo_cogl_context_t *cr = abstract_cr;
     cairo_status_t status;
@@ -497,9 +497,9 @@ _cairo_cogl_context_rel_curve_to (void *abstract_cr,
 #if 0
 static cairo_status_t
 _cairo_cogl_context_arc_to (void *abstract_cr,
-			    double x1, double y1,
-			    double x2, double y2,
-			    double radius)
+			    floatt x1, floatt y1,
+			    floatt x2, floatt y2,
+			    floatt radius)
 {
     cairo_cogl_context_t *cr = abstract_cr;
     cairo_status_t status;
@@ -518,9 +518,9 @@ _cairo_cogl_context_arc_to (void *abstract_cr,
 
 static cairo_status_t
 _cairo_cogl_rel_arc_to (void *cr,
-			double dx1, double dy1,
-			double dx2, double dy2,
-			double radius)
+			floatt dx1, floatt dy1,
+			floatt dx2, floatt dy2,
+			floatt radius)
 {
     cairo_cogl_context_t *cr = abstract_cr;
     cairo_status_t status;
@@ -562,8 +562,8 @@ _cairo_cogl_context_close_path (void *abstract_cr)
 
 static cairo_status_t
 _cairo_cogl_context_rectangle (void *abstract_cr,
-			       double x, double y,
-			       double width, double height)
+			       floatt x, floatt y,
+			       floatt width, floatt height)
 {
     cairo_cogl_context_t *cr = abstract_cr;
 

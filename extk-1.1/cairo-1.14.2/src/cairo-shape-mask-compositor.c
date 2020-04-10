@@ -50,7 +50,7 @@ _cairo_shape_mask_compositor_stroke (const cairo_compositor_t *_compositor,
 				     const cairo_stroke_style_t	*style,
 				     const cairo_matrix_t	*ctm,
 				     const cairo_matrix_t	*ctm_inverse,
-				     double		 tolerance,
+				     floatt		 tolerance,
 				     cairo_antialias_t	 antialias)
 {
     cairo_surface_t *mask;
@@ -144,7 +144,7 @@ _cairo_shape_mask_compositor_fill (const cairo_compositor_t *_compositor,
 				   cairo_composite_rectangles_t *extents,
 				   const cairo_path_fixed_t	*path,
 				   cairo_fill_rule_t	 fill_rule,
-				   double			 tolerance,
+				   floatt			 tolerance,
 				   cairo_antialias_t	 antialias)
 {
     cairo_surface_t *mask;

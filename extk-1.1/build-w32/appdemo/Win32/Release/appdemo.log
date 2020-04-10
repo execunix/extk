@@ -1,7 +1,0 @@
-﻿  wndmain.cpp
-  Generating code
-  2 of 4998 functions (<0.1%) were compiled, the rest were copied from previous compilation.
-    0 functions were new in current compilation
-    22 functions had inline decision re-evaluated but remain unchanged
-  Finished generating code
-  appdemo.vcxproj -> C:\usr\w32\extk-1.1\build-w32\appdemo\Win32\Release\appdemo.exe

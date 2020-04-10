@@ -53,7 +53,7 @@ static cairo_status_t
 _cairo_type3_glyph_surface_clipper_intersect_clip_path (cairo_surface_clipper_t *clipper,
 							cairo_path_fixed_t *path,
 							cairo_fill_rule_t   fill_rule,
-							double		    tolerance,
+							floatt		    tolerance,
 							cairo_antialias_t   antialias)
 {
     cairo_type3_glyph_surface_t *surface = cairo_container_of (clipper,
@@ -242,7 +242,7 @@ _cairo_type3_glyph_surface_stroke (void			*abstract_surface,
 				   const cairo_stroke_style_t	*style,
 				   const cairo_matrix_t	*ctm,
 				   const cairo_matrix_t	*ctm_inverse,
-				   double		 tolerance,
+				   floatt		 tolerance,
 				   cairo_antialias_t	 antialias,
 				   const cairo_clip_t	*clip)
 {
@@ -266,7 +266,7 @@ _cairo_type3_glyph_surface_fill (void			*abstract_surface,
 				 const cairo_pattern_t	*source,
 				 const cairo_path_fixed_t	*path,
 				 cairo_fill_rule_t	 fill_rule,
-				 double			 tolerance,
+				 floatt			 tolerance,
 				 cairo_antialias_t	 antialias,
 				 const cairo_clip_t		*clip)
 {
@@ -371,7 +371,7 @@ _cairo_type3_glyph_surface_emit_fallback_image (cairo_type3_glyph_surface_t *sur
     cairo_status_t status;
     cairo_image_surface_t *image;
     cairo_matrix_t mat;
-    double x, y;
+    floatt x, y;
 
     status = _cairo_scaled_glyph_lookup (surface->scaled_font,
 					 glyph_index,
@@ -470,12 +470,12 @@ _cairo_type3_glyph_surface_emit_glyph (void		     *abstract_surface,
 				       cairo_output_stream_t *stream,
 				       unsigned long	      glyph_index,
 				       cairo_box_t           *bbox,
-				       double                *width)
+				       floatt                *width)
 {
     cairo_type3_glyph_surface_t *surface = abstract_surface;
     cairo_scaled_glyph_t *scaled_glyph;
     cairo_int_status_t status, status2;
-    double x_advance, y_advance;
+    floatt x_advance, y_advance;
     cairo_matrix_t font_matrix_inverse;
 
     if (unlikely (surface->base.status))

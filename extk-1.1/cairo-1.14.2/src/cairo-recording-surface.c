@@ -842,7 +842,7 @@ _cairo_recording_surface_stroke (void			*abstract_surface,
 				 const cairo_stroke_style_t	*style,
 				 const cairo_matrix_t		*ctm,
 				 const cairo_matrix_t		*ctm_inverse,
-				 double			 tolerance,
+				 floatt			 tolerance,
 				 cairo_antialias_t	 antialias,
 				 const cairo_clip_t	*clip)
 {
@@ -919,7 +919,7 @@ _cairo_recording_surface_fill (void			*abstract_surface,
 			       const cairo_pattern_t	*source,
 			       const cairo_path_fixed_t	*path,
 			       cairo_fill_rule_t	 fill_rule,
-			       double			 tolerance,
+			       floatt			 tolerance,
 			       cairo_antialias_t	 antialias,
 			       const cairo_clip_t	*clip)
 {
@@ -2088,10 +2088,10 @@ _recording_surface_get_ink_bbox (cairo_recording_surface_t *surface,
  **/
 void
 cairo_recording_surface_ink_extents (cairo_surface_t *surface,
-				     double *x0,
-				     double *y0,
-				     double *width,
-				     double *height)
+				     floatt *x0,
+				     floatt *y0,
+				     floatt *width,
+				     floatt *height)
 {
     cairo_status_t status;
     cairo_box_t bbox;

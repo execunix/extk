@@ -93,9 +93,9 @@
 #endif
 
 #define DOUBLE_TO_26_6(d) ((FT_F26Dot6)((d) * 64.0))
-#define DOUBLE_FROM_26_6(t) ((double)(t) / 64.0)
+#define DOUBLE_FROM_26_6(t) ((floatt)(t) / 64.0)
 #define DOUBLE_TO_16_16(d) ((FT_Fixed)((d) * 65536.0))
-#define DOUBLE_FROM_16_16(t) ((double)(t) / 65536.0)
+#define DOUBLE_FROM_16_16(t) ((floatt)(t) / 65536.0)
 
 /* This is the max number of FT_face objects we keep open at once
  */
@@ -136,8 +136,8 @@
  */
 
 typedef struct _cairo_ft_font_transform {
-    double  x_scale, y_scale;
-    double  shape[2][2];
+    floatt  x_scale, y_scale;
+    floatt  shape[2][2];
 } cairo_ft_font_transform_t;
 
 /*
@@ -162,8 +162,8 @@ struct _cairo_ft_unscaled_font {
     /* We temporarily scale the unscaled font as needed */
     cairo_bool_t have_scale;
     cairo_matrix_t current_scale;
-    double x_scale;		/* Extracted X scale factor */
-    double y_scale;             /* Extracted Y scale factor */
+    floatt x_scale;		/* Extracted X scale factor */
+    floatt y_scale;             /* Extracted Y scale factor */
     cairo_bool_t have_shape;	/* true if the current scale has a non-scale component*/
     cairo_matrix_t current_shape;
     FT_Matrix Current_Shape;
@@ -712,7 +712,7 @@ _compute_transform (cairo_ft_font_transform_t *sf,
 		    cairo_ft_unscaled_font_t *unscaled)
 {
     cairo_status_t status;
-    double x_scale, y_scale;
+    floatt x_scale, y_scale;
     cairo_matrix_t normalized = *scale;
 
     /* The font matrix has x and y "scale" components which we extract and
@@ -738,16 +738,20 @@ _compute_transform (cairo_ft_font_transform_t *sf,
       y_scale = 1.0;
 
     if (unscaled && (unscaled->face->face_flags & FT_FACE_FLAG_SCALABLE) == 0) {
-	double min_distance = DBL_MAX;
+#ifdef floattype_flt // extk
+	floatt min_distance = FLT_MAX;
+#else
+	floatt min_distance = DBL_MAX;
+#endif
 	cairo_bool_t magnify = TRUE;
 	int i;
-	double best_x_size = 0;
-	double best_y_size = 0;
+	floatt best_x_size = 0;
+	floatt best_y_size = 0;
 
 	for (i = 0; i < unscaled->face->num_fixed_sizes; i++) {
-	    double x_size = unscaled->face->available_sizes[i].x_ppem / 64.;
-	    double y_size = unscaled->face->available_sizes[i].y_ppem / 64.;
-	    double distance = y_size - y_scale;
+	    floatt x_size = unscaled->face->available_sizes[i].x_ppem / 64.;
+	    floatt y_size = unscaled->face->available_sizes[i].y_ppem / 64.;
+	    floatt distance = y_size - y_scale;
 
 	    /*
 	     * distance is positive if current strike is larger than desired
@@ -1476,8 +1480,8 @@ _render_glyph_outline (FT_Face                    face,
 	 * and yMax are offsets of top left relative to origin.  Another negation.
 	 */
 	cairo_surface_set_device_offset (&(*surface)->base,
-					 (double)-glyphslot->bitmap_left,
-					 (double)+glyphslot->bitmap_top);
+					 (floatt)-glyphslot->bitmap_left,
+					 (floatt)+glyphslot->bitmap_top);
     }
 
     return CAIRO_STATUS_SUCCESS;
@@ -1535,8 +1539,8 @@ _transform_glyph_bitmap (cairo_matrix_t         * shape,
     cairo_matrix_t transformed_to_original;
     cairo_image_surface_t *old_image;
     cairo_surface_t *image;
-    double x[4], y[4];
-    double origin_x, origin_y;
+    floatt x[4], y[4];
+    floatt origin_x, origin_y;
     int orig_width, orig_height;
     int i;
     int x_min, y_min, x_max, y_max;
@@ -1956,7 +1960,7 @@ _cairo_ft_font_face_scaled_font_create (void		    *abstract_font_face,
      */
     if (scaled_font->base.options.hint_metrics != CAIRO_HINT_METRICS_OFF ||
 	face->units_per_EM == 0) {
-	double x_factor, y_factor;
+	floatt x_factor, y_factor;
 
 	if (unscaled->x_scale == 0)
 	    x_factor = 0;
@@ -1979,7 +1983,7 @@ _cairo_ft_font_face_scaled_font_create (void		    *abstract_font_face,
 	    fs_metrics.max_y_advance = DOUBLE_FROM_26_6(metrics->max_advance) * y_factor;
 	}
     } else {
-	double scale = face->units_per_EM;
+	floatt scale = face->units_per_EM;
 
 	fs_metrics.ascent =        face->ascender / scale;
 	fs_metrics.descent =       - face->descender / scale;
@@ -2203,7 +2207,7 @@ _cairo_ft_scaled_glyph_init (void			*abstract_font,
     FT_Error error;
     int load_flags = scaled_font->ft_options.load_flags;
     FT_Glyph_Metrics *metrics;
-    double x_factor, y_factor;
+    floatt x_factor, y_factor;
     cairo_bool_t vertical_layout = FALSE;
     cairo_status_t status;
 

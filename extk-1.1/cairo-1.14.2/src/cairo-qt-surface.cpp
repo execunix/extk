@@ -330,8 +330,8 @@ static cairo_status_t
 _cairo_path_to_qpainterpath_move_to (void *closure, const cairo_point_t *point)
 {
     qpainter_path_data *pdata = static_cast <qpainter_path_data *> (closure);
-    double x = _cairo_fixed_to_double (point->x);
-    double y = _cairo_fixed_to_double (point->y);
+    floatt x = _cairo_fixed_to_double (point->x);
+    floatt y = _cairo_fixed_to_double (point->y);
 
     if (pdata->ctm_inverse)
         cairo_matrix_transform_point (pdata->ctm_inverse, &x, &y);
@@ -345,8 +345,8 @@ static cairo_status_t
 _cairo_path_to_qpainterpath_line_to (void *closure, const cairo_point_t *point)
 {
     qpainter_path_data *pdata = static_cast <qpainter_path_data *> (closure);
-    double x = _cairo_fixed_to_double (point->x);
-    double y = _cairo_fixed_to_double (point->y);
+    floatt x = _cairo_fixed_to_double (point->x);
+    floatt y = _cairo_fixed_to_double (point->y);
 
     if (pdata->ctm_inverse)
         cairo_matrix_transform_point (pdata->ctm_inverse, &x, &y);
@@ -360,12 +360,12 @@ static cairo_status_t
 _cairo_path_to_qpainterpath_curve_to (void *closure, const cairo_point_t *p0, const cairo_point_t *p1, const cairo_point_t *p2)
 {
     qpainter_path_data *pdata = static_cast <qpainter_path_data *> (closure);
-    double x0 = _cairo_fixed_to_double (p0->x);
-    double y0 = _cairo_fixed_to_double (p0->y);
-    double x1 = _cairo_fixed_to_double (p1->x);
-    double y1 = _cairo_fixed_to_double (p1->y);
-    double x2 = _cairo_fixed_to_double (p2->x);
-    double y2 = _cairo_fixed_to_double (p2->y);
+    floatt x0 = _cairo_fixed_to_double (p0->x);
+    floatt y0 = _cairo_fixed_to_double (p0->y);
+    floatt x1 = _cairo_fixed_to_double (p1->x);
+    floatt y1 = _cairo_fixed_to_double (p1->y);
+    floatt x2 = _cairo_fixed_to_double (p2->x);
+    floatt y2 = _cairo_fixed_to_double (p2->y);
 
     if (pdata->ctm_inverse) {
         cairo_matrix_transform_point (pdata->ctm_inverse, &x0, &y0);
@@ -740,7 +740,7 @@ static cairo_status_t
 _cairo_qt_surface_clipper_intersect_clip_path (cairo_surface_clipper_t *clipper,
 					       cairo_path_fixed_t *path,
 					       cairo_fill_rule_t fill_rule,
-					       double tolerance,
+					       floatt tolerance,
 					       cairo_antialias_t antialias)
 {
     cairo_qt_surface_t *qs = cairo_container_of (clipper,
@@ -914,7 +914,7 @@ struct PatternToBrushConverter {
 	    QGradient *grad;
 	    cairo_bool_t reverse_stops = FALSE;
 	    cairo_bool_t emulate_reflect = FALSE;
-	    double offset = 0.0;
+	    floatt offset = 0.0;
 
 	    cairo_extend_t extend = pattern->extend;
 
@@ -930,7 +930,7 @@ struct PatternToBrushConverter {
 		/* Based on the SVG surface code */
 
 		cairo_circle_double_t *c0, *c1;
-		double x0, y0, r0, x1, y1, r1;
+		floatt x0, y0, r0, x1, y1, r1;
 
 		if (rpat->cd1.radius < rpat->cd2.radius) {
 		    c0 = &rpat->cd1;
@@ -952,8 +952,8 @@ struct PatternToBrushConverter {
 		if (r0 == r1) {
 		    grad = new QRadialGradient (x1, y1, r1, x1, y1);
 		} else {
-		    double fx = (r1 * x0 - r0 * x1) / (r1 - r0);
-		    double fy = (r1 * y0 - r0 * y1) / (r1 - r0);
+		    floatt fx = (r1 * x0 - r0 * x1) / (r1 - r0);
+		    floatt fy = (r1 * y0 - r0 * y1) / (r1 - r0);
 
 		    /* QPainter doesn't support the inner circle and use instead a gradient focal.
 		     * That means we need to emulate the cairo behaviour by processing the
@@ -967,8 +967,8 @@ struct PatternToBrushConverter {
 		     * list that maps to the original cairo stop list.
 		     */
 		    if ((extend == CAIRO_EXTEND_REFLECT || extend == CAIRO_EXTEND_REPEAT) && r0 > 0.0) {
-			double r_org = r1;
-			double r, x, y;
+			floatt r_org = r1;
+			floatt r, x, y;
 
 			if (extend == CAIRO_EXTEND_REFLECT) {
 			    r1 = 2 * r1 - r0;
@@ -1020,7 +1020,7 @@ struct PatternToBrushConverter {
 		if (reverse_stops)
 		    index = gpat->n_stops - i - 1;
 
-		double offset = gpat->stops[i].offset;
+		floatt offset = gpat->stops[i].offset;
 		QColor color;
 		color.setRgbF (gpat->stops[i].color.red,
 			       gpat->stops[i].color.green,
@@ -1163,7 +1163,7 @@ _cairo_qt_fast_fill (cairo_qt_surface_t *qs,
 		     const cairo_pattern_t *source,
 		     const cairo_path_fixed_t *path = NULL,
 		     cairo_fill_rule_t fill_rule = CAIRO_FILL_RULE_WINDING,
-		     double tolerance = 0.0,
+		     floatt tolerance = 0.0,
 		     cairo_antialias_t antialias = CAIRO_ANTIALIAS_NONE)
 {
 #if ENABLE_FAST_FILL
@@ -1311,7 +1311,7 @@ _cairo_qt_surface_fill (void *abstract_surface,
 			const cairo_pattern_t *source,
 			const cairo_path_fixed_t *path,
 			cairo_fill_rule_t fill_rule,
-			double tolerance,
+			floatt tolerance,
 			cairo_antialias_t antialias,
 			const cairo_clip_t *clip)
 {
@@ -1357,7 +1357,7 @@ _cairo_qt_surface_stroke (void *abstract_surface,
 			  const cairo_stroke_style_t *style,
 			  const cairo_matrix_t *ctm,
 			  const cairo_matrix_t *ctm_inverse,
-			  double tolerance,
+			  floatt tolerance,
 			  cairo_antialias_t antialias,
 			  const cairo_clip_t *clip)
 {

@@ -77,12 +77,12 @@ _cairo_stock_color (cairo_stock_t stock)
     }
 }
 
-/* Convert a double in [0.0, 1.0] to an integer in [0, 65535]
+/* Convert a floatt in [0.0, 1.0] to an integer in [0, 65535]
  * The conversion is designed to choose the integer i such that
  * i / 65535.0 is as close as possible to the input value.
  */
 uint16_t
-_cairo_color_double_to_short (double d)
+_cairo_color_double_to_short (floatt d)
 {
     return d * 65535.0 + 0.5;
 }
@@ -98,8 +98,8 @@ _cairo_color_compute_shorts (cairo_color_t *color)
 
 void
 _cairo_color_init_rgba (cairo_color_t *color,
-			double red, double green, double blue,
-			double alpha)
+			floatt red, floatt green, floatt blue,
+			floatt alpha)
 {
     color->red   = red;
     color->green = green;
@@ -111,7 +111,7 @@ _cairo_color_init_rgba (cairo_color_t *color,
 
 void
 _cairo_color_multiply_alpha (cairo_color_t *color,
-			     double	    alpha)
+			     floatt	    alpha)
 {
     color->alpha *= alpha;
 
@@ -120,10 +120,10 @@ _cairo_color_multiply_alpha (cairo_color_t *color,
 
 void
 _cairo_color_get_rgba (cairo_color_t *color,
-		       double	     *red,
-		       double	     *green,
-		       double	     *blue,
-		       double	     *alpha)
+		       floatt	     *red,
+		       floatt	     *green,
+		       floatt	     *blue,
+		       floatt	     *alpha)
 {
     *red   = color->red;
     *green = color->green;
@@ -133,10 +133,10 @@ _cairo_color_get_rgba (cairo_color_t *color,
 
 void
 _cairo_color_get_rgba_premultiplied (cairo_color_t *color,
-				     double	   *red,
-				     double	   *green,
-				     double	   *blue,
-				     double	   *alpha)
+				     floatt	   *red,
+				     floatt	   *green,
+				     floatt	   *blue,
+				     floatt	   *alpha)
 {
     *red   = color->red   * color->alpha;
     *green = color->green * color->alpha;

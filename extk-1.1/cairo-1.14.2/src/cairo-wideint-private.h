@@ -54,10 +54,10 @@
 cairo_uquorem64_t I
 _cairo_uint64_divrem (cairo_uint64_t num, cairo_uint64_t den);
 
-cairo_uint64_t I	_cairo_double_to_uint64 (double i);
-double	       I	_cairo_uint64_to_double (cairo_uint64_t i);
-cairo_int64_t  I	_cairo_double_to_int64 (double i);
-double	       I	_cairo_int64_to_double (cairo_uint64_t i);
+cairo_uint64_t I	_cairo_double_to_uint64 (floatt i);
+floatt	       I	_cairo_uint64_to_double (cairo_uint64_t i);
+cairo_int64_t  I	_cairo_double_to_int64 (floatt i);
+floatt	       I	_cairo_int64_to_double (cairo_uint64_t i);
 
 cairo_uint64_t I	_cairo_uint32_to_uint64 (uint32_t i);
 #define			_cairo_uint64_to_uint32(a)  ((a).lo)
@@ -115,11 +115,11 @@ _cairo_uint64_divrem (cairo_uint64_t num, cairo_uint64_t den)
  * warning: cast from function call of type ‘#cairo_uint64_t’ to
  * non-matching type ‘double’
  */
-static cairo_always_inline cairo_const cairo_uint64_t _cairo_double_to_uint64 (double i) { return i; }
-static cairo_always_inline cairo_const double _cairo_uint64_to_double (cairo_uint64_t i) { return i; }
+static cairo_always_inline cairo_const cairo_uint64_t _cairo_double_to_uint64 (floatt i) { return i; }
+static cairo_always_inline cairo_const floatt _cairo_uint64_to_double (cairo_uint64_t i) { return i; }
 
-static cairo_always_inline cairo_int64_t I _cairo_double_to_int64 (double i) { return i; }
-static cairo_always_inline double I _cairo_int64_to_double (cairo_int64_t i) { return i; }
+static cairo_always_inline cairo_int64_t I _cairo_double_to_int64 (floatt i) { return i; }
+static cairo_always_inline floatt I _cairo_int64_to_double (cairo_int64_t i) { return i; }
 
 #define			_cairo_uint32_to_uint64(i)  ((uint64_t) (i))
 #define			_cairo_uint64_to_uint32(i)  ((uint32_t) (i))

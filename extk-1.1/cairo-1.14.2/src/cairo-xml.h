@@ -52,7 +52,7 @@ cairo_xml_create_for_stream (cairo_write_func_t	 write_func,
 cairo_public cairo_surface_t *
 cairo_xml_surface_create (cairo_device_t *xml,
 			  cairo_content_t content,
-			  double width, double height);
+			  floatt width, floatt height);
 
 cairo_public cairo_status_t
 cairo_xml_for_recording_surface (cairo_device_t *xml,

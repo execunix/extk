@@ -95,7 +95,7 @@ i915_emit_glyph_rectangle_general (i915_device_t *device,
 				   int x2, int y2,
 				   intel_glyph_t *glyph)
 {
-    double s, t;
+    floatt s, t;
     float *v;
 
     /* Each vertex is:

@@ -48,10 +48,10 @@ typedef struct _cairo_stroker_dash {
     unsigned int dash_index;
     cairo_bool_t dash_on;
     cairo_bool_t dash_starts_on;
-    double dash_remain;
+    floatt dash_remain;
 
-    double dash_offset;
-    const double *dashes;
+    floatt dash_offset;
+    const floatt *dashes;
     unsigned int num_dashes;
 } cairo_stroker_dash_t;
 
@@ -63,7 +63,7 @@ cairo_private void
 _cairo_stroker_dash_start (cairo_stroker_dash_t *dash);
 
 cairo_private void
-_cairo_stroker_dash_step (cairo_stroker_dash_t *dash, double step);
+_cairo_stroker_dash_step (cairo_stroker_dash_t *dash, floatt step);
 
 CAIRO_END_DECLS
 

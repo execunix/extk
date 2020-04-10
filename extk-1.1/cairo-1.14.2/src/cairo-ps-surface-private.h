@@ -64,8 +64,8 @@ typedef struct cairo_ps_surface {
 
     cairo_bool_t eps;
     cairo_content_t content;
-    double width;
-    double height;
+    floatt width;
+    floatt height;
     cairo_rectangle_int_t page_bbox;
     int bbox_x1, bbox_y1, bbox_x2, bbox_y2;
     cairo_matrix_t cairo_to_ps;

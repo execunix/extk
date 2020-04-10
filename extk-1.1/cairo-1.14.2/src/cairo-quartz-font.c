@@ -258,7 +258,7 @@ _cairo_quartz_font_face_scaled_font_create (void *abstract_face,
     cairo_quartz_scaled_font_t *font = NULL;
     cairo_status_t status;
     cairo_font_extents_t fs_metrics;
-    double ems;
+    floatt ems;
     CGRect bbox;
 
     quartz_font_ensure_symbols();
@@ -410,8 +410,8 @@ _cairo_quartz_init_glyph_metrics (cairo_quartz_scaled_font_t *font,
     CGGlyph glyph = _cairo_quartz_scaled_glyph_index (scaled_glyph);
     int advance;
     CGRect bbox;
-    double emscale = CGFontGetUnitsPerEmPtr (font_face->cgFont);
-    double xmin, ymin, xmax, ymax;
+    floatt emscale = CGFontGetUnitsPerEmPtr (font_face->cgFont);
+    floatt xmin, ymin, xmax, ymax;
 
     if (glyph == INVALID_GLYPH)
 	goto FAIL;
@@ -467,7 +467,7 @@ _cairo_quartz_init_glyph_metrics (cairo_quartz_scaled_font_t *font,
     extents.width = xmax - xmin;
     extents.height = ymax - ymin;
 
-    extents.x_advance = (double) advance / emscale;
+    extents.x_advance = (floatt) advance / emscale;
     extents.y_advance = 0.0;
 
 #if 0
@@ -504,7 +504,7 @@ _cairo_quartz_path_apply_func (void *info, const CGPathElement *el)
 	    break;
 	case kCGPathElementAddQuadCurveToPoint: {
 	    cairo_fixed_t fx, fy;
-	    double x, y;
+	    floatt x, y;
 	    if (!_cairo_path_fixed_get_current_point (path, &fx, &fy))
 		fx = fy = 0;
 	    x = _cairo_fixed_to_double (fx);
@@ -595,8 +595,8 @@ _cairo_quartz_init_glyph_surface (cairo_quartz_scaled_font_t *font,
 
     int advance;
     CGRect bbox;
-    double width, height;
-    double emscale = CGFontGetUnitsPerEmPtr (font_face->cgFont);
+    floatt width, height;
+    floatt emscale = CGFontGetUnitsPerEmPtr (font_face->cgFont);
 
     CGContextRef cgContext = NULL;
     CGAffineTransform textMatrix;

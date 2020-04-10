@@ -46,7 +46,7 @@
 #include "cairo-time-private.h"
 
 struct stat {
-    double min, max, sum, sum_sq;
+    floatt min, max, sum, sum_sq;
     unsigned count;
 };
 
@@ -89,7 +89,7 @@ struct _cairo_observation_record {
     int num_glyphs;
     int path;
     int fill_rule;
-    double tolerance;
+    floatt tolerance;
     int antialias;
     int clip;
     cairo_time_t elapsed;

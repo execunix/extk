@@ -447,7 +447,7 @@ _cairo_cogl_get_linear_gradient (cairo_cogl_device_t *device,
     memcpy (&internal_stops[stop_offset], stops, sizeof (cairo_gradient_stop_t) * n_stops);
 
     /* cairo_color_stop_t values are all unpremultiplied but we need to
-     * interpolate premultiplied colors so we premultiply all the double
+     * interpolate premultiplied colors so we premultiply all the floatt
      * components now. (skipping any extra stops added for repeat/reflect)
      *
      * Anothing thing to note is that by premultiplying the colors
@@ -467,7 +467,7 @@ _cairo_cogl_get_linear_gradient (cairo_cogl_device_t *device,
 	    compatibilities &= ~CAIRO_COGL_GRADIENT_CAN_EXTEND_REFLECT;
 	    if (stops[0].offset != 0) {
 		/* what's the wrap-around distance between the user's end-stops? */
-		double dx = (1.0 - stops[n_stops - 1].offset) + stops[0].offset;
+		floatt dx = (1.0 - stops[n_stops - 1].offset) + stops[0].offset;
 		internal_stops[0].offset = 0;
 		color_stop_lerp (&stops[0].color,
 				 &stops[n_stops - 1].color,

@@ -111,7 +111,7 @@ const cairo_solid_pattern_t _cairo_pattern_black = {
       { 1., 0., 0., 1., 0., 0., },	/* matrix */
       1.0                               /* opacity */
     },
-    { 0., 0., 0., 1., 0, 0, 0, 0xffff },/* color (double rgba, short rgba) */
+    { 0., 0., 0., 1., 0, 0, 0, 0xffff },/* color (floatt rgba, short rgba) */
 };
 
 const cairo_solid_pattern_t _cairo_pattern_clear = {
@@ -128,7 +128,7 @@ const cairo_solid_pattern_t _cairo_pattern_clear = {
       { 1., 0., 0., 1., 0., 0., },	/* matrix */
       1.0                               /* opacity */
     },
-    { 0., 0., 0., 0., 0, 0, 0, 0 },/* color (double rgba, short rgba) */
+    { 0., 0., 0., 0., 0, 0, 0, 0 },/* color (floatt rgba, short rgba) */
 };
 
 const cairo_solid_pattern_t _cairo_pattern_white = {
@@ -145,7 +145,7 @@ const cairo_solid_pattern_t _cairo_pattern_white = {
       { 1., 0., 0., 1., 0., 0., },	/* matrix */
       1.0                               /* opacity */
     },
-    { 1., 1., 1., 1., 0xffff, 0xffff, 0xffff, 0xffff },/* color (double rgba, short rgba) */
+    { 1., 1., 1., 1., 0xffff, 0xffff, 0xffff, 0xffff },/* color (floatt rgba, short rgba) */
 };
 
 static void
@@ -568,7 +568,7 @@ _cairo_pattern_init_gradient (cairo_gradient_pattern_t *pattern,
 
 static void
 _cairo_pattern_init_linear (cairo_linear_pattern_t *pattern,
-			    double x0, double y0, double x1, double y1)
+			    floatt x0, floatt y0, floatt x1, floatt y1)
 {
     _cairo_pattern_init_gradient (&pattern->base, CAIRO_PATTERN_TYPE_LINEAR);
 
@@ -580,8 +580,8 @@ _cairo_pattern_init_linear (cairo_linear_pattern_t *pattern,
 
 static void
 _cairo_pattern_init_radial (cairo_radial_pattern_t *pattern,
-			    double cx0, double cy0, double radius0,
-			    double cx1, double cy1, double radius1)
+			    floatt cx0, floatt cy0, floatt radius0,
+			    floatt cx1, floatt cy1, floatt radius1)
 {
     _cairo_pattern_init_gradient (&pattern->base, CAIRO_PATTERN_TYPE_RADIAL);
 
@@ -655,7 +655,7 @@ _cairo_pattern_create_in_error (cairo_status_t status)
  * Since: 1.0
  **/
 cairo_pattern_t *
-cairo_pattern_create_rgb (double red, double green, double blue)
+cairo_pattern_create_rgb (floatt red, floatt green, floatt blue)
 {
     return cairo_pattern_create_rgba (red, green, blue, 1.0);
 }
@@ -685,8 +685,8 @@ slim_hidden_def (cairo_pattern_create_rgb);
  * Since: 1.0
  **/
 cairo_pattern_t *
-cairo_pattern_create_rgba (double red, double green, double blue,
-			   double alpha)
+cairo_pattern_create_rgba (floatt red, floatt green, floatt blue,
+			   floatt alpha)
 {
     cairo_color_t color;
 
@@ -781,7 +781,7 @@ slim_hidden_def (cairo_pattern_create_for_surface);
  * Since: 1.0
  **/
 cairo_pattern_t *
-cairo_pattern_create_linear (double x0, double y0, double x1, double y1)
+cairo_pattern_create_linear (floatt x0, floatt y0, floatt x1, floatt y1)
 {
     cairo_linear_pattern_t *pattern;
 
@@ -834,8 +834,8 @@ cairo_pattern_create_linear (double x0, double y0, double x1, double y1)
  * Since: 1.0
  **/
 cairo_pattern_t *
-cairo_pattern_create_radial (double cx0, double cy0, double radius0,
-			     double cx1, double cy1, double radius1)
+cairo_pattern_create_radial (floatt cx0, floatt cy0, floatt radius0,
+			     floatt cx1, floatt cy1, floatt radius1)
 {
     cairo_radial_pattern_t *pattern;
 
@@ -1420,9 +1420,9 @@ cairo_mesh_pattern_end_patch (cairo_pattern_t *pattern)
  **/
 void
 cairo_mesh_pattern_curve_to (cairo_pattern_t *pattern,
-			     double x1, double y1,
-			     double x2, double y2,
-			     double x3, double y3)
+			     floatt x1, floatt y1,
+			     floatt x2, floatt y2,
+			     floatt x3, floatt y3)
 {
     cairo_mesh_pattern_t *mesh;
     int current_point, i, j;
@@ -1504,7 +1504,7 @@ slim_hidden_def (cairo_mesh_pattern_curve_to);
  **/
 void
 cairo_mesh_pattern_line_to (cairo_pattern_t *pattern,
-			    double x, double y)
+			    floatt x, floatt y)
 {
     cairo_mesh_pattern_t *mesh;
     cairo_point_double_t last_point;
@@ -1570,7 +1570,7 @@ slim_hidden_def (cairo_mesh_pattern_line_to);
  **/
 void
 cairo_mesh_pattern_move_to (cairo_pattern_t *pattern,
-			    double x, double y)
+			    floatt x, floatt y)
 {
     cairo_mesh_pattern_t *mesh;
 
@@ -1624,8 +1624,8 @@ slim_hidden_def (cairo_mesh_pattern_move_to);
 void
 cairo_mesh_pattern_set_control_point (cairo_pattern_t *pattern,
 				      unsigned int     point_num,
-				      double           x,
-				      double           y)
+				      floatt           x,
+				      floatt           y)
 {
     cairo_mesh_pattern_t *mesh;
     int i, j;
@@ -1701,8 +1701,8 @@ _cairo_pattern_gradient_grow (cairo_gradient_pattern_t *pattern)
 static void
 _cairo_mesh_pattern_set_corner_color (cairo_mesh_pattern_t *mesh,
 				      unsigned int     corner_num,
-				      double red, double green, double blue,
-				      double alpha)
+				      floatt red, floatt green, floatt blue,
+				      floatt alpha)
 {
     cairo_color_t *color;
 
@@ -1751,7 +1751,7 @@ _cairo_mesh_pattern_set_corner_color (cairo_mesh_pattern_t *mesh,
 void
 cairo_mesh_pattern_set_corner_color_rgb (cairo_pattern_t *pattern,
 					 unsigned int     corner_num,
-					 double red, double green, double blue)
+					 floatt red, floatt green, floatt blue)
 {
     cairo_mesh_pattern_set_corner_color_rgba (pattern, corner_num, red, green, blue, 1.0);
 }
@@ -1785,8 +1785,8 @@ cairo_mesh_pattern_set_corner_color_rgb (cairo_pattern_t *pattern,
 void
 cairo_mesh_pattern_set_corner_color_rgba (cairo_pattern_t *pattern,
 					  unsigned int     corner_num,
-					  double red, double green, double blue,
-					  double alpha)
+					  floatt red, floatt green, floatt blue,
+					  floatt alpha)
 {
     cairo_mesh_pattern_t *mesh;
 
@@ -1820,11 +1820,11 @@ slim_hidden_def (cairo_mesh_pattern_set_corner_color_rgba);
 
 static void
 _cairo_pattern_add_color_stop (cairo_gradient_pattern_t	*pattern,
-			       double			 offset,
-			       double			 red,
-			       double			 green,
-			       double			 blue,
-			       double			 alpha)
+			       floatt			 offset,
+			       floatt			 red,
+			       floatt			 green,
+			       floatt			 blue,
+			       floatt			 alpha)
 {
     cairo_gradient_stop_t *stops;
     unsigned int	   i;
@@ -1896,10 +1896,10 @@ _cairo_pattern_add_color_stop (cairo_gradient_pattern_t	*pattern,
  **/
 void
 cairo_pattern_add_color_stop_rgb (cairo_pattern_t *pattern,
-				  double	   offset,
-				  double	   red,
-				  double	   green,
-				  double	   blue)
+				  floatt	   offset,
+				  floatt	   red,
+				  floatt	   green,
+				  floatt	   blue)
 {
     cairo_pattern_add_color_stop_rgba (pattern, offset, red, green, blue, 1.0);
 }
@@ -1935,11 +1935,11 @@ cairo_pattern_add_color_stop_rgb (cairo_pattern_t *pattern,
  **/
 void
 cairo_pattern_add_color_stop_rgba (cairo_pattern_t *pattern,
-				   double	   offset,
-				   double	   red,
-				   double	   green,
-				   double	   blue,
-				   double	   alpha)
+				   floatt	   offset,
+				   floatt	   red,
+				   floatt	   green,
+				   floatt	   blue,
+				   floatt	   alpha)
 {
     if (pattern->status)
 	return;
@@ -2181,12 +2181,12 @@ _radial_pattern_is_degenerate (const cairo_radial_pattern_t *radial)
 
 static void
 _cairo_linear_pattern_box_to_parameter (const cairo_linear_pattern_t *linear,
-					double x0, double y0,
-					double x1, double y1,
-					double range[2])
+					floatt x0, floatt y0,
+					floatt x1, floatt y1,
+					floatt range[2])
 {
-    double t0, tdx, tdy;
-    double p1x, p1y, pdx, pdy, invsqnorm;
+    floatt t0, tdx, tdy;
+    floatt p1x, p1y, pdx, pdy, invsqnorm;
 
     assert (! _linear_pattern_is_degenerate (linear));
 
@@ -2238,7 +2238,7 @@ _cairo_linear_pattern_box_to_parameter (const cairo_linear_pattern_t *linear,
 }
 
 static cairo_bool_t
-_extend_range (double range[2], double value, cairo_bool_t valid)
+_extend_range (floatt range[2], floatt value, cairo_bool_t valid)
 {
     if (!valid)
 	range[0] = range[1] = value;
@@ -2267,7 +2267,7 @@ _extend_range (double range[2], double value, cairo_bool_t valid)
 cairo_bool_t
 _cairo_radial_pattern_focus_is_inside (const cairo_radial_pattern_t *radial)
 {
-    double cx, cy, cr, dx, dy, dr;
+    floatt cx, cy, cr, dx, dy, dr;
 
     cx = radial->cd1.center.x;
     cy = radial->cd1.center.y;
@@ -2281,14 +2281,14 @@ _cairo_radial_pattern_focus_is_inside (const cairo_radial_pattern_t *radial)
 
 static void
 _cairo_radial_pattern_box_to_parameter (const cairo_radial_pattern_t *radial,
-					double x0, double y0,
-					double x1, double y1,
-					double tolerance,
-					double range[2])
+					floatt x0, floatt y0,
+					floatt x1, floatt y1,
+					floatt tolerance,
+					floatt range[2])
 {
-    double cx, cy, cr, dx, dy, dr;
-    double a, x_focus, y_focus;
-    double mindr, minx, miny, maxx, maxy;
+    floatt cx, cy, cr, dx, dy, dr;
+    floatt a, x_focus, y_focus;
+    floatt mindr, minx, miny, maxx, maxy;
     cairo_bool_t valid;
 
     assert (! _radial_pattern_is_degenerate (radial));
@@ -2354,7 +2354,7 @@ _cairo_radial_pattern_box_to_parameter (const cairo_radial_pattern_t *radial,
      * gradient represents a cylinder instead of a cone).
      */
     if (fabs (dr) >= DBL_EPSILON) {
-	double t_focus;
+	floatt t_focus;
 
 	t_focus = -cr / dr;
 	x_focus = t_focus * dx;
@@ -2402,7 +2402,7 @@ _cairo_radial_pattern_box_to_parameter (const cairo_radial_pattern_t *radial,
      */
 #define T_EDGE(num,den,delta,lower,upper)				\
     if (fabs (den) >= DBL_EPSILON) {					\
-	double t_edge, v;						\
+	floatt t_edge, v;						\
 									\
 	t_edge = (num) / (den);						\
 	v = t_edge * (delta);						\
@@ -2434,7 +2434,7 @@ _cairo_radial_pattern_box_to_parameter (const cairo_radial_pattern_t *radial,
      */
     a = dx * dx + dy * dy - dr * dr;
     if (fabs (a) < DBL_EPSILON * DBL_EPSILON) {
-	double b, maxd2;
+	floatt b, maxd2;
 
 	/* Ensure that gradients with both a and dr small are
 	 * considered degenerate.
@@ -2509,11 +2509,11 @@ _cairo_radial_pattern_box_to_parameter (const cairo_radial_pattern_t *radial,
 	 */
 #define T_EDGE(edge,delta,den,lower,upper,u_origin,v_origin)	\
 	if (fabs (den) >= DBL_EPSILON) {			\
-	    double v;						\
+	    floatt v;						\
 								\
 	    v = -((edge) * (delta) + cr * dr) / (den);		\
 	    if ((lower) <= v && v <= (upper)) {			\
-		double u, d2;					\
+		floatt u, d2;					\
 								\
 		u = (edge) - (u_origin);			\
 		v -= (v_origin);				\
@@ -2548,7 +2548,7 @@ _cairo_radial_pattern_box_to_parameter (const cairo_radial_pattern_t *radial,
 	 *       (maxd2 + tolerance^2 - 2*tolerance*cr) / (2*tolerance*dr)
 	 */
 	if (maxd2 > 0) {
-	    double t_limit = maxd2 + tolerance*tolerance - 2*tolerance*cr;
+	    floatt t_limit = maxd2 + tolerance*tolerance - 2*tolerance*cr;
 	    t_limit /= 2 * tolerance * dr;
 	    valid = _extend_range (range, t_limit, valid);
 	}
@@ -2566,11 +2566,11 @@ _cairo_radial_pattern_box_to_parameter (const cairo_radial_pattern_t *radial,
 #define T_CORNER(x,y)							\
 	b = (x) * dx + (y) * dy + cr * dr;				\
 	if (fabs (b) >= DBL_EPSILON) {					\
-	    double t_corner;						\
-	    double x2 = (x) * (x);					\
-	    double y2 = (y) * (y);					\
-	    double cr2 = (cr) * (cr);					\
-	    double c = x2 + y2 - cr2;					\
+	    floatt t_corner;						\
+	    floatt x2 = (x) * (x);					\
+	    floatt y2 = (y) * (y);					\
+	    floatt cr2 = (cr) * (cr);					\
+	    floatt c = x2 + y2 - cr2;					\
 	    								\
 	    t_corner = 0.5 * c / b;					\
 	    if (t_corner * dr >= mindr)					\
@@ -2585,7 +2585,7 @@ _cairo_radial_pattern_box_to_parameter (const cairo_radial_pattern_t *radial,
 
 #undef T_CORNER
     } else {
-	double inva, b, c, d;
+	floatt inva, b, c, d;
 
 	inva = 1 / a;
 
@@ -2604,7 +2604,7 @@ _cairo_radial_pattern_box_to_parameter (const cairo_radial_pattern_t *radial,
 	c = (x) * (x) + (y) * (y) - cr * cr;				\
 	d = b * b - a * c;						\
 	if (d >= 0) {							\
-	    double t_corner;						\
+	    floatt t_corner;						\
 									\
 	    d = sqrt (d);						\
 	    t_corner = (b + d) * inva;					\
@@ -2640,10 +2640,10 @@ _cairo_radial_pattern_box_to_parameter (const cairo_radial_pattern_t *radial,
  **/
 void
 _cairo_gradient_pattern_box_to_parameter (const cairo_gradient_pattern_t *gradient,
-					  double x0, double y0,
-					  double x1, double y1,
-					  double tolerance,
-					  double out_range[2])
+					  floatt x0, floatt y0,
+					  floatt x1, floatt y1,
+					  floatt tolerance,
+					  floatt out_range[2])
 {
     assert (gradient->base.type == CAIRO_PATTERN_TYPE_LINEAR ||
 	    gradient->base.type == CAIRO_PATTERN_TYPE_RADIAL);
@@ -2666,7 +2666,7 @@ _cairo_gradient_pattern_box_to_parameter (const cairo_gradient_pattern_t *gradie
  **/
 void
 _cairo_gradient_pattern_interpolate (const cairo_gradient_pattern_t *gradient,
-				     double			     t,
+				     floatt			     t,
 				     cairo_circle_double_t	    *out_circle)
 {
     assert (gradient->base.type == CAIRO_PATTERN_TYPE_LINEAR ||
@@ -2703,11 +2703,11 @@ _cairo_gradient_pattern_interpolate (const cairo_gradient_pattern_t *gradient,
  **/
 void
 _cairo_gradient_pattern_fit_to_range (const cairo_gradient_pattern_t *gradient,
-				      double			      max_value,
+				      floatt			      max_value,
 				      cairo_matrix_t                 *out_matrix,
 				      cairo_circle_double_t	      out_circle[2])
 {
-    double dim;
+    floatt dim;
 
     assert (gradient->base.type == CAIRO_PATTERN_TYPE_LINEAR ||
 	    gradient->base.type == CAIRO_PATTERN_TYPE_RADIAL);
@@ -2791,7 +2791,7 @@ _gradient_is_clear (const cairo_gradient_pattern_t *gradient,
 	(gradient->base.extend == CAIRO_EXTEND_NONE ||
 	 gradient->base.type == CAIRO_PATTERN_TYPE_RADIAL))
     {
-	double t[2];
+	floatt t[2];
 
 	_cairo_gradient_pattern_box_to_parameter (gradient,
 						  extents->x,
@@ -2823,8 +2823,8 @@ static void
 _gradient_color_average (const cairo_gradient_pattern_t *gradient,
 			 cairo_color_t *color)
 {
-    double delta0, delta1;
-    double r, g, b, a;
+    floatt delta0, delta1;
+    floatt r, g, b, a;
     unsigned int i, start = 1, end;
 
     assert (gradient->n_stops > 0);
@@ -2914,7 +2914,7 @@ _gradient_color_average (const cairo_gradient_pattern_t *gradient,
        * since the whole must sum up to 1: b*h/2
        * Halving is done after the whole sum has been computed.
        */
-	double delta = gradient->stops[i+1].offset - gradient->stops[i-1].offset;
+	floatt delta = gradient->stops[i+1].offset - gradient->stops[i-1].offset;
 	r += delta * gradient->stops[i].color.red;
 	g += delta * gradient->stops[i].color.green;
 	b += delta * gradient->stops[i].color.blue;
@@ -2941,10 +2941,10 @@ _gradient_color_average (const cairo_gradient_pattern_t *gradient,
  **/
 void
 _cairo_pattern_alpha_range (const cairo_pattern_t *pattern,
-			    double                *out_min,
-			    double                *out_max)
+			    floatt                *out_min,
+			    floatt                *out_max)
 {
-    double alpha_min, alpha_max;
+    floatt alpha_min, alpha_max;
 
     switch (pattern->type) {
     case CAIRO_PATTERN_TYPE_SOLID: {
@@ -3026,14 +3026,14 @@ _cairo_pattern_alpha_range (const cairo_pattern_t *pattern,
  **/
 cairo_bool_t
 _cairo_mesh_pattern_coord_box (const cairo_mesh_pattern_t *mesh,
-			       double                     *out_xmin,
-			       double                     *out_ymin,
-			       double                     *out_xmax,
-			       double                     *out_ymax)
+			       floatt                     *out_xmin,
+			       floatt                     *out_ymin,
+			       floatt                     *out_xmax,
+			       floatt                     *out_ymax)
 {
     const cairo_mesh_patch_t *patch;
     unsigned int num_patches, i, j, k;
-    double x0, y0, x1, y1;
+    floatt x0, y0, x1, y1;
 
     assert (mesh->current_patch == NULL);
 
@@ -3096,7 +3096,7 @@ _cairo_gradient_pattern_is_solid (const cairo_gradient_pattern_t *gradient,
 	}
 
 	if (gradient->base.extend == CAIRO_EXTEND_NONE) {
-	    double t[2];
+	    floatt t[2];
 
 	    /* We already know that the pattern is not clear, thus if some
 	     * part of it is clear, the whole is not solid.
@@ -3135,7 +3135,7 @@ _cairo_gradient_pattern_is_solid (const cairo_gradient_pattern_t *gradient,
 static cairo_bool_t
 _mesh_is_clear (const cairo_mesh_pattern_t *mesh)
 {
-    double x1, y1, x2, y2;
+    floatt x1, y1, x2, y2;
     cairo_bool_t is_valid;
 
     is_valid = _cairo_mesh_pattern_coord_box (mesh, &x1, &y1, &x2, &y2);
@@ -3244,7 +3244,7 @@ _gradient_is_opaque (const cairo_gradient_pattern_t *gradient,
 
     if (gradient->base.type == CAIRO_PATTERN_TYPE_LINEAR) {
 	if (gradient->base.extend == CAIRO_EXTEND_NONE) {
-	    double t[2];
+	    floatt t[2];
 	    cairo_linear_pattern_t *linear = (cairo_linear_pattern_t *) gradient;
 
 	    /* EXTEND_NONE degenerate radial gradients are clear */
@@ -3345,10 +3345,10 @@ _cairo_pattern_is_clear (const cairo_pattern_t *abstract_pattern)
  * then a scale of exactly .5 works.
  */
 static int
-use_bilinear(double x, double y, double t)
+use_bilinear(floatt x, floatt y, floatt t)
 {
     /* This is the inverse matrix! */
-    double h = x*x + y*y;
+    floatt h = x*x + y*y;
     if (h < 1.0 / (0.75 * 0.75))
 	return TRUE; /* scale > .75 */
     if ((h > 3.99 && h < 4.01) /* scale is 1/2 */
@@ -3412,8 +3412,8 @@ _cairo_pattern_analyze_filter (const cairo_pattern_t *pattern)
  * May want to replace this with Manhattan distance (abs(x)+abs(y)) if
  * hypot is too slow, as there is no need for accuracy here.
  **/
-static inline double
-_cairo_hypot(double x, double y)
+static inline floatt
+_cairo_hypot(floatt x, floatt y)
 {
     return hypot(x, y);
 }
@@ -3438,8 +3438,8 @@ _cairo_pattern_sampled_area (const cairo_pattern_t *pattern,
 			     const cairo_rectangle_int_t *extents,
 			     cairo_rectangle_int_t *sample)
 {
-    double x1, x2, y1, y2;
-    double padx, pady;
+    floatt x1, x2, y1, y2;
+    floatt padx, pady;
 
     /* Assume filters are interpolating, which means identity
        cannot change the image */
@@ -3530,7 +3530,7 @@ void
 _cairo_pattern_get_extents (const cairo_pattern_t         *pattern,
 			    cairo_rectangle_int_t         *extents)
 {
-    double x1, y1, x2, y2;
+    floatt x1, y1, x2, y2;
     int ix1, ix2, iy1, iy2;
     cairo_bool_t round_x = FALSE;
     cairo_bool_t round_y = FALSE;
@@ -3617,9 +3617,9 @@ _cairo_pattern_get_extents (const cairo_pattern_t         *pattern,
 	{
 	    const cairo_radial_pattern_t *radial =
 		(const cairo_radial_pattern_t *) pattern;
-	    double cx1, cy1;
-	    double cx2, cy2;
-	    double r1, r2;
+	    floatt cx1, cy1;
+	    floatt cx2, cy2;
+	    floatt r1, r2;
 
 	    if (_radial_pattern_is_degenerate (radial)) {
 		/* cairo-gstate should have optimised degenerate
@@ -3822,7 +3822,7 @@ _cairo_gradient_color_stops_hash (unsigned long hash,
     for (n = 0; n < gradient->n_stops; n++) {
 	hash = _cairo_hash_bytes (hash,
 				  &gradient->stops[n].offset,
-				  sizeof (double));
+				  sizeof (floatt));
 	hash = _cairo_hash_bytes (hash,
 				  &gradient->stops[n].color,
 				  sizeof (cairo_color_stop_t));
@@ -4099,11 +4099,11 @@ _cairo_pattern_equal (const cairo_pattern_t *a, const cairo_pattern_t *b)
  **/
 cairo_status_t
 cairo_pattern_get_rgba (cairo_pattern_t *pattern,
-			double *red, double *green,
-			double *blue, double *alpha)
+			floatt *red, floatt *green,
+			floatt *blue, floatt *alpha)
 {
     cairo_solid_pattern_t *solid = (cairo_solid_pattern_t*) pattern;
-    double r0, g0, b0, a0;
+    floatt r0, g0, b0, a0;
 
     if (pattern->status)
 	return pattern->status;
@@ -4182,9 +4182,9 @@ cairo_pattern_get_surface (cairo_pattern_t *pattern,
  **/
 cairo_status_t
 cairo_pattern_get_color_stop_rgba (cairo_pattern_t *pattern,
-				   int index, double *offset,
-				   double *red, double *green,
-				   double *blue, double *alpha)
+				   int index, floatt *offset,
+				   floatt *red, floatt *green,
+				   floatt *blue, floatt *alpha)
 {
     cairo_gradient_pattern_t *gradient = (cairo_gradient_pattern_t*) pattern;
 
@@ -4263,8 +4263,8 @@ cairo_pattern_get_color_stop_count (cairo_pattern_t *pattern,
  **/
 cairo_status_t
 cairo_pattern_get_linear_points (cairo_pattern_t *pattern,
-				 double *x0, double *y0,
-				 double *x1, double *y1)
+				 floatt *x0, floatt *y0,
+				 floatt *x1, floatt *y1)
 {
     cairo_linear_pattern_t *linear = (cairo_linear_pattern_t*) pattern;
 
@@ -4307,8 +4307,8 @@ cairo_pattern_get_linear_points (cairo_pattern_t *pattern,
  **/
 cairo_status_t
 cairo_pattern_get_radial_circles (cairo_pattern_t *pattern,
-				  double *x0, double *y0, double *r0,
-				  double *x1, double *y1, double *r1)
+				  floatt *x0, floatt *y0, floatt *r0,
+				  floatt *x1, floatt *y1, floatt *r1)
 {
     cairo_radial_pattern_t *radial = (cairo_radial_pattern_t*) pattern;
 
@@ -4491,8 +4491,8 @@ cairo_status_t
 cairo_mesh_pattern_get_corner_color_rgba (cairo_pattern_t *pattern,
 					  unsigned int patch_num,
 					  unsigned int corner_num,
-					  double *red, double *green,
-					  double *blue, double *alpha)
+					  floatt *red, floatt *green,
+					  floatt *blue, floatt *alpha)
 {
     cairo_mesh_pattern_t *mesh = (cairo_mesh_pattern_t *) pattern;
     unsigned int patch_count;
@@ -4557,7 +4557,7 @@ cairo_status_t
 cairo_mesh_pattern_get_control_point (cairo_pattern_t *pattern,
 				      unsigned int patch_num,
 				      unsigned int point_num,
-				      double *x, double *y)
+				      floatt *x, floatt *y)
 {
     cairo_mesh_pattern_t *mesh = (cairo_mesh_pattern_t *) pattern;
     const cairo_mesh_patch_t *patch;

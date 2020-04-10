@@ -52,10 +52,10 @@ typedef struct cairo_stroker {
 
     const cairo_matrix_t *ctm;
     const cairo_matrix_t *ctm_inverse;
-    double half_line_width;
-    double tolerance;
-    double spline_cusp_tolerance;
-    double ctm_determinant;
+    floatt half_line_width;
+    floatt tolerance;
+    floatt spline_cusp_tolerance;
+    floatt ctm_determinant;
     cairo_bool_t ctm_det_positive;
 
     void *closure;
@@ -96,7 +96,7 @@ _cairo_stroker_limit (cairo_stroker_t *stroker,
 		      const cairo_box_t *boxes,
 		      int num_boxes)
 {
-    double dx, dy;
+    floatt dx, dy;
     cairo_fixed_t fdx, fdy;
 
     stroker->has_bounds = TRUE;
@@ -126,7 +126,7 @@ _cairo_stroker_init (cairo_stroker_t		*stroker,
 		     const cairo_stroke_style_t	*stroke_style,
 		     const cairo_matrix_t	*ctm,
 		     const cairo_matrix_t	*ctm_inverse,
-		     double			 tolerance,
+		     floatt			 tolerance,
 		     const cairo_box_t		*limits,
 		     int			 num_limits)
 {
@@ -205,9 +205,9 @@ _cairo_stroker_join_is_clockwise (const cairo_stroke_face_t *in,
  * two lines.
  **/
 static int
-_cairo_slope_compare_sgn (double dx1, double dy1, double dx2, double dy2)
+_cairo_slope_compare_sgn (floatt dx1, floatt dy1, floatt dx2, floatt dy2)
 {
-    double  c = (dx1 * dy2 - dx2 * dy1);
+    floatt  c = (dx1 * dy2 - dx2 * dy1);
 
     if (c > 0) return 1;
     if (c < 0) return -1;
@@ -432,9 +432,9 @@ _cairo_stroker_join (cairo_stroker_t *stroker,
     case CAIRO_LINE_JOIN_MITER:
     default: {
 	/* dot product of incoming slope vector with outgoing slope vector */
-	double	in_dot_out = -in->usr_vector.x * out->usr_vector.x +
+	floatt	in_dot_out = -in->usr_vector.x * out->usr_vector.x +
 			     -in->usr_vector.y * out->usr_vector.y;
-	double	ml = stroker->style.miter_limit;
+	floatt	ml = stroker->style.miter_limit;
 
 	/* Check the miter limit -- lines meeting at an acute angle
 	 * can generate long miters, the limit converts them to bevel
@@ -494,12 +494,12 @@ _cairo_stroker_join (cairo_stroker_t *stroker,
 	 *
 	 */
 	if (2 <= ml * ml * (1 - in_dot_out)) {
-	    double		x1, y1, x2, y2;
-	    double		mx, my;
-	    double		dx1, dx2, dy1, dy2;
-	    double		ix, iy;
-	    double		fdx1, fdy1, fdx2, fdy2;
-	    double		mdx, mdy;
+	    floatt		x1, y1, x2, y2;
+	    floatt		mx, my;
+	    floatt		dx1, dx2, dy1, dy2;
+	    floatt		ix, iy;
+	    floatt		fdx1, fdy1, fdx2, fdy2;
+	    floatt		mdx, mdy;
 
 	    /*
 	     * we've got the points already transformed to device
@@ -645,7 +645,7 @@ _cairo_stroker_add_cap (cairo_stroker_t *stroker,
     }
 
     case CAIRO_LINE_CAP_SQUARE: {
-	double dx, dy;
+	floatt dx, dy;
 	cairo_slope_t	fvector;
 	cairo_point_t	quad[4];
 
@@ -728,12 +728,12 @@ _cairo_stroker_add_trailing_cap (cairo_stroker_t     *stroker,
 }
 
 static inline cairo_bool_t
-_compute_normalized_device_slope (double *dx, double *dy,
+_compute_normalized_device_slope (floatt *dx, floatt *dy,
 				  const cairo_matrix_t *ctm_inverse,
-				  double *mag_out)
+				  floatt *mag_out)
 {
-    double dx0 = *dx, dy0 = *dy;
-    double mag;
+    floatt dx0 = *dx, dy0 = *dy;
+    floatt mag;
 
     cairo_matrix_transform_distance (ctm_inverse, &dx0, &dy0);
 
@@ -776,12 +776,12 @@ _compute_normalized_device_slope (double *dx, double *dy,
 static void
 _compute_face (const cairo_point_t *point,
 	       const cairo_slope_t *dev_slope,
-	       double slope_dx,
-	       double slope_dy,
+	       floatt slope_dx,
+	       floatt slope_dy,
 	       cairo_stroker_t *stroker,
 	       cairo_stroke_face_t *face)
 {
-    double face_dx, face_dy;
+    floatt face_dx, face_dy;
     cairo_point_t offset_ccw, offset_cw;
 
     /*
@@ -836,7 +836,7 @@ _cairo_stroker_add_caps (cairo_stroker_t *stroker)
 	&& stroker->style.line_cap == CAIRO_LINE_CAP_ROUND)
     {
 	/* pick an arbitrary slope to use */
-	double dx = 1.0, dy = 0.0;
+	floatt dx = 1.0, dy = 0.0;
 	cairo_slope_t slope = { CAIRO_FIXED_ONE, 0 };
 	cairo_stroke_face_t face;
 
@@ -878,7 +878,7 @@ _cairo_stroker_add_sub_edge (cairo_stroker_t *stroker,
 			     const cairo_point_t *p1,
 			     const cairo_point_t *p2,
 			     cairo_slope_t *dev_slope,
-			     double slope_dx, double slope_dy,
+			     floatt slope_dx, floatt slope_dy,
 			     cairo_stroke_face_t *start,
 			     cairo_stroke_face_t *end)
 {
@@ -953,7 +953,7 @@ _cairo_stroker_line_to (void *closure,
     cairo_stroke_face_t start, end;
     cairo_point_t *p1 = &stroker->current_point;
     cairo_slope_t dev_slope;
-    double slope_dx, slope_dy;
+    floatt slope_dx, slope_dy;
     cairo_status_t status;
 
     stroker->has_initial_sub_path = TRUE;
@@ -1002,7 +1002,7 @@ _cairo_stroker_spline_to (void *closure,
 {
     cairo_stroker_t *stroker = closure;
     cairo_stroke_face_t new_face;
-    double slope_dx, slope_dy;
+    floatt slope_dx, slope_dy;
     cairo_point_t points[3];
     cairo_point_t intersect_point;
 
@@ -1088,9 +1088,9 @@ _cairo_stroker_line_to_dashed (void *closure,
 			       const cairo_point_t *p2)
 {
     cairo_stroker_t *stroker = closure;
-    double mag, remain, step_length = 0;
-    double slope_dx, slope_dy;
-    double dx2, dy2;
+    floatt mag, remain, step_length = 0;
+    floatt slope_dx, slope_dy;
+    floatt dx2, dy2;
     cairo_stroke_face_t sub_start, sub_end;
     cairo_point_t *p1 = &stroker->current_point;
     cairo_slope_t dev_slope;
@@ -1235,7 +1235,7 @@ _cairo_stroker_curve_to (void *closure,
     cairo_spline_t spline;
     cairo_line_join_t line_join_save;
     cairo_stroke_face_t face;
-    double slope_dx, slope_dy;
+    floatt slope_dx, slope_dy;
     cairo_spline_add_point_func_t line_to;
     cairo_spline_add_point_func_t spline_to;
     cairo_status_t status = CAIRO_STATUS_SUCCESS;
@@ -1363,7 +1363,7 @@ _cairo_path_fixed_stroke_to_shaper (cairo_path_fixed_t	*path,
 				    const cairo_stroke_style_t	*stroke_style,
 				    const cairo_matrix_t	*ctm,
 				    const cairo_matrix_t	*ctm_inverse,
-				    double		 tolerance,
+				    floatt		 tolerance,
 				    cairo_status_t (*add_triangle) (void *closure,
 								    const cairo_point_t triangle[3]),
 				    cairo_status_t (*add_triangle_fan) (void *closure,
@@ -1414,7 +1414,7 @@ _cairo_path_fixed_stroke_dashed_to_polygon (const cairo_path_fixed_t	*path,
 					    const cairo_stroke_style_t	*stroke_style,
 					    const cairo_matrix_t	*ctm,
 					    const cairo_matrix_t	*ctm_inverse,
-					    double		 tolerance,
+					    floatt		 tolerance,
 					    cairo_polygon_t *polygon)
 {
     cairo_stroker_t stroker;
@@ -1455,7 +1455,7 @@ _cairo_path_fixed_stroke_polygon_to_traps (const cairo_path_fixed_t	*path,
                                            const cairo_stroke_style_t	*stroke_style,
                                            const cairo_matrix_t	*ctm,
                                            const cairo_matrix_t	*ctm_inverse,
-                                           double		 tolerance,
+                                           floatt		 tolerance,
                                            cairo_traps_t	*traps)
 {
     cairo_int_status_t status;

@@ -547,13 +547,13 @@ typedef enum
    If the frequency is higher than 1/2, such as when r is less than 1,
    this may need to integrate several samples, see cubic for examples.
 */
-typedef double (* kernel_func_t) (double x, double r);
+typedef floatt (* kernel_func_t) (floatt x, floatt r);
 
 /* Return maximum number of pixels that will be non-zero. Except for
    impluse this is the maximum of 2 and the width of the non-zero part
    of the filter rounded up to the next integer.
 */
-typedef int (* kernel_width_func_t) (double r);
+typedef int (* kernel_width_func_t) (floatt r);
 
 /* Table of filters */
 typedef struct
@@ -569,14 +569,14 @@ typedef struct
    in the other.
 */
 
-static double
-impulse_kernel (double x, double r)
+static floatt
+impulse_kernel (floatt x, floatt r)
 {
     return 1;
 }
 
 static int
-impulse_width (double r)
+impulse_width (floatt r)
 {
     return 1;
 }
@@ -592,15 +592,15 @@ impulse_width (double r)
    them to be exchanged at this point.
 */
 
-static double
-box_kernel (double x, double r)
+static floatt
+box_kernel (floatt x, floatt r)
 {
     return MAX (0.0, MIN (MIN (r, 1.0),
 			  MIN ((r + 1) / 2 - x, (r + 1) / 2 + x)));
 }
 
 static int
-box_width (double r)
+box_width (floatt r)
 {
     return r < 1.0 ? 2 : ceil(r + 1);
 }
@@ -617,14 +617,14 @@ box_width (double r)
    them to be exchanged at this point.
 */
 
-static double
-linear_kernel (double x, double r)
+static floatt
+linear_kernel (floatt x, floatt r)
 {
     return MAX (1.0 - fabs(x), 0.0);
 }
 
 static int
-linear_width (double r)
+linear_width (floatt r)
 {
     return 2;
 }
@@ -634,10 +634,10 @@ linear_width (double r)
    all possible cubic functions that can be used for sampling.
 */
 
-static double
-general_cubic (double x, double r, double B, double C)
+static floatt
+general_cubic (floatt x, floatt r, floatt B, floatt C)
 {
-    double ax;
+    floatt ax;
     if (r < 1.0)
 	return
 	    general_cubic(x * 2 - .5, r * 2, B, C) +
@@ -665,7 +665,7 @@ general_cubic (double x, double r, double B, double C)
 }
 
 static int
-cubic_width (double r)
+cubic_width (floatt r)
 {
     return MAX (2, ceil (r * 4));
 }
@@ -677,8 +677,8 @@ cubic_width (double r)
    close to lanczos2 so there is no reason to supply that as well.
 */
 
-static double
-cubic_kernel (double x, double r)
+static floatt
+cubic_kernel (floatt x, floatt r)
 {
     return general_cubic (x, r, 0.0, 0.5);
 }
@@ -689,8 +689,8 @@ cubic_kernel (double x, double r)
    an image even if there is no translation.
 */
 
-static double
-mitchell_kernel (double x, double r)
+static floatt
+mitchell_kernel (floatt x, floatt r)
 {
     return general_cubic (x, r, 1/3.0, 1/3.0);
 }
@@ -702,8 +702,8 @@ mitchell_kernel (double x, double r)
    useful than gaussian for image reconstruction.
 */
 
-static double
-notch_kernel (double x, double r)
+static floatt
+notch_kernel (floatt x, floatt r)
 {
     return general_cubic (x, r, 1.5, -0.25);
 }
@@ -714,20 +714,20 @@ notch_kernel (double x, double r)
    mistakes. You will see LANCZOS5 or even 7 sometimes.
 */
 
-static double
-sinc (double x)
+static floatt
+sinc (floatt x)
 {
     return x ? sin (M_PI * x) / (M_PI * x) : 1.0;
 }
 
-static double
-lanczos (double x, double n)
+static floatt
+lanczos (floatt x, floatt n)
 {
     return fabs (x) < n ? sinc (x) * sinc (x * (1.0 / n)) : 0.0;
 }
 
-static double
-lanczos3_kernel (double x, double r)
+static floatt
+lanczos3_kernel (floatt x, floatt r)
 {
     if (r < 1.0)
 	return
@@ -738,7 +738,7 @@ lanczos3_kernel (double x, double r)
 }
 
 static int
-lanczos3_width (double r)
+lanczos3_width (floatt r)
 {
     return MAX (2, ceil (r * 6));
 }
@@ -748,14 +748,14 @@ lanczos3_width (double r)
    http://graphics.cs.cmu.edu/nsp/course/15-462/Fall07/462/papers/jaggy.pdf
 */
 
-static double
-nice_kernel (double x, double r)
+static floatt
+nice_kernel (floatt x, floatt r)
 {
     return lanczos3_kernel (x, r * (4.0/3));
 }
 
 static int
-nice_width (double r)
+nice_width (floatt r)
 {
     return MAX (2.0, ceil (r * 8));
 }
@@ -769,8 +769,8 @@ nice_width (double r)
    them to be exchanged at this point.
 */
 
-static double
-tent_kernel (double x, double r)
+static floatt
+tent_kernel (floatt x, floatt r)
 {
     if (r < 1.0)
 	return box_kernel(x, r);
@@ -779,7 +779,7 @@ tent_kernel (double x, double r)
 }
 
 static int
-tent_width (double r)
+tent_width (floatt r)
 {
     return r < 1.0 ? 2 : ceil(2 * r);
 }
@@ -799,14 +799,14 @@ static const filter_info_t filters[] =
 };
 
 /* Fills in one dimension of the filter array */
-static void get_filter(kernel_t filter, double r,
+static void get_filter(kernel_t filter, floatt r,
 		       int width, int subsample,
 		       pixman_fixed_t* out)
 {
     int i;
     pixman_fixed_t *p = out;
     int n_phases = 1 << subsample;
-    double step = 1.0 / n_phases;
+    floatt step = 1.0 / n_phases;
     kernel_func_t func = filters[filter].func;
 
     /* special-case the impulse filter: */
@@ -819,16 +819,16 @@ static void get_filter(kernel_t filter, double r,
 
     for (i = 0; i < n_phases; ++i)
     {
-	double frac = (i + .5) * step;
+	floatt frac = (i + .5) * step;
 	/* Center of left-most pixel: */
-	double x1 = ceil (frac - width / 2.0 - 0.5) - frac + 0.5;
-	double total = 0;
+	floatt x1 = ceil (frac - width / 2.0 - 0.5) - frac + 0.5;
+	floatt total = 0;
 	pixman_fixed_t new_total = 0;
 	int j;
 
 	for (j = 0; j < width; ++j)
 	{
-	    double v = func(x1 + j, r);
+	    floatt v = func(x1 + j, r);
 	    total += v;
 	    p[j] = pixman_double_to_fixed (v);
 	}
@@ -852,9 +852,9 @@ static void get_filter(kernel_t filter, double r,
 static pixman_fixed_t *
 create_separable_convolution (int *n_values,
 			      kernel_t xfilter,
-			      double sx,
+			      floatt sx,
 			      kernel_t yfilter,
-			      double sy)
+			      floatt sy)
 {
     int xwidth, xsubsample, ywidth, ysubsample, size_x, size_y;
     pixman_fixed_t *params;
@@ -918,7 +918,7 @@ _pixman_image_set_properties (pixman_image_t *pixman_image,
     {
 	pixman_filter_t pixman_filter;
 	kernel_t kernel;
-	double dx, dy;
+	floatt dx, dy;
 
 	/* Compute scale factors from the pattern matrix. These scale
 	 * factors are from user to pattern space, and as such they
@@ -1133,7 +1133,7 @@ _pixman_image_for_recording (cairo_image_surface_t *dst,
 	    return _pixman_transparent_image ();
 
 	if (! _cairo_matrix_is_identity (&pattern->base.matrix)) {
-	    double x1, y1, x2, y2;
+	    floatt x1, y1, x2, y2;
 
 	    matrix = pattern->base.matrix;
 	    status = cairo_matrix_invert (&matrix);

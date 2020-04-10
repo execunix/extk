@@ -71,7 +71,7 @@ struct _cairo_vg_context {
 
     VGPaint		paint;
     cairo_vg_surface_t *source;
-    double		alpha;
+    floatt		alpha;
 
     cairo_cache_t snapshot_cache;
 
@@ -405,7 +405,7 @@ static cairo_status_t
 _vg_surface_clipper_intersect_clip_path (cairo_surface_clipper_t *clipper,
 					 cairo_path_fixed_t *path,
 					 cairo_fill_rule_t   fill_rule,
-					 double              tolerance,
+					 floatt              tolerance,
 					 cairo_antialias_t   antialias)
 {
     cairo_vg_surface_t *surface = cairo_container_of (clipper,
@@ -480,8 +480,8 @@ _vg_move_to (void          *closure,
 	     const cairo_point_t *point)
 {
     vg_path_t *path = closure;
-    double x = _cairo_fixed_to_double (point->x);
-    double y = _cairo_fixed_to_double (point->y);
+    floatt x = _cairo_fixed_to_double (point->x);
+    floatt y = _cairo_fixed_to_double (point->y);
 
     if (path->ctm_inverse)
 	cairo_matrix_transform_point (path->ctm_inverse, &x, &y);
@@ -505,8 +505,8 @@ _vg_line_to (void          *closure,
 	     const cairo_point_t *point)
 {
     vg_path_t *path = closure;
-    double x = _cairo_fixed_to_double (point->x);
-    double y = _cairo_fixed_to_double (point->y);
+    floatt x = _cairo_fixed_to_double (point->x);
+    floatt y = _cairo_fixed_to_double (point->y);
 
     if (path->ctm_inverse)
 	cairo_matrix_transform_point (path->ctm_inverse, &x, &y);
@@ -532,12 +532,12 @@ _vg_curve_to (void          *closure,
 	      const cairo_point_t *p2)
 {
     vg_path_t *path = closure;
-    double x0 = _cairo_fixed_to_double (p0->x);
-    double y0 = _cairo_fixed_to_double (p0->y);
-    double x1 = _cairo_fixed_to_double (p1->x);
-    double y1 = _cairo_fixed_to_double (p1->y);
-    double x2 = _cairo_fixed_to_double (p2->x);
-    double y2 = _cairo_fixed_to_double (p2->y);
+    floatt x0 = _cairo_fixed_to_double (p0->x);
+    floatt y0 = _cairo_fixed_to_double (p0->y);
+    floatt x1 = _cairo_fixed_to_double (p1->x);
+    floatt y1 = _cairo_fixed_to_double (p1->y);
+    floatt x2 = _cairo_fixed_to_double (p2->x);
+    floatt y2 = _cairo_fixed_to_double (p2->y);
 
     if (path->ctm_inverse) {
 	cairo_matrix_transform_point (path->ctm_inverse, &x0, &y0);
@@ -1065,7 +1065,7 @@ _vg_surface_stroke (void                       *abstract_surface,
 		    const cairo_stroke_style_t *style,
 		    const cairo_matrix_t       *ctm,
 		    const cairo_matrix_t       *ctm_inverse,
-		    double                      tolerance,
+		    floatt                      tolerance,
 		    cairo_antialias_t           antialias,
 		    const cairo_clip_t         *clip)
 {
@@ -1139,7 +1139,7 @@ _vg_surface_fill (void                     *abstract_surface,
 		  const cairo_pattern_t    *source,
 		  const cairo_path_fixed_t *path,
 		  cairo_fill_rule_t         fill_rule,
-		  double                    tolerance,
+		  floatt                    tolerance,
 		  cairo_antialias_t         antialias,
 		  const cairo_clip_t       *clip)
 {
@@ -1284,7 +1284,7 @@ _vg_surface_mask (void                   *abstract_surface,
     if (mask->type == CAIRO_PATTERN_TYPE_SOLID) {
 	cairo_solid_pattern_t *solid = (cairo_solid_pattern_t *) mask;
 	cairo_vg_context_t *context = _vg_context_lock (surface->context);
-	double alpha = context->alpha;
+	floatt alpha = context->alpha;
 
 	context->alpha = solid->color.alpha;
 	status = _vg_surface_paint (abstract_surface, op, source, clip);

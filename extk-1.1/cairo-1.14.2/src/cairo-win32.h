@@ -90,7 +90,7 @@ cairo_win32_scaled_font_select_font (cairo_scaled_font_t *scaled_font,
 cairo_public void
 cairo_win32_scaled_font_done_font (cairo_scaled_font_t *scaled_font);
 
-cairo_public double
+cairo_public floatt
 cairo_win32_scaled_font_get_metrics_factor (cairo_scaled_font_t *scaled_font);
 
 cairo_public void

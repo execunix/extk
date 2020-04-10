@@ -577,7 +577,7 @@ void ExWindow::onWmPaint(ExWindow* window, const ExRegion* updateRgn) {
     SelectClipRgn(hdc, hrgn);
     // rcPaint : Specifies a RECT structure that specifies the upper left and lower right corners
     //           of the rectangle in which the painting is requested.
-    logdra1(L"[0x%p] WM_PAINT hdc=0x%p x=%d y=%d w=%d h=%d\n",
+    logdraw(L"[0x%p] WM_PAINT hdc=0x%p x=%d y=%d w=%d h=%d\n",
             hwnd, hdc, clip.l, clip.t, clip.width(), clip.height());
 #endif
 
@@ -932,22 +932,14 @@ ExWindow::sysWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
         return TRUE;
     }
 #endif
-#if 0 // tbd
     if (message == WM_GETMINMAXINFO) {
-        logproc(L"[0x%p] WM_GETMINMAXINFO\n", hwnd);
-        LPMINMAXINFO mmi;
-        mmi = (LPMINMAXINFO)lParam;
-        mmi->ptMinTrackSize.x = 200;
-        mmi->ptMinTrackSize.y = 100;
-        mmi->ptMaxTrackSize.x = 1900;
-        mmi->ptMaxTrackSize.y = 1060;
-        mmi->ptMaxPosition.x = 10;
-        mmi->ptMaxPosition.y = 10;
-        mmi->ptMaxSize.x = 1920;
-        mmi->ptMaxSize.y = 1080;
+        MINMAXINFO* mmi = (MINMAXINFO*)lParam;
+        logproc(L"[0x%p] WM_GETMINMAXINFO %d %d,%d\n", hwnd, wParam,
+                mmi->ptMinTrackSize.x, mmi->ptMinTrackSize.y);
+        mmi->ptMinTrackSize.x = 640 + 16;
+        mmi->ptMinTrackSize.y = 360 + 39;
         return 0;
     }
-#endif
 
     //window = (ExWindow*)GetWindowLong(hwnd, GWL_USERDATA);
     window = attachWindowMap[hwnd];

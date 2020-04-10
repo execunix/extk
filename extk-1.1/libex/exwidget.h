@@ -331,7 +331,7 @@ Description:
     This function invokes the provided callback list cbList.
 Returns:
     A return status from the callback list:
-        Ex_Continue/Ex_Remove/Ex_Break/Ex_Halt/Ex_End
+        Ex_Continue/Ex_Remove/Ex_Break/Ex_End/Ex_Halt
     If the returned status is Ex_End, have your function consume the event and remove it.
 */
 
@@ -347,7 +347,7 @@ Description:
     This function invokes a callback list of type for a widget.
 Returns:
     A return status from the callback list:
-        Ex_Continue/Ex_Remove/Ex_Break/Ex_Halt/Ex_End
+        Ex_Continue/Ex_Remove/Ex_Break/Ex_End/Ex_Halt
     If the returned status is Ex_Break, have your function consume the event.
     If the returned status is Ex_Remove, have your widget remove the callback.
 */

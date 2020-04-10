@@ -649,8 +649,8 @@ void
 _cairo_trapezoid_array_translate_and_scale (cairo_trapezoid_t *offset_traps,
                                             cairo_trapezoid_t *src_traps,
                                             int num_traps,
-                                            double tx, double ty,
-                                            double sx, double sy)
+                                            floatt tx, floatt ty,
+                                            floatt sx, floatt sy)
 {
     int i;
     cairo_fixed_t xoff = _cairo_fixed_from_double (tx);
@@ -715,7 +715,7 @@ _cairo_trap_contains (cairo_trapezoid_t *t, cairo_point_t *pt)
 
 cairo_bool_t
 _cairo_traps_contain (const cairo_traps_t *traps,
-		      double x, double y)
+		      floatt x, floatt y)
 {
     int i;
     cairo_point_t point;

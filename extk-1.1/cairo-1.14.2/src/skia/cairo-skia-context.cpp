@@ -492,7 +492,7 @@ _cairo_skia_context_set_source (void *abstract_cr,
 }
 
 static cairo_status_t
-_cairo_skia_context_set_source_rgba (void *abstract_cr, double red, double green, double blue, double alpha)
+_cairo_skia_context_set_source_rgba (void *abstract_cr, floatt red, floatt green, floatt blue, floatt alpha)
 {
     cairo_skia_context_t *cr = (cairo_skia_context_t *) abstract_cr;
 
@@ -507,8 +507,8 @@ _cairo_skia_context_set_source_rgba (void *abstract_cr, double red, double green
 static cairo_status_t
 _cairo_skia_context_set_source_surface (void *abstract_cr,
 					cairo_surface_t *surface,
-					double	   x,
-					double	   y)
+					floatt	   x,
+					floatt	   y)
 {
     cairo_skia_context_t *cr = (cairo_skia_context_t *) abstract_cr;
     cairo_pattern_t *pattern;
@@ -556,7 +556,7 @@ _cairo_skia_context_get_source (void *abstract_cr)
 
 static cairo_status_t
 _cairo_skia_context_set_tolerance (void *abstract_cr,
-				   double tolerance)
+				   floatt tolerance)
 {
     //cairo_skia_context_t *cr = (cairo_skia_context_t *) abstract_cr;
 
@@ -618,7 +618,7 @@ _cairo_skia_context_set_operator (void *abstract_cr, cairo_operator_t op)
 }
 
 static cairo_status_t
-_cairo_skia_context_set_opacity (void *abstract_cr, double opacity)
+_cairo_skia_context_set_opacity (void *abstract_cr, floatt opacity)
 {
     //cairo_skia_context_t *cr = (cairo_skia_context_t *) abstract_cr;
 
@@ -647,7 +647,7 @@ _cairo_skia_context_set_fill_rule (void *abstract_cr,
 
 static cairo_status_t
 _cairo_skia_context_set_line_width (void *abstract_cr,
-				    double line_width)
+				    floatt line_width)
 {
     cairo_skia_context_t *cr = (cairo_skia_context_t *) abstract_cr;
 
@@ -685,9 +685,9 @@ _cairo_skia_context_set_line_join (void *abstract_cr,
 
 static cairo_status_t
 _cairo_skia_context_set_dash (void *abstract_cr,
-			      const double *dashes,
+			      const floatt *dashes,
 			      int	      num_dashes,
-			      double	      offset)
+			      floatt	      offset)
 {
     cairo_skia_context_t *cr = (cairo_skia_context_t *) abstract_cr;
     SkScalar intervals_static[20];
@@ -722,7 +722,7 @@ _cairo_skia_context_set_dash (void *abstract_cr,
 }
 
 static cairo_status_t
-_cairo_skia_context_set_miter_limit (void *abstract_cr, double limit)
+_cairo_skia_context_set_miter_limit (void *abstract_cr, floatt limit)
 {
     cairo_skia_context_t *cr = (cairo_skia_context_t *) abstract_cr;
 
@@ -740,9 +740,9 @@ _cairo_skia_context_get_antialias (void *abstract_cr)
 
 static void
 _cairo_skia_context_get_dash (void *abstract_cr,
-			      double *dashes,
+			      floatt *dashes,
 			      int *num_dashes,
-			      double *offset)
+			      floatt *offset)
 {
     //cairo_skia_context_t *cr = (cairo_skia_context_t *) abstract_cr;
 
@@ -766,7 +766,7 @@ _cairo_skia_context_get_fill_rule (void *abstract_cr)
     return CAIRO_FILL_RULE_WINDING;
 }
 
-static double
+static floatt
 _cairo_skia_context_get_line_width (void *abstract_cr)
 {
     cairo_skia_context_t *cr = (cairo_skia_context_t *) abstract_cr;
@@ -798,7 +798,7 @@ _cairo_skia_context_get_line_join (void *abstract_cr)
     return map[cr->paint->getStrokeJoin ()];
 }
 
-static double
+static floatt
 _cairo_skia_context_get_miter_limit (void *abstract_cr)
 {
     cairo_skia_context_t *cr = (cairo_skia_context_t *) abstract_cr;
@@ -816,7 +816,7 @@ _cairo_skia_context_get_operator (void *abstract_cr)
     return CAIRO_OPERATOR_OVER;
 }
 
-static double
+static floatt
 _cairo_skia_context_get_opacity (void *abstract_cr)
 {
     //cairo_skia_context_t *cr = (cairo_skia_context_t *) abstract_cr;
@@ -825,7 +825,7 @@ _cairo_skia_context_get_opacity (void *abstract_cr)
     return 1.;
 }
 
-static double
+static floatt
 _cairo_skia_context_get_tolerance (void *abstract_cr)
 {
     //cairo_skia_context_t *cr = (cairo_skia_context_t *) abstract_cr;
@@ -839,8 +839,8 @@ _cairo_skia_context_get_tolerance (void *abstract_cr)
 
 static cairo_status_t
 _cairo_skia_context_translate (void *abstract_cr,
-			       double tx,
-			       double ty)
+			       floatt tx,
+			       floatt ty)
 {
     cairo_skia_context_t *cr = (cairo_skia_context_t *) abstract_cr;
 
@@ -850,8 +850,8 @@ _cairo_skia_context_translate (void *abstract_cr,
 
 static cairo_status_t
 _cairo_skia_context_scale (void *abstract_cr,
-			   double sx,
-			      double sy)
+			   floatt sx,
+			      floatt sy)
 {
     cairo_skia_context_t *cr = (cairo_skia_context_t *) abstract_cr;
 
@@ -861,7 +861,7 @@ _cairo_skia_context_scale (void *abstract_cr,
 
 static cairo_status_t
 _cairo_skia_context_rotate (void *abstract_cr,
-			    double theta)
+			    floatt theta)
 {
     cairo_skia_context_t *cr = (cairo_skia_context_t *) abstract_cr;
 
@@ -909,8 +909,8 @@ _cairo_skia_context_get_matrix (void *abstract_cr,
 
 static void
 _cairo_skia_context_user_to_device (void *abstract_cr,
-				    double *x,
-				    double *y)
+				    floatt *x,
+				    floatt *y)
 {
     cairo_skia_context_t *cr = (cairo_skia_context_t *) abstract_cr;
 
@@ -919,8 +919,8 @@ _cairo_skia_context_user_to_device (void *abstract_cr,
 
 static void
 _cairo_skia_context_user_to_device_distance (void *abstract_cr,
-					     double *dx,
-					     double *dy)
+					     floatt *dx,
+					     floatt *dy)
 {
     cairo_skia_context_t *cr = (cairo_skia_context_t *) abstract_cr;
 
@@ -929,8 +929,8 @@ _cairo_skia_context_user_to_device_distance (void *abstract_cr,
 
 static void
 _cairo_skia_context_device_to_user (void *abstract_cr,
-				    double *x,
-				    double *y)
+				    floatt *x,
+				    floatt *y)
 {
     cairo_skia_context_t *cr = (cairo_skia_context_t *) abstract_cr;
     cairo_matrix_t inverse;
@@ -945,8 +945,8 @@ _cairo_skia_context_device_to_user (void *abstract_cr,
 
 static void
 _cairo_skia_context_device_to_user_distance (void *abstract_cr,
-					     double *dx,
-					     double *dy)
+					     floatt *dx,
+					     floatt *dy)
 {
     cairo_skia_context_t *cr = (cairo_skia_context_t *) abstract_cr;
     cairo_matrix_t inverse;
@@ -980,21 +980,21 @@ _cairo_skia_context_new_sub_path (void *abstract_cr)
 }
 
 static void
-user_to_device_point (cairo_skia_context_t *cr, double *x, double *y)
+user_to_device_point (cairo_skia_context_t *cr, floatt *x, floatt *y)
 {
     cairo_matrix_transform_point (&cr->matrix, x, y);
     cairo_matrix_transform_point (&cr->target->image.base.device_transform, x, y);
 }
 
 static void
-user_to_device_distance (cairo_skia_context_t *cr, double *dx, double *dy)
+user_to_device_distance (cairo_skia_context_t *cr, floatt *dx, floatt *dy)
 {
     cairo_matrix_transform_distance (&cr->matrix, dx, dy);
     cairo_matrix_transform_distance (&cr->target->image.base.device_transform, dx, dy);
 }
 
 static cairo_status_t
-_cairo_skia_context_move_to (void *abstract_cr, double x, double y)
+_cairo_skia_context_move_to (void *abstract_cr, floatt x, floatt y)
 {
     cairo_skia_context_t *cr = (cairo_skia_context_t *) abstract_cr;
 
@@ -1004,7 +1004,7 @@ _cairo_skia_context_move_to (void *abstract_cr, double x, double y)
 }
 
 static cairo_status_t
-_cairo_skia_context_line_to (void *abstract_cr, double x, double y)
+_cairo_skia_context_line_to (void *abstract_cr, floatt x, floatt y)
 {
     cairo_skia_context_t *cr = (cairo_skia_context_t *) abstract_cr;
 
@@ -1015,9 +1015,9 @@ _cairo_skia_context_line_to (void *abstract_cr, double x, double y)
 
 static cairo_status_t
 _cairo_skia_context_curve_to (void *abstract_cr,
-			      double x1, double y1,
-			      double x2, double y2,
-			      double x3, double y3)
+			      floatt x1, floatt y1,
+			      floatt x2, floatt y2,
+			      floatt x3, floatt y3)
 {
     cairo_skia_context_t *cr = (cairo_skia_context_t *) abstract_cr;
 
@@ -1032,9 +1032,9 @@ _cairo_skia_context_curve_to (void *abstract_cr,
 
 static cairo_status_t
 _cairo_skia_context_arc_to (void *abstract_cr,
-			    double x1, double y1,
-			    double x2, double y2,
-			    double radius)
+			    floatt x1, floatt y1,
+			    floatt x2, floatt y2,
+			    floatt radius)
 {
     cairo_skia_context_t *cr = (cairo_skia_context_t *) abstract_cr;
 
@@ -1051,7 +1051,7 @@ _cairo_skia_context_arc_to (void *abstract_cr,
 }
 
 static cairo_status_t
-_cairo_skia_context_rel_move_to (void *abstract_cr, double dx, double dy)
+_cairo_skia_context_rel_move_to (void *abstract_cr, floatt dx, floatt dy)
 {
     cairo_skia_context_t *cr = (cairo_skia_context_t *) abstract_cr;
 
@@ -1061,7 +1061,7 @@ _cairo_skia_context_rel_move_to (void *abstract_cr, double dx, double dy)
 }
 
 static cairo_status_t
-_cairo_skia_context_rel_line_to (void *abstract_cr, double dx, double dy)
+_cairo_skia_context_rel_line_to (void *abstract_cr, floatt dx, floatt dy)
 {
     cairo_skia_context_t *cr = (cairo_skia_context_t *) abstract_cr;
 
@@ -1072,9 +1072,9 @@ _cairo_skia_context_rel_line_to (void *abstract_cr, double dx, double dy)
 
 static cairo_status_t
 _cairo_skia_context_rel_curve_to (void *abstract_cr,
-				  double dx1, double dy1,
-				  double dx2, double dy2,
-				  double dx3, double dy3)
+				  floatt dx1, floatt dy1,
+				  floatt dx2, floatt dy2,
+				  floatt dx3, floatt dy3)
 {
     cairo_skia_context_t *cr = (cairo_skia_context_t *) abstract_cr;
 
@@ -1089,9 +1089,9 @@ _cairo_skia_context_rel_curve_to (void *abstract_cr,
 
 static cairo_status_t
 _cairo_skia_context_rel_arc_to (void *abstract_cr,
-				double dx1, double dy1,
-				double dx2, double dy2,
-				double radius)
+				floatt dx1, floatt dy1,
+				floatt dx2, floatt dy2,
+				floatt radius)
 {
     cairo_skia_context_t *cr = (cairo_skia_context_t *) abstract_cr;
 
@@ -1118,11 +1118,11 @@ _cairo_skia_context_close_path (void *abstract_cr)
 
 static cairo_status_t
 _cairo_skia_context_rectangle (void *abstract_cr,
-			       double x, double y,
-			       double width, double height)
+			       floatt x, floatt y,
+			       floatt width, floatt height)
 {
     cairo_skia_context_t *cr = (cairo_skia_context_t *) abstract_cr;
-    double x1, y1, x2, y2;
+    floatt x1, y1, x2, y2;
 
     /* XXX assume no rotation! */
     x1 = x, y1 = y;
@@ -1138,8 +1138,8 @@ _cairo_skia_context_rectangle (void *abstract_cr,
 
 static cairo_status_t
 _cairo_skia_context_arc (void *abstract_cr,
-			 double xc, double yc, double radius,
-			 double angle1, double angle2,
+			 floatt xc, floatt yc, floatt radius,
+			 floatt angle1, floatt angle2,
 			 cairo_bool_t forward)
 {
     cairo_skia_context_t *cr = (cairo_skia_context_t *) abstract_cr;
@@ -1177,10 +1177,10 @@ _cairo_skia_context_arc (void *abstract_cr,
 
 static void
 _cairo_skia_context_path_extents (void *abstract_cr,
-				  double *x1,
-				  double *y1,
-				  double *x2,
-				  double *y2)
+				  floatt *x1,
+				  floatt *y1,
+				  floatt *x2,
+				  floatt *y2)
 {
     cairo_skia_context_t *cr = (cairo_skia_context_t *) abstract_cr;
     SkRect rect;
@@ -1201,8 +1201,8 @@ _cairo_skia_context_has_current_point (void *abstract_cr)
 
 static cairo_bool_t
 _cairo_skia_context_get_current_point (void *abstract_cr,
-				       double *x,
-				       double *y)
+				       floatt *x,
+				       floatt *y)
 {
     cairo_skia_context_t *cr = (cairo_skia_context_t *) abstract_cr;
     SkPoint pt;
@@ -1287,7 +1287,7 @@ _cairo_skia_context_paint (void *abstract_cr)
 
 static cairo_status_t
 _cairo_skia_context_paint_with_alpha (void *abstract_cr,
-				      double alpha)
+				      floatt alpha)
 {
     cairo_skia_context_t *cr = (cairo_skia_context_t *) abstract_cr;
     cairo_status_t status;
@@ -1341,7 +1341,7 @@ _cairo_skia_context_stroke (void *abstract_cr)
 
 static cairo_status_t
 _cairo_skia_context_in_stroke (void *abstract_cr,
-			       double x, double y,
+			       floatt x, floatt y,
 			       cairo_bool_t *inside)
 {
     //cairo_skia_context_t *cr = (cairo_skia_context_t *) abstract_cr;
@@ -1352,7 +1352,7 @@ _cairo_skia_context_in_stroke (void *abstract_cr,
 
 static cairo_status_t
 _cairo_skia_context_stroke_extents (void *abstract_cr,
-				    double *x1, double *y1, double *x2, double *y2)
+				    floatt *x1, floatt *y1, floatt *x2, floatt *y2)
 {
     //cairo_skia_context_t *cr = (cairo_skia_context_t *) abstract_cr;
 
@@ -1385,7 +1385,7 @@ _cairo_skia_context_fill (void *abstract_cr)
 
 static cairo_status_t
 _cairo_skia_context_in_fill (void *abstract_cr,
-				double x, double y,
+				floatt x, floatt y,
 				cairo_bool_t *inside)
 {
     //cairo_skia_context_t *cr = (cairo_skia_context_t *) abstract_cr;
@@ -1396,7 +1396,7 @@ _cairo_skia_context_in_fill (void *abstract_cr,
 
 static cairo_status_t
 _cairo_skia_context_fill_extents (void *abstract_cr,
-				     double *x1, double *y1, double *x2, double *y2)
+				     floatt *x1, floatt *y1, floatt *x2, floatt *y2)
 {
     //cairo_skia_context_t *cr = (cairo_skia_context_t *) abstract_cr;
 
@@ -1428,7 +1428,7 @@ _cairo_skia_context_clip (void *abstract_cr)
 
 static cairo_status_t
 _cairo_skia_context_in_clip (void *abstract_cr,
-			     double x, double y,
+			     floatt x, floatt y,
 			     cairo_bool_t *inside)
 {
     //cairo_skia_context_t *cr = (cairo_skia_context_t *) abstract_cr;
@@ -1449,8 +1449,8 @@ _cairo_skia_context_reset_clip (void *abstract_cr)
 
 static cairo_status_t
 _cairo_skia_context_clip_extents (void *abstract_cr,
-				  double *x1, double *y1,
-				  double *x2, double *y2)
+				  floatt *x1, floatt *y1,
+				  floatt *x2, floatt *y2)
 {
     //cairo_skia_context_t *cr = (cairo_skia_context_t *) abstract_cr;
 
@@ -1515,7 +1515,7 @@ _cairo_skia_context_font_extents (void *abstract_cr,
 
 static cairo_status_t
 _cairo_skia_context_set_font_size (void *abstract_cr,
-				   double size)
+				   floatt size)
 {
     //cairo_skia_context_t *cr = (cairo_skia_context_t *) abstract_cr;
 

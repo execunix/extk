@@ -455,7 +455,7 @@ _cairo_analysis_surface_stroke (void			*abstract_surface,
 				const cairo_stroke_style_t	*style,
 				const cairo_matrix_t		*ctm,
 				const cairo_matrix_t		*ctm_inverse,
-				double			 tolerance,
+				floatt			 tolerance,
 				cairo_antialias_t	 antialias,
 				const cairo_clip_t		*clip)
 {
@@ -506,7 +506,7 @@ _cairo_analysis_surface_fill (void			*abstract_surface,
 			      const cairo_pattern_t	*source,
 			      const cairo_path_fixed_t	*path,
 			      cairo_fill_rule_t		 fill_rule,
-			      double			 tolerance,
+			      floatt			 tolerance,
 			      cairo_antialias_t		 antialias,
 			      const cairo_clip_t		*clip)
 {
@@ -857,7 +857,7 @@ typedef cairo_int_status_t
 				 const cairo_stroke_style_t	*style,
 				 const cairo_matrix_t		*ctm,
 				 const cairo_matrix_t		*ctm_inverse,
-				 double			 tolerance,
+				 floatt			 tolerance,
 				 cairo_antialias_t	 antialias,
 				 const cairo_clip_t		*clip);
 
@@ -867,7 +867,7 @@ typedef cairo_int_status_t
 				 const cairo_pattern_t	*source,
 				 const cairo_path_fixed_t	*path,
 				 cairo_fill_rule_t	 fill_rule,
-				 double			 tolerance,
+				 floatt			 tolerance,
 				 cairo_antialias_t	 antialias,
 				 const cairo_clip_t		*clip);
 

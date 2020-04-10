@@ -141,7 +141,7 @@ struct _cairo_surface_backend {
 				 const cairo_stroke_style_t	*style,
 				 const cairo_matrix_t	*ctm,
 				 const cairo_matrix_t	*ctm_inverse,
-				 double			 tolerance,
+				 floatt			 tolerance,
 				 cairo_antialias_t	 antialias,
 				 const cairo_clip_t		*clip);
 
@@ -151,7 +151,7 @@ struct _cairo_surface_backend {
 				 const cairo_pattern_t	*source,
 				 const cairo_path_fixed_t	*path,
 				 cairo_fill_rule_t	 fill_rule,
-				 double			 tolerance,
+				 floatt			 tolerance,
 				 cairo_antialias_t	 antialias,
 				 const cairo_clip_t           *clip);
 
@@ -160,7 +160,7 @@ struct _cairo_surface_backend {
 				 cairo_operator_t	 fill_op,
 				 const cairo_pattern_t	*fill_source,
 				 cairo_fill_rule_t	 fill_rule,
-				 double			 fill_tolerance,
+				 floatt			 fill_tolerance,
 				 cairo_antialias_t	 fill_antialias,
 				 const cairo_path_fixed_t*path,
 				 cairo_operator_t	 stroke_op,
@@ -168,7 +168,7 @@ struct _cairo_surface_backend {
 				 const cairo_stroke_style_t	*stroke_style,
 				 const cairo_matrix_t	*stroke_ctm,
 				 const cairo_matrix_t	*stroke_ctm_inverse,
-				 double			 stroke_tolerance,
+				 floatt			 stroke_tolerance,
 				 cairo_antialias_t	 stroke_antialias,
 				 const cairo_clip_t	*clip);
 

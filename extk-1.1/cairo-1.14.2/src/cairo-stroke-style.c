@@ -70,12 +70,12 @@ _cairo_stroke_style_init_copy (cairo_stroke_style_t *style,
     if (other->dash == NULL) {
 	style->dash = NULL;
     } else {
-	style->dash = _cairo_malloc_ab (style->num_dashes, sizeof (double));
+	style->dash = _cairo_malloc_ab (style->num_dashes, sizeof (floatt));
 	if (unlikely (style->dash == NULL))
 	    return _cairo_error (CAIRO_STATUS_NO_MEMORY);
 
 	memcpy (style->dash, other->dash,
-		style->num_dashes * sizeof (double));
+		style->num_dashes * sizeof (floatt));
     }
 
     style->dash_offset = other->dash_offset;
@@ -103,9 +103,9 @@ void
 _cairo_stroke_style_max_distance_from_path (const cairo_stroke_style_t *style,
 					    const cairo_path_fixed_t *path,
                                             const cairo_matrix_t *ctm,
-                                            double *dx, double *dy)
+                                            floatt *dx, floatt *dy)
 {
-    double style_expansion = 0.5;
+    floatt style_expansion = 0.5;
 
     if (style->line_cap == CAIRO_LINE_CAP_SQUARE)
 	style_expansion = M_SQRT1_2;
@@ -131,9 +131,9 @@ void
 _cairo_stroke_style_max_line_distance_from_path (const cairo_stroke_style_t *style,
 						 const cairo_path_fixed_t *path,
 						 const cairo_matrix_t *ctm,
-						 double *dx, double *dy)
+						 floatt *dx, floatt *dy)
 {
-    double style_expansion = 0.5 * style->line_width;
+    floatt style_expansion = 0.5 * style->line_width;
     if (_cairo_matrix_has_unity_scale (ctm)) {
 	*dx = *dy = style_expansion;
     } else {
@@ -146,9 +146,9 @@ void
 _cairo_stroke_style_max_join_distance_from_path (const cairo_stroke_style_t *style,
 						 const cairo_path_fixed_t *path,
 						 const cairo_matrix_t *ctm,
-						 double *dx, double *dy)
+						 floatt *dx, floatt *dy)
 {
-    double style_expansion = 0.5;
+    floatt style_expansion = 0.5;
 
     if (style->line_join == CAIRO_LINE_JOIN_MITER &&
 	! path->stroke_is_rectilinear &&
@@ -170,10 +170,10 @@ _cairo_stroke_style_max_join_distance_from_path (const cairo_stroke_style_t *sty
  * Computes the period of a dashed stroke style.
  * Returns 0 for non-dashed styles.
  */
-double
+floatt
 _cairo_stroke_style_dash_period (const cairo_stroke_style_t *style)
 {
-    double period;
+    floatt period;
     unsigned int i;
 
     period = 0.0;
@@ -213,10 +213,10 @@ _cairo_stroke_style_dash_period (const cairo_stroke_style_t *style)
  * taking into account also line caps.
  * Returns 0 for non-dashed styles.
  */
-double
+floatt
 _cairo_stroke_style_dash_stroked (const cairo_stroke_style_t *style)
 {
-    double stroked, cap_scale;
+    floatt stroked, cap_scale;
     unsigned int i;
 
     switch (style->line_cap) {
@@ -251,9 +251,9 @@ _cairo_stroke_style_dash_stroked (const cairo_stroke_style_t *style)
 cairo_bool_t
 _cairo_stroke_style_dash_can_approximate (const cairo_stroke_style_t *style,
 					  const cairo_matrix_t *ctm,
-					  double tolerance)
+					  floatt tolerance)
 {
-    double period;
+    floatt period;
 
     if (! style->num_dashes)
         return FALSE;
@@ -269,12 +269,12 @@ _cairo_stroke_style_dash_can_approximate (const cairo_stroke_style_t *style,
 void
 _cairo_stroke_style_dash_approximate (const cairo_stroke_style_t *style,
 				      const cairo_matrix_t *ctm,
-				      double tolerance,
-				      double *dash_offset,
-				      double *dashes,
+				      floatt tolerance,
+				      floatt *dash_offset,
+				      floatt *dashes,
 				      unsigned int *num_dashes)
 {
-    double coverage, scale, offset;
+    floatt coverage, scale, offset;
     cairo_bool_t on = TRUE;
     unsigned int i = 0;
 

@@ -106,7 +106,7 @@ _cpc_close_path (void *closure)
 static int
 _cairo_path_count (cairo_path_t		*path,
 		   cairo_path_fixed_t	*path_fixed,
-		   double		 tolerance,
+		   floatt		 tolerance,
 		   cairo_bool_t		 flatten)
 {
     cairo_status_t status;
@@ -148,7 +148,7 @@ _cpp_move_to (void *closure,
 {
     cpp_t *cpp = closure;
     cairo_path_data_t *data = cpp->data;
-    double x, y;
+    floatt x, y;
 
     x = _cairo_fixed_to_double (point->x);
     y = _cairo_fixed_to_double (point->y);
@@ -173,7 +173,7 @@ _cpp_line_to (void *closure,
 {
     cpp_t *cpp = closure;
     cairo_path_data_t *data = cpp->data;
-    double x, y;
+    floatt x, y;
 
     x = _cairo_fixed_to_double (point->x);
     y = _cairo_fixed_to_double (point->y);
@@ -200,9 +200,9 @@ _cpp_curve_to (void			*closure,
 {
     cpp_t *cpp = closure;
     cairo_path_data_t *data = cpp->data;
-    double x1, y1;
-    double x2, y2;
-    double x3, y3;
+    floatt x1, y1;
+    floatt x2, y2;
+    floatt x3, y3;
 
     x1 = _cairo_fixed_to_double (p1->x);
     y1 = _cairo_fixed_to_double (p1->y);

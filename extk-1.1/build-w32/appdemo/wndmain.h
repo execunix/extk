@@ -49,7 +49,7 @@ public:
     int STDCALL onTimer(ExTimer* timer, ExCbInfo* cbinfo);
     ExWidget toy;
     ExTimer timerToy;
-    double toy_alpha, toy_delta, toy_scale;
+    float toy_alpha, toy_delta, toy_scale;
     void STDCALL onDrawToy(ExCanvas* canvas, const WndMain* w, const ExRegion* damage);
     int STDCALL onTimerToy(WndMain* w, ExCbInfo* cbinfo);
     void STDCALL onFlushBackBuf(WndMain* w, const ExRegion* updateRgn);

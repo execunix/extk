@@ -137,10 +137,10 @@ typedef struct _cairo_cogl_surface {
     cairo_matrix_t *ctm;
     cairo_matrix_t *ctm_inverse;
     cairo_bool_t path_is_rectangle;
-    double path_rectangle_x;
-    double path_rectangle_y;
-    double path_rectangle_width;
-    double path_rectangle_height;
+    floatt path_rectangle_x;
+    floatt path_rectangle_y;
+    floatt path_rectangle_width;
+    floatt path_rectangle_height;
 } cairo_cogl_surface_t;
 
 cairo_status_t
@@ -154,10 +154,10 @@ cairo_int_status_t
 _cairo_cogl_surface_fill_rectangle (void		     *abstract_surface,
 				    cairo_operator_t	      op,
 				    const cairo_pattern_t    *source,
-				    double		      x,
-				    double		      y,
-				    double		      width,
-				    double		      height,
+				    floatt		      x,
+				    floatt		      y,
+				    floatt		      width,
+				    floatt		      height,
 				    cairo_matrix_t	     *ctm,
 				    const cairo_clip_t	     *clip);
 

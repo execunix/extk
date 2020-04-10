@@ -293,8 +293,8 @@ static cairo_int_status_t
 _paint_fallback_image (cairo_paginated_surface_t *surface,
 		       cairo_rectangle_int_t     *rect)
 {
-    double x_scale = surface->base.x_fallback_resolution / surface->target->x_resolution;
-    double y_scale = surface->base.y_fallback_resolution / surface->target->y_resolution;
+    floatt x_scale = surface->base.x_fallback_resolution / surface->target->x_resolution;
+    floatt y_scale = surface->base.y_fallback_resolution / surface->target->y_resolution;
     int x, y, width, height;
     cairo_status_t status;
     cairo_surface_t *image;
@@ -584,7 +584,7 @@ _cairo_paginated_surface_stroke (void			*abstract_surface,
 				 const cairo_stroke_style_t	*style,
 				 const cairo_matrix_t		*ctm,
 				 const cairo_matrix_t		*ctm_inverse,
-				 double			 tolerance,
+				 floatt			 tolerance,
 				 cairo_antialias_t	 antialias,
 				 const cairo_clip_t		*clip)
 {
@@ -603,7 +603,7 @@ _cairo_paginated_surface_fill (void			*abstract_surface,
 			       const cairo_pattern_t	*source,
 			       const cairo_path_fixed_t	*path,
 			       cairo_fill_rule_t	 fill_rule,
-			       double			 tolerance,
+			       floatt			 tolerance,
 			       cairo_antialias_t	 antialias,
 			       const cairo_clip_t		*clip)
 {

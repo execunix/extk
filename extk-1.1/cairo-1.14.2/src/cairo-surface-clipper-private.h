@@ -48,7 +48,7 @@ typedef cairo_status_t
 (*cairo_surface_clipper_intersect_clip_path_func_t) (cairo_surface_clipper_t *,
 						     cairo_path_fixed_t *,
 						     cairo_fill_rule_t,
-						     double,
+						     floatt,
 						     cairo_antialias_t);
 struct _cairo_surface_clipper {
     cairo_clip_t *clip;

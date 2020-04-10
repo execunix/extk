@@ -66,7 +66,7 @@ typedef struct _cairo_xml {
 struct _cairo_xml_surface {
     cairo_surface_t base;
 
-    double width, height;
+    floatt width, height;
 };
 
 slim_hidden_proto (cairo_xml_for_recording_surface);
@@ -447,7 +447,7 @@ _cairo_xml_emit_string (cairo_xml_t *xml,
 static void
 _cairo_xml_emit_double (cairo_xml_t *xml,
 			const char *node,
-			double data)
+			floatt data)
 {
     _cairo_xml_printf (xml, "<%s>%f</%s>", node, data, node);
 }
@@ -824,7 +824,7 @@ _cairo_xml_surface_stroke (void				*abstract_surface,
 			   const cairo_stroke_style_t		*style,
 			   const cairo_matrix_t		*ctm,
 			   const cairo_matrix_t		*ctm_inverse,
-			   double			 tolerance,
+			   floatt			 tolerance,
 			   cairo_antialias_t		 antialias,
 			   const cairo_clip_t		*clip)
 {
@@ -878,7 +878,7 @@ _cairo_xml_surface_fill (void			*abstract_surface,
 			 const cairo_pattern_t	*source,
 			 const cairo_path_fixed_t*path,
 			 cairo_fill_rule_t	 fill_rule,
-			 double			 tolerance,
+			 floatt			 tolerance,
 			 cairo_antialias_t	 antialias,
 			 const cairo_clip_t	*clip)
 {
@@ -1093,8 +1093,8 @@ _cairo_xml_surface_backend = {
 static cairo_surface_t *
 _cairo_xml_surface_create_internal (cairo_device_t *device,
 				    cairo_content_t content,
-				    double width,
-				    double height)
+				    floatt width,
+				    floatt height)
 {
     cairo_xml_surface_t *surface;
 
@@ -1143,7 +1143,7 @@ cairo_xml_create_for_stream (cairo_write_func_t	 write_func,
 cairo_surface_t *
 cairo_xml_surface_create (cairo_device_t *device,
 			  cairo_content_t content,
-			  double width, double height)
+			  floatt width, floatt height)
 {
     if (unlikely (device->backend->type != CAIRO_DEVICE_TYPE_XML))
 	return _cairo_surface_create_in_error (CAIRO_STATUS_DEVICE_TYPE_MISMATCH);

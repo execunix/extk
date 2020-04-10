@@ -157,7 +157,7 @@ struct _cairo_script_font {
 struct _cairo_script_implicit_context {
     cairo_operator_t current_operator;
     cairo_fill_rule_t current_fill_rule;
-    double current_tolerance;
+    floatt current_tolerance;
     cairo_antialias_t current_antialias;
     cairo_stroke_style_t current_style;
     cairo_pattern_union_t current_source;
@@ -182,7 +182,7 @@ struct _cairo_script_surface {
     cairo_bool_t defined;
     cairo_bool_t active;
 
-    double width, height;
+    floatt width, height;
 
     /* implicit flattened context */
     cairo_script_implicit_context_t cr;
@@ -647,7 +647,7 @@ _emit_fill_rule (cairo_script_surface_t *surface,
 
 static cairo_status_t
 _emit_tolerance (cairo_script_surface_t *surface,
-		 double tolerance,
+		 floatt tolerance,
 		 cairo_bool_t force)
 {
     assert (target_is_active (surface));
@@ -687,7 +687,7 @@ _emit_antialias (cairo_script_surface_t *surface,
 
 static cairo_status_t
 _emit_line_width (cairo_script_surface_t *surface,
-		 double line_width,
+		 floatt line_width,
 		 cairo_bool_t force)
 {
     assert (target_is_active (surface));
@@ -743,7 +743,7 @@ _emit_line_join (cairo_script_surface_t *surface,
 
 static cairo_status_t
 _emit_miter_limit (cairo_script_surface_t *surface,
-		   double miter_limit,
+		   floatt miter_limit,
 		   cairo_bool_t force)
 {
     assert (target_is_active (surface));
@@ -764,7 +764,7 @@ _emit_miter_limit (cairo_script_surface_t *surface,
 }
 
 static cairo_bool_t
-_dashes_equal (const double *a, const double *b, int num_dashes)
+_dashes_equal (const floatt *a, const floatt *b, int num_dashes)
 {
     while (num_dashes--) {
 	if (fabs (*a - *b) > 1e-5)
@@ -777,9 +777,9 @@ _dashes_equal (const double *a, const double *b, int num_dashes)
 
 static cairo_status_t
 _emit_dash (cairo_script_surface_t *surface,
-	    const double *dash,
+	    const floatt *dash,
 	    unsigned int num_dashes,
-	    double offset,
+	    floatt offset,
 	    cairo_bool_t force)
 {
     unsigned int n;
@@ -805,12 +805,12 @@ _emit_dash (cairo_script_surface_t *surface,
 
     if (num_dashes) {
 	surface->cr.current_style.dash = _cairo_realloc_ab
-	    (surface->cr.current_style.dash, num_dashes, sizeof (double));
+	    (surface->cr.current_style.dash, num_dashes, sizeof (floatt));
 	if (unlikely (surface->cr.current_style.dash == NULL))
 	    return _cairo_error (CAIRO_STATUS_NO_MEMORY);
 
 	memcpy (surface->cr.current_style.dash, dash,
-		sizeof (double) * num_dashes);
+		sizeof (floatt) * num_dashes);
     } else {
 	free (surface->cr.current_style.dash);
 	surface->cr.current_style.dash = NULL;
@@ -1041,7 +1041,7 @@ _emit_mesh_pattern (cairo_script_surface_t *surface,
 	cairo_path_destroy (path);
 
 	for (j = 0; j < 4; j++) {
-	    double x, y;
+	    floatt x, y;
 
 	    status = cairo_mesh_pattern_get_control_point (mesh, i, j, &x, &y);
 	    if (unlikely (status))
@@ -1052,7 +1052,7 @@ _emit_mesh_pattern (cairo_script_surface_t *surface,
 	}
 
 	for (j = 0; j < 4; j++) {
-	    double r, g, b, a;
+	    floatt r, g, b, a;
 
 	    status = cairo_mesh_pattern_get_corner_color_rgba (mesh, i, j, &r, &g, &b, &a);
 	    if (unlikely (status))
@@ -1843,10 +1843,10 @@ _emit_path_boxes (cairo_script_surface_t *surface,
     for (chunk = &boxes.chunks; chunk; chunk = chunk->next) {
 	for (i = 0; i < chunk->count; i++) {
 	    const cairo_box_t *b = &chunk->base[i];
-	    double x1 = _cairo_fixed_to_double (b->p1.x);
-	    double y1 = _cairo_fixed_to_double (b->p1.y);
-	    double x2 = _cairo_fixed_to_double (b->p2.x);
-	    double y2 = _cairo_fixed_to_double (b->p2.y);
+	    floatt x1 = _cairo_fixed_to_double (b->p1.x);
+	    floatt y1 = _cairo_fixed_to_double (b->p1.y);
+	    floatt x2 = _cairo_fixed_to_double (b->p2.x);
+	    floatt y2 = _cairo_fixed_to_double (b->p2.y);
 
 	    _cairo_output_stream_printf (ctx->stream,
 					 "\n  %f %f %f %f rectangle",
@@ -1889,10 +1889,10 @@ _emit_path (cairo_script_surface_t *surface,
 
     status = CAIRO_INT_STATUS_UNSUPPORTED;
     if (_cairo_path_fixed_is_rectangle (path, &box)) {
-	double x1 = _cairo_fixed_to_double (box.p1.x);
-	double y1 = _cairo_fixed_to_double (box.p1.y);
-	double x2 = _cairo_fixed_to_double (box.p2.x);
-	double y2 = _cairo_fixed_to_double (box.p2.y);
+	floatt x1 = _cairo_fixed_to_double (box.p1.x);
+	floatt y1 = _cairo_fixed_to_double (box.p1.y);
+	floatt x2 = _cairo_fixed_to_double (box.p2.x);
+	floatt y2 = _cairo_fixed_to_double (box.p2.y);
 
 	assert (x1 > -9999);
 
@@ -2252,7 +2252,7 @@ static cairo_status_t
 _cairo_script_surface_clipper_intersect_clip_path (cairo_surface_clipper_t *clipper,
 						   cairo_path_fixed_t	*path,
 						   cairo_fill_rule_t	 fill_rule,
-						   double		 tolerance,
+						   floatt		 tolerance,
 						   cairo_antialias_t	 antialias)
 {
     cairo_script_surface_t *surface = cairo_container_of (clipper,
@@ -2529,7 +2529,7 @@ _cairo_script_surface_stroke (void				*abstract_surface,
 			      const cairo_stroke_style_t	*style,
 			      const cairo_matrix_t		*ctm,
 			      const cairo_matrix_t		*ctm_inverse,
-			      double				 tolerance,
+			      floatt				 tolerance,
 			      cairo_antialias_t			 antialias,
 			      const cairo_clip_t		*clip)
 {
@@ -2618,7 +2618,7 @@ _cairo_script_surface_fill (void			*abstract_surface,
 			    const cairo_pattern_t	*source,
 			    const cairo_path_fixed_t	*path,
 			    cairo_fill_rule_t		 fill_rule,
-			    double			 tolerance,
+			    floatt			 tolerance,
 			    cairo_antialias_t		 antialias,
 			    const cairo_clip_t		*clip)
 {
@@ -3301,7 +3301,7 @@ _cairo_script_surface_show_text_glyphs (void			    *abstract_surface,
     cairo_scaled_glyph_t *scaled_glyph;
     cairo_matrix_t matrix;
     cairo_status_t status;
-    double x, y, ix, iy;
+    floatt x, y, ix, iy;
     int n;
     cairo_output_stream_t *base85_stream = NULL;
 
@@ -3384,7 +3384,7 @@ _cairo_script_surface_show_text_glyphs (void			    *abstract_surface,
 	_cairo_output_stream_puts (ctx->stream, "[");
 
     for (n = 0; n < num_glyphs; n++) {
-	double dx, dy;
+	floatt dx, dy;
 
 	status = _cairo_scaled_glyph_lookup (scaled_font,
 					     glyphs[n].index,
@@ -3880,8 +3880,8 @@ cairo_script_get_mode (cairo_device_t *script)
 cairo_surface_t *
 cairo_script_surface_create (cairo_device_t *script,
 			     cairo_content_t content,
-			     double width,
-			     double height)
+			     floatt width,
+			     floatt height)
 {
     cairo_rectangle_t *extents, r;
 

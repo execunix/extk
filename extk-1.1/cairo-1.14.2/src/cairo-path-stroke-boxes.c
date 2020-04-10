@@ -477,7 +477,7 @@ _cairo_rectilinear_stroker_line_to_dashed (void		*closure,
     const cairo_point_t *a = &stroker->current_point;
     const cairo_point_t *b = point;
     cairo_bool_t fully_in_bounds;
-    double sf, sign, remain;
+    floatt sf, sign, remain;
     cairo_fixed_t mag;
     cairo_status_t status;
     cairo_line_t segment;
@@ -518,7 +518,7 @@ _cairo_rectilinear_stroker_line_to_dashed (void		*closure,
 
     segment.p2 = segment.p1 = *a;
     while (remain > 0.) {
-	double step_length;
+	floatt step_length;
 
 	step_length = MIN (sf * stroker->dash.dash_remain, remain);
 	remain -= step_length;

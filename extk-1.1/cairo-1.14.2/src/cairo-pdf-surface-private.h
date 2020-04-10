@@ -89,8 +89,8 @@ typedef struct _cairo_pdf_source_surface {
 } cairo_pdf_source_surface_t;
 
 typedef struct _cairo_pdf_pattern {
-    double width;
-    double height;
+    floatt width;
+    floatt height;
     cairo_rectangle_int_t extents;
     cairo_pattern_t *pattern;
     cairo_pdf_resource_t pattern_res;
@@ -108,8 +108,8 @@ typedef enum _cairo_pdf_operation {
 } cairo_pdf_operation_t;
 
 typedef struct _cairo_pdf_smask_group {
-    double		  width;
-    double		  height;
+    floatt		  width;
+    floatt		  height;
     cairo_rectangle_int_t extents;
     cairo_pdf_resource_t  group_res;
     cairo_pdf_operation_t operation;
@@ -147,8 +147,8 @@ struct _cairo_pdf_surface {
      * structure within a PDF document known as a "stream". */
     cairo_output_stream_t *output;
 
-    double width;
-    double height;
+    floatt width;
+    floatt height;
     cairo_matrix_t cairo_to_pdf;
 
     cairo_array_t objects;
@@ -207,10 +207,10 @@ struct _cairo_pdf_surface {
     cairo_operator_t current_operator;
     cairo_bool_t current_pattern_is_solid_color;
     cairo_bool_t current_color_is_stroke;
-    double current_color_red;
-    double current_color_green;
-    double current_color_blue;
-    double current_color_alpha;
+    floatt current_color_red;
+    floatt current_color_green;
+    floatt current_color_blue;
+    floatt current_color_alpha;
 
     cairo_surface_t *paginated_surface;
 };

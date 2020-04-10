@@ -53,8 +53,8 @@ typedef struct cairo_svg_surface {
 
     cairo_content_t content;
 
-    double width;
-    double height;
+    floatt width;
+    floatt height;
 
     cairo_svg_document_t *document;
 

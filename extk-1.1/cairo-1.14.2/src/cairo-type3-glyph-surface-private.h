@@ -82,7 +82,7 @@ _cairo_type3_glyph_surface_emit_glyph (void		     *abstract_surface,
 				       cairo_output_stream_t *stream,
 				       unsigned long	      glyph_index,
 				       cairo_box_t           *bbox,
-				       double                *width);
+				       floatt                *width);
 
 #endif /* CAIRO_HAS_FONT_SUBSET */
 

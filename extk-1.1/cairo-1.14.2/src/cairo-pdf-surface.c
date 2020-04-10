@@ -199,14 +199,14 @@ typedef struct _cairo_pdf_font {
 
 typedef struct _cairo_pdf_rgb_linear_function {
     cairo_pdf_resource_t resource;
-    double               color1[3];
-    double               color2[3];
+    floatt               color1[3];
+    floatt               color2[3];
 } cairo_pdf_rgb_linear_function_t;
 
 typedef struct _cairo_pdf_alpha_linear_function {
     cairo_pdf_resource_t resource;
-    double               alpha1;
-    double               alpha2;
+    floatt               alpha1;
+    floatt               alpha2;
 } cairo_pdf_alpha_linear_function_t;
 
 static cairo_pdf_resource_t
@@ -295,8 +295,8 @@ _cairo_pdf_surface_update_object (cairo_pdf_surface_t	*surface,
 
 static void
 _cairo_pdf_surface_set_size_internal (cairo_pdf_surface_t *surface,
-				      double		  width,
-				      double		  height)
+				      floatt		  width,
+				      floatt		  height)
 {
     surface->width = width;
     surface->height = height;
@@ -322,7 +322,7 @@ static cairo_status_t
 _cairo_pdf_surface_clipper_intersect_clip_path (cairo_surface_clipper_t *clipper,
 						cairo_path_fixed_t	*path,
 						cairo_fill_rule_t	fill_rule,
-						double			tolerance,
+						floatt			tolerance,
 						cairo_antialias_t	antialias)
 {
     cairo_pdf_surface_t *surface = cairo_container_of (clipper,
@@ -351,8 +351,8 @@ _cairo_pdf_surface_clipper_intersect_clip_path (cairo_surface_clipper_t *clipper
 
 static cairo_surface_t *
 _cairo_pdf_surface_create_for_stream_internal (cairo_output_stream_t	*output,
-					       double			 width,
-					       double			 height)
+					       floatt			 width,
+					       floatt			 height)
 {
     cairo_pdf_surface_t *surface;
     cairo_status_t status, status_ignored;
@@ -489,8 +489,8 @@ BAIL0:
 cairo_surface_t *
 cairo_pdf_surface_create_for_stream (cairo_write_func_t		 write_func,
 				     void			*closure,
-				     double			 width_in_points,
-				     double			 height_in_points)
+				     floatt			 width_in_points,
+				     floatt			 height_in_points)
 {
     cairo_output_stream_t *output;
 
@@ -527,8 +527,8 @@ cairo_pdf_surface_create_for_stream (cairo_write_func_t		 write_func,
  **/
 cairo_surface_t *
 cairo_pdf_surface_create (const char		*filename,
-			  double		 width_in_points,
-			  double		 height_in_points)
+			  floatt		 width_in_points,
+			  floatt		 height_in_points)
 {
     cairo_output_stream_t *output;
 
@@ -686,8 +686,8 @@ cairo_pdf_version_to_string (cairo_pdf_version_t version)
  **/
 void
 cairo_pdf_surface_set_size (cairo_surface_t	*surface,
-			    double		 width_in_points,
-			    double		 height_in_points)
+			    floatt		 width_in_points,
+			    floatt		 height_in_points)
 {
     cairo_pdf_surface_t *pdf_surface = NULL; /* hide compiler warning */
     cairo_status_t status;
@@ -744,7 +744,7 @@ _cairo_pdf_group_resources_init (cairo_pdf_group_resources_t *res)
     for (i = 0; i < CAIRO_NUM_OPERATORS; i++)
 	res->operators[i] = FALSE;
 
-    _cairo_array_init (&res->alphas, sizeof (double));
+    _cairo_array_init (&res->alphas, sizeof (floatt));
     _cairo_array_init (&res->smasks, sizeof (cairo_pdf_resource_t));
     _cairo_array_init (&res->patterns, sizeof (cairo_pdf_resource_t));
     _cairo_array_init (&res->shadings, sizeof (cairo_pdf_resource_t));
@@ -790,11 +790,11 @@ _cairo_pdf_surface_add_operator (cairo_pdf_surface_t *surface,
 
 static cairo_int_status_t
 _cairo_pdf_surface_add_alpha (cairo_pdf_surface_t *surface,
-			      double               alpha,
+			      floatt               alpha,
 			      int                 *index)
 {
     int num_alphas, i;
-    double other;
+    floatt other;
     cairo_int_status_t status;
     cairo_pdf_group_resources_t *res = &surface->resources;
 
@@ -950,7 +950,7 @@ _cairo_pdf_surface_emit_group_resources (cairo_pdf_surface_t         *surface,
 					 cairo_pdf_group_resources_t *res)
 {
     int num_alphas, num_smasks, num_resources, i;
-    double alpha;
+    floatt alpha;
     cairo_pdf_resource_t *smask, *pattern, *shading, *xobject;
     cairo_pdf_font_t *font;
 
@@ -1363,8 +1363,8 @@ _cairo_pdf_surface_add_source_surface (cairo_pdf_surface_t	    *surface,
 				       cairo_pdf_resource_t	    *surface_res,
 				       int                          *width,
 				       int                          *height,
-				       double                       *x_offset,
-				       double                       *y_offset,
+				       floatt                       *x_offset,
+				       floatt                       *y_offset,
 				       cairo_rectangle_int_t        *source_extents)
 {
     cairo_pdf_source_surface_t src_surface;
@@ -1559,7 +1559,7 @@ _cairo_pdf_surface_add_pdf_pattern_or_shading (cairo_pdf_surface_t	   *surface,
 	pattern->type == CAIRO_PATTERN_TYPE_RADIAL ||
 	pattern->type == CAIRO_PATTERN_TYPE_MESH)
     {
-	double min_alpha;
+	floatt min_alpha;
 
 	_cairo_pattern_alpha_range (pattern, &min_alpha, NULL);
 	if (! CAIRO_ALPHA_IS_OPAQUE (min_alpha)) {
@@ -1596,7 +1596,7 @@ _cairo_pdf_surface_add_pdf_pattern_or_shading (cairo_pdf_surface_t	   *surface,
 
 /* Get BBox in PDF coordinates from extents in cairo coordinates */
 static void
-_get_bbox_from_extents (double                       surface_height,
+_get_bbox_from_extents (floatt                       surface_height,
 		       const cairo_rectangle_int_t *extents,
 		       cairo_box_double_t          *bbox)
 {
@@ -2192,8 +2192,8 @@ _cairo_pdf_surface_add_padded_image_surface (cairo_pdf_surface_t          *surfa
 					     cairo_pdf_resource_t         *surface_res,
 					     int                          *width,
 					     int                          *height,
-					     double                       *x_offset,
-					     double                       *y_offset)
+					     floatt                       *x_offset,
+					     floatt                       *y_offset)
 {
     cairo_image_surface_t *image;
     cairo_surface_t *pad_image;
@@ -2989,7 +2989,7 @@ static cairo_int_status_t
 _cairo_pdf_surface_emit_recording_surface (cairo_pdf_surface_t        *surface,
 					   cairo_pdf_source_surface_t *pdf_source)
 {
-    double old_width, old_height;
+    floatt old_width, old_height;
     cairo_paginated_mode_t old_paginated_mode;
     cairo_surface_clipper_t old_clipper;
     cairo_box_double_t bbox;
@@ -3108,12 +3108,12 @@ _cairo_pdf_surface_emit_surface_pattern (cairo_pdf_surface_t	*surface,
     cairo_pdf_resource_t pattern_resource = {0};
     cairo_matrix_t cairo_p2d, pdf_p2d;
     cairo_extend_t extend = cairo_pattern_get_extend (pattern);
-    double xstep, ystep;
+    floatt xstep, ystep;
     cairo_rectangle_int_t pattern_extents;
     int pattern_width = 0; /* squelch bogus compiler warning */
     int pattern_height = 0; /* squelch bogus compiler warning */
-    double x_offset;
-    double y_offset;
+    floatt x_offset;
+    floatt y_offset;
     char draw_surface[200];
     cairo_box_double_t     bbox;
 
@@ -3166,8 +3166,8 @@ _cairo_pdf_surface_emit_surface_pattern (cairo_pdf_surface_t	*surface,
 	 * and the surface as repeat size.  This guarantees to never
 	 * repeat visibly.
 	 */
-	double x1 = 0.0, y1 = 0.0;
-	double x2 = surface->width, y2 = surface->height;
+	floatt x1 = 0.0, y1 = 0.0;
+	floatt x2 = surface->width, y2 = surface->height;
 	_cairo_matrix_transform_bounding_box (&pattern->matrix,
 					      &x1, &y1, &x2, &y2,
 					      NULL);
@@ -3303,8 +3303,8 @@ _cairo_pdf_surface_emit_surface_pattern (cairo_pdf_surface_t	*surface,
 }
 
 typedef struct _cairo_pdf_color_stop {
-    double offset;
-    double color[4];
+    floatt offset;
+    floatt color[4];
     cairo_pdf_resource_t resource;
 } cairo_pdf_color_stop_t;
 
@@ -3322,9 +3322,9 @@ cairo_pdf_surface_emit_rgb_linear_function (cairo_pdf_surface_t    *surface,
     num_elems = _cairo_array_num_elements (&surface->rgb_linear_functions);
     for (i = 0; i < num_elems; i++) {
 	_cairo_array_copy_element (&surface->rgb_linear_functions, i, &elem);
-        if (memcmp (&elem.color1[0], &stop1->color[0], sizeof (double)*3) != 0)
+        if (memcmp (&elem.color1[0], &stop1->color[0], sizeof (floatt)*3) != 0)
             continue;
-        if (memcmp (&elem.color2[0], &stop2->color[0], sizeof (double)*3) != 0)
+        if (memcmp (&elem.color2[0], &stop2->color[0], sizeof (floatt)*3) != 0)
             continue;
         *function =  elem.resource;
         return CAIRO_STATUS_SUCCESS;
@@ -3352,8 +3352,8 @@ cairo_pdf_surface_emit_rgb_linear_function (cairo_pdf_surface_t    *surface,
                                  stop2->color[2]);
 
     elem.resource = res;
-    memcpy (&elem.color1[0], &stop1->color[0], sizeof (double)*3);
-    memcpy (&elem.color2[0], &stop2->color[0], sizeof (double)*3);
+    memcpy (&elem.color1[0], &stop1->color[0], sizeof (floatt)*3);
+    memcpy (&elem.color2[0], &stop2->color[0], sizeof (floatt)*3);
 
     status = _cairo_array_append (&surface->rgb_linear_functions, &elem);
     *function = res;
@@ -3493,7 +3493,7 @@ calc_gradient_color (cairo_pdf_color_stop_t *new_stop,
 		     cairo_pdf_color_stop_t *stop2)
 {
     int i;
-    double offset = stop1->offset / (stop1->offset + 1.0 - stop2->offset);
+    floatt offset = stop1->offset / (stop1->offset + 1.0 - stop2->offset);
 
     for (i = 0; i < 4; i++)
 	new_stop->color[i] = stop1->color[i] + offset*(stop2->color[i] - stop1->color[i]);
@@ -3715,7 +3715,7 @@ cairo_pdf_surface_emit_transparency_group (cairo_pdf_surface_t  *surface,
     cairo_pdf_resource_t smask_resource;
     cairo_int_status_t status;
     char buf[100];
-    double x1, y1, x2, y2;
+    floatt x1, y1, x2, y2;
 
     if (pdf_pattern->is_shading) {
 	snprintf(buf, sizeof(buf),
@@ -3838,7 +3838,7 @@ _cairo_pdf_surface_output_gradient (cairo_pdf_surface_t        *surface,
 				    const cairo_matrix_t       *pat_to_pdf,
 				    const cairo_circle_double_t*start,
 				    const cairo_circle_double_t*end,
-				    const double               *domain,
+				    const floatt               *domain,
 				    const char                 *colorspace,
 				    cairo_pdf_resource_t        color_function)
 {
@@ -3911,7 +3911,7 @@ _cairo_pdf_surface_emit_gradient (cairo_pdf_surface_t    *surface,
     cairo_pdf_resource_t color_function, alpha_function;
     cairo_matrix_t pat_to_pdf;
     cairo_circle_double_t start, end;
-    double domain[2];
+    floatt domain[2];
     cairo_int_status_t status;
 
     assert (pattern->n_stops != 0);
@@ -3932,8 +3932,8 @@ _cairo_pdf_surface_emit_gradient (cairo_pdf_surface_t    *surface,
     if (pattern->base.extend == CAIRO_EXTEND_REPEAT ||
 	pattern->base.extend == CAIRO_EXTEND_REFLECT)
     {
-	double bounds_x1, bounds_x2, bounds_y1, bounds_y2;
-	double x_scale, y_scale, tolerance;
+	floatt bounds_x1, bounds_x2, bounds_y1, bounds_y2;
+	floatt x_scale, y_scale, tolerance;
 
 	/* TODO: use tighter extents */
 	bounds_x1 = 0;
@@ -4197,7 +4197,7 @@ _cairo_pdf_surface_emit_mesh_pattern (cairo_pdf_surface_t    *surface,
 static cairo_int_status_t
 _cairo_pdf_surface_emit_pattern (cairo_pdf_surface_t *surface, cairo_pdf_pattern_t *pdf_pattern)
 {
-    double old_width, old_height;
+    floatt old_width, old_height;
     cairo_int_status_t status;
 
     old_width = surface->width;
@@ -4253,8 +4253,8 @@ _cairo_pdf_surface_paint_surface_pattern (cairo_pdf_surface_t          *surface,
     cairo_int_status_t status;
     int alpha;
     cairo_rectangle_int_t extents2;
-    double x_offset;
-    double y_offset;
+    floatt x_offset;
+    floatt y_offset;
 
     if (source->extend == CAIRO_EXTEND_PAD &&
 	!(source->type == CAIRO_PATTERN_TYPE_SURFACE &&
@@ -5711,7 +5711,7 @@ _cairo_pdf_surface_emit_type3_font_subset (cairo_pdf_surface_t		*surface,
     cairo_int_status_t status = CAIRO_STATUS_SUCCESS;
     cairo_pdf_resource_t *glyphs, encoding, char_procs, subset_resource, to_unicode_stream;
     cairo_pdf_font_t font;
-    double *widths;
+    floatt *widths;
     unsigned int i;
     cairo_box_t font_bbox = {{0,0},{0,0}};
     cairo_box_t bbox = {{0,0},{0,0}};
@@ -5730,7 +5730,7 @@ _cairo_pdf_surface_emit_type3_font_subset (cairo_pdf_surface_t		*surface,
     if (unlikely (glyphs == NULL))
 	return _cairo_error (CAIRO_STATUS_NO_MEMORY);
 
-    widths = _cairo_malloc_ab (font_subset->num_glyphs, sizeof (double));
+    widths = _cairo_malloc_ab (font_subset->num_glyphs, sizeof (floatt));
     if (unlikely (widths == NULL)) {
         free (glyphs);
 	return _cairo_error (CAIRO_STATUS_NO_MEMORY);
@@ -6217,7 +6217,7 @@ static cairo_int_status_t
 _cairo_pdf_surface_write_smask_group (cairo_pdf_surface_t     *surface,
 				      cairo_pdf_smask_group_t *group)
 {
-    double old_width, old_height;
+    floatt old_width, old_height;
     cairo_int_status_t status;
     cairo_box_double_t bbox;
 
@@ -6691,12 +6691,12 @@ _cairo_pdf_surface_emit_combined_smask (cairo_pdf_surface_t         *surface,
     cairo_pdf_resource_t smask_res;
     int src_width, src_height;
     int mask_width, mask_height;
-    double src_x_offset, src_y_offset;
-    double mask_x_offset, mask_y_offset;
-    double src_x1, src_y1, src_x2, src_y2;
-    double mask_x1, mask_y1, mask_x2, mask_y2;
+    floatt src_x_offset, src_y_offset;
+    floatt mask_x_offset, mask_y_offset;
+    floatt src_x1, src_y1, src_x2, src_y2;
+    floatt mask_x1, mask_y1, mask_x2, mask_y2;
     cairo_matrix_t p2u;
-    double src_radius, mask_radius, e;
+    floatt src_radius, mask_radius, e;
     cairo_rectangle_int_t extents2;
     cairo_bool_t need_smask;
 
@@ -7203,7 +7203,7 @@ _cairo_pdf_surface_stroke (void			*abstract_surface,
 			   const cairo_stroke_style_t	*style,
 			   const cairo_matrix_t	*ctm,
 			   const cairo_matrix_t	*ctm_inverse,
-			   double		 tolerance,
+			   floatt		 tolerance,
 			   cairo_antialias_t	 antialias,
 			   const cairo_clip_t	*clip)
 {
@@ -7340,7 +7340,7 @@ _cairo_pdf_surface_fill (void			*abstract_surface,
 			 const cairo_pattern_t	*source,
 			 const cairo_path_fixed_t*path,
 			 cairo_fill_rule_t	 fill_rule,
-			 double			 tolerance,
+			 floatt			 tolerance,
 			 cairo_antialias_t	 antialias,
 			 const cairo_clip_t	*clip)
 {
@@ -7498,7 +7498,7 @@ _cairo_pdf_surface_fill_stroke (void			*abstract_surface,
 				cairo_operator_t	 fill_op,
 				const cairo_pattern_t	*fill_source,
 				cairo_fill_rule_t	 fill_rule,
-				double			 fill_tolerance,
+				floatt			 fill_tolerance,
 				cairo_antialias_t	 fill_antialias,
 				const cairo_path_fixed_t*path,
 				cairo_operator_t	 stroke_op,
@@ -7506,7 +7506,7 @@ _cairo_pdf_surface_fill_stroke (void			*abstract_surface,
 				const cairo_stroke_style_t *stroke_style,
 				const cairo_matrix_t	*stroke_ctm,
 				const cairo_matrix_t	*stroke_ctm_inverse,
-				double			 stroke_tolerance,
+				floatt			 stroke_tolerance,
 				cairo_antialias_t	 stroke_antialias,
 				const cairo_clip_t	*clip)
 {

@@ -73,7 +73,7 @@ ulong ExTimerList::invoke(ulong tick_count) {
             ExApp::setHalt(r);
             return 60000;
         }
-        if (r == Ex_End) // The timer was deleted in callback.
+        if (r & Ex_Remove) // The timer was deleted in callback.
             continue;
         if (timer->repeat == 0) // The timer does not work repeatedly.
             continue;

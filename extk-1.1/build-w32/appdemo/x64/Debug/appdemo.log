@@ -1,7 +1,0 @@
-﻿  wndmain.cpp
-c:\usr\w32\extk-1.1\build-w32\appdemo\wndmain.cpp(34): warning C4311: 'type cast': pointer truncation from 'const ExWidget *' to 'uint'
-c:\usr\w32\extk-1.1\build-w32\appdemo\wndmain.cpp(34): warning C4302: 'type cast': truncation from 'const ExWidget *' to 'uint'
-c:\usr\w32\extk-1.1\build-w32\appdemo\wndmain.cpp(126): warning C4311: 'type cast': pointer truncation from 'const ExWidget *' to 'uint'
-c:\usr\w32\extk-1.1\build-w32\appdemo\wndmain.cpp(126): warning C4302: 'type cast': truncation from 'const ExWidget *' to 'uint'
-c:\usr\w32\extk-1.1\build-w32\appdemo\wndmain.cpp(281): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-  appdemo.vcxproj -> C:\usr\w32\extk-1.1\build-w32\appdemo\x64\Debug\appdemo.exe

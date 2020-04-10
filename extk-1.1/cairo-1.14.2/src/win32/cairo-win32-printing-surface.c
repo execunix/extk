@@ -459,7 +459,7 @@ _cairo_win32_printing_surface_paint_recording_pattern (cairo_win32_printing_surf
     for (y_tile = top; y_tile < bottom; y_tile++) {
 	for (x_tile = left; x_tile < right; x_tile++) {
 	    cairo_matrix_t m;
-	    double x, y;
+	    floatt x, y;
 
 	    SaveDC (surface->win32.dc);
 	    m = p2d;
@@ -740,10 +740,10 @@ _cairo_win32_printing_surface_paint_image_pattern (cairo_win32_printing_surface_
 
     GetClipBox (surface->win32.dc, &clip);
     if (extend == CAIRO_EXTEND_REPEAT || extend == CAIRO_EXTEND_REFLECT) {
-	left = floor ( clip.left / (double) opaque_image->width);
-	right = ceil (clip.right / (double) opaque_image->width);
-	top = floor (clip.top / (double) opaque_image->height);
-	bottom = ceil (clip.bottom / (double) opaque_image->height);
+	left = floor ( clip.left / (floatt) opaque_image->width);
+	right = ceil (clip.right / (floatt) opaque_image->width);
+	top = floor (clip.top / (floatt) opaque_image->height);
+	bottom = ceil (clip.bottom / (floatt) opaque_image->height);
     } else {
 	left = 0;
 	right = 1;
@@ -819,7 +819,7 @@ _cairo_win32_printing_surface_paint_linear_pattern (cairo_win32_printing_surface
     XFORM xform;
     int i, num_stops;
     cairo_matrix_t mat, rot;
-    double p1x, p1y, p2x, p2y, xd, yd, d, sn, cs;
+    floatt p1x, p1y, p2x, p2y, xd, yd, d, sn, cs;
     cairo_extend_t extend;
     int range_start, range_stop, num_ranges, num_rects, stop;
     int total_verts, total_rects;
@@ -1001,7 +1001,7 @@ _cairo_win32_printing_surface_path_move_to (void *closure,
     win32_path_info_t *path_info = closure;
 
     if (path_info->surface->has_ctm) {
-	double x, y;
+	floatt x, y;
 
 	x = _cairo_fixed_to_double (point->x);
 	y = _cairo_fixed_to_double (point->y);
@@ -1025,7 +1025,7 @@ _cairo_win32_printing_surface_path_line_to (void *closure,
 
     path_info->surface->path_empty = FALSE;
     if (path_info->surface->has_ctm) {
-	double x, y;
+	floatt x, y;
 
 	x = _cairo_fixed_to_double (point->x);
 	y = _cairo_fixed_to_double (point->y);
@@ -1051,7 +1051,7 @@ _cairo_win32_printing_surface_path_curve_to (void          *closure,
 
     path_info->surface->path_empty = FALSE;
     if (path_info->surface->has_ctm) {
-	double x, y;
+	floatt x, y;
 
 	x = _cairo_fixed_to_double (b->x);
 	y = _cairo_fixed_to_double (b->y);
@@ -1123,7 +1123,7 @@ static cairo_status_t
 _cairo_win32_printing_surface_clipper_intersect_clip_path (cairo_surface_clipper_t *clipper,
                                                    cairo_path_fixed_t *path,
                                                    cairo_fill_rule_t   fill_rule,
-                                                   double	       tolerance,
+                                                   floatt	       tolerance,
                                                    cairo_antialias_t   antialias)
 {
     cairo_win32_printing_surface_t *surface = cairo_container_of (clipper,
@@ -1234,9 +1234,9 @@ _cairo_win32_line_join (cairo_line_join_t join)
 }
 
 static void
-_cairo_matrix_factor_out_scale (cairo_matrix_t *m, double *scale)
+_cairo_matrix_factor_out_scale (cairo_matrix_t *m, floatt *scale)
 {
-    double s;
+    floatt s;
 
     s = fabs (m->xx);
     if (fabs (m->xy) > s)
@@ -1258,7 +1258,7 @@ _cairo_win32_printing_surface_stroke (void			*abstract_surface,
                                       const cairo_stroke_style_t *style,
                                       const cairo_matrix_t	*stroke_ctm,
                                       const cairo_matrix_t	*stroke_ctm_inverse,
-                                      double			tolerance,
+                                      floatt			tolerance,
                                       cairo_antialias_t		antialias,
 				      const cairo_clip_t    *clip)
 {
@@ -1274,7 +1274,7 @@ _cairo_win32_printing_surface_stroke (void			*abstract_surface,
     unsigned int i;
     cairo_solid_pattern_t clear;
     cairo_matrix_t mat;
-    double scale;
+    floatt scale;
 
     status = _cairo_surface_clipper_set_clip (&surface->clipper, clip);
     if (status)
@@ -1384,7 +1384,7 @@ _cairo_win32_printing_surface_fill (void		        *abstract_surface,
 				    const cairo_pattern_t	*source,
 				    const cairo_path_fixed_t	*path,
 				    cairo_fill_rule_t		 fill_rule,
-				    double			 tolerance,
+				    floatt			 tolerance,
 				    cairo_antialias_t		 antialias,
 				    const cairo_clip_t		*clip)
 {
@@ -1703,7 +1703,7 @@ _cairo_win32_printing_surface_start_page (void *abstract_surface)
 {
     cairo_win32_printing_surface_t *surface = abstract_surface;
     XFORM xform;
-    double x_res, y_res;
+    floatt x_res, y_res;
     cairo_matrix_t inverse_ctm;
     cairo_status_t status;
 

@@ -176,3 +176,31 @@ ExTripleCanvas::ExTripleCanvas()
     gcBuf[0] = gcBuf[1] = gcBuf[2] = NULL;
     crBuf[0] = crBuf[1] = crBuf[2] = NULL;
 }
+
+HRGN
+ExRegionToGdi(HDC hdc, const ExRegion* srcrgn)
+{
+    if (srcrgn->empty())
+        return NULL;
+    HRGN hrgn = CreateRectRgnIndirect(srcrgn->rects[0]);
+    for (int i = 1; i < srcrgn->n_rects; i++) {
+        HRGN tmp_rgn = CreateRectRgnIndirect(srcrgn->rects[i]);
+        CombineRgn(hrgn, hrgn, tmp_rgn, RGN_OR);
+        DeleteObject(tmp_rgn);
+    }
+    SelectClipRgn(hdc, hrgn);
+    return hrgn;
+}
+
+Bool
+ExRegionToPixman(pixman_region32_t* prgn, const ExRegion* srcrgn)
+{
+    if (srcrgn->empty())
+        return FALSE;
+    // ExRect box segment are compatible with pixman_box32 { int32_t x1, y1, x2, y2; }
+//	pixman_box32_t* boxes = srcrgn->rects->box32();
+//	pixman_bool_t r = pixman_region32_init_rects(prgn, boxes, srcrgn->n_rects);
+    pixman_bool_t r = pixman_region32_init_rects(prgn, srcrgn->rects->box32(), srcrgn->n_rects);
+    return r;
+}
+

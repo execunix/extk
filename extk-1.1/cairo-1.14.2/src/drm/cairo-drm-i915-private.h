@@ -877,7 +877,7 @@ i915_clip_and_composite_spans (i915_surface_t		*dst,
 			       void			*draw_closure,
 			       const cairo_composite_rectangles_t*extents,
 			       cairo_clip_t		*clip,
-			       double			 opacity);
+			       floatt			 opacity);
 
 cairo_private cairo_surface_t *
 i915_surface_create_internal (cairo_drm_device_t *base_dev,
@@ -1194,7 +1194,7 @@ cairo_private void
 i915_shader_init (i915_shader_t *shader,
 		  i915_surface_t *dst,
 		  cairo_operator_t op,
-		  double opacity);
+		  floatt opacity);
 
 cairo_private cairo_status_t
 i915_shader_acquire_pattern (i915_shader_t *shader,
@@ -1209,9 +1209,9 @@ i915_shader_set_clip (i915_shader_t *shader,
 cairo_private int
 i915_shader_num_texcoords (const i915_shader_t *shader);
 
-static inline double cairo_const
+static inline floatt cairo_const
 i915_shader_linear_texcoord (const struct i915_shader_linear *l,
-			     double src_x, double src_y)
+			     floatt src_x, floatt src_y)
 {
     return l->dx * src_x + l->dy * src_y + l->offset;
 }

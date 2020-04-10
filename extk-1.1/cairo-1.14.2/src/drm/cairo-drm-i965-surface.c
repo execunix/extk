@@ -1288,7 +1288,7 @@ i965_surface_stroke (void			*abstract_dst,
 		     const cairo_stroke_style_t	*stroke_style,
 		     const cairo_matrix_t	*ctm,
 		     const cairo_matrix_t	*ctm_inverse,
-		     double			 tolerance,
+		     floatt			 tolerance,
 		     cairo_antialias_t		 antialias,
 		     cairo_clip_t		*clip)
 {
@@ -1395,7 +1395,7 @@ i965_surface_fill (void			*abstract_dst,
 		   const cairo_pattern_t*source,
 		   cairo_path_fixed_t	*path,
 		   cairo_fill_rule_t	 fill_rule,
-		   double		 tolerance,
+		   floatt		 tolerance,
 		   cairo_antialias_t	 antialias,
 		   cairo_clip_t		*clip)
 {

@@ -52,7 +52,7 @@ struct _cairo_clip_path {
     cairo_reference_count_t	 ref_count;
     cairo_path_fixed_t		 path;
     cairo_fill_rule_t		 fill_rule;
-    double			 tolerance;
+    floatt			 tolerance;
     cairo_antialias_t		 antialias;
     cairo_clip_path_t		*prev;
 };
@@ -132,7 +132,7 @@ cairo_private cairo_clip_t *
 _cairo_clip_intersect_path (cairo_clip_t       *clip,
 			    const cairo_path_fixed_t *path,
 			    cairo_fill_rule_t   fill_rule,
-			    double              tolerance,
+			    floatt              tolerance,
 			    cairo_antialias_t   antialias);
 
 cairo_private const cairo_rectangle_int_t *

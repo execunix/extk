@@ -45,7 +45,7 @@
 #if defined(__APPLE__)
 #include <mach/mach_time.h>
 
-static cairo_always_inline double
+static cairo_always_inline floatt
 _cairo_time_1s (void)
 {
     mach_timebase_info_data_t freq;
@@ -65,7 +65,7 @@ _cairo_time_get (void)
 #define INCL_BASE
 #include <os2.h>
 
-static cairo_always_inline double
+static cairo_always_inline floatt
 _cairo_time_1s (void)
 {
     ULONG freq;
@@ -93,7 +93,7 @@ _cairo_time_get (void)
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 
-static cairo_always_inline double
+static cairo_always_inline floatt
 _cairo_time_1s (void)
 {
     LARGE_INTEGER freq;
@@ -135,7 +135,7 @@ _cairo_time_get (void)
 #elif defined(CAIRO_CLOCK)
 #include <time.h>
 
-static cairo_always_inline double
+static cairo_always_inline floatt
 _cairo_time_1s (void)
 {
     return 1000000000;
@@ -159,7 +159,7 @@ _cairo_time_get (void)
 #else
 #include <sys/time.h>
 
-static cairo_always_inline double
+static cairo_always_inline floatt
 _cairo_time_1s (void)
 {
     return 1000000;
@@ -190,10 +190,10 @@ _cairo_time_cmp (const void *a,
     return _cairo_int64_cmp (*ta, *tb);
 }
 
-static double
+static floatt
 _cairo_time_ticks_per_sec (void)
 {
-    static double ticks = 0;
+    static floatt ticks = 0;
 
     if (unlikely (ticks == 0))
 	ticks = _cairo_time_1s ();
@@ -201,10 +201,10 @@ _cairo_time_ticks_per_sec (void)
     return ticks;
 }
 
-static double
+static floatt
 _cairo_time_s_per_tick (void)
 {
-    static double s = 0;
+    static floatt s = 0;
 
     if (unlikely (s == 0))
 	s = 1. / _cairo_time_ticks_per_sec ();
@@ -212,14 +212,14 @@ _cairo_time_s_per_tick (void)
     return s;
 }
 
-double
+floatt
 _cairo_time_to_s (cairo_time_t t)
 {
     return _cairo_int64_to_double (t) * _cairo_time_s_per_tick ();
 }
 
 cairo_time_t
-_cairo_time_from_s (double t)
+_cairo_time_from_s (floatt t)
 {
     return _cairo_double_to_int64 (t * _cairo_time_ticks_per_sec ());
 }

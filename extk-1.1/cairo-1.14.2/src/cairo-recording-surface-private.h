@@ -86,7 +86,7 @@ typedef struct _cairo_command_stroke {
     cairo_stroke_style_t	 style;
     cairo_matrix_t		 ctm;
     cairo_matrix_t		 ctm_inverse;
-    double			 tolerance;
+    floatt			 tolerance;
     cairo_antialias_t		 antialias;
 } cairo_command_stroke_t;
 
@@ -95,7 +95,7 @@ typedef struct _cairo_command_fill {
     cairo_pattern_union_t	 source;
     cairo_path_fixed_t		 path;
     cairo_fill_rule_t		 fill_rule;
-    double			 tolerance;
+    floatt			 tolerance;
     cairo_antialias_t		 antialias;
 } cairo_command_fill_t;
 

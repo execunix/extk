@@ -46,8 +46,8 @@ _cairo_pen_compute_slopes (cairo_pen_t *pen);
 
 cairo_status_t
 _cairo_pen_init (cairo_pen_t	*pen,
-		 double		 radius,
-		 double		 tolerance,
+		 floatt		 radius,
+		 floatt		 tolerance,
 		 const cairo_matrix_t	*ctm)
 {
     int i;
@@ -84,7 +84,7 @@ _cairo_pen_init (cairo_pen_t	*pen,
      */
     for (i=0; i < pen->num_vertices; i++) {
 	cairo_pen_vertex_t *v = &pen->vertices[i];
-	double theta = 2 * M_PI * i / (double) pen->num_vertices, dx, dy;
+	floatt theta = 2 * M_PI * i / (floatt) pen->num_vertices, dx, dy;
 	if (reflect)
 	    theta = -theta;
 	dx = radius * cos (theta);
@@ -271,8 +271,8 @@ doesn't matter where on the circle the error is computed.
 */
 
 int
-_cairo_pen_vertices_needed (double	    tolerance,
-			    double	    radius,
+_cairo_pen_vertices_needed (floatt	    tolerance,
+			    floatt	    radius,
 			    const cairo_matrix_t  *matrix)
 {
     /*
@@ -280,7 +280,7 @@ _cairo_pen_vertices_needed (double	    tolerance,
      * compute major axis length for a pen with the specified radius.
      * we don't need the minor axis length.
      */
-    double major_axis = _cairo_matrix_transformed_circle_major_axis (matrix,
+    floatt major_axis = _cairo_matrix_transformed_circle_major_axis (matrix,
 								     radius);
     int num_vertices;
 

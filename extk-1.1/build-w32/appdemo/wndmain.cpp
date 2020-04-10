@@ -8,6 +8,8 @@
 #define _USE_MATH_DEFINES
 #include <math.h>
 
+#define flt8(v) ((v) / 255.f)
+
 static int STDCALL
 onUnrealized(void* data, ExWidget* w, ExCbInfo* cbinfo) {
     dprintf(L"onUnrealized()\n");
@@ -124,46 +126,46 @@ void WndMain::onDrawBtns(ExCanvas* canvas, const ExWidget* widget, const ExRegio
     cairo_line_to(cr, rc.l + 1, rc.t + 4);
     cairo_close_path(cr);
     uint color = ((uint)widget) & 0xffffff;
-    double rvalue = ExRValue(color) / 255.;
-    double gvalue = ExGValue(color) / 255.;
-    double bvalue = ExBValue(color) / 255.;
+    float rvalue = flt8(ExRValue(color));
+    float gvalue = flt8(ExGValue(color));
+    float bvalue = flt8(ExBValue(color));
 #if USE_PATTERN_BTN
     cairo_pattern_t* crp = cairo_pattern_create_linear(rc.l, rc.t, rc.r, rc.b);
 #if USE_ALPHA_BTN
-    const double alpha = .75;
+    const float alpha = .75;
     if (widget->getFlags(Ex_PtrEntered)) {
-        cairo_pattern_add_color_stop_rgba(crp, 1, 64 / 255., 128 / 255., 128 / 255., alpha);
-        cairo_pattern_add_color_stop_rgba(crp, 0, 224 / 255., 224 / 255., 224 / 255., 1);
+        cairo_pattern_add_color_stop_rgba(crp, 1, flt8(64), flt8(128), flt8(128), alpha);
+        cairo_pattern_add_color_stop_rgba(crp, 0, flt8(224), flt8(224), flt8(224), 1);
     } else {
-        cairo_pattern_add_color_stop_rgba(crp, 1, 16 / 255., 64 / 255., 64 / 255., alpha);
-        cairo_pattern_add_color_stop_rgba(crp, 0, 128 / 255., 128 / 255., 128 / 255., 1);
+        cairo_pattern_add_color_stop_rgba(crp, 1, flt8(16), flt8(64), flt8(64), alpha);
+        cairo_pattern_add_color_stop_rgba(crp, 0, flt8(128), flt8(128), flt8(128), 1);
     }
 #else
     if (widget->getFlags(Ex_PtrEntered)) {
-        cairo_pattern_add_color_stop_rgb(crp, 1, 64 / 255., 128 / 255., 128 / 255.);
-        cairo_pattern_add_color_stop_rgb(crp, 0, 224 / 255., 224 / 255., 224 / 255.);
+        cairo_pattern_add_color_stop_rgb(crp, 1, flt8(64), flt8(128), flt8(128));
+        cairo_pattern_add_color_stop_rgb(crp, 0, flt8(224), flt8(224), flt8(224));
     } else {
-        cairo_pattern_add_color_stop_rgb(crp, 1, 16 / 255., 64 / 255., 64 / 255.);
-        cairo_pattern_add_color_stop_rgb(crp, 0, 128 / 255., 128 / 255., 128 / 255.);
+        cairo_pattern_add_color_stop_rgb(crp, 1, flt8(16), flt8(64), flt8(64));
+        cairo_pattern_add_color_stop_rgb(crp, 0, flt8(128), flt8(128), flt8(128));
     }
 #endif
     cairo_set_source(cr, crp);
 #else//USE_PATTERN_BTN
 #if USE_ALPHA_BTN
-    const double alpha = .75;
+    const float alpha = .75;
     if (widget->getFlags(Ex_PtrEntered))
-        cairo_set_source_rgba(cr, 112 / 255., 224 / 255., 224 / 255., alpha);
+        cairo_set_source_rgba(cr, flt8(112), flt8(224), flt8(224), alpha);
     else
-        cairo_set_source_rgba(cr, 64 / 255., 128 / 255., 128 / 255., alpha);
+        cairo_set_source_rgba(cr, flt8(64), flt8(128), flt8(128), alpha);
 #else
     if (widget->getFlags(Ex_PtrEntered))
-        cairo_set_source_rgb(cr, 112 / 255., 224 / 255., 224 / 255.);
+        cairo_set_source_rgb(cr, flt8(112), flt8(224), flt8(224));
     else
-        cairo_set_source_rgb(cr, 64 / 255., 128 / 255., 128 / 255.);
+        cairo_set_source_rgb(cr, flt8(64), flt8(128), flt8(128));
 #endif
 #endif//USE_PATTERN_BTN
     cairo_fill_preserve(cr);
-    cairo_set_line_width(cr, 1.2);
+    cairo_set_line_width(cr, 1.2f);
     cairo_set_line_join(cr, CAIRO_LINE_JOIN_ROUND);
     cairo_set_line_cap(cr, CAIRO_LINE_CAP_ROUND);
     cairo_set_antialias(cr, CAIRO_ANTIALIAS_GRAY);
@@ -225,22 +227,22 @@ void WndMain::onDrawPane(ExCanvas* canvas, const ExWidget* widget, const ExRegio
     cairo_line_to(cr, rc.l + 1, rc.t + 4);
     cairo_close_path(cr);
 
-    const double alpha = .5;
+    const float alpha = .5;
 #if 1//USE_PATTERN_BTN
     cairo_pattern_t* crp = cairo_pattern_create_linear(rc.l, rc.t, rc.r, rc.b);
     if (widget->isOpaque()) {
-        cairo_pattern_add_color_stop_rgb(crp, 1, r / 255., g / 255., b / 255.);
-        cairo_pattern_add_color_stop_rgb(crp, 0, 128 / 255., 128 / 255., 128 / 255.);
+        cairo_pattern_add_color_stop_rgb(crp, 1, flt8(r), flt8(g), flt8(b));
+        cairo_pattern_add_color_stop_rgb(crp, 0, flt8(128), flt8(128), flt8(128));
     } else {
-        cairo_pattern_add_color_stop_rgba(crp, 1, r / 255., g / 255., b / 255., alpha);
-        cairo_pattern_add_color_stop_rgba(crp, 0, 128 / 255., 128 / 255., 128 / 255., 1);
+        cairo_pattern_add_color_stop_rgba(crp, 1, flt8(r), flt8(g), flt8(b), alpha);
+        cairo_pattern_add_color_stop_rgba(crp, 0, flt8(128), flt8(128), flt8(128), 1);
     }
     cairo_set_source(cr, crp);
 #else
     if (widget->isOpaque())
-        cairo_set_source_rgb(cr, r / 255., g / 255., b / 255.);
+        cairo_set_source_rgb(cr, flt8(r), flt8(g), flt8(b));
     else
-        cairo_set_source_rgba(cr, r / 255., g / 255., b / 255., alpha);
+        cairo_set_source_rgba(cr, flt8(r), flt8(g), flt8(b), alpha);
 #endif
     cairo_fill_preserve(cr);
     cairo_set_line_width(cr, 1.);
@@ -248,9 +250,9 @@ void WndMain::onDrawPane(ExCanvas* canvas, const ExWidget* widget, const ExRegio
     cairo_set_line_cap(cr, CAIRO_LINE_CAP_ROUND);
     cairo_set_antialias(cr, CAIRO_ANTIALIAS_GRAY);
     if (widget->isOpaque())
-        cairo_set_source_rgb(cr, 160 / 255., 160 / 255., 160 / 255.);
+        cairo_set_source_rgb(cr, flt8(160), flt8(160), flt8(160));
     else
-        cairo_set_source_rgba(cr, 160 / 255., 160 / 255., 160 / 255., alpha);
+        cairo_set_source_rgba(cr, flt8(160), flt8(160), flt8(160), alpha);
     cairo_stroke(cr);
 
     cairo_restore(cr);
@@ -260,7 +262,7 @@ void WndMain::onDrawPane(ExCanvas* canvas, const ExWidget* widget, const ExRegio
 }
 
 void WndMain::onDrawToy(ExCanvas* canvas, const WndMain* w, const ExRegion* damage) {
-    static const double fs = 16.; // font_size
+    static const float fs = 16.; // font_size
     static const wchar* strtbl[2] = {
         L"ExeCUnix Project for the Embedded Unix",
         L"C.H Park <execunix@gmail.com>"
@@ -279,7 +281,7 @@ void WndMain::onDrawToy(ExCanvas* canvas, const WndMain* w, const ExRegion* dama
     const wchar* str = strtbl[textId % 2];
     int num_glyphs = 0;
     int len = wcslen(str);
-    double delta = rc.height()/2 * .9;
+    float delta = rc.height()/2 * .9f;
     cairo_scaled_font_t* scaled_font = cairo_scaled_font_create(canvas->crf[1],
         &font_matrix, &ctm, options);
     status = cairo_scaled_font_text_to_glyphs(scaled_font, 0, 0, str, len,
@@ -290,11 +292,11 @@ void WndMain::onDrawToy(ExCanvas* canvas, const WndMain* w, const ExRegion* dama
             glyphs[i].x *= toy_scale;
         }
         ExPoint p = rc.center();
-        double w = glyphs[num_glyphs - 1].x + fs / 2.;
+        float w = glyphs[num_glyphs - 1].x + fs / 2.f;
         cairo_save(cr);
         canvas->setRegion(damage);
         cairo_clip(cr);
-        cairo_translate(cr, p.x - w / 2., p.y + fs / 2.);
+        cairo_translate(cr, p.x - w / 2.f, p.y + fs / 2.f);
         cairo_set_font_face(cr, canvas->crf[1]);
         cairo_set_font_size(cr, fs);
         cairo_set_source_rgba(cr, 1, 1, 1, toy_alpha);
@@ -316,18 +318,18 @@ int WndMain::onTimerToy(WndMain* wnd, ExCbInfo* cbinfo) {
     }
     int n = cnt;
     if (n == 0) {
-        toy_alpha = .2;
-        toy_delta = 1.;
-        toy_scale = 1.;
+        toy_alpha = .2f;
+        toy_delta = 1.f;
+        toy_scale = 1.f;
     } else if (n <= 40) {
-        toy_alpha = .2 + .8 * n / 40.;
-        toy_delta = cos(n * 2 / M_PI) * (40 - n) / 40.;
+        toy_alpha = .2f + .8f * n / 40.f;
+        toy_delta = cos(n * 2 / M_PI) * (40 - n) / 40.f;
     } else if (n <= 60) {
         return Ex_Continue;
     } else {
         n -= 60;
-        toy_alpha = 1. - n / 40.;
-        toy_scale = 1. + n / 20.;
+        toy_alpha = 1.f - n / 40.f;
+        toy_scale = 1.f + n / 20.f;
     }
     toy.damage();
     return Ex_Continue;
@@ -373,30 +375,32 @@ int WndMain::onLayout(WndMain* widget, ExCbInfo* cbinfo) {
             panes[0].layout(a0); // do recurs here
             panes[1].layout(a1); // do recurs here
             panes[2].layout(a2); // do recurs here
+            toy.setPos(ExPoint(a.center().x - toy.area.w / 2,
+                               a.center().y - toy.area.h / 2));
         } else if (widget == &panes[0]) {
-            int margin_w = a.w * 2 / 100; // 2 %
-            int margin_h = a.h * 8 / 100; // 8 %
+            float margin_w = a.w * 2 / 100.f; // 2 %
+            float margin_h = a.h * 8 / 100.f; // 8 %
             a.inset(margin_w, margin_h);
-            int gap_x = a.w * 3 / 100; // 3 %
-            int grid_x = (a.w + gap_x) / 5;
+            float gap_x = a.w * 3 / 100.f; // 3 %
+            float grid_x = (a.w + gap_x) / 5;
+            float p_x = a.x;
             ExSize sz(grid_x - gap_x, a.h);
-            ExPoint pt(a.x, a.y);
             for (int i = 0; i < 5; i++) {
-                btns0[i].layout(ExArea(pt, sz));
-                pt.x += grid_x;
+                btns0[i].layout(ExArea(ExPoint(p_x, a.y), sz));
+                p_x += grid_x;
             }
         } else if (widget == &panes[1] || widget == &panes[2]) {
-            int margin_w = a.w * 8 / 100; // 8 %
-            int margin_h = a.h * 3 / 100; // 3 %
+            float margin_w = a.w * 8 / 100.f; // 8 %
+            float margin_h = a.h * 3 / 100.f; // 3 %
             a.inset(margin_w, margin_h);
-            int gap_y = a.h * 4 / 100; // 4 %
-            int grid_y = (a.h + gap_y) / 6;
+            float gap_y = a.h * 4 / 100.f; // 4 %
+            float grid_y = (a.h + gap_y) / 6;
+            float p_y = a.y;
             ExSize sz(a.w, grid_y - gap_y);
-            ExPoint pt(a.x, a.y);
             ExWidget* btns = widget == &panes[1] ? btns1 : btns2;
             for (int i = 0; i < 6; i++) {
-                btns[i].layout(ExArea(pt, sz));
-                pt.y += grid_y;
+                btns[i].layout(ExArea(ExPoint(a.x, p_y), sz));
+                p_y += grid_y;
             }
         }
     }
@@ -552,7 +556,7 @@ int WndMain::initInput() {
     launchInputTimer.setCallback([](void* d, ExTimer* t, ExCbInfo*)->int {
         dprintf(L"launchInputTimer: %d\n", exTickCount);
 
-        hWakeupNoti = CreateEvent(NULL, FALSE, TRUE, L"AppDemo"); // tbd
+        hWakeupNoti = CreateEvent(NULL, FALSE, FALSE, L"AppDemo"); // tbd
         inp1 = ExInput::add(hWakeupNoti, [](void* d, ExInput* input, ExCbInfo* cbinfo)->int {
             dprintf(L"hWakeupNoti signaled...\n");
             return Ex_Continue; }, NULL);
@@ -567,10 +571,8 @@ int WndMain::initInput() {
         signalInputTimer.setCallback([](void* d, ExTimer* t, ExCbInfo*)->int {
             ((int&)t->userdata)++;
             // emulate initial state.
-            if (((int&)t->userdata) % 2)
+            if (!(((int&)t->userdata) % 5))
                 SetEvent(hWakeupNoti);
-            else
-                SetEvent(hStorageNoti);
             return Ex_Continue; }, NULL);
         signalInputTimer.start(1, 1000);
         return Ex_Continue; }, NULL);
@@ -787,9 +789,9 @@ int WndMain::start() {
         return Ex_Continue; }, (void*)0);
     timerTest.start(1, 1000);
 
-    toy_alpha = .2;
-    toy_delta = 1.;
-    toy_scale = 1.;
+    toy_alpha = .2f;
+    toy_delta = 1.f;
+    toy_scale = 1.f;
     (int&)toy.userdata = 0;
     toy.drawFunc = ExDrawFunc(this, &WndMain::onDrawToy);
     toy.init(this, L"toy", &ExArea(360, 300, 600, 80));
@@ -818,6 +820,7 @@ int WndMain::start() {
 
     initInput();
 
+#if DISP_AT_ONCE
     addFilter([](void* data, ExWindow* window, ExCbInfo* cbinfo)->int {
         dprintf(L"[%s] WM_0x%04x\n", window->getName(), cbinfo->event->message);
         if (cbinfo->event->message == WM_CREATE) {
@@ -846,7 +849,6 @@ int WndMain::start() {
         }
 #endif
         return Ex_Continue; }, this);
-#if DISP_AT_ONCE
     showWindow(0, WS_OVERLAPPEDWINDOW | WS_VISIBLE);
     return 0;
 #else

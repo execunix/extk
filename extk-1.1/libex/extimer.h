@@ -74,7 +74,7 @@ Description:
     A ExTimer invokes a callback after an initial and repeated time period,
     given in milliseconds.
     To disable the timer, set repeat to 0 or stop the timer.
-    To delete the timer on callback, should return Ex_End.
+    To delete the timer on callback, should return Ex_Remove.
 */
 
 /**

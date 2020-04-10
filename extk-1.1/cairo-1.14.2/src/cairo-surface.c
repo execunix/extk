@@ -1704,8 +1704,8 @@ slim_hidden_def (cairo_surface_mark_dirty_rectangle);
  **/
 void
 cairo_surface_set_device_scale (cairo_surface_t *surface,
-				double		 x_scale,
-				double		 y_scale)
+				floatt		 x_scale,
+				floatt		 y_scale)
 {
     cairo_status_t status;
 
@@ -1752,8 +1752,8 @@ slim_hidden_def (cairo_surface_set_device_scale);
  **/
 void
 cairo_surface_get_device_scale (cairo_surface_t *surface,
-				double          *x_scale,
-				double          *y_scale)
+				floatt          *x_scale,
+				floatt          *y_scale)
 {
     if (x_scale)
 	*x_scale = surface->device_transform.xx;
@@ -1784,8 +1784,8 @@ slim_hidden_def (cairo_surface_get_device_scale);
  **/
 void
 cairo_surface_set_device_offset (cairo_surface_t *surface,
-				 double           x_offset,
-				 double           y_offset)
+				 floatt           x_offset,
+				 floatt           y_offset)
 {
     cairo_status_t status;
 
@@ -1830,8 +1830,8 @@ slim_hidden_def (cairo_surface_set_device_offset);
  **/
 void
 cairo_surface_get_device_offset (cairo_surface_t *surface,
-				 double          *x_offset,
-				 double          *y_offset)
+				 floatt          *x_offset,
+				 floatt          *y_offset)
 {
     if (x_offset)
 	*x_offset = surface->device_transform.x0;
@@ -1875,8 +1875,8 @@ slim_hidden_def (cairo_surface_get_device_offset);
  **/
 void
 cairo_surface_set_fallback_resolution (cairo_surface_t	*surface,
-				       double		 x_pixels_per_inch,
-				       double		 y_pixels_per_inch)
+				       floatt		 x_pixels_per_inch,
+				       floatt		 y_pixels_per_inch)
 {
     cairo_status_t status;
 
@@ -1923,8 +1923,8 @@ slim_hidden_def (cairo_surface_set_fallback_resolution);
  **/
 void
 cairo_surface_get_fallback_resolution (cairo_surface_t	*surface,
-				       double		*x_pixels_per_inch,
-				       double		*y_pixels_per_inch)
+				       floatt		*x_pixels_per_inch,
+				       floatt		*y_pixels_per_inch)
 {
     if (x_pixels_per_inch)
 	*x_pixels_per_inch = surface->x_fallback_resolution;
@@ -2177,7 +2177,7 @@ _cairo_surface_fill_stroke (cairo_surface_t	    *surface,
 			    cairo_operator_t	     fill_op,
 			    const cairo_pattern_t   *fill_source,
 			    cairo_fill_rule_t	     fill_rule,
-			    double		     fill_tolerance,
+			    floatt		     fill_tolerance,
 			    cairo_antialias_t	     fill_antialias,
 			    cairo_path_fixed_t	    *path,
 			    cairo_operator_t	     stroke_op,
@@ -2185,7 +2185,7 @@ _cairo_surface_fill_stroke (cairo_surface_t	    *surface,
 			    const cairo_stroke_style_t    *stroke_style,
 			    const cairo_matrix_t	    *stroke_ctm,
 			    const cairo_matrix_t	    *stroke_ctm_inverse,
-			    double		     stroke_tolerance,
+			    floatt		     stroke_tolerance,
 			    cairo_antialias_t	     stroke_antialias,
 			    const cairo_clip_t	    *clip)
 {
@@ -2267,7 +2267,7 @@ _cairo_surface_stroke (cairo_surface_t			*surface,
 		       const cairo_stroke_style_t	*stroke_style,
 		       const cairo_matrix_t		*ctm,
 		       const cairo_matrix_t		*ctm_inverse,
-		       double				 tolerance,
+		       floatt				 tolerance,
 		       cairo_antialias_t		 antialias,
 		       const cairo_clip_t		*clip)
 {
@@ -2312,7 +2312,7 @@ _cairo_surface_fill (cairo_surface_t		*surface,
 		     const cairo_pattern_t	 *source,
 		     const cairo_path_fixed_t	*path,
 		     cairo_fill_rule_t		 fill_rule,
-		     double			 tolerance,
+		     floatt			 tolerance,
 		     cairo_antialias_t		 antialias,
 		     const cairo_clip_t		*clip)
 {
@@ -2641,8 +2641,8 @@ _cairo_surface_show_text_glyphs (cairo_surface_t	    *surface,
  **/
 void
 _cairo_surface_set_resolution (cairo_surface_t *surface,
-			       double x_res,
-			       double y_res)
+			       floatt x_res,
+			       floatt y_res)
 {
     if (surface->status)
 	return;

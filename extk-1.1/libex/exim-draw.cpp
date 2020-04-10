@@ -32,9 +32,11 @@ void ExImage::fillRectAlphaEx(const ExRect* rect, uchar alpha, uchar a_out) {
         for (; p < p_end; p += 4)
             p[3] = a_out;
     }
+    int rc_lx4 = (int)rc.l * 4;
+    int rc_rx4 = (int)rc.r * 4;
     for (; y < rc.b; y++) {
-        register uchar* p_endl = p + rc.l * 4;
-        register uchar* p_endr = p + rc.r * 4;
+        register uchar* p_endl = p + rc_lx4;
+        register uchar* p_endr = p + rc_rx4;
         register uchar* p_endw = p + this->bpl;
         for (; p < p_endl; p += 4)
             p[3] = a_out;
@@ -72,9 +74,11 @@ void ExImage::fillRectAlpha(const ExRect* rect, uchar alpha) {
     }
     register int y = rc.t;
     register uchar* p_y = this->bits + this->bpl * y;
+    int rc_lx4 = (int)rc.l * 4;
+    int rc_rx4 = (int)rc.r * 4;
     for (; y < rc.b; y++) {
-        register uchar* p = p_y + rc.l * 4;
-        register uchar* q = p_y + rc.r * 4;
+        register uchar* p = p_y + rc_lx4;
+        register uchar* q = p_y + rc_rx4;
         for (; p < q; p += 4)
             p[3] = alpha;
         p_y += this->bpl;
@@ -107,9 +111,11 @@ void ExImage::fillRectRgbEx(const ExRect* rect, ExColor rgb, ExColor rgb_out)
         for (; p < p_end; p += 4)
             *(uint32*)p = (0xff000000 & *(uint32*)p) | rgb_out;
     }
+    int rc_lx4 = (int)rc.l * 4;
+    int rc_rx4 = (int)rc.r * 4;
     for (; y < rc.b; y++) {
-        register uchar* p_endl = p + rc.l * 4;
-        register uchar* p_endr = p + rc.r * 4;
+        register uchar* p_endl = p + rc_lx4;
+        register uchar* p_endr = p + rc_rx4;
         register uchar* p_endw = p + this->bpl;
         for (; p < p_endl; p += 4)
             *(uint32*)p = (0xff000000 & *(uint32*)p) | rgb_out;
@@ -147,9 +153,11 @@ void ExImage::fillRectRgb(const ExRect* rect, ExColor rgb) {
     }
     register int y = rc.t;
     register uchar* p_y = this->bits + this->bpl * y;
+    int rc_lx4 = (int)rc.l * 4;
+    int rc_rx4 = (int)rc.r * 4;
     for (; y < rc.b; y++) {
-        register uchar* p = p_y + rc.l * 4;
-        register uchar* q = p_y + rc.r * 4;
+        register uchar* p = p_y + rc_lx4;
+        register uchar* q = p_y + rc_rx4;
         for (; p < q; p += 4)
             *(uint32*)p = (0xff000000 & *(uint32*)p) | rgb;
         p_y += this->bpl;
@@ -181,9 +189,11 @@ void ExImage::fillRectEx(const ExRect* rect, ExColor color, ExColor c_out) {
         for (; p < p_end; p += 4)
             *(uint32*)p = c_out;
     }
+    int rc_lx4 = (int)rc.l * 4;
+    int rc_rx4 = (int)rc.r * 4;
     for (; y < rc.b; y++) {
-        register uchar* p_endl = p + rc.l * 4;
-        register uchar* p_endr = p + rc.r * 4;
+        register uchar* p_endl = p + rc_lx4;
+        register uchar* p_endr = p + rc_rx4;
         register uchar* p_endw = p + this->bpl;
         for (; p < p_endl; p += 4)
             *(uint32*)p = c_out;
@@ -221,9 +231,11 @@ void ExImage::fillRect(const ExRect* rect, ExColor color) {
     }
     register int y = rc.t;
     register uchar* p_y = this->bits + this->bpl * y;
+    int rc_lx4 = (int)rc.l * 4;
+    int rc_rx4 = (int)rc.r * 4;
     for (; y < rc.b; y++) {
-        register uchar* p = p_y + rc.l * 4;
-        register uchar* q = p_y + rc.r * 4;
+        register uchar* p = p_y + rc_lx4;
+        register uchar* q = p_y + rc_rx4;
         for (; p < q; p += 4)
             *(uint32*)p = color;
         p_y += this->bpl;
@@ -252,24 +264,26 @@ void ExImage::drawRect(const ExRect* rect, ExColor color) {
     }
     register int y = rc.t;
     register uchar* p_y = this->bits + this->bpl * y;
+    int rc_lx4 = (int)rc.l * 4;
+    int rc_rx4 = (int)rc.r * 4;
     for (; y < rc.t+1; y++) {
-        register uchar* p = p_y + rc.l * 4;
-        register uchar* q = p_y + rc.r * 4;
+        register uchar* p = p_y + rc_lx4;
+        register uchar* q = p_y + rc_rx4;
         for (; p < q; p += 4)
             *(uint32*)p = color;
         p_y += this->bpl;
     }
     for (; y < rc.b - 1; y++) {
-        register uchar* p = p_y + rc.l * 4;
-        register uchar* q = p_y + rc.r * 4;
+        register uchar* p = p_y + rc_lx4;
+        register uchar* q = p_y + rc_rx4;
         *(uint32*)p = color;
         q -= 4;
         *(uint32*)q = color;
         p_y += this->bpl;
     }
     for (; y < rc.b; y++) {
-        register uchar* p = p_y + rc.l * 4;
-        register uchar* q = p_y + rc.r * 4;
+        register uchar* p = p_y + rc_lx4;
+        register uchar* q = p_y + rc_rx4;
         for (; p < q; p += 4)
             *(uint32*)p = color;
         p_y += this->bpl;

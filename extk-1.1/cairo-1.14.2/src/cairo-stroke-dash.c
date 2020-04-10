@@ -43,7 +43,7 @@
 void
 _cairo_stroker_dash_start (cairo_stroker_dash_t *dash)
 {
-    double offset;
+    floatt offset;
     cairo_bool_t on = TRUE;
     unsigned int i = 0;
 
@@ -68,7 +68,7 @@ _cairo_stroker_dash_start (cairo_stroker_dash_t *dash)
 }
 
 void
-_cairo_stroker_dash_step (cairo_stroker_dash_t *dash, double step)
+_cairo_stroker_dash_step (cairo_stroker_dash_t *dash, floatt step)
 {
     dash->dash_remain -= step;
     if (dash->dash_remain < CAIRO_FIXED_ERROR_DOUBLE) {

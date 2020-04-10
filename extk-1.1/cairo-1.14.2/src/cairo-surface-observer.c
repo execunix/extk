@@ -261,7 +261,7 @@ add_clip (struct clip *stats,
 }
 
 static void
-stats_add (struct stat *s, double v)
+stats_add (struct stat *s, floatt v)
 {
     if (v < s->min)
 	s->min = v;
@@ -562,7 +562,7 @@ record_fill (cairo_observation_record_t *r,
 	     const cairo_pattern_t	*source,
 	     const cairo_path_fixed_t	*path,
 	     cairo_fill_rule_t		 fill_rule,
-	     double			 tolerance,
+	     floatt			 tolerance,
 	     cairo_antialias_t		 antialias,
 	     const cairo_clip_t		*clip,
 	     cairo_time_t elapsed)
@@ -592,7 +592,7 @@ record_stroke (cairo_observation_record_t *r,
 	       const cairo_stroke_style_t	*style,
 	       const cairo_matrix_t	*ctm,
 	       const cairo_matrix_t	*ctm_inverse,
-	       double			 tolerance,
+	       floatt			 tolerance,
 	       cairo_antialias_t	 antialias,
 	       const cairo_clip_t	*clip,
 	       cairo_time_t		 elapsed)
@@ -859,7 +859,7 @@ add_record_fill (cairo_observation_t *log,
 		 const cairo_pattern_t		*source,
 		 const cairo_path_fixed_t	*path,
 		 cairo_fill_rule_t		 fill_rule,
-		 double				 tolerance,
+		 floatt				 tolerance,
 		 cairo_antialias_t		 antialias,
 		 const cairo_clip_t		 *clip,
 		 cairo_time_t elapsed)
@@ -893,7 +893,7 @@ _cairo_surface_observer_fill (void			*abstract_surface,
 			      const cairo_pattern_t	*source,
 			      const cairo_path_fixed_t	*path,
 			      cairo_fill_rule_t		fill_rule,
-			      double			 tolerance,
+			      floatt			 tolerance,
 			      cairo_antialias_t		antialias,
 			      const cairo_clip_t	*clip)
 {
@@ -971,7 +971,7 @@ add_record_stroke (cairo_observation_t *log,
 		 const cairo_stroke_style_t	*style,
 		 const cairo_matrix_t		*ctm,
 		 const cairo_matrix_t		*ctm_inverse,
-		 double				 tolerance,
+		 floatt				 tolerance,
 		 cairo_antialias_t		 antialias,
 		 const cairo_clip_t		*clip,
 		 cairo_time_t elapsed)
@@ -1008,7 +1008,7 @@ _cairo_surface_observer_stroke (void				*abstract_surface,
 				const cairo_stroke_style_t	*style,
 				const cairo_matrix_t		*ctm,
 				const cairo_matrix_t		*ctm_inverse,
-				double				 tolerance,
+				floatt				 tolerance,
 				cairo_antialias_t		 antialias,
 				const cairo_clip_t		*clip)
 {
@@ -1772,7 +1772,7 @@ print_record (cairo_output_stream_t *stream,
 				 _cairo_time_to_ns (r->elapsed));
 }
 
-static double percent (cairo_time_t a, cairo_time_t b)
+static floatt percent (cairo_time_t a, cairo_time_t b)
 {
     /* Fake %.1f */
     return _cairo_round (_cairo_time_to_s (a) * 1000 /
@@ -1979,7 +1979,7 @@ cairo_surface_observer_print (cairo_surface_t *abstract_surface,
     return _cairo_output_stream_destroy (stream);
 }
 
-double
+floatt
 cairo_surface_observer_elapsed (cairo_surface_t *abstract_surface)
 {
     cairo_surface_observer_t *surface;
@@ -2015,7 +2015,7 @@ cairo_device_observer_print (cairo_device_t *abstract_device,
     return _cairo_output_stream_destroy (stream);
 }
 
-double
+floatt
 cairo_device_observer_elapsed (cairo_device_t *abstract_device)
 {
     cairo_device_observer_t *device;
@@ -2030,7 +2030,7 @@ cairo_device_observer_elapsed (cairo_device_t *abstract_device)
     return _cairo_time_to_ns (_cairo_observation_total_elapsed (&device->log));
 }
 
-double
+floatt
 cairo_device_observer_paint_elapsed (cairo_device_t *abstract_device)
 {
     cairo_device_observer_t *device;
@@ -2045,7 +2045,7 @@ cairo_device_observer_paint_elapsed (cairo_device_t *abstract_device)
     return _cairo_time_to_ns (device->log.paint.elapsed);
 }
 
-double
+floatt
 cairo_device_observer_mask_elapsed (cairo_device_t *abstract_device)
 {
     cairo_device_observer_t *device;
@@ -2060,7 +2060,7 @@ cairo_device_observer_mask_elapsed (cairo_device_t *abstract_device)
     return _cairo_time_to_ns (device->log.mask.elapsed);
 }
 
-double
+floatt
 cairo_device_observer_fill_elapsed (cairo_device_t *abstract_device)
 {
     cairo_device_observer_t *device;
@@ -2075,7 +2075,7 @@ cairo_device_observer_fill_elapsed (cairo_device_t *abstract_device)
     return _cairo_time_to_ns (device->log.fill.elapsed);
 }
 
-double
+floatt
 cairo_device_observer_stroke_elapsed (cairo_device_t *abstract_device)
 {
     cairo_device_observer_t *device;
@@ -2090,7 +2090,7 @@ cairo_device_observer_stroke_elapsed (cairo_device_t *abstract_device)
     return _cairo_time_to_ns (device->log.stroke.elapsed);
 }
 
-double
+floatt
 cairo_device_observer_glyphs_elapsed (cairo_device_t *abstract_device)
 {
     cairo_device_observer_t *device;

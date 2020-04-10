@@ -1378,7 +1378,7 @@ typedef void (*cairo_xrender_composite_text_func_t)
 	       int                          nelt);
 
 /* Build a struct of the same size of #cairo_glyph_t that can be used both as
- * an input glyph with double coordinates, and as "working" glyph with
+ * an input glyph with floatt coordinates, and as "working" glyph with
  * integer from-current-point offsets. */
 typedef union {
     cairo_glyph_t d;
@@ -1774,7 +1774,7 @@ project_line_x_onto_16_16 (const cairo_line_t *line,
 			    XLineFixed *out)
 {
     cairo_point_double_t p1, p2;
-    double m;
+    floatt m;
 
     p1.x = _cairo_fixed_to_double (line->p1.x);
     p1.y = _cairo_fixed_to_double (line->p1.y);

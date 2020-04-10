@@ -137,7 +137,7 @@ _cairo_path_fixed_approximate_fill_extents (const cairo_path_fixed_t *path,
 void
 _cairo_path_fixed_fill_extents (const cairo_path_fixed_t	*path,
 				cairo_fill_rule_t	 fill_rule,
-				double			 tolerance,
+				floatt			 tolerance,
 				cairo_rectangle_int_t	*extents)
 {
     if (path->extents.p1.x < path->extents.p2.x &&
@@ -158,7 +158,7 @@ _cairo_path_fixed_approximate_stroke_extents (const cairo_path_fixed_t *path,
 {
     if (path->has_extents) {
 	cairo_box_t box_extents;
-	double dx, dy;
+	floatt dx, dy;
 
 	_cairo_stroke_style_max_distance_from_path (style, path, ctm, &dx, &dy);
 
@@ -180,7 +180,7 @@ _cairo_path_fixed_stroke_extents (const cairo_path_fixed_t	*path,
 				  const cairo_stroke_style_t	*stroke_style,
 				  const cairo_matrix_t		*ctm,
 				  const cairo_matrix_t		*ctm_inverse,
-				  double			 tolerance,
+				  floatt			 tolerance,
 				  cairo_rectangle_int_t		*extents)
 {
     cairo_polygon_t polygon;

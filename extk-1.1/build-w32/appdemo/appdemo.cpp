@@ -142,6 +142,96 @@ void exwindow_apitest() {
 }
 #endif
 
+#define MAGIC_NUMBER_FIXED_16_16 (103079215104.0)
+#define MAGIC_NUMBER_FIXED ((1LL << (52 - 8/*CAIRO_FIXED_FRAC_BITS*/)) * 1.5)
+
+static inline int32
+_fixed_from_float(float d)
+{
+    return (int32)(d * 256.f);
+}
+
+/* For 32-bit fixed point numbers */
+static inline int32
+_fixed_from_double(double d)
+{
+    union {
+        double d;
+        int32_t i[2];
+    } u;
+
+    u.d = d + MAGIC_NUMBER_FIXED;
+#ifdef FLOAT_WORDS_BIGENDIAN
+    return u.i[1];
+#else
+    return u.i[0];
+#endif
+}
+
+static inline int32
+_fixed_16_16_from_float(float d)
+{
+    return (int32)(d * 65536.f);
+}
+
+static inline int32
+_fixed_16_16_from_double(double d)
+{
+    union {
+        double d;
+        int32_t i[2];
+    } u;
+
+    u.d = d + MAGIC_NUMBER_FIXED_16_16;
+#ifdef FLOAT_WORDS_BIGENDIAN
+    return u.i[1];
+#else
+    return u.i[0];
+#endif
+}
+
+#define TESTCNT 100000000
+
+int flt_test() {
+    volatile int32 val;
+    ulong tick1, tick2;
+
+    tick1 = GetTickCount();
+    for (int i = 0; i < TESTCNT; i++) {
+        val = _fixed_from_float(1.f);
+    }
+    tick2 = GetTickCount();
+    dprintf(L"_fixed_from_float %d\n", tick2 - tick1);
+
+    tick1 = GetTickCount();
+    for (int i = 0; i < TESTCNT; i++) {
+        val = _fixed_from_double(1.);
+    }
+    tick2 = GetTickCount();
+    dprintf(L"_fixed_from_double %d\n", tick2 - tick1);
+
+    tick1 = GetTickCount();
+    for (int i = 0; i < TESTCNT; i++) {
+        val = _fixed_16_16_from_float(1.f);
+    }
+    tick2 = GetTickCount();
+    dprintf(L"_fixed_16_16_from_float %d\n", tick2 - tick1);
+
+    tick1 = GetTickCount();
+    for (int i = 0; i < TESTCNT; i++) {
+        val = _fixed_16_16_from_double(1.);
+    }
+    tick2 = GetTickCount();
+    dprintf(L"_fixed_16_16_from_double %d\n", tick2 - tick1);
+
+    //[*] _fixed_from_float 1984
+    //[*] _fixed_from_double 2641
+    //[*] _fixed_16_16_from_float 1953
+    //[*] _fixed_16_16_from_double 2609
+
+    return 0;
+}
+
 int app_test() {
 #if 0
     //char aaa1[sizeof(long) == 8 ? 1 : -1];
@@ -260,8 +350,9 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
                       _In_ LPWSTR    lpCmdLine,
                       _In_ int       nCmdShow)
 {
-    cb_test();
-    app_test();
+    //cb_test();
+    //app_test();
+    //flt_test();
 
     ExApp::init(hInstance, hPrevInstance, lpCmdLine, nCmdShow);
 

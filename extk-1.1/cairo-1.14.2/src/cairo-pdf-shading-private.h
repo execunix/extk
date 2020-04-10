@@ -47,7 +47,7 @@ typedef struct _cairo_pdf_shading {
     int bits_per_coordinate;
     int bits_per_component;
     int bits_per_flag;
-    double *decode_array;
+    floatt *decode_array;
     int decode_array_length;
     unsigned char *data;
     unsigned long data_length;

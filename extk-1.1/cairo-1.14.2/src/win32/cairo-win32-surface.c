@@ -235,7 +235,7 @@ _cairo_win32_surface_emit_glyphs (cairo_win32_surface_t *dst,
     cairo_matrix_t device_to_logical;
 
     int start_x, start_y;
-    double user_x, user_y;
+    floatt user_x, user_y;
     int logical_x, logical_y;
     unsigned int glyph_index_option;
 
@@ -289,8 +289,8 @@ _cairo_win32_surface_emit_glyphs (cairo_win32_surface_t *dst,
             dxy_buf[j] = 0;
             dxy_buf[j+1] = 0;
         } else {
-            double next_user_x = glyphs[i+1].x;
-            double next_user_y = glyphs[i+1].y;
+            floatt next_user_x = glyphs[i+1].x;
+            floatt next_user_y = glyphs[i+1].y;
             int next_logical_x, next_logical_y;
 
             cairo_matrix_transform_point(&device_to_logical,

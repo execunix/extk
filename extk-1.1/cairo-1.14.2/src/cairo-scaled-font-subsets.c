@@ -107,8 +107,8 @@ typedef struct _cairo_sub_font_glyph {
 
     unsigned int subset_id;
     unsigned int subset_glyph_index;
-    double       x_advance;
-    double       y_advance;
+    floatt       x_advance;
+    floatt       y_advance;
 
     cairo_bool_t is_latin;
     int		 latin_character;
@@ -157,8 +157,8 @@ static cairo_sub_font_glyph_t *
 _cairo_sub_font_glyph_create (unsigned long	scaled_font_glyph_index,
 			      unsigned int	subset_id,
 			      unsigned int	subset_glyph_index,
-                              double            x_advance,
-                              double            y_advance,
+                              floatt            x_advance,
+                              floatt            y_advance,
 			      int	        latin_character,
 			      uint32_t          unicode,
 			      char             *utf8,
@@ -503,8 +503,8 @@ _cairo_sub_font_add_glyph (cairo_sub_font_t	   *sub_font,
     cairo_scaled_glyph_t *scaled_glyph;
     cairo_sub_font_glyph_t *sub_font_glyph;
     int *num_glyphs_in_subset_ptr;
-    double x_advance;
-    double y_advance;
+    floatt x_advance;
+    floatt y_advance;
     cairo_int_status_t status;
 
     _cairo_scaled_font_freeze_cache (sub_font->scaled_font);

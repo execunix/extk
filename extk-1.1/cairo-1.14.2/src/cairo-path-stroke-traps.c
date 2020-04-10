@@ -52,10 +52,10 @@ struct stroker {
 
     const cairo_matrix_t *ctm;
     const cairo_matrix_t *ctm_inverse;
-    double spline_cusp_tolerance;
-    double half_line_width;
-    double tolerance;
-    double ctm_determinant;
+    floatt spline_cusp_tolerance;
+    floatt half_line_width;
+    floatt tolerance;
+    floatt ctm_determinant;
     cairo_bool_t ctm_det_positive;
     cairo_line_join_t line_join;
 
@@ -87,7 +87,7 @@ stroker_init (struct stroker		*stroker,
 	      const cairo_stroke_style_t	*style,
 	      const cairo_matrix_t	*ctm,
 	      const cairo_matrix_t	*ctm_inverse,
-	      double			 tolerance,
+	      floatt			 tolerance,
 	      cairo_traps_t		*traps)
 {
     cairo_status_t status;
@@ -135,7 +135,7 @@ stroker_init (struct stroker		*stroker,
 	 * we might generate trapezoids, to capture line segments that are outside
 	 * of the bounds but which might generate rendering that's within bounds.
 	 */
-	double dx, dy;
+	floatt dx, dy;
 	cairo_fixed_t fdx, fdy;
 
 	stroker->tight_bounds = traps->bounds;
@@ -192,9 +192,9 @@ join_is_clockwise (const cairo_stroke_face_t *in,
 }
 
 static int
-slope_compare_sgn (double dx1, double dy1, double dx2, double dy2)
+slope_compare_sgn (floatt dx1, floatt dy1, floatt dx2, floatt dy2)
 {
-    double c = dx1 * dy2 - dx2 * dy1;
+    floatt c = dx1 * dy2 - dx2 * dy1;
     if (c > 0) return 1;
     if (c < 0) return -1;
     return 0;
@@ -309,9 +309,9 @@ join (struct stroker *stroker,
     case CAIRO_LINE_JOIN_MITER:
     default: {
 	/* dot product of incoming slope vector with outgoing slope vector */
-	double in_dot_out = (-in->usr_vector.x * out->usr_vector.x +
+	floatt in_dot_out = (-in->usr_vector.x * out->usr_vector.x +
 			     -in->usr_vector.y * out->usr_vector.y);
-	double ml = stroker->style->miter_limit;
+	floatt ml = stroker->style->miter_limit;
 
 	/* Check the miter limit -- lines meeting at an acute angle
 	 * can generate long miters, the limit converts them to bevel
@@ -371,14 +371,14 @@ join (struct stroker *stroker,
 	 *
 	 */
 	if (2 <= ml * ml * (1 - in_dot_out)) {
-	    double		x1, y1, x2, y2;
-	    double		mx, my;
-	    double		dx1, dx2, dy1, dy2;
+	    floatt		x1, y1, x2, y2;
+	    floatt		mx, my;
+	    floatt		dx1, dx2, dy1, dy2;
 	    cairo_point_t	outer;
 	    cairo_point_t	quad[4];
-	    double		ix, iy;
-	    double		fdx1, fdy1, fdx2, fdy2;
-	    double		mdx, mdy;
+	    floatt		ix, iy;
+	    floatt		fdx1, fdy1, fdx2, fdy2;
+	    floatt		mdx, mdy;
 
 	    /*
 	     * we've got the points already transformed to device
@@ -513,7 +513,7 @@ add_cap (struct stroker *stroker, cairo_stroke_face_t *f)
     }
 
     case CAIRO_LINE_CAP_SQUARE: {
-	double dx, dy;
+	floatt dx, dy;
 	cairo_slope_t fvector;
 	cairo_point_t quad[4];
 
@@ -569,10 +569,10 @@ add_trailing_cap (struct stroker *stroker, cairo_stroke_face_t *face)
     add_cap (stroker, face);
 }
 
-static inline double
-normalize_slope (double *dx, double *dy)
+static inline floatt
+normalize_slope (floatt *dx, floatt *dy)
 {
-    double dx0 = *dx, dy0 = *dy;
+    floatt dx0 = *dx, dy0 = *dy;
 
     if (dx0 == 0.0 && dy0 == 0.0)
 	return 0;
@@ -596,7 +596,7 @@ normalize_slope (double *dx, double *dy)
 	    return -dx0;
 	}
     } else {
-	double mag = hypot (dx0, dy0);
+	floatt mag = hypot (dx0, dy0);
 	*dx = dx0 / mag;
 	*dy = dy0 / mag;
 	return mag;
@@ -609,9 +609,9 @@ compute_face (const cairo_point_t *point,
 	      struct stroker *stroker,
 	      cairo_stroke_face_t *face)
 {
-    double face_dx, face_dy;
+    floatt face_dx, face_dy;
     cairo_point_t offset_ccw, offset_cw;
-    double slope_dx, slope_dy;
+    floatt slope_dx, slope_dy;
 
     slope_dx = _cairo_fixed_to_double (dev_slope->dx);
     slope_dy = _cairo_fixed_to_double (dev_slope->dy);
@@ -821,9 +821,9 @@ static cairo_status_t
 line_to_dashed (void *closure, const cairo_point_t *point)
 {
     struct stroker *stroker = closure;
-    double mag, remain, step_length = 0;
-    double slope_dx, slope_dy;
-    double dx2, dy2;
+    floatt mag, remain, step_length = 0;
+    floatt slope_dx, slope_dy;
+    floatt dx2, dy2;
     cairo_stroke_face_t sub_start, sub_end;
     const cairo_point_t *p1 = &stroker->current_face.point;
     const cairo_point_t *p2 = point;
@@ -1114,7 +1114,7 @@ _cairo_path_fixed_stroke_to_traps (const cairo_path_fixed_t	*path,
 				   const cairo_stroke_style_t	*style,
 				   const cairo_matrix_t		*ctm,
 				   const cairo_matrix_t		*ctm_inverse,
-				   double			 tolerance,
+				   floatt			 tolerance,
 				   cairo_traps_t		*traps)
 {
     struct stroker stroker;

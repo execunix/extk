@@ -291,7 +291,7 @@ _cairo_output_stream_write_hex_string (cairo_output_stream_t *stream,
     }
 }
 
-/* Format a double in a locale independent way and trim trailing
+/* Format a floatt in a locale independent way and trim trailing
  * zeros.  Based on code from Alex Larson <alexl@redhat.com>.
  * http://mail.gnome.org/archives/gtk-devel-list/2001-October/msg00087.html
  *
@@ -300,7 +300,7 @@ _cairo_output_stream_write_hex_string (cairo_output_stream_t *stream,
  * into cairo (see COPYING). -- Kristian Høgsberg <krh@redhat.com>
  */
 static void
-_cairo_dtostr (char *buffer, size_t size, double d, cairo_bool_t limited_precision)
+_cairo_dtostr (char *buffer, size_t size, floatt d, cairo_bool_t limited_precision)
 {
     const char *decimal_point;
     int decimal_point_len;
@@ -495,10 +495,10 @@ _cairo_output_stream_vprintf (cairo_output_stream_t *stream,
 		      single_fmt, va_arg (ap, const char *));
 	    break;
 	case 'f':
-	    _cairo_dtostr (buffer, sizeof buffer, va_arg (ap, double), FALSE);
+	    _cairo_dtostr (buffer, sizeof buffer, va_arg (ap, floatt), FALSE);
 	    break;
 	case 'g':
-	    _cairo_dtostr (buffer, sizeof buffer, va_arg (ap, double), TRUE);
+	    _cairo_dtostr (buffer, sizeof buffer, va_arg (ap, floatt), TRUE);
 	    break;
 	case 'c':
 	    buffer[0] = va_arg (ap, int);
@@ -536,7 +536,7 @@ _cairo_output_stream_print_matrix (cairo_output_stream_t *stream,
 				   const cairo_matrix_t  *matrix)
 {
     cairo_matrix_t m;
-    double s, e;
+    floatt s, e;
 
     m = *matrix;
     s = fabs (m.xx);

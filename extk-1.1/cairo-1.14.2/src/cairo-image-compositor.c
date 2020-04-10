@@ -577,7 +577,7 @@ project_line_x_onto_16_16 (const cairo_line_t *line,
 {
     /* XXX use fixed-point arithmetic? */
     cairo_point_double_t p1, p2;
-    double m;
+    floatt m;
 
     p1.x = _cairo_fixed_to_double (line->p1.x);
     p1.y = _cairo_fixed_to_double (line->p1.y);
