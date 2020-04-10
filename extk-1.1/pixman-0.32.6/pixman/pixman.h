@@ -79,6 +79,14 @@ SOFTWARE.
 #define PIXMAN_END_DECLS
 #endif
 
+#define floattype_flt // extk
+
+#ifndef floattype_flt
+#define floatt double
+#else
+#define floatt float
+#endif
+
 PIXMAN_BEGIN_DECLS
 
 /*
@@ -128,7 +136,7 @@ typedef pixman_fixed_16_16_t	pixman_fixed_t;
 #define pixman_fixed_minus_1		(pixman_int_to_fixed(-1))
 #define pixman_fixed_to_int(f)		((int) ((f) >> 16))
 #define pixman_int_to_fixed(i)		((pixman_fixed_t) ((i) << 16))
-#define pixman_fixed_to_double(f)	(double) ((f) / (double) pixman_fixed_1)
+#define pixman_fixed_to_double(f)	(floatt) ((f) / (floatt) pixman_fixed_1)
 #define pixman_double_to_fixed(d)	((pixman_fixed_t) ((d) * 65536.0))
 #define pixman_fixed_frac(f)		((f) & pixman_fixed_1_minus_e)
 #define pixman_fixed_floor(f)		((f) & ~pixman_fixed_1_minus_e)
@@ -231,12 +239,12 @@ typedef struct pixman_f_vector pixman_f_vector_t;
 
 struct pixman_f_vector
 {
-    double  v[3];
+    floatt  v[3];
 };
 
 struct pixman_f_transform
 {
-    double  m[3][3];
+    floatt  m[3][3];
 };
 
 pixman_bool_t pixman_transform_from_pixman_f_transform (struct pixman_transform         *t,
@@ -253,26 +261,26 @@ void          pixman_f_transform_multiply              (struct pixman_f_transfor
 							const struct pixman_f_transform *l,
 							const struct pixman_f_transform *r);
 void          pixman_f_transform_init_scale            (struct pixman_f_transform       *t,
-							double                           sx,
-							double                           sy);
+							floatt                           sx,
+							floatt                           sy);
 pixman_bool_t pixman_f_transform_scale                 (struct pixman_f_transform       *forward,
 							struct pixman_f_transform       *reverse,
-							double                           sx,
-							double                           sy);
+							floatt                           sx,
+							floatt                           sy);
 void          pixman_f_transform_init_rotate           (struct pixman_f_transform       *t,
-							double                           cos,
-							double                           sin);
+							floatt                           cos,
+							floatt                           sin);
 pixman_bool_t pixman_f_transform_rotate                (struct pixman_f_transform       *forward,
 							struct pixman_f_transform       *reverse,
-							double                           c,
-							double                           s);
+							floatt                           c,
+							floatt                           s);
 void          pixman_f_transform_init_translate        (struct pixman_f_transform       *t,
-							double                           tx,
-							double                           ty);
+							floatt                           tx,
+							floatt                           ty);
 pixman_bool_t pixman_f_transform_translate             (struct pixman_f_transform       *forward,
 							struct pixman_f_transform       *reverse,
-							double                           tx,
-							double                           ty);
+							floatt                           tx,
+							floatt                           ty);
 pixman_bool_t pixman_f_transform_bounds                (const struct pixman_f_transform *t,
 							struct pixman_box16             *b);
 void          pixman_f_transform_init_identity         (struct pixman_f_transform       *t);

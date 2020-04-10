@@ -33,35 +33,35 @@
 #endif
 #include "pixman-private.h"
 
-typedef double (* kernel_func_t) (double x);
+typedef floatt (* kernel_func_t) (floatt x);
 
 typedef struct
 {
     pixman_kernel_t	kernel;
     kernel_func_t	func;
-    double		width;
+    floatt		width;
 } filter_info_t;
 
-static double
-impulse_kernel (double x)
+static floatt
+impulse_kernel (floatt x)
 {
     return (x == 0.0)? 1.0 : 0.0;
 }
 
-static double
-box_kernel (double x)
+static floatt
+box_kernel (floatt x)
 {
     return 1;
 }
 
-static double
-linear_kernel (double x)
+static floatt
+linear_kernel (floatt x)
 {
     return 1 - fabs (x);
 }
 
-static double
-gaussian_kernel (double x)
+static floatt
+gaussian_kernel (floatt x)
 {
 #define SQRT2 (1.4142135623730950488016887242096980785696718753769480)
 #define SIGMA (SQRT2 / 2.0)
@@ -69,8 +69,8 @@ gaussian_kernel (double x)
     return exp (- x * x / (2 * SIGMA * SIGMA)) / (SIGMA * sqrt (2.0 * M_PI));
 }
 
-static double
-sinc (double x)
+static floatt
+sinc (floatt x)
 {
     if (x == 0.0)
 	return 1.0;
@@ -78,34 +78,34 @@ sinc (double x)
 	return sin (M_PI * x) / (M_PI * x);
 }
 
-static double
-lanczos (double x, int n)
+static floatt
+lanczos (floatt x, int n)
 {
     return sinc (x) * sinc (x * (1.0 / n));
 }
 
-static double
-lanczos2_kernel (double x)
+static floatt
+lanczos2_kernel (floatt x)
 {
     return lanczos (x, 2);
 }
 
-static double
-lanczos3_kernel (double x)
+static floatt
+lanczos3_kernel (floatt x)
 {
     return lanczos (x, 3);
 }
 
-static double
-nice_kernel (double x)
+static floatt
+nice_kernel (floatt x)
 {
     return lanczos3_kernel (x * 0.75);
 }
 
-static double
-general_cubic (double x, double B, double C)
+static floatt
+general_cubic (floatt x, floatt B, floatt C)
 {
-    double ax = fabs(x);
+    floatt ax = fabs(x);
 
     if (ax < 1)
     {
@@ -124,8 +124,8 @@ general_cubic (double x, double B, double C)
     }
 }
 
-static double
-cubic_kernel (double x)
+static floatt
+cubic_kernel (floatt x)
 {
     /* This is the Mitchell-Netravali filter.
      *
@@ -155,10 +155,10 @@ static const filter_info_t filters[] =
  * the kernels in question. E.g., the caller must not
  * try to integrate a linear kernel ouside of [-1:1]
  */
-static double
-integral (pixman_kernel_t kernel1, double x1,
-	  pixman_kernel_t kernel2, double scale, double x2,
-	  double width)
+static floatt
+integral (pixman_kernel_t kernel1, floatt x1,
+	  pixman_kernel_t kernel2, floatt scale, floatt x2,
+	  floatt width)
 {
     /* If the integration interval crosses zero, break it into
      * two separate integrals. This ensures that filters such
@@ -194,16 +194,16 @@ integral (pixman_kernel_t kernel1, double x1,
 #define SAMPLE(a1, a2)							\
 	(filters[kernel1].func ((a1)) * filters[kernel2].func ((a2) * scale))
 	
-	double s = 0.0;
-	double h = width / (double)N_SEGMENTS;
+	floatt s = 0.0;
+	floatt h = width / (floatt)N_SEGMENTS;
 	int i;
 
 	s = SAMPLE (x1, x2);
 
 	for (i = 1; i < N_SEGMENTS; i += 2)
 	{
-	    double a1 = x1 + h * i;
-	    double a2 = x2 + h * i;
+	    floatt a1 = x1 + h * i;
+	    floatt a2 = x2 + h * i;
 
 	    s += 2 * SAMPLE (a1, a2);
 
@@ -221,12 +221,12 @@ static pixman_fixed_t *
 create_1d_filter (int             *width,
 		  pixman_kernel_t  reconstruct,
 		  pixman_kernel_t  sample,
-		  double           scale,
+		  floatt           scale,
 		  int              n_phases)
 {
     pixman_fixed_t *params, *p;
-    double step;
-    double size;
+    floatt step;
+    floatt size;
     int i;
 
     size = scale * filters[sample].width + filters[reconstruct].width;
@@ -240,10 +240,10 @@ create_1d_filter (int             *width,
 
     for (i = 0; i < n_phases; ++i)
     {
-        double frac = step / 2.0 + i * step;
+        floatt frac = step / 2.0 + i * step;
 	pixman_fixed_t new_total;
         int x, x1, x2;
-	double total;
+	floatt total;
 
 	/* Sample convolution of reconstruction and sampling
 	 * filter. See rounding.txt regarding the rounding
@@ -256,13 +256,13 @@ create_1d_filter (int             *width,
 	total = 0;
         for (x = x1; x < x2; ++x)
         {
-	    double pos = x + 0.5 - frac;
-	    double rlow = - filters[reconstruct].width / 2.0;
-	    double rhigh = rlow + filters[reconstruct].width;
-	    double slow = pos - scale * filters[sample].width / 2.0;
-	    double shigh = slow + scale * filters[sample].width;
-	    double c = 0.0;
-	    double ilow, ihigh;
+	    floatt pos = x + 0.5 - frac;
+	    floatt rlow = - filters[reconstruct].width / 2.0;
+	    floatt rhigh = rlow + filters[reconstruct].width;
+	    floatt slow = pos - scale * filters[sample].width / 2.0;
+	    floatt shigh = slow + scale * filters[sample].width;
+	    floatt c = 0.0;
+	    floatt ilow, ihigh;
 
 	    if (rhigh >= slow && rlow <= shigh)
 	    {
@@ -311,8 +311,8 @@ pixman_filter_create_separable_convolution (int             *n_values,
 					    int              subsample_bits_x,
 					    int	             subsample_bits_y)
 {
-    double sx = fabs (pixman_fixed_to_double (scale_x));
-    double sy = fabs (pixman_fixed_to_double (scale_y));
+    floatt sx = fabs (pixman_fixed_to_double (scale_x));
+    floatt sy = fabs (pixman_fixed_to_double (scale_y));
     pixman_fixed_t *horz = NULL, *vert = NULL, *params = NULL;
     int subsample_x, subsample_y;
     int width, height;

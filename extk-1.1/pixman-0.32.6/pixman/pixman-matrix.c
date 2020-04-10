@@ -758,7 +758,7 @@ pixman_transform_from_pixman_f_transform (struct pixman_transform *        t,
     {
 	for (i = 0; i < 3; i++)
 	{
-	    double d = ft->m[j][i];
+	    floatt d = ft->m[j][i];
 	    if (d < -32767.0 || d > 32767.0)
 		return FALSE;
 	    d = d * 65536.0 + 0.5;
@@ -776,13 +776,13 @@ pixman_f_transform_invert (struct pixman_f_transform *      dst,
     static const int a[3] = { 2, 2, 1 };
     static const int b[3] = { 1, 0, 0 };
     pixman_f_transform_t d;
-    double det;
+    floatt det;
     int i, j;
 
     det = 0;
     for (i = 0; i < 3; i++)
     {
-	double p;
+	floatt p;
 	int ai = a[i];
 	int bi = b[i];
 	p = src->m[i][0] * (src->m[ai][2] * src->m[bi][1] -
@@ -800,7 +800,7 @@ pixman_f_transform_invert (struct pixman_f_transform *      dst,
     {
 	for (i = 0; i < 3; i++)
 	{
-	    double p;
+	    floatt p;
 	    int ai = a[i];
 	    int aj = a[j];
 	    int bi = b[i];
@@ -827,7 +827,7 @@ pixman_f_transform_point (const struct pixman_f_transform *t,
 {
     struct pixman_f_vector result;
     int i, j;
-    double a;
+    floatt a;
 
     for (j = 0; j < 3; j++)
     {
@@ -854,7 +854,7 @@ pixman_f_transform_point_3d (const struct pixman_f_transform *t,
 {
     struct pixman_f_vector result;
     int i, j;
-    double a;
+    floatt a;
 
     for (j = 0; j < 3; j++)
     {
@@ -880,7 +880,7 @@ pixman_f_transform_multiply (struct pixman_f_transform *      dst,
     {
 	for (dx = 0; dx < 3; dx++)
 	{
-	    double v = 0;
+	    floatt v = 0;
 	    for (o = 0; o < 3; o++)
 		v += l->m[dy][o] * r->m[o][dx];
 	    d.m[dy][dx] = v;
@@ -892,8 +892,8 @@ pixman_f_transform_multiply (struct pixman_f_transform *      dst,
 
 PIXMAN_EXPORT void
 pixman_f_transform_init_scale (struct pixman_f_transform *t,
-                               double                     sx,
-                               double                     sy)
+                               floatt                     sx,
+                               floatt                     sy)
 {
     t->m[0][0] = sx;
     t->m[0][1] = 0;
@@ -909,8 +909,8 @@ pixman_f_transform_init_scale (struct pixman_f_transform *t,
 PIXMAN_EXPORT pixman_bool_t
 pixman_f_transform_scale (struct pixman_f_transform *forward,
                           struct pixman_f_transform *reverse,
-                          double                     sx,
-                          double                     sy)
+                          floatt                     sx,
+                          floatt                     sy)
 {
     struct pixman_f_transform t;
 
@@ -934,8 +934,8 @@ pixman_f_transform_scale (struct pixman_f_transform *forward,
 
 PIXMAN_EXPORT void
 pixman_f_transform_init_rotate (struct pixman_f_transform *t,
-                                double                     c,
-                                double                     s)
+                                floatt                     c,
+                                floatt                     s)
 {
     t->m[0][0] = c;
     t->m[0][1] = -s;
@@ -951,8 +951,8 @@ pixman_f_transform_init_rotate (struct pixman_f_transform *t,
 PIXMAN_EXPORT pixman_bool_t
 pixman_f_transform_rotate (struct pixman_f_transform *forward,
                            struct pixman_f_transform *reverse,
-                           double                     c,
-                           double                     s)
+                           floatt                     c,
+                           floatt                     s)
 {
     struct pixman_f_transform t;
 
@@ -973,8 +973,8 @@ pixman_f_transform_rotate (struct pixman_f_transform *forward,
 
 PIXMAN_EXPORT void
 pixman_f_transform_init_translate (struct pixman_f_transform *t,
-                                   double                     tx,
-                                   double                     ty)
+                                   floatt                     tx,
+                                   floatt                     ty)
 {
     t->m[0][0] = 1;
     t->m[0][1] = 0;
@@ -990,8 +990,8 @@ pixman_f_transform_init_translate (struct pixman_f_transform *t,
 PIXMAN_EXPORT pixman_bool_t
 pixman_f_transform_translate (struct pixman_f_transform *forward,
                               struct pixman_f_transform *reverse,
-                              double                     tx,
-                              double                     ty)
+                              floatt                     tx,
+                              floatt                     ty)
 {
     struct pixman_f_transform t;
 
