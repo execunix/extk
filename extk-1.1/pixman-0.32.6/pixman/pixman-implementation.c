@@ -391,7 +391,7 @@ _pixman_choose_implementation (void)
     //if (!_pixman_disabled ("fast"))
 	imp = _pixman_implementation_create_fast_path (imp);
 
-    //imp = _pixman_x86_get_implementations (imp);
+    imp = _pixman_x86_get_implementations (imp);
     imp = _pixman_arm_get_implementations (imp);
     //imp = _pixman_ppc_get_implementations (imp);
     //imp = _pixman_mips_get_implementations (imp);

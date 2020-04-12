@@ -82,9 +82,9 @@ SOFTWARE.
 #define floattype_flt // extk
 
 #ifndef floattype_flt
-#define floatt double
+typedef double floatt;
 #else
-#define floatt float
+typedef float floatt;
 #endif
 
 PIXMAN_BEGIN_DECLS

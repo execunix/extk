@@ -99,6 +99,15 @@
     <ClCompile Include="..\..\pixman-0.32.6\pixman\pixman.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\pixman-0.32.6\pixman\pixman-sse2.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pixman-0.32.6\pixman\pixman-ssse3.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pixman-0.32.6\pixman\pixman-x86.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\pixman-0.32.6\pixman\pixman-accessor.h">

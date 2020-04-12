@@ -147,16 +147,16 @@
 /* #undef USE_OPENMP */
 
 /* use SSE2 compiler intrinsics */
-/* #undef USE_SSE2 */
+#define USE_SSE2 // extk
 
 /* use SSSE3 compiler intrinsics */
-/* #undef USE_SSSE3 */
+#define USE_SSSE3 // extk
 
 /* use VMX compiler intrinsics */
 /* #undef USE_VMX */
 
 /* use x86 MMX compiler intrinsics */
-/* #undef USE_X86_MMX */
+#define USE_X86_MMX // extk
 
 /* Version number of package */
 #define VERSION "0.32.6"

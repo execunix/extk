@@ -199,9 +199,12 @@ xcopy "$(OutDir)$(TargetFileName)" "..\extk\$(OutDir)" /d /y
     <ClCompile Include="..\..\pixman-0.32.6\pixman\pixman-region16.c" />
     <ClCompile Include="..\..\pixman-0.32.6\pixman\pixman-region32.c" />
     <ClCompile Include="..\..\pixman-0.32.6\pixman\pixman-solid-fill.c" />
+    <ClCompile Include="..\..\pixman-0.32.6\pixman\pixman-sse2.c" />
+    <ClCompile Include="..\..\pixman-0.32.6\pixman\pixman-ssse3.c" />
     <ClCompile Include="..\..\pixman-0.32.6\pixman\pixman-timer.c" />
     <ClCompile Include="..\..\pixman-0.32.6\pixman\pixman-trap.c" />
     <ClCompile Include="..\..\pixman-0.32.6\pixman\pixman-utils.c" />
+    <ClCompile Include="..\..\pixman-0.32.6\pixman\pixman-x86.c" />
     <ClCompile Include="..\..\pixman-0.32.6\pixman\pixman.c" />
   </ItemGroup>
   <ItemGroup>
