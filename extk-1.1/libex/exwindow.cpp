@@ -139,34 +139,24 @@ int ExWindow::hideWindow() {
     return r;
 }
 
-ExWidget* ExWindow::giveFocus(ExWidget* newly) {
-    ExWidget* old = wgtFocused;
-    if (newly == wgtFocused)
-        return old;
-    if (getFlags(Ex_Blocked | Ex_Visible) != Ex_Visible)
-        return old;
-
-#if 0 // for speed test
-    if (wgtFocused && newly &&
-        wgtFocused->parent == newly->parent) {
-        wgtFocused->flags &= ~Ex_Focused;
-        dprintf(L"lost focus %s\n", wgtFocused->name);
-        newly->flags |= Ex_Focused;
-        dprintf(L"got focus %s\n", newly->name);
-        wgtFocused = newly;
-        return old;
+ExWidget* ExWindow::giveFocus(ExWidget* newFocus) {
+    if (newFocus == wgtFocused)
+        return wgtFocused;
+    if (newFocus != NULL) {
+        if (newFocus->getFlags(Ex_Blocked) ||
+            !newFocus->isVisible())
+            return wgtFocused;
     }
-#endif
+
     ExWidgetList got;
-    if (newly) {
-        for (ExWidget* w = newly; w; w = w->parent)
+    if (newFocus) {
+        for (ExWidget* w = newFocus; w; w = w->parent)
             got.push_front(w);
         if (got.front() != this) {
-            dprintf(L"can't give focus %s to %s different parent\n", newly->name, name);
-            return old;
+            exerror(L"can't give focus %s to %s different parent\n", newFocus->name, name);
+            return wgtFocused;
         }
     }
-
     ExWidgetList lost;
     if (wgtFocused) {
         for (ExWidget* w = wgtFocused; w; w = w->parent)
@@ -180,37 +170,49 @@ ExWidget* ExWindow::giveFocus(ExWidget* newly) {
         if (*lost_i != *got_i)
             break;
         ++lost_i;
+        if (*got_i == newFocus)
+            break;
         ++got_i;
     }
     lost.erase(lost.begin(), lost_i);
     got.erase(got.begin(), got_i);
 
-    while (!lost.empty()) {
-        ExWidget* w = lost.back();
-        lost.pop_back();
+    // reset focused flag
+    lost_i = lost.end();
+    while (lost_i != lost.begin()) {
+        ExWidget* w = *--lost_i;
         w->flags &= ~Ex_Focused;
+        if (w->getFlags(Ex_FocusRender))
+            w->damage();
         dprintf(L"lost focus %s\n", w->name);
     }
-    while (!got.empty()) {
-        ExWidget* w = got.front();
-        got.pop_front();
+    got_i = got.begin();
+    while (got_i != got.end()) {
+        ExWidget* w = *got_i++;
         w->flags |= Ex_Focused;
+        if (w->getFlags(Ex_FocusRender))
+            w->damage();
         dprintf(L"got focus %s\n", w->name);
     }
 
-    if (wgtFocused)
-        wgtFocused->invokeCallback(Ex_CbLostFocus);
-    if (wgtFocused && wgtFocused->getFlags(Ex_FocusRender))
-        wgtFocused->damage();
-
-    wgtFocused = newly;
-
-    if (wgtFocused)
-        wgtFocused->invokeCallback(Ex_CbGotFocus);
-    if (wgtFocused && wgtFocused->getFlags(Ex_FocusRender))
-        wgtFocused->damage();
-
-    return old;
+    // invoke callback
+    ExCbInfo cbinfo(0, 0, NULL, newFocus);
+    lost_i = lost.end();
+    cbinfo.type = Ex_CbLostFocus;
+    while (lost_i != lost.begin()) {
+        ExWidget* w = *--lost_i;
+        cbinfo.subtype = w == wgtFocused ? 1 : 0;
+        w->invokeCallback(Ex_CbLostFocus, &cbinfo);
+    }
+    wgtFocused = newFocus; // tbd - change for callback refer
+    got_i = got.begin();
+    cbinfo.type = Ex_CbGotFocus;
+    while (got_i != got.end()) {
+        ExWidget* w = *got_i++;
+        cbinfo.subtype = w == wgtFocused ? 1 : 0;
+        w->invokeCallback(Ex_CbGotFocus, &cbinfo);
+    }
+    return wgtFocused;
 }
 
 ExWidget* ExWindow::moveFocus(int dir) { // sample

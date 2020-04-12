@@ -151,9 +151,15 @@ _fixed_from_float(float d)
     return (int32)(d * 256.f);
 }
 
-/* For 32-bit fixed point numbers */
 static inline int32
 _fixed_from_double(double d)
+{
+    return (int32)(d * 256.);
+}
+
+/* For 32-bit fixed point numbers */
+static inline int32
+_fixed_from_doublem(double d)
 {
     union {
         double d;
@@ -177,6 +183,12 @@ _fixed_16_16_from_float(float d)
 static inline int32
 _fixed_16_16_from_double(double d)
 {
+    return (int32)(d * 65536.);
+}
+
+static inline int32
+_fixed_16_16_from_doublem(double d)
+{
     union {
         double d;
         int32_t i[2];
@@ -197,37 +209,53 @@ int flt_test() {
     ulong tick1, tick2;
 
     tick1 = GetTickCount();
-    for (int i = 0; i < TESTCNT; i++) {
-        val = _fixed_from_float(1.f);
+    for (volatile int i = 0; i < TESTCNT; i++) {
+        val = 0;
     }
     tick2 = GetTickCount();
-    dprintf(L"_fixed_from_float %d\n", tick2 - tick1);
+    dprint1(L"val=0 loop test %d\n", tick2 - tick1);
 
     tick1 = GetTickCount();
-    for (int i = 0; i < TESTCNT; i++) {
-        val = _fixed_from_double(1.);
+    for (volatile int i = 0; i < TESTCNT; i++) {
+        val = _fixed_from_float(i * 1.f);
     }
     tick2 = GetTickCount();
-    dprintf(L"_fixed_from_double %d\n", tick2 - tick1);
+    dprint1(L"_fixed_from_float %d\n", tick2 - tick1);
 
     tick1 = GetTickCount();
-    for (int i = 0; i < TESTCNT; i++) {
-        val = _fixed_16_16_from_float(1.f);
+    for (volatile int i = 0; i < TESTCNT; i++) {
+        val = _fixed_from_double(i * 1.);
     }
     tick2 = GetTickCount();
-    dprintf(L"_fixed_16_16_from_float %d\n", tick2 - tick1);
+    dprint1(L"_fixed_from_double %d\n", tick2 - tick1);
 
     tick1 = GetTickCount();
-    for (int i = 0; i < TESTCNT; i++) {
-        val = _fixed_16_16_from_double(1.);
+    for (volatile int i = 0; i < TESTCNT; i++) {
+        val = _fixed_from_doublem(i * 1.);
     }
     tick2 = GetTickCount();
-    dprintf(L"_fixed_16_16_from_double %d\n", tick2 - tick1);
+    dprint1(L"_fixed_from_doublem %d\n", tick2 - tick1);
 
-    //[*] _fixed_from_float 1984
-    //[*] _fixed_from_double 2641
-    //[*] _fixed_16_16_from_float 1953
-    //[*] _fixed_16_16_from_double 2609
+    tick1 = GetTickCount();
+    for (volatile int i = 0; i < TESTCNT; i++) {
+        val = _fixed_16_16_from_float(i * 1.f);
+    }
+    tick2 = GetTickCount();
+    dprint1(L"_fixed_16_16_from_float %d\n", tick2 - tick1);
+
+    tick1 = GetTickCount();
+    for (volatile int i = 0; i < TESTCNT; i++) {
+        val = _fixed_16_16_from_double(i * 1.);
+    }
+    tick2 = GetTickCount();
+    dprint1(L"_fixed_16_16_from_double %d\n", tick2 - tick1);
+
+    tick1 = GetTickCount();
+    for (volatile int i = 0; i < TESTCNT; i++) {
+        val = _fixed_16_16_from_doublem(i * 1.);
+    }
+    tick2 = GetTickCount();
+    dprint1(L"_fixed_16_16_from_doublem %d\n", tick2 - tick1);
 
     return 0;
 }
@@ -242,6 +270,7 @@ int app_test() {
 
     dprint1(L"sizeof(ExCbInfo)=%d\n", sizeof(ExCbInfo));
     dprint1(L"sizeof(ExCallback)=%d\n", sizeof(ExCallback));
+    dprint1(L"sizeof(ExObject)=%d\n", sizeof(ExObject));
     dprint1(L"sizeof(ExWidget)=%d\n", sizeof(ExWidget));
     dprint1(L"sizeof(ExWindow)=%d\n", sizeof(ExWindow));
     dprint1(L"sizeof(ExTimer)=%d\n", sizeof(ExTimer));

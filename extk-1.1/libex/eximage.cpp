@@ -130,14 +130,14 @@ void ExImage::preMultiply() {
         uchar* dp = bits + bpl * h;
         for (int w = 0; w < width; w++) {
             /* Premultiplies data and converts RGBA bytes => native endian */
-            register uint color = *(uint*)dp;
-            register uint alpha = color >> 24;
+            register uint32 color = *(uint32*)dp;
+            register uint32 alpha = color >> 24;
             if (alpha == 0) {
-                *(uint*)dp = 0;
+                *(uint32*)dp = 0;
             } else if (alpha != 0xff) {
 #if 1 // rb simd
-                register uint t1 = color & 0x00ff00ff; // rb
-                register uint t2 = (color >> 8) & 0xff; // g
+                register uint32 t1 = color & 0x00ff00ff; // rb
+                register uint32 t2 = (color >> 8) & 0xff; // g
                 color &= 0xff000000;
                 t1 = (t1*alpha) + 0x00800080;
                 t1 = (t1 + ((t1 >> 8) & 0x00ff00ff)) >> 8;
@@ -145,9 +145,9 @@ void ExImage::preMultiply() {
                 t2 = (t2 + (t2 >> 8)) >> 8;
                 color |= ((t1 & 0x00ff00ff) | (t2 << 8));
 #else
-                register uint t1 = color & 0xff;
-                register uint t2 = (color >> 8) & 0xff;
-                register uint t3 = (color >> 16) & 0xff;
+                register uint32 t1 = color & 0xff;
+                register uint32 t2 = (color >> 8) & 0xff;
+                register uint32 t3 = (color >> 16) & 0xff;
                 color &= 0xff000000;
                 t1 = (t1*alpha) + 0x80;
                 t1 = (t1 + (t1 >> 8)) >> 8;
@@ -157,7 +157,7 @@ void ExImage::preMultiply() {
                 t3 = (t3 + (t3 >> 8)) >> 8;
                 color |= (t1 | (t2 << 8) | (t3 << 16));
 #endif
-                *(uint*)dp = color;
+                *(uint32*)dp = color;
             }
             dp += 4;
         } // for w

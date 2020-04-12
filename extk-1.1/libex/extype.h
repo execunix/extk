@@ -18,6 +18,7 @@ struct ExRect;
 struct ExSpan;
 struct ExTile;
 struct ExRegion;
+struct ExColor;
 struct ExEvent;
 struct ExInput;
 
@@ -32,8 +33,6 @@ class ExWindow;
 class ExCanvas;
 
 class ExAny {};
-
-typedef unsigned int ExColor;
 
 #define Ex_BitFalse (0)
 #define Ex_BitTrue (-1)
@@ -193,12 +192,14 @@ enum ExEventType {
 #endif
 
 enum ExDirType {
+    Ex_DirBack,
+    Ex_DirHome,
     Ex_DirUp,
     Ex_DirDown,
     Ex_DirLeft,
     Ex_DirRight,
-    Ex_DirTabNext,
     Ex_DirTabPrev,
+    Ex_DirTabNext,
 };
 
 enum ExMenuDirType {

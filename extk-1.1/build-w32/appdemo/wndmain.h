@@ -37,6 +37,7 @@ public:
     void STDCALL onWmPaint(WndMain* w, const ExRegion* updateRgn) { ExWindow::onWmPaint(w, updateRgn); } // apitest
     int STDCALL onDestroyed(WndMain* w, ExCbInfo* cbinfo);
     int STDCALL onLayout(WndMain* widget, ExCbInfo* cbinfo);
+    int STDCALL onFocused(WndMain* widget, ExCbInfo* cbinfo);
     int STDCALL onActMain(WndMain* widget, ExCbInfo* cbinfo);
     int STDCALL onActBkgd(WndMain* widget, ExCbInfo* cbinfo);
     int STDCALL onActBtns(ExWidget* widget, ExCbInfo* cbinfo);
@@ -47,6 +48,7 @@ public:
     int STDCALL onHandler(WndMain* w, ExCbInfo* cbinfo);
     int STDCALL onFilter(WndMain* w, ExCbInfo* cbinfo);
     int STDCALL onTimer(ExTimer* timer, ExCbInfo* cbinfo);
+    ExWidget* moveFocus(int dir);
     ExWidget toy;
     ExTimer timerToy;
     float toy_alpha, toy_delta, toy_scale;

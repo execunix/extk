@@ -53,9 +53,9 @@
 #define floattype_flt // extk
 
 #ifndef floattype_flt
-#define floatt double
+typedef double floatt;
 #else
-#define floatt float
+typedef float floatt;
 #endif
 
 #ifndef cairo_public

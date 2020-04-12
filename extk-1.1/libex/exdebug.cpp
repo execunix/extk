@@ -123,9 +123,8 @@ const wchar_t* _wcserror(int errval) { // tbd
 #endif//_WIN32_WCE
 
 static int
-error_handler(const wchar_t* msg)
-{
-    dprint1(0, L"[ExErr] %s", msg);
+error_handler(const wchar_t* msg) {
+    dprint1(L"err: %s", msg);
     //DebugBreak();
     return -1;
 }

@@ -30,6 +30,7 @@ public:
     void stop(); // notes: clear fActived by remove from timerlist.
     void start(ulong initial); // notes: set fActived by insert to timerlist.
     void start(ulong initial, ulong repeat) { this->repeat = repeat; start(initial); }
+    operator ulong () const { return value; }
 
     void setCallback(int(STDCALL *f)(void*, ExTimer*, ExCbInfo*), void* d) {
         callback = ExCallback(f, d);

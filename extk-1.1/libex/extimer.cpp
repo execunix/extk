@@ -80,12 +80,11 @@ ulong ExTimerList::invoke(ulong tick_count) {
         if (timer->fActived != 0) // is restarted in callback ?
             continue;
         timer->value += timer->repeat;
-        if (timer->value - tick_count < 1)
-            timer->value = tick_count + 1;
-#ifdef DEBUG
-        // To avoid racking caused by matching breakpoints when debugging.
-        long errtick = GetTickCount() - tick_count;
-        if (errtick > 3000) timer->value += errtick;
+#if 1 // To avoid racking caused by matching breakpoints when debugging.
+        if ((waittick = timer->value - tick_count) < 1) {
+            //dprintf(L"timer timeout %d\n", -waittick);
+            timer->value = tick_count + 1; // adjust interval
+        }
 #endif
         timer->fActived = 1;
         insert(timer);

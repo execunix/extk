@@ -8,8 +8,6 @@
 #define _USE_MATH_DEFINES
 #include <math.h>
 
-#define flt8(v) ((v) / 255.f)
-
 static int STDCALL
 onUnrealized(void* data, ExWidget* w, ExCbInfo* cbinfo) {
     dprintf(L"onUnrealized()\n");
@@ -43,14 +41,15 @@ void WndMain::onDrawBkgd(ExCanvas* canvas, const ExWidget* widget, const ExRegio
         }
     } else if (widget == &wgtBkgd) {
         if (!imgBkgd1.bits) return;
-        ExRect rc = widget->getRect();
         if (widget->isOpaque()) {
+            const ExRect& rc = widget->getRect();
             for (int i = 0; i < damage->n_rects; i++) {
-                ExRect& dr = damage->rects[i];
+                const ExRect& dr = damage->rects[i];
                 canvas->gc->blitRgb(dr.l, dr.t, dr.width(), dr.height(),
                                     &imgBkgd1, dr.l - rc.l, dr.t - rc.t);
             }
         } else if (imgBkgd1.crs) {
+            ExCairo::Rect rc(widget->getRect());
 #if 1
             cairo_t* cr = canvas->cr;
             cairo_save(cr);
@@ -71,7 +70,7 @@ void WndMain::onDrawBkgd(ExCanvas* canvas, const ExWidget* widget, const ExRegio
 void WndMain::onDrawTrap(ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage) {
 #if 1
     static int id = 0;
-    static uint color[5] = { 0, 0xff, 0xff00, 0xff0000, 0xffffff };
+    static uint32 color[5] = { 0, 0xff, 0xff00, 0xff0000, 0xffffff };
     for (int i = 0; i < damage->n_rects; i++) {
         ExRect& rc = damage->rects[i];
         canvas->gc->drawRect(&rc, color[id]);
@@ -105,13 +104,13 @@ void WndMain::onDrawTrap(ExCanvas* canvas, const ExWidget* widget, const ExRegio
 void WndMain::onDrawBtns(ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage) {
 #if 0
     if (widget == &wgtBackBtn) {
-        ExColor color = ExARGB(189, 77, 77, 0);
+        uint32 color = ExARGB(189, 77, 77, 0);
         canvas->gc->fillRect(&widget->getExtent(), color);
         return;
     }
 #endif
     cairo_t* cr = canvas->cr;
-    ExRect rc = widget->getRect();
+    ExCairo::Rect rc(widget->getRect());
     cairo_save(cr);
     canvas->setRegion(damage);
     cairo_clip(cr);
@@ -125,60 +124,52 @@ void WndMain::onDrawBtns(ExCanvas* canvas, const ExWidget* widget, const ExRegio
     cairo_line_to(cr, rc.l + 1, rc.b - 4);
     cairo_line_to(cr, rc.l + 1, rc.t + 4);
     cairo_close_path(cr);
-    uint color = ((uint)widget) & 0xffffff;
-    float rvalue = flt8(ExRValue(color));
-    float gvalue = flt8(ExGValue(color));
-    float bvalue = flt8(ExBValue(color));
+
+    ExCairo::Color pc0; // pattern color offset 0.f
+    ExCairo::Color pc1; // pattern color offset 1.f
+    if (widget->getFlags(Ex_PtrEntered)) {
+        pc0.setv(112, 224, 224, 255);
+        pc1.setv(64, 128, 128, 128);
+    } else {
+        pc0.setv(64, 128, 128, 255);
+        pc1.setv(16, 64, 64, 128);
+    }
 #if USE_PATTERN_BTN
     cairo_pattern_t* crp = cairo_pattern_create_linear(rc.l, rc.t, rc.r, rc.b);
 #if USE_ALPHA_BTN
-    const float alpha = .75;
-    if (widget->getFlags(Ex_PtrEntered)) {
-        cairo_pattern_add_color_stop_rgba(crp, 1, flt8(64), flt8(128), flt8(128), alpha);
-        cairo_pattern_add_color_stop_rgba(crp, 0, flt8(224), flt8(224), flt8(224), 1);
-    } else {
-        cairo_pattern_add_color_stop_rgba(crp, 1, flt8(16), flt8(64), flt8(64), alpha);
-        cairo_pattern_add_color_stop_rgba(crp, 0, flt8(128), flt8(128), flt8(128), 1);
-    }
+    cairo_pattern_add_color_stop_rgba(crp, 0.f, pc0.r, pc0.g, pc0.b, pc0.a);
+    cairo_pattern_add_color_stop_rgba(crp, 1.f, pc1.r, pc1.g, pc1.b, pc1.a);
 #else
-    if (widget->getFlags(Ex_PtrEntered)) {
-        cairo_pattern_add_color_stop_rgb(crp, 1, flt8(64), flt8(128), flt8(128));
-        cairo_pattern_add_color_stop_rgb(crp, 0, flt8(224), flt8(224), flt8(224));
-    } else {
-        cairo_pattern_add_color_stop_rgb(crp, 1, flt8(16), flt8(64), flt8(64));
-        cairo_pattern_add_color_stop_rgb(crp, 0, flt8(128), flt8(128), flt8(128));
-    }
+    cairo_pattern_add_color_stop_rgb(crp, 0.f, pc0.r, pc0.g, pc0.b);
+    cairo_pattern_add_color_stop_rgb(crp, 1.f, pc1.r, pc1.g, pc1.b);
 #endif
     cairo_set_source(cr, crp);
 #else//USE_PATTERN_BTN
 #if USE_ALPHA_BTN
-    const float alpha = .75;
-    if (widget->getFlags(Ex_PtrEntered))
-        cairo_set_source_rgba(cr, flt8(112), flt8(224), flt8(224), alpha);
-    else
-        cairo_set_source_rgba(cr, flt8(64), flt8(128), flt8(128), alpha);
+    cairo_set_source_rgba(cr, pc0.r, pc0.g, pc0.b, .75f);
 #else
-    if (widget->getFlags(Ex_PtrEntered))
-        cairo_set_source_rgb(cr, flt8(112), flt8(224), flt8(224));
-    else
-        cairo_set_source_rgb(cr, flt8(64), flt8(128), flt8(128));
+    cairo_set_source_rgb(cr, pc0.r, pc0.g, pc0.b);
 #endif
 #endif//USE_PATTERN_BTN
     cairo_fill_preserve(cr);
-    cairo_set_line_width(cr, 1.2f);
+
+    ExCairo::Color lc; // line color
+    if (widget->getFlags(Ex_Focused)) {
+        lc.setv(64, 255, 64, 255);
+    } else if (widget->getFlags(Ex_ButPressed)) {
+        lc.setv(255, 255, 255, 255);
+    } else {
+        uint32 c = ((uint)widget) & 0xffffff;
+        lc.setv(ExRValue(c), ExGValue(c), ExBValue(c), 255);
+    }
+    cairo_set_line_width(cr, widget->getFlags(Ex_Focused) ? 3.6f : 1.2f);
     cairo_set_line_join(cr, CAIRO_LINE_JOIN_ROUND);
     cairo_set_line_cap(cr, CAIRO_LINE_CAP_ROUND);
     cairo_set_antialias(cr, CAIRO_ANTIALIAS_GRAY);
 #if USE_ALPHA_BTN
-    if (widget->getFlags(Ex_ButPressed))
-        cairo_set_source_rgba(cr, rvalue, gvalue, bvalue, alpha);
-    else
-        cairo_set_source_rgba(cr, rvalue, gvalue, bvalue, alpha);
+    cairo_set_source_rgba(cr, lc.r, lc.g, lc.b, lc.a);
 #else
-    if (widget->getFlags(Ex_ButPressed))
-        cairo_set_source_rgb(cr, rvalue, gvalue, bvalue);
-    else
-        cairo_set_source_rgb(cr, rvalue, gvalue, bvalue);
+    cairo_set_source_rgb(cr, lc.r, lc.g, lc.b);
 #endif
     cairo_stroke(cr);
 
@@ -198,23 +189,11 @@ void WndMain::onDrawBtns(ExCanvas* canvas, const ExWidget* widget, const ExRegio
 }
 
 void WndMain::onDrawPane(ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage) {
-#if 0
-    ExColor color = 0;
-    if (widget == &panes[0]) color = ExARGB(189, 177, 77, 77);
-    else if (widget == &panes[1]) color = ExARGB(189, 77, 177, 77);
-    else if (widget == &panes[2]) color = ExARGB(189, 77, 77, 177);
-    canvas->gc->fillRect(&widget->getExtent(), color);
-#endif
     cairo_t* cr = canvas->cr;
-    ExRect rc = widget->getRect();
+    ExCairo::Rect rc(widget->getRect());
     cairo_save(cr);
     canvas->setRegion(damage);
     cairo_clip(cr);
-
-    int r = 77, g = 77, b = 77;
-    if (widget == &panes[0]) r = 177;
-    else if (widget == &panes[1]) g = 177;
-    else if (widget == &panes[2]) b = 177;
 
     cairo_new_path(cr);
     cairo_move_to(cr, rc.l + 4, rc.t + 1);
@@ -227,38 +206,55 @@ void WndMain::onDrawPane(ExCanvas* canvas, const ExWidget* widget, const ExRegio
     cairo_line_to(cr, rc.l + 1, rc.t + 4);
     cairo_close_path(cr);
 
-    const float alpha = .5;
-#if 1//USE_PATTERN_BTN
+    ExCairo::Color pc0; // pattern color offset 0.f
+    ExCairo::Color pc1; // pattern color offset 1.f
+    pc0.setv(128, 128, 128, 255);
+    pc1.setv(77, 77, 77, 128);
+    if (widget == &panes[0]) {
+        pc1.r = FD8V(177);
+    } else if (widget == &panes[1]) {
+        pc1.g = FD8V(177);
+    } else if (widget == &panes[2]) {
+        pc1.b = FD8V(177);
+    }
+#if USE_PATTERN_BTN
     cairo_pattern_t* crp = cairo_pattern_create_linear(rc.l, rc.t, rc.r, rc.b);
     if (widget->isOpaque()) {
-        cairo_pattern_add_color_stop_rgb(crp, 1, flt8(r), flt8(g), flt8(b));
-        cairo_pattern_add_color_stop_rgb(crp, 0, flt8(128), flt8(128), flt8(128));
+        cairo_pattern_add_color_stop_rgb(crp, 0.f, pc0.r, pc0.g, pc0.b);
+        cairo_pattern_add_color_stop_rgb(crp, 1.f, pc1.r, pc1.g, pc1.b);
     } else {
-        cairo_pattern_add_color_stop_rgba(crp, 1, flt8(r), flt8(g), flt8(b), alpha);
-        cairo_pattern_add_color_stop_rgba(crp, 0, flt8(128), flt8(128), flt8(128), 1);
+        cairo_pattern_add_color_stop_rgba(crp, 0.f, pc0.r, pc0.g, pc0.b, pc0.a);
+        cairo_pattern_add_color_stop_rgba(crp, 1.f, pc1.r, pc1.g, pc1.b, pc1.a);
     }
     cairo_set_source(cr, crp);
-#else
+#else//USE_PATTERN_BTN
     if (widget->isOpaque())
-        cairo_set_source_rgb(cr, flt8(r), flt8(g), flt8(b));
+        cairo_set_source_rgb(cr, pc1.r, pc1.g, pc1.b);
     else
-        cairo_set_source_rgba(cr, flt8(r), flt8(g), flt8(b), alpha);
-#endif
+        cairo_set_source_rgba(cr, pc1.r, pc1.g, pc1.b, pc1.a);
+#endif//USE_PATTERN_BTN
     cairo_fill_preserve(cr);
-    cairo_set_line_width(cr, 1.);
+
+    ExCairo::Color lc; // line color
+    if (widget->getFlags(Ex_Focused)) {
+        lc.setv(160, 255, 160, 224);
+    } else {
+        lc.setv(160, 160, 160, 128);
+    }
+    cairo_set_line_width(cr, widget->getFlags(Ex_Focused) ? 3.f : 1.f);
     cairo_set_line_join(cr, CAIRO_LINE_JOIN_ROUND);
     cairo_set_line_cap(cr, CAIRO_LINE_CAP_ROUND);
     cairo_set_antialias(cr, CAIRO_ANTIALIAS_GRAY);
     if (widget->isOpaque())
-        cairo_set_source_rgb(cr, flt8(160), flt8(160), flt8(160));
+        cairo_set_source_rgb(cr, lc.r, lc.g, lc.b);
     else
-        cairo_set_source_rgba(cr, flt8(160), flt8(160), flt8(160), alpha);
+        cairo_set_source_rgba(cr, lc.r, lc.g, lc.b, lc.a);
     cairo_stroke(cr);
 
     cairo_restore(cr);
-#if 1//USE_PATTERN_BTN
+#if USE_PATTERN_BTN
     cairo_pattern_destroy(crp);
-#endif
+#endif//USE_PATTERN_BTN
 }
 
 void WndMain::onDrawToy(ExCanvas* canvas, const WndMain* w, const ExRegion* damage) {
@@ -339,7 +335,7 @@ void WndMain::onDrawBackBuf(ExCanvas* canvas, const ExWidget* w, const ExRegion*
     if (w == &wgtBackViewer &&
         wndBackBuf.canvas->gc->crs) {
         cairo_t* cr = canvas->cr;
-        const ExRect& rc = w->getRect();
+        ExCairo::Rect rc(w->getRect());
         cairo_save(cr);
         canvas->setRegion(damage);
         cairo_clip(cr);
@@ -474,6 +470,9 @@ onEnum(void* data, ExWidget* widget, ExCbInfo* cbinfo) {
 int WndMain::onActBtns(ExWidget* widget, ExCbInfo* cbinfo) {
     dprint0(L"WndMain::onActBtns %s %d %d\n",
             widget->getName(), cbinfo->type, cbinfo->subtype);
+    if (cbinfo->type == Ex_CbButPress) {
+        giveFocus(widget);
+    }
     if (widget == &btns0[0]) {
         if (cbinfo->type == Ex_CbActivate) {
             dprintf(L"*** enumBackToFront\n");
@@ -517,7 +516,7 @@ int WndMain::onActBtns(ExWidget* widget, ExCbInfo* cbinfo) {
         if (cbinfo->type == Ex_CbActivate) {
             (int&)timer.userdata = !(int&)timer.userdata;
             if (timer.userdata)
-                timer.start(100, 33);
+                timer.start(100, 25);
             else
                 timer.stop();
             return Ex_Continue;
@@ -597,6 +596,7 @@ int WndMain::initCanvas() {
 int WndMain::initBtn(ExWidget* parent, ExWidget* btn, const wchar* name) {
     btn->init(parent, name, NULL);
     //btn->setFlags(Ex_Opaque); // test
+    btn->setFlags(Ex_FocusRender);
     btn->setFlags(Ex_Selectable | Ex_AutoHighlight);
     btn->drawFunc = ExDrawFunc(this, &WndMain::onDrawBtns);
     btn->addCallback(this, &WndMain::onActBtns, Ex_CbActivate);
@@ -625,6 +625,137 @@ int WndMain::onFilter(WndMain* w, ExCbInfo* cbinfo) {
     } else if (i == 40) {
         addHandler(this, &WndMain::onHandler);
         i = 0;
+    }
+    if (cbinfo->event->message == WM_KEYDOWN) {
+        switch (cbinfo->event->wParam) {
+            case VK_UP:
+                dprintf(L"0x%04x %s\n", cbinfo->event->message, L"VK_UP");
+                moveFocus(Ex_DirUp);
+                break;
+            case VK_DOWN:
+                dprintf(L"0x%04x %s\n", cbinfo->event->message, L"VK_DOWN");
+                moveFocus(Ex_DirDown);
+                break;
+            case VK_LEFT:
+                dprintf(L"0x%04x %s\n", cbinfo->event->message, L"VK_LEFT");
+                moveFocus(Ex_DirLeft);
+                break;
+            case VK_RIGHT:
+                dprintf(L"0x%04x %s\n", cbinfo->event->message, L"VK_RIGHT");
+                moveFocus(Ex_DirRight);
+                break;
+            case VK_SPACE:
+            case VK_RETURN:
+                dprintf(L"0x%04x %s\n", cbinfo->event->message, L"VK_RETURN");
+                wgtFocused->invokeCallback(Ex_CbActivate, &ExCbInfo(Ex_CbActivate, 0, event));
+                break;
+            case VK_ESCAPE:
+                dprintf(L"0x%04x %s\n", cbinfo->event->message, L"VK_ESCAPE");
+                return Ex_Halt;
+            case VK_HOME:
+                dprintf(L"0x%04x %s\n", cbinfo->event->message, L"VK_HOME");
+                moveFocus(Ex_DirHome);
+                break;
+            case VK_BACK:
+                dprintf(L"0x%04x %s\n", cbinfo->event->message, L"VK_BACK");
+                moveFocus(Ex_DirBack);
+                break;
+            case VK_TAB: {
+                dprintf(L"0x%04x %s\n", cbinfo->event->message, L"VK_TAB");
+                SHORT ks = GetKeyState(VK_SHIFT);
+                moveFocus(ks & 0x100 ? Ex_DirTabPrev : Ex_DirTabNext);
+                break;
+            }
+        }
+        return Ex_Continue;
+    }
+    return Ex_Continue;
+}
+
+ExWidget* WndMain::moveFocus(int dir) {
+    if (wgtFocused == NULL) {
+        if (dir == Ex_DirHome || dir == Ex_DirDown || dir == Ex_DirRight || dir == Ex_DirTabNext)
+            return giveFocus(this);
+        return giveFocus(last());
+    }
+    switch (dir) {
+        case Ex_DirHome: // tbd
+            return giveFocus(&btns1[0]);
+        case Ex_DirBack: // tbd
+            return giveFocus(&btns1[0]);
+    }
+    ExWidget* focusmap[][9] = { // tbd
+        // target     up         down       left       right      tabprev    tabnext
+        { &btns0[0], &panes[1], &panes[1], &btns0[4], &btns0[1], &panes[2], &panes[1] },
+        { &btns0[1], &panes[1], &panes[1], &btns0[0], &btns0[2], &panes[2], &panes[1] },
+        { &btns0[2], &panes[1], &panes[1], &btns0[1], &btns0[3], &panes[2], &panes[1] },
+        { &btns0[3], &panes[2], &panes[2], &btns0[2], &btns0[4], &panes[2], &panes[1] },
+        { &btns0[4], &panes[2], &panes[2], &btns0[3], &btns0[0], &panes[2], &panes[1] },
+        { &btns1[0], &btns1[5], &btns1[1], &panes[2], &panes[2], &panes[0], &panes[2] },
+        { &btns1[1], &btns1[0], &btns1[2], &panes[2], &panes[2], &panes[0], &panes[2] },
+        { &btns1[2], &btns1[1], &btns1[3], &panes[2], &panes[2], &panes[0], &panes[2] },
+        { &btns1[3], &btns1[2], &btns1[4], &panes[2], &panes[2], &panes[0], &panes[2] },
+        { &btns1[4], &btns1[3], &btns1[5], &panes[2], &panes[2], &panes[0], &panes[2] },
+        { &btns1[5], &btns1[4], &btns1[0], &panes[2], &panes[2], &panes[0], &panes[2] },
+        { &btns2[0], &btns2[5], &btns2[1], &panes[1], &panes[1], &panes[1], &panes[0] },
+        { &btns2[1], &btns2[0], &btns2[2], &panes[1], &panes[1], &panes[1], &panes[0] },
+        { &btns2[2], &btns2[1], &btns2[3], &panes[1], &panes[1], &panes[1], &panes[0] },
+        { &btns2[3], &btns2[2], &btns2[4], &panes[1], &panes[1], &panes[1], &panes[0] },
+        { &btns2[4], &btns2[3], &btns2[5], &panes[1], &panes[1], &panes[1], &panes[0] },
+        { &btns2[5], &btns2[4], &btns2[0], &panes[1], &panes[1], &panes[1], &panes[0] },
+        { NULL, },
+    };
+    int i = 0;
+    while (focusmap[i][0] && focusmap[i][0] != wgtFocused) i++;
+    if (!focusmap[i][0]) {
+        dprintf(L"Where did the focus go?\n");
+        return giveFocus(&btns1[0]);
+    }
+
+    ExWidget* newFocus = NULL;
+    switch (dir) {
+        case Ex_DirUp: newFocus = focusmap[i][1]; break;
+        case Ex_DirDown: newFocus = focusmap[i][2]; break;
+        case Ex_DirLeft: newFocus = focusmap[i][3]; break;
+        case Ex_DirRight: newFocus = focusmap[i][4]; break;
+        case Ex_DirTabPrev: newFocus = focusmap[i][5]; break;
+        case Ex_DirTabNext: newFocus = focusmap[i][6]; break;
+    }
+    if (!newFocus->isVisible()) {
+        newFocus = this;
+    }
+    return giveFocus(newFocus);
+}
+
+int WndMain::onFocused(WndMain* widget, ExCbInfo* cbinfo) {
+    static ExWidget* losted[3] = { NULL, };
+    if (cbinfo->type == Ex_CbLostFocus) {\
+        // memory focused child
+        if (cbinfo->subtype == 0) {
+            if (widget == this) {
+                ;
+            } else if (widget == &panes[0]) {
+                losted[0] = wgtFocused;
+            } else if (widget == &panes[1]) {
+                losted[1] = wgtFocused;
+            } else if (widget == &panes[2]) {
+                losted[2] = wgtFocused;
+            }
+        }
+    } else if (cbinfo->type == Ex_CbGotFocus) {
+        // subtype 0 - indirect
+        // subtype 1 - direct
+        if (cbinfo->subtype == 1) {
+            if (widget == this) {
+                giveFocus(&panes[0]); // tbd - define home
+            } else if (widget == &panes[0]) {
+                giveFocus(losted[0] ? losted[0] : &btns0[0]);
+            } else if (widget == &panes[1]) {
+                giveFocus(losted[1] ? losted[1] : &btns1[0]);
+            } else if (widget == &panes[2]) {
+                giveFocus(losted[2] ? losted[2] : &btns2[0]);
+            }
+        }
     }
     return Ex_Continue;
 }
@@ -728,6 +859,7 @@ int WndMain::start() {
     addCallback(&onUnrealized, this, Ex_CbUnrealized);
     addCallback(&onRealized, this, Ex_CbRealized);
     addCallback(this, &WndMain::onLayout, Ex_CbLayout);
+    addCallback(this, &WndMain::onFocused, Ex_CbGotFocus);
     addCallback(this, &WndMain::onActMain, Ex_CbActivate);
     addCallback([](void* data, ExWidget* widget, ExCbInfo* cbinfo)->int {
         dprintf(L"%s Activate %d,%d\n", widget->getName(), cbinfo->type, cbinfo->subtype);
@@ -742,6 +874,15 @@ int WndMain::start() {
     panes[0].addCallback(this, &WndMain::onLayout, Ex_CbLayout);
     panes[1].addCallback(this, &WndMain::onLayout, Ex_CbLayout);
     panes[2].addCallback(this, &WndMain::onLayout, Ex_CbLayout);
+    panes[0].addCallback(this, &WndMain::onFocused, Ex_CbGotFocus);
+    panes[1].addCallback(this, &WndMain::onFocused, Ex_CbGotFocus);
+    panes[2].addCallback(this, &WndMain::onFocused, Ex_CbGotFocus);
+    panes[0].addCallback(this, &WndMain::onFocused, Ex_CbLostFocus);
+    panes[1].addCallback(this, &WndMain::onFocused, Ex_CbLostFocus);
+    panes[2].addCallback(this, &WndMain::onFocused, Ex_CbLostFocus);
+    panes[0].setFlags(Ex_FocusRender);
+    panes[1].setFlags(Ex_FocusRender);
+    panes[2].setFlags(Ex_FocusRender);
 
     panes[0].addCallback(this, &WndMain::onActMain, Ex_CbActivate);
     panes[0].setFlags(Ex_Selectable);
@@ -785,7 +926,7 @@ int WndMain::start() {
         dprintf(L"timerTest: %s\n", w->getName());
         return Ex_Continue; }, (void*)0, this); // test
     timerTest.setCallback([](void* d, ExTimer* t, ExCbInfo*)->int {
-        dprintf(L"timerTest: %d %d\n", ((int&)t->userdata)++, exTickCount);
+        dprintf(L"timerTest: %d %u %u\n", ((int&)t->userdata)++, (ulong)*t, exTickCount);
         return Ex_Continue; }, (void*)0);
     timerTest.start(1, 1000);
 
@@ -816,7 +957,7 @@ int WndMain::start() {
     wgtBackViewer.drawFunc = ExDrawFunc(this, &WndMain::onDrawBackBuf);
 
     backBufUpdater.setCallback(this, &WndMain::onBackBufUpdater);
-    backBufUpdater.start(1, 16); // 60Hz
+    backBufUpdater.start(1, 25); // 40Hz
 
     initInput();
 

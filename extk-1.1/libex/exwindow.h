@@ -70,7 +70,7 @@ public:
     void enter() { mutex.lock(); }
     void leave() { mutex.unlock(); }
     HWND getHwnd() const { return this ? hwnd : NULL; }
-    ExWidget* giveFocus(ExWidget* newly);
+    ExWidget* giveFocus(ExWidget* newFocus);
     ExWidget* moveFocus(int dir); // sample
     bool hasPendingUpdate() {
         return (renderFlags & (Ex_RenderRebuild | Ex_RenderDamaged)) != 0;
