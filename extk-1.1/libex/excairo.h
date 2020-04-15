@@ -16,10 +16,7 @@
 class ExCairo {
 public:
     struct Color {
-        floatt a;
-        floatt r;
-        floatt g;
-        floatt b;
+        floatt a, r, g, b;
 
         Color() {}
         Color(floatt f) : a(f), r(f), g(f), b(f) {}
@@ -41,24 +38,31 @@ public:
     };
 
     struct Point {
-        floatt x;
-        floatt y;
+        floatt x, y;
 
-        // tbd
+        Point() {}
+        Point(floatt f) : x(f), y(f) {}
+        Point(floatt x, floatt y) : x(x), y(y) {}
+        Point(int x, int y) : x((floatt)x), y((floatt)y) {}
+
+        void set(floatt x, floatt y) { this->x = x; this->y = y; }
+        void set(int x, int y) { this->x = (floatt)x; this->y = (floatt)y; }
     };
 
     struct Size {
-        floatt x;
-        floatt y;
+        floatt w, h;
 
-        // tbd
+        Size() {}
+        Size(floatt f) : w(f), h(f) {}
+        Size(floatt w, floatt h) : w(w), h(h) {}
+        Size(int w, int h) : w((floatt)w), h((floatt)h) {}
+
+        void set(floatt w, floatt h) { this->w = w; this->h = h; }
+        void set(int w, int h) { this->w = (floatt)w; this->h = (floatt)h; }
     };
 
     struct Rect {
-        floatt l;
-        floatt t;
-        floatt r;
-        floatt b;
+        floatt l, t, r, b;
 
         Rect() {}
         Rect(ExRect rc) : l((floatt)rc.l), t((floatt)rc.t), r((floatt)rc.r), b((floatt)rc.b) {}

@@ -4,6 +4,7 @@
  */
 
 #include <exapp.h>
+#include <excairo.h>
 #include <eximage.h>
 
 #define logdraw dprint0
@@ -15,21 +16,32 @@ static void STDCALL s_fill(void* data, ExCanvas* canvas, const ExWidget* widget,
     if (!(canvas && canvas->cr))
         return;
     cairo_t* cr = canvas->cr;
-    ExRect rc = widget->getRect();
+    ExCairo::Rect rc(widget->getRect());
     cairo_save(cr);
+    canvas->setRegion(damage);
+    cairo_clip(cr);
+
+    //rc.l += 1.f;
+    //rc.t += 1.f;
+    //rc.r -= 1.f;
+    //rc.b -= 1.f;
 
     cairo_new_path(cr);
-    cairo_move_to(cr, rc.l + 1, rc.t + 1);
-    cairo_line_to(cr, rc.r - 1, rc.t + 1);
-    cairo_line_to(cr, rc.r - 1, rc.b - 1);
-    cairo_line_to(cr, rc.l + 1, rc.b - 1);
+    cairo_move_to(cr, rc.l, rc.t);
+    cairo_line_to(cr, rc.r, rc.t);
+    cairo_line_to(cr, rc.r, rc.b);
+    cairo_line_to(cr, rc.l, rc.b);
     cairo_close_path(cr);
-    cairo_set_line_width(cr, 1.);
+
+    ExCairo::Color lc; // line color
+    uint32 c = ((uint)widget) & 0xffffff;
+    lc.setv(ExRValue(c), ExGValue(c), ExBValue(c), 96);
+
+    cairo_set_line_width(cr, 1.f);
     cairo_set_line_join(cr, CAIRO_LINE_JOIN_ROUND);
     cairo_set_line_cap(cr, CAIRO_LINE_CAP_ROUND);
     cairo_set_antialias(cr, CAIRO_ANTIALIAS_GRAY);
-    uint c = ((uint)widget) & 0xffffff;
-    cairo_set_source_rgb(cr, ExRValue(c) / 255., ExGValue(c) / 255., ExBValue(c) / 255.);
+    cairo_set_source_rgba(cr, lc.r, lc.g, lc.b, lc.a);
     cairo_stroke(cr);
 
     cairo_restore(cr);
@@ -75,7 +87,7 @@ ExWidget::ExWidget()
     , userdata(NULL)
     , drawFunc()
     , cbList() {
-#if 1 // test
+#ifdef DEBUG // test
     drawFunc = ExDrawFunc(&s_fill, NULL); // tbd
 #endif
 }
@@ -228,12 +240,19 @@ ExWidget::create(ExWidget* parent, const wchar* name, const ExArea* area) {
 int ExWidget::destroy() {
     if (getFlags(Ex_Destroyed))
         return 1;
-    vanish(getWindow());
+    ExWindow* window = getWindow();
     ExWidgetList destroyed;
+    vanish(window);
     for (ExWidget* w = last(); w; w = last()) {
         dprint1(L"destroy: %s\n", w->name);
         w->flags |= Ex_Destroyed;
         w->detachParent();
+        if (window->wgtCapture == w)
+            window->wgtCapture = NULL;
+        if (window->wgtEntered == w)
+            window->wgtEntered = NULL;
+        if (window->wgtPressed == w)
+            window->wgtPressed = NULL;
         destroyed.push_back(w);
         if (w == this)
             break;
@@ -349,19 +368,22 @@ bool ExWidget::isVisible() {
 int ExWidget::vanish(ExWindow* window) {
     if (getFlags(Ex_Destroyed))
         return 1;
-    if (window && getFlags(Ex_Focused))
-        window->giveFocus(parent);
-    if (window && window != this && isVisible()) {
-        window->updateRgn.combine(ExRegion(extent)); // inval
-        window->renderFlags |= Ex_RenderDamaged;
+    if (window) {
+        if (getFlags(Ex_Focused))
+            window->giveFocus(parent);
+        if (window != this && isVisible()) {
+            window->updateRgn.combine(ExRegion(extent)); // inval
+            window->renderFlags |= Ex_RenderDamaged;
+        }
     }
     return 0;
 }
 
-int ExWidget::layout(const ExArea& ar) {
+int ExWidget::layout(ExArea& ar) {
     // Layout is to determine its own area relative to the parent,
     // regardless of whether it is visible or not.
     area = ar;
+
     if (parent == NULL) {
         rect.l = 0;
         rect.t = 0;
@@ -373,13 +395,10 @@ int ExWidget::layout(const ExArea& ar) {
         rect.r = area.w + rect.l;
         rect.b = area.h + rect.t;
     }
+    invokeCallback(Ex_CbLayout, &ExCbInfo(Ex_CbLayout, Ex_LayoutInit, NULL, &ar));
 
     flags |= Ex_ResetExtent; // mark as reset visibleRgn
     addRenderFlags(Ex_RenderRebuild);
-
-    invokeCallback(Ex_CbLayout, &ExCbInfo(Ex_CbLayout, Ex_LayoutInit, NULL, &area));
-    // tbd - do recurs ?
-    invokeCallback(Ex_CbLayout, &ExCbInfo(Ex_CbLayout, Ex_LayoutDone, NULL, &area));
 
     return 0;
 }
@@ -480,9 +499,9 @@ ExWidget::calcOpaque(ExRegion& opaqueAcc) {
         opaqueAcc.combine(extent);
     } else if (!opaqueRgn.empty()) {
         ExRegion clipRgn(extent);
-        clipRgn.offset(-rect.ul);
+        clipRgn.move(-rect.ul);
         clipRgn.intersect(opaqueRgn);
-        clipRgn.offset(rect.ul);
+        clipRgn.move(rect.ul);
         opaqueAcc.combine(clipRgn);
     }
     logdraw(L"opaque: %s [%d,%d-%dx%d] visible:%d blind:%d\n", getName(),

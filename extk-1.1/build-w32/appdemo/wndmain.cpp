@@ -5,8 +5,46 @@
 
 #include "framework.h"
 #include "wndmain.h"
-#define _USE_MATH_DEFINES
-#include <math.h>
+
+void WgtTitle::init(ExWindow* window) {
+    ExWidget::init(window, L"WgtTitle", &ExArea(0, 0, 800, 36));
+    setTitle(L"Welcome to the open source world.");
+    setFlags(Ex_Selectable);
+    addCallback(this, &WgtTitle::onLayout, Ex_CbLayout);
+    drawFunc = ExDrawFunc(this, &WgtTitle::onDrawTitle);
+}
+
+int WgtTitle::onLayout(WgtTitle* widget, ExCbInfo* cbinfo) {
+    //ExArea& expand = *(ExArea*)cbinfo->data;
+    return Ex_Continue;
+}
+
+void WgtTitle::onDrawTitle(ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage) {
+    cairo_t* cr = canvas->cr;
+    ExCairo::Rect rc(widget->getRect());
+    cairo_save(cr);
+    canvas->setRegion(damage);
+    cairo_clip(cr);
+
+    cairo_set_source_rgba(cr, 0.f, 0.f, 0.f, .25f);
+    cairo_rectangle(cr, rc.l, rc.t, rc.r, rc.b);
+    cairo_fill(cr);
+
+    cairo_set_font_face(cr, canvas->crf[0]);
+    cairo_set_font_size(cr, rc.height() * .5f);
+    cairo_text_extents_t extents;
+    cairo_text_extents(cr, title, &extents);
+    ExCairo::Point pt;
+    //pt.x = (rc.width() - extents.width) / 2.f - extents.x_bearing; // center
+    pt.x = rc.width() - extents.width - 48.f; // right
+    //pt.x = 48.f; // left
+    pt.y = (rc.height() - extents.height) / 2.f - extents.y_bearing; // center
+    cairo_move_to(cr, rc.l + pt.x, rc.t + pt.y);
+    cairo_set_source_rgb(cr, 1.f, 1.f, 1.f);
+    cairo_show_text(cr, title);
+
+    cairo_restore(cr);
+}
 
 static int STDCALL
 onUnrealized(void* data, ExWidget* w, ExCbInfo* cbinfo) {
@@ -319,7 +357,7 @@ int WndMain::onTimerToy(WndMain* wnd, ExCbInfo* cbinfo) {
         toy_scale = 1.f;
     } else if (n <= 40) {
         toy_alpha = .2f + .8f * n / 40.f;
-        toy_delta = cos(n * 2 / M_PI) * (40 - n) / 40.f;
+        toy_delta = (floatt)(cos(n * 2 / M_PI) * (40 - n) / 40.);
     } else if (n <= 60) {
         return Ex_Continue;
     } else {
@@ -350,7 +388,8 @@ void WndMain::onDrawBackBuf(ExCanvas* canvas, const ExWidget* w, const ExRegion*
         cairo_save(cr);
         canvas->setRegion(damage);
         cairo_clip(cr);
-        cairo_set_source_surface(cr, imgBkgd1.crs, -backBufCnt, -backBufCnt);
+        ExCairo::Point pt(-backBufCnt, -backBufCnt);
+        cairo_set_source_surface(cr, imgBkgd1.crs, 1.5f * pt.x, pt.y);
         cairo_paint_with_alpha(cr, .75); // for alpha blend
         cairo_restore(cr);
         return;
@@ -358,48 +397,50 @@ void WndMain::onDrawBackBuf(ExCanvas* canvas, const ExWidget* w, const ExRegion*
 }
 
 int WndMain::onLayout(WndMain* widget, ExCbInfo* cbinfo) {
-    const ExArea* ar = (ExArea*)cbinfo->data;
     dprintf(L"%s(%s) %d (%d,%d-%dx%d)\n", __funcw__, widget->getName(),
-            cbinfo->subtype, ar->x, ar->y, ar->w, ar->h);
-    ExArea a(0, 0, ar->w, ar->h);
-    if (cbinfo->subtype == Ex_LayoutInit) {
-        if (widget == this) {
-            a.inset(a.w * 2 / 100, a.h * 2 / 100);
-            ExArea a0(a.x, a.y, a.w, a.h * 12 / 100); a0.y += (a.h * 88 / 100);
-            ExArea a1(a.x, a.y, a.w * 18 / 100, a.h * 84 / 100);
-            ExArea a2(a.x, a.y, a.w * 18 / 100, a.h * 84 / 100); a2.x += (a.w * 82 / 100);
-            panes[0].layout(a0); // do recurs here
-            panes[1].layout(a1); // do recurs here
-            panes[2].layout(a2); // do recurs here
-            toy.setPos(ExPoint(a.center().x - toy.area.w / 2,
-                               a.center().y - toy.area.h / 2));
-        } else if (widget == &panes[0]) {
-            float margin_w = a.w * 2 / 100.f; // 2 %
-            float margin_h = a.h * 8 / 100.f; // 8 %
-            a.inset(margin_w, margin_h);
-            float gap_x = a.w * 3 / 100.f; // 3 %
-            float grid_x = (a.w + gap_x) / 5;
-            float p_x = a.x;
-            ExSize sz(grid_x - gap_x, a.h);
-            for (int i = 0; i < 5; i++) {
-                btns0[i].layout(ExArea(ExPoint(p_x, a.y), sz));
-                p_x += grid_x;
-            }
-        } else if (widget == &panes[1] || widget == &panes[2]) {
-            float margin_w = a.w * 8 / 100.f; // 8 %
-            float margin_h = a.h * 3 / 100.f; // 3 %
-            a.inset(margin_w, margin_h);
-            float gap_y = a.h * 4 / 100.f; // 4 %
-            float grid_y = (a.h + gap_y) / 6;
-            float p_y = a.y;
-            ExSize sz(a.w, grid_y - gap_y);
-            ExWidget* btns = widget == &panes[1] ? btns1 : btns2;
-            for (int i = 0; i < 6; i++) {
-                btns[i].layout(ExArea(ExPoint(a.x, p_y), sz));
-                p_y += grid_y;
-            }
+            cbinfo->subtype, widget->area.x, widget->area.y, widget->area.w, widget->area.h);
+    ExArea ar(0, 0, widget->area.w, widget->area.h);
+    if (widget == this) {
+        wgtTitle.layout(ExArea(ar.x, ar.y, ar.w, 36));
+        ar.offset(0, 36, 0, 0);
+        wgtMenu.layout(ExArea(ar.x, ar.y, ar.w, 30));
+        ar.offset(0, 30, 0, 0);
+        ar.inset(16, 16);
+        ExArea a0(ar.x, ar.y, ar.w, ar.h * 12 / 100); a0.y += (ar.h * 88 / 100);
+        ExArea a1(ar.x, ar.y, ar.w * 18 / 100, ar.h * 84 / 100);
+        ExArea a2(ar.x, ar.y, ar.w * 18 / 100, ar.h * 84 / 100); a2.x += (ar.w * 82 / 100);
+        panes[0].layout(a0); // do recurs here
+        panes[1].layout(a1); // do recurs here
+        panes[2].layout(a2); // do recurs here
+        toy.setPos(ExPoint(ar.center().x - toy.area.w / 2,
+                            ar.center().y - toy.area.h / 2));
+    } else if (widget == &panes[0]) {
+        float margin_w = ar.w * 2 / 100.f; // 2 %
+        float margin_h = ar.h * 8 / 100.f; // 8 %
+        ar.inset((int)margin_w, (int)margin_h);
+        float gap_x = ar.w * 3 / 100.f; // 3 %
+        float grid_x = (ar.w + gap_x) / 5;
+        float p_x = (float)ar.x;
+        ExSize sz((int)(grid_x - gap_x), ar.h);
+        for (int i = 0; i < 5; i++) {
+            btns0[i].layout(ExArea(ExPoint((int)p_x, ar.y), sz));
+            p_x += grid_x;
+        }
+    } else if (widget == &panes[1] || widget == &panes[2]) {
+        float margin_w = ar.w * 8 / 100.f; // 8 %
+        float margin_h = ar.h * 3 / 100.f; // 3 %
+        ar.inset((int)margin_w, (int)margin_h);
+        float gap_y = ar.h * 4 / 100.f; // 4 %
+        float grid_y = (ar.h + gap_y) / 6;
+        float p_y = (float)ar.y;
+        ExSize sz(ar.w, (int)(grid_y - gap_y));
+        ExWidget* btns = widget == &panes[1] ? btns1 : btns2;
+        for (int i = 0; i < 6; i++) {
+            btns[i].layout(ExArea(ExPoint(ar.x, (int)p_y), sz));
+            p_y += grid_y;
         }
     }
+    cbinfo->subtype = Ex_LayoutDone;
     return Ex_Continue;
 }
 
@@ -522,9 +563,20 @@ int WndMain::onActBtns(ExWidget* widget, ExCbInfo* cbinfo) {
             return Ex_Continue;
         }
     }
-    if (widget == &btns1[5]) {
+    if (widget == &btns1[4]) {
         if (cbinfo->type == Ex_CbButRepeat) {
             dprintf(L"Ex_CbButRepeat %d\n", cbinfo->subtype);
+            return Ex_Continue;
+        }
+    }
+    if (widget == &btns1[5]) {
+        if (cbinfo->type == Ex_CbActivate) {
+            if (!exDrawFuncTrap) {
+                exDrawFuncTrap = ExDrawFunc(this, &WndMain::onDrawTrap);
+            } else {
+                exDrawFuncTrap = ExDrawFunc(NULL, NULL);
+                damage();
+            }
             return Ex_Continue;
         }
     }
@@ -769,7 +821,7 @@ void WndMain::onFlushBackBuf(WndMain* w, const ExRegion* updateRgn) {
 #else
     // When using a real secondary display ...
     ExRect clip(updateRgn->extent);
-    clip.offset(wgtBackViewer.getRect().ul);
+    clip.move(wgtBackViewer.getRect().ul);
     wgtBackViewer.damage(clip);
 #endif
 }
@@ -960,6 +1012,9 @@ int WndMain::start() {
     backBufUpdater.start(1, 25); // 40Hz
 
     initInput();
+
+    wgtMenu.init(this);
+    wgtTitle.init(this);
 
 #if DISP_AT_ONCE
     addFilter([](void* data, ExWindow* window, ExCbInfo* cbinfo)->int {

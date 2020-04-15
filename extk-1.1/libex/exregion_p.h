@@ -62,97 +62,97 @@ SOFTWARE.
  *  Remember, x2 and y2 are not in the region
  */
 #define EXTENT_CHECK(r1, r2) \
-		((r1)->x2 > (r2)->x1 && \
-		 (r1)->x1 < (r2)->x2 && \
-		 (r1)->y2 > (r2)->y1 && \
-		 (r1)->y1 < (r2)->y2)
+        ((r1)->x2 > (r2)->x1 && \
+         (r1)->x1 < (r2)->x2 && \
+         (r1)->y2 > (r2)->y1 && \
+         (r1)->y1 < (r2)->y2)
 
 /*
  *  update region extents
  */
 #define EXTENTS(r, id_rgn) { \
-		if ((r)->x1 < (id_rgn)->extent.x1) \
-			(id_rgn)->extent.x1 = (r)->x1; \
-		if ((r)->y1 < (id_rgn)->extent.y1) \
-			(id_rgn)->extent.y1 = (r)->y1; \
-		if ((r)->x2 > (id_rgn)->extent.x2) \
-			(id_rgn)->extent.x2 = (r)->x2; \
-		if ((r)->y2 > (id_rgn)->extent.y2) \
-			(id_rgn)->extent.y2 = (r)->y2; \
-	}
+        if ((r)->x1 < (id_rgn)->extent.x1) \
+            (id_rgn)->extent.x1 = (r)->x1; \
+        if ((r)->y1 < (id_rgn)->extent.y1) \
+            (id_rgn)->extent.y1 = (r)->y1; \
+        if ((r)->x2 > (id_rgn)->extent.x2) \
+            (id_rgn)->extent.x2 = (r)->x2; \
+        if ((r)->y2 > (id_rgn)->extent.y2) \
+            (id_rgn)->extent.y2 = (r)->y2; \
+    }
 
 #define GROW_REGION(rgn, n_rects) { \
-		if ((n_rects) == 0) { \
-			if ((rgn)->rects != &(rgn)->extent) { \
-				free((rgn)->rects); \
-				(rgn)->rects = &(rgn)->extent; \
-			} \
-		} else \
-		if ((rgn)->rects == &(rgn)->extent) { \
-			(rgn)->rects = (ExRect*)malloc(sizeof(ExRect) * n_rects); \
-			(rgn)->rects[0] = (rgn)->extent; \
-		} else { \
-			(rgn)->rects = (ExRect*)realloc((rgn)->rects, sizeof(ExRect) * n_rects); \
-		} \
-		(rgn)->size = (n_rects); \
-	}
+        if ((n_rects) == 0) { \
+            if ((rgn)->rects != &(rgn)->extent) { \
+                free((rgn)->rects); \
+                (rgn)->rects = &(rgn)->extent; \
+            } \
+        } else \
+        if ((rgn)->rects == &(rgn)->extent) { \
+            (rgn)->rects = (ExRect*)malloc(sizeof(ExRect) * n_rects); \
+            (rgn)->rects[0] = (rgn)->extent; \
+        } else { \
+            (rgn)->rects = (ExRect*)realloc((rgn)->rects, sizeof(ExRect) * n_rects); \
+        } \
+        (rgn)->size = (n_rects); \
+    }
 
 /*
  *   Check to see if there is enough memory in the present region.
  */
 #define MEM_CHECK(rgn, rect, firstrect) { \
-		if ((rgn)->n_rects >= ((rgn)->size - 1)) { \
-			GROW_REGION(rgn, 4*(rgn)->size); \
-			(rect) = &(firstrect)[(rgn)->n_rects]; \
-		} \
-	}
+        if ((rgn)->n_rects >= ((rgn)->size - 1)) { \
+            GROW_REGION(rgn, 4*(rgn)->size); \
+            (rect) = &(firstrect)[(rgn)->n_rects]; \
+        } \
+    }
 
 /*  this routine checks to see if the previous rectangle is the same
  *  or subsumes the new rectangle to add.
  */
 #define CHECK_PREV(rgn, r, rx1, ry1, rx2, ry2) \
-			  (!(((rgn)->n_rects > 0) && \
-				 ((r-1)->y1 == (ry1)) && \
-				 ((r-1)->y2 == (ry2)) && \
-				 ((r-1)->x1 <= (rx1)) && \
-				 ((r-1)->x2 >= (rx2))))
+        (!(((rgn)->n_rects > 0) && \
+           ((r-1)->y1 == (ry1)) && \
+           ((r-1)->y2 == (ry2)) && \
+           ((r-1)->x1 <= (rx1)) && \
+           ((r-1)->x2 >= (rx2)) ))
 
 /*  add a rectangle to the given region */
 #define ADD_RECT(rgn, r, rx1, ry1, rx2, ry2) { \
-		if (((rx1) < (rx2)) && ((ry1) < (ry2)) && \
-			CHECK_PREV((rgn), (r), (rx1), (ry1), (rx2), (ry2))) { \
-			(r)->x1 = (rx1); \
-			(r)->y1 = (ry1); \
-			(r)->x2 = (rx2); \
-			(r)->y2 = (ry2); \
-			EXTENTS((r), (rgn)); \
-			(rgn)->n_rects++; \
-			(r)++; \
-		} \
-	}
+        if (((rx1) < (rx2)) && ((ry1) < (ry2)) && \
+            CHECK_PREV((rgn), (r), (rx1), (ry1), (rx2), (ry2))) { \
+            (r)->x1 = (rx1); \
+            (r)->y1 = (ry1); \
+            (r)->x2 = (rx2); \
+            (r)->y2 = (ry2); \
+            EXTENTS((r), (rgn)); \
+            (rgn)->n_rects++; \
+            (r)++; \
+        } \
+    }
 
 /*  add a rectangle to the given region */
 #define ADD_RECT_NOX(rgn, r, rx1, ry1, rx2, ry2) { \
-		if ((rx1 < rx2) && (ry1 < ry2) && \
-			CHECK_PREV((rgn), (r), (rx1), (ry1), (rx2), (ry2))) { \
-			(r)->x1 = (rx1); \
-			(r)->y1 = (ry1); \
-			(r)->x2 = (rx2); \
-			(r)->y2 = (ry2); \
-			(rgn)->n_rects++; \
-			(r)++; \
-		} \
-	}
+        if ((rx1 < rx2) && (ry1 < ry2) && \
+            CHECK_PREV((rgn), (r), (rx1), (ry1), (rx2), (ry2))) { \
+            (r)->x1 = (rx1); \
+            (r)->y1 = (ry1); \
+            (r)->x2 = (rx2); \
+            (r)->y2 = (ry2); \
+            (rgn)->n_rects++; \
+            (r)++; \
+        } \
+    }
 
 #define EMPTY_REGION(rgn) rgn->n_rects = 0
 
 #define REGION_NOT_EMPTY(rgn) rgn->n_rects
 
 #define IN_BOX(r, x, y) \
-		((((r).x2 > x)) && \
-		 (((r).x1 <= x)) && \
-		 (((r).y2 > y)) && \
-		 (((r).y1 <= y)))
+        ((((r).x2 > x)) && \
+         (((r).x1 <= x)) && \
+         (((r).y2 > y)) && \
+         (((r).y1 <= y)))
 
 /*
  * number of points to buffer before sending them off
@@ -165,8 +165,8 @@ SOFTWARE.
  * the buffers together
  */
 typedef struct _POINTBLOCK {
-	ExPoint pts[NUMPTSTOBUFFER];
-	struct _POINTBLOCK* next;
+    ExPoint pts[NUMPTSTOBUFFER];
+    struct _POINTBLOCK* next;
 } POINTBLOCK;
 
 #endif//__exregion_p_h__

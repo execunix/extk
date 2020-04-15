@@ -15,3 +15,5 @@
 #include <malloc.h>
 #include <memory.h>
 #include <tchar.h>
+#define _USE_MATH_DEFINES
+#include <math.h>

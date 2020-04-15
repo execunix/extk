@@ -12,6 +12,9 @@
 #define logproc dprintf
 #define logpro0 dprint0
 
+#undef  ABS
+#define ABS(a)                  (((a) < 0) ? -(a) : (a))
+
 typedef std::list<ExWindow*> ExWindowList;
 typedef std::map<HWND, ExWindow*> ExWindowMap;
 
@@ -55,9 +58,9 @@ ExWindow::ExWindow()
     , dwExStyle(0)
     , notifyFlags(0)
     , renderFlags(0)
-    , opaqueAcc(1024)
-    , mergedRgn(1024)
-    , updateRgn(1024)
+    , opaqueAcc()
+    , mergedRgn()
+    , updateRgn()
     , wgtCapture(NULL)
     , wgtEntered(NULL)
     , wgtPressed(NULL)

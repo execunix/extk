@@ -80,7 +80,6 @@ SOFTWARE.
 #endif
 
 #define floattype_flt // extk
-
 #ifndef floattype_flt
 typedef double floatt;
 #else

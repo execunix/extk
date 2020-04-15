@@ -176,6 +176,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="appdemo.cpp" />
+    <ClCompile Include="wgtmenu.cpp" />
     <ClCompile Include="wndmain.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -183,6 +184,7 @@
     <ClInclude Include="framework.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="targetver.h" />
+    <ClInclude Include="wgtmenu.h" />
     <ClInclude Include="wndmain.h" />
   </ItemGroup>
   <ItemGroup>

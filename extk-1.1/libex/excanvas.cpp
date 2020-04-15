@@ -192,11 +192,11 @@ ExRegionToGdi(HDC hdc, const ExRegion* srcrgn)
     return hrgn;
 }
 
-Bool
+bool
 ExRegionToPixman(pixman_region32_t* prgn, const ExRegion* srcrgn)
 {
     if (srcrgn->empty())
-        return FALSE;
+        return false;
     // ExRect box segment are compatible with pixman_box32 { int32_t x1, y1, x2, y2; }
 //	pixman_box32_t* boxes = srcrgn->rects->box32();
 //	pixman_bool_t r = pixman_region32_init_rects(prgn, boxes, srcrgn->n_rects);

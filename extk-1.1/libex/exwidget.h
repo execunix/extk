@@ -78,27 +78,27 @@ enum ExWidgetClassFlags {
         When calling the widget destroy function, the memory is also freed automatically.
 */
 enum ExWidgetFlags {
-    Ex_Destroyed        = 1 << 0,	// RO
-    Ex_Realized         = 1 << 1,	// RO
-    Ex_AutoHighlight    = 1 << 3,	// RW
-    Ex_Highlighted      = 1 << 4,	// RW
-    Ex_FocusRender      = 1 << 5,	// RW
-    Ex_Focused          = 1 << 6,	// RO
-    Ex_Selectable       = 1 << 7,	// RW
-    Ex_PtrEntered       = 1 << 8,	// RO
-    Ex_ButPressed       = 1 << 9,	// RO
-    Ex_Visible          = 1 << 10,	// RO
-    Ex_Blocked          = 1 << 11,	// RW
-    Ex_Ghost            = 1 << 12,	// RW
-    Ex_Set              = 1 << 13,	// RW
-    Ex_Toggle           = 1 << 14,	// RW
-    Ex_Opaque           = 1 << 15,	// RW
-    Ex_Damaged          = 1 << 16,	// RO
-    Ex_DamageFamily     = 1 << 17,	// RO
-    Ex_ResetExtent      = 1 << 19,	// RO
-    Ex_ResetRegion      = 1 << 20,	// RO
-    Ex_SkipLayout       = 1 << 21,	// RO
-    Ex_FreeMemory       = 1 << 31,	// RW
+    Ex_Destroyed        = 1 << 0,   // RO
+    Ex_Realized         = 1 << 1,   // RO
+    Ex_AutoHighlight    = 1 << 3,   // RW
+    Ex_Highlighted      = 1 << 4,   // RW
+    Ex_FocusRender      = 1 << 5,   // RW
+    Ex_Focused          = 1 << 6,   // RO
+    Ex_Selectable       = 1 << 7,   // RW
+    Ex_PtrEntered       = 1 << 8,   // RO
+    Ex_ButPressed       = 1 << 9,   // RO
+    Ex_Visible          = 1 << 10,  // RO
+    Ex_Blocked          = 1 << 11,  // RW
+    Ex_Ghost            = 1 << 12,  // RW
+    Ex_Set              = 1 << 13,  // RW
+    Ex_Toggle           = 1 << 14,  // RW
+    Ex_Opaque           = 1 << 15,  // RW
+    Ex_Damaged          = 1 << 16,  // RO
+    Ex_DamageFamily     = 1 << 17,  // RO
+    Ex_ResetExtent      = 1 << 19,  // RO
+    Ex_ResetRegion      = 1 << 20,  // RO
+    Ex_SkipLayout       = 1 << 21,  // RO
+    Ex_FreeMemory       = 1 << 31,  // RW
 };
 
 // class ExWidget
@@ -114,23 +114,23 @@ protected:
     }
     wchar*      name;
     // ExLayoutInfo
-    ExRect      rect;		// read-only
-    ExRect      extent;		// read-only : intersect with parent
-    ExRect      select;		// read-only
+    ExRect      rect;       // read-only
+    ExRect      extent;     // read-only : intersect with parent
+    ExRect      select;     // read-only
     ExRegion    visibleRgn;
     ExRegion    opaqueRgn;
     ExRegion    damageRgn;
-    int         flags;		// Common flags used by all widgets.
-    void*       data;		// This resource is used internally by FrameWorks as well as by compound widgets.
+    int         flags;      // Common flags used by all widgets.
+    void*       data;       // This resource is used internally by FrameWorks as well as by compound widgets.
 public:
     ExArea      area;
-    int         id;			// identity, index, etc.
-    int         value;		// estimate, evaluate, etc.
-    int         shape;		// flags for the widget shape
-    int         state;		// flags for the widget state
-    void*       style;		// Storing style struct
-    void*       userdata;	// Storing arbitrary user data
-    ExDrawFunc  drawFunc;	// Function for draw
+    int         id;         // identity, index, etc.
+    int         value;      // estimate, evaluate, etc.
+    int         shape;      // flags for the widget shape
+    int         state;      // flags for the widget state
+    void*       style;      // Storing style struct
+    void*       userdata;   // Storing arbitrary user data
+    ExDrawFunc  drawFunc;   // Function for draw
 public:
     virtual ~ExWidget();
     explicit ExWidget();
@@ -178,7 +178,7 @@ public:
     virtual int setVisible(bool show);
     bool isVisible();
     int vanish(ExWindow* window);
-    int layout(const ExArea& ar);
+    int layout(ExArea& ar);
     int damage();
     int damage(const ExRect& clip);
     bool isOpaque() const { return getFlags(Ex_Opaque) || !opaqueRgn.empty(); }
@@ -323,9 +323,9 @@ Resources:
 ExWidget::CallbackList::invoke()
     invoke a callback list
 Arguments:
-    cbList	The list of callbacks to invoke.
-    object	The widget pointer to pass to the callbacks as the first argument.
-    cbinfo	A pointer to a ExCbInfo structure that's passed to each callback
+    cbList  The list of callbacks to invoke.
+    object  The widget pointer to pass to the callbacks as the first argument.
+    cbinfo  A pointer to a ExCbInfo structure that's passed to each callback
             in the list as the third argument.
 Description:
     This function invokes the provided callback list cbList.
@@ -339,10 +339,10 @@ Returns:
 ExWidget::invokeCallback()
     invoke a callback list of a specific type
 Arguments:
-    widget	The widget pointer to pass to the callbacks as the first argument.
-    cbinfo	A pointer to a ExCbInfo structure that's passed to each callback
+    widget  The widget pointer to pass to the callbacks as the first argument.
+    cbinfo  A pointer to a ExCbInfo structure that's passed to each callback
             in the list as the third argument.
-    type	The type of callback list to invoke, for example Ex_CbActivate.
+    type    The type of callback list to invoke, for example Ex_CbActivate.
 Description:
     This function invokes a callback list of type for a widget.
 Returns:
@@ -371,8 +371,8 @@ Description:
     }
     --------------------------------------------------------------------------------
 Returns:
-    0	Success.
-    -1	An error occurred.
+    0   Success.
+    -1  An error occurred.
 */
 
 /**
@@ -405,8 +405,8 @@ Description:
     and repair itself.
     If you want the widget to be redrawn immediately, call ExWindow::flush() after calling ExWidget::damage().
 Returns:
-    0	Successful completion.
-    -1	An error occurred.
+    0   Successful completion.
+    -1  An error occurred.
 */
 
 /**
@@ -433,8 +433,8 @@ Description:
     user). All of widget's children are moved too. Any widgets damaged as a result of this
     operation are automatically repaired.
 Returns:
-    0	Successful completion.
-    -1	An error occurred.
+    0   Successful completion.
+    -1  An error occurred.
 */
 
 /**
@@ -445,8 +445,8 @@ Description:
     user). All of widget's children are moved too. Any widgets damaged as a result of this
     operation are automatically repaired.
 Returns:
-    0	Successful completion.
-    -1	An error occurred.
+    0   Successful completion.
+    -1  An error occurred.
 */
 
 #endif//__exwidget_h__

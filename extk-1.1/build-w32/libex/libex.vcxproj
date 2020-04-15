@@ -220,7 +220,6 @@ xcopy "$(OutDir)$(TargetFileName)" "..\extk\$(OutDir)" /d /y
     <ClCompile Include="..\..\libex\exmemory.cpp" />
     <ClCompile Include="..\..\libex\exobject.cpp" />
     <ClCompile Include="..\..\libex\exregion.cpp" />
-    <ClCompile Include="..\..\libex\exregion_p.cpp" />
     <ClCompile Include="..\..\libex\exsearch.cpp" />
     <ClCompile Include="..\..\libex\exstuff.cpp" />
     <ClCompile Include="..\..\libex\exstyle.cpp" />

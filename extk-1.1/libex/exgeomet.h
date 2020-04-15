@@ -211,17 +211,12 @@ struct ExArea {
     int height() const { return h; }
     ExPoint center() const { return ExPoint(x + w / 2, y + h / 2); }
     void center(int* px, int* py) const { *px = (x + w / 2); *py = (y + h / 2); }
-    void offset(int dx, int dy) { x += dx; y += dy; }
-    void inset(int dx, int dy) { x += dx; y += dy; w -= dx * 2; h -= dy * 2; } // should check valid
     void center(ExPoint& pt) const { center(&pt.x, &pt.y); }
-    void offset(const ExPoint& pt) { offset(pt.x, pt.y); }
+    void offset(int l, int t, int r, int b) { x += l; y += t; w += (r - l); h += (b - t); }
+    void inset(int dx, int dy) { x += dx; y += dy; w -= dx * 2; h -= dy * 2; } // should check valid
     void inset(const ExPoint& pt) { inset(pt.x, pt.y); }
-    void left(int l) { this->x = l; }
-    void top(int t) { this->y = t; }
-    void right(int r) { w = r - x; }
-    void bottom(int b) { h = b - y; }
-    void width(int w) { this->w = w; }
-    void height(int h) { this->h = h; }
+    void move(int dx, int dy) { x += dx; y += dy; }
+    void move(const ExPoint& pt) { move(pt.x, pt.y); }
     void init0() { x = y = w = h = 0; }
     void set(int x, int y, int w, int h) { this->x = x; this->y = y; this->w = w; this->h = h; }
     void set(const ExPoint& pt, const ExSize& sz) { x = pt.x; y = pt.y; w = sz.w; h = sz.h; }
@@ -271,17 +266,12 @@ struct ExRect {
     ExSize size() const { return ExSize(r - l, b - t); }
     ExPoint center() const { return ExPoint((l + r) / 2, (t + b) / 2); }
     void center(int* px, int* py) const { *px = (l + r) / 2; *py = (t + b) / 2; }
-    void offset(int dx, int dy) { l += dx; t += dy; r += dx; b += dy; }
-    void inset(int dx, int dy) { l += dx; t += dy; r -= dx; b -= dy; } // should check valid or sort
     void center(ExPoint& pt) const { center(&pt.x, &pt.y); }
-    void offset(const ExPoint& pt) { offset(pt.x, pt.y); }
+    void offset(int l, int t, int r, int b) { x1 += l; y1 += t; x2 += r; y2 += b; }
+    void inset(int dx, int dy) { l += dx; t += dy; r -= dx; b -= dy; } // should check valid or sort
     void inset(const ExPoint& pt) { inset(pt.x, pt.y); }
-    void left(int l) { this->l = l; }
-    void top(int t) { this->t = t; }
-    void right(int r) { this->r = r; }
-    void bottom(int b) { this->b = b; }
-    void width(int w) { r = l + w; }
-    void height(int h) { b = t + h; }
+    void move(int dx, int dy) { l += dx; t += dy; r += dx; b += dy; }
+    void move(const ExPoint& pt) { move(pt.x, pt.y); }
     void init0() { l = t = r = b = 0; }
     void sort() { if (l > r) exswap<int>(l, r); if (t > b) exswap<int>(t, b); }
     void set(int l, int t, int r, int b) { this->l = l; this->t = t; this->r = r; this->b = b; }

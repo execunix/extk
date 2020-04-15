@@ -6,6 +6,23 @@
 #pragma once
 
 #include <ex.h>
+#include "wgtmenu.h"
+
+class WgtTitle : public ExWidget {
+public:
+    wchar title[256];
+public:
+    ~WgtTitle() {}
+    WgtTitle() : ExWidget() {}
+public:
+    void init(ExWindow* window);
+    void setTitle(const wchar* str) {
+        wcsncpy(title, str, 255);
+        title[255] = 0;
+    }
+    int STDCALL onLayout(WgtTitle* widget, ExCbInfo* cbinfo);
+    void STDCALL onDrawTitle(ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage);
+};
 
 class WndMain : public ExWindow {
 public:
@@ -25,6 +42,8 @@ public:
     ExWidget wgtBackViewer;
     ExTimer backBufUpdater;
     int backBufCnt;
+    WgtMenu wgtMenu;
+    WgtTitle wgtTitle;
 public:
     ~WndMain() {}
     WndMain() : ExWindow() {}

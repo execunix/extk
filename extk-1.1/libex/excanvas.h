@@ -81,6 +81,6 @@ public:
 };
 
 HRGN ExRegionToGdi(HDC hdc, const ExRegion* srcrgn);
-Bool ExRegionToPixman(pixman_region32_t* prgn, const ExRegion* srcrgn);
+bool ExRegionToPixman(pixman_region32_t* prgn, const ExRegion* srcrgn);
 
 #endif//__excanvas_h__

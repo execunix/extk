@@ -167,9 +167,6 @@
     <ClCompile Include="..\..\libex\exregion.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\libex\exregion_p.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\libex\exsearch.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
