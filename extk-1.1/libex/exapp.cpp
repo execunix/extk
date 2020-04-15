@@ -61,6 +61,7 @@ ulong        ExApp::double_click_time;       /* Maximum time between clicks in m
 int          ExApp::button_number[2];        /* The last 2 buttons to be pressed. */
 ExWidget*    ExApp::button_widget[2];        /* The last 2 widgets to receive button presses. */
 ExWindow*    ExApp::button_window[2];        /* The last 2 windows to receive button presses. */
+UINT         ExApp::regAppMsgIndex = WM_APP;
 
 int ExEventPeek(ExEvent& event) {
     BOOL bRet;

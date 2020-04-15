@@ -23,11 +23,10 @@ public:
     int id;
 public:
     ExWidget* view;
-    MenuList* parent;
     MenuList subList;
     cairo_text_extents_t extents;
 public:
-    Menu() : view(NULL), parent(NULL) {}
+    Menu() : view(NULL) {}
 };
 
 inline MenuList::~MenuList() {
@@ -45,7 +44,6 @@ inline Menu* MenuList::add(const wchar* text, int id) {
     menu->flag = 0;
     menu->id = id;
     menu->view = NULL;
-    menu->parent = this;
     menu->extents.width = 0;
     push_back(menu);
     return menu;
@@ -55,18 +53,21 @@ class WgtMenu : public ExWidget {
     class Popup : public ExWidget {
     public:
         ExWidget* wgtMenu;
+        MenuList* mlist; // ref
     public:
         ~Popup() { clear(); }
-        Popup() : ExWidget(), wgtMenu(NULL) {}
+        Popup() : ExWidget(), wgtMenu(NULL), mlist(NULL) {}
     public:
         void clear();
     };
+    typedef std::list<Popup*> PopList;
 
-    const floatt fontSize = 14.f;
+    const UINT WM_APP_MENUPOPUP = ExRegAppMessage();
+    const floatt fontSize = 12.5f;
 public:
+    PopList popList;
     MenuList menuList;
     ExWidget* menuBar;
-    std::list<Popup*> popupList;
 public:
     ~WgtMenu() { fini();  }
     WgtMenu() : ExWidget() {}
@@ -76,6 +77,7 @@ public:
     int STDCALL onLayoutVert(ExWidget* widget, ExCbInfo* cbinfo);
     int STDCALL onActivate(ExWidget* widget, ExCbInfo* cbinfo);
     int STDCALL onFocused(ExWidget* widget, ExCbInfo* cbinfo);
+    int STDCALL onHandler(ExWidget* widget, ExCbInfo* cbinfo);
     int STDCALL onFilter(ExWidget* widget, ExCbInfo* cbinfo);
     int STDCALL onLayout(ExWidget* widget, ExCbInfo* cbinfo);
     Popup* popup(int x, int y, MenuList& ml); // popup menu

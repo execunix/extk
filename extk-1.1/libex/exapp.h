@@ -50,6 +50,7 @@ public:
     static int          button_number[2];		/* The last 2 buttons to be pressed. */
     static ExWidget*    button_widget[2];		/* The last 2 widgets to receive button presses. */
     static ExWindow*    button_window[2];		/* The last 2 windows to receive button presses. */
+    static UINT         regAppMsgIndex;
 public:
     static void dispatch(MSG& msg);
     static void collect();
@@ -82,6 +83,10 @@ extern ExEventFunc exEventFunc;
 
 void ExMainLoop();
 void ExQuitMainLoop();
+
+inline UINT ExRegAppMessage() {
+    return ExApp::regAppMsgIndex++;
+}
 
 /* sample
 

@@ -8,7 +8,7 @@
 
 void WgtTitle::init(ExWindow* window) {
     ExWidget::init(window, L"WgtTitle", &ExArea(0, 0, 800, 36));
-    setTitle(L"Welcome to the open source world.");
+    setTitle(L"Welcome to Rectangles and Callbacks World.");
     setFlags(Ex_Selectable);
     addCallback(this, &WgtTitle::onLayout, Ex_CbLayout);
     drawFunc = ExDrawFunc(this, &WgtTitle::onDrawTitle);
@@ -108,12 +108,12 @@ void WndMain::onDrawBkgd(ExCanvas* canvas, const ExWidget* widget, const ExRegio
 void WndMain::onDrawTrap(ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage) {
 #if 1
     static int id = 0;
-    static uint32 color[5] = { 0, 0xff, 0xff00, 0xff0000, 0xffffff };
+    static uint32 color[7] = { 0xff, 0xff00, 0xff0000, 0xffff, 0xff00ff, 0xffff00, 0xffffff };
     for (int i = 0; i < damage->n_rects; i++) {
         ExRect& rc = damage->rects[i];
         canvas->gc->drawRect(&rc, color[id]);
     }
-    id = (id < 4) ? id + 1 : 0;
+    id = (id < 6) ? id + 1 : 0;
 #else
     cairo_t* cr = canvas->cr;
     for (int i = 0; i < damage->n_rects; i++) {
@@ -880,9 +880,7 @@ int WndMain::start() {
 
     drawFunc = ExDrawFunc(&::onDrawBkgd, this); // test
     drawFunc = ExDrawFunc(this, &WndMain::onDrawBkgd);
-#if 0//DEBUG
-    exDrawFuncTrap = ExDrawFunc(this, &WndMain::onDrawTrap);
-#endif
+
     FlushTest flushTest;
     flushFunc = ExFlushFunc(&flushTest, &FlushTest::onFlush); // apitest
     flushFunc = ExFlushFunc(this, &WndMain::onExFlush); // apitest

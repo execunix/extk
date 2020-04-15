@@ -654,6 +654,14 @@ int ExWindow::basicWndProc(ExCbInfo* cbinfo) {
             return Ex_Break;
         }
 #endif
+        case WM_GETMINMAXINFO: {
+            MINMAXINFO* mmi = (MINMAXINFO*)lParam;
+            logproc(L"[0x%p] WM_GETMINMAXINFO %d %d,%d\n", hwnd, wParam,
+                    mmi->ptMinTrackSize.x, mmi->ptMinTrackSize.y);
+            mmi->ptMinTrackSize.x = 640 + 16;
+            mmi->ptMinTrackSize.y = 360 + 39;
+            return Ex_Continue;
+        }
         case WM_SIZE: {
             int width = LOWORD(lParam);
             int height = HIWORD(lParam);
@@ -937,14 +945,6 @@ ExWindow::sysWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
         return TRUE;
     }
 #endif
-    if (message == WM_GETMINMAXINFO) {
-        MINMAXINFO* mmi = (MINMAXINFO*)lParam;
-        logproc(L"[0x%p] WM_GETMINMAXINFO %d %d,%d\n", hwnd, wParam,
-                mmi->ptMinTrackSize.x, mmi->ptMinTrackSize.y);
-        mmi->ptMinTrackSize.x = 640 + 16;
-        mmi->ptMinTrackSize.y = 360 + 39;
-        return 0;
-    }
 
     //window = (ExWindow*)GetWindowLong(hwnd, GWL_USERDATA);
     window = attachWindowMap[hwnd];
