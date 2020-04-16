@@ -95,35 +95,33 @@ protected: // window callback internal
         // inherit void remove(const ExCallback& cb);
         // inherit void push_back(const ExCallback& cb);
         // inherit void push_front(const ExCallback& cb);
-        void append(const ExCallback& cb) { push_back(cb); }
-        void add(const ExCallback& cb) { push_front(cb); }
-        void add(const ExCallback& cb, int pos);
+        void push(const ExCallback& cb, int pos);
         int invoke(ExObject* object, ExCbInfo* cbinfo);
     };
     MsgCallbackList filterList;
     MsgCallbackList handlerList;
 public: // window message callback operation (event filter and handler)
     void addFilter(int(STDCALL *f)(void*, ExWindow*, ExCbInfo*), void* d) {
-        filterList.add(ExCallback(f, d));
+        filterList.push_back(ExCallback(f, d));
     }
     void addFilter(int(STDCALL *f)(void*, ExWindow*, ExCbInfo*), void* d, int pos) {
-        filterList.add(ExCallback(f, d), pos);
+        filterList.push(ExCallback(f, d), pos);
     }
     template <typename A, class W/*inherit ExWidget*/>
     void addFilter(A* d, int(STDCALL A::*f)(W*, ExCbInfo*)) {
-        filterList.add(ExCallback(d, f));
+        filterList.push_back(ExCallback(d, f));
     }
     template <typename A, class W/*inherit ExWidget*/>
     void addFilter(A* d, int(STDCALL A::*f)(W*, ExCbInfo*), int pos) {
-        filterList.add(ExCallback(d, f), pos);
+        filterList.push(ExCallback(d, f), pos);
     }
     template <typename A, class W/*inherit ExWidget*/>
     void addFilter(int(STDCALL *f)(A*, W*, ExCbInfo*), A* d) {
-        filterList.add(ExCallback(f, d));
+        filterList.push_back(ExCallback(f, d));
     }
     template <typename A, class W/*inherit ExWidget*/>
     void addFilter(int(STDCALL *f)(A*, W*, ExCbInfo*), A* d, int pos) {
-        filterList.add(ExCallback(f, d), pos);
+        filterList.push(ExCallback(f, d), pos);
     }
     void removeFilter(ExCallback& cb) {
         filterList.remove(cb);
@@ -133,26 +131,26 @@ public: // window message callback operation (event filter and handler)
     }
 
     void addHandler(int(STDCALL *f)(void*, ExWindow*, ExCbInfo*), void* d) {
-        handlerList.add(ExCallback(f, d));
+        handlerList.push_back(ExCallback(f, d));
     }
     void addHandler(int(STDCALL *f)(void*, ExWindow*, ExCbInfo*), void* d, int pos) {
-        handlerList.add(ExCallback(f, d), pos);
+        handlerList.push(ExCallback(f, d), pos);
     }
     template <typename A, class W/*inherit ExWidget*/>
     void addHandler(A* d, int(STDCALL A::*f)(W*, ExCbInfo*)) {
-        handlerList.add(ExCallback(d, f));
+        handlerList.push_back(ExCallback(d, f));
     }
     template <typename A, class W/*inherit ExWidget*/>
     void addHandler(A* d, int(STDCALL A::*f)(W*, ExCbInfo*), int pos) {
-        handlerList.add(ExCallback(d, f), pos);
+        handlerList.push(ExCallback(d, f), pos);
     }
     template <typename A, class W/*inherit ExWidget*/>
     void addHandler(int(STDCALL *f)(A*, W*, ExCbInfo*), void* d) {
-        handlerList.add(ExCallback(f, d));
+        handlerList.push_back(ExCallback(f, d));
     }
     template <typename A, class W/*inherit ExWidget*/>
     void addHandler(int(STDCALL *f)(A*, W*, ExCbInfo*), void* d, int pos) {
-        handlerList.add(ExCallback(f, d), pos);
+        handlerList.push(ExCallback(f, d), pos);
     }
     void removeHandler(ExCallback& cb) {
         handlerList.remove(cb);

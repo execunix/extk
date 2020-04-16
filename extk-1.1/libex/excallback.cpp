@@ -55,7 +55,7 @@ int ExWidget::CallbackList::invoke(int type, ExObject* object, ExCbInfo* cbinfo)
 
 // class ExWindow::MsgCallbackList
 //
-void ExWindow::MsgCallbackList::add(const ExCallback& cb, int pos) {
+void ExWindow::MsgCallbackList::push(const ExCallback& cb, int pos) {
 #if 0 // remove duplicate callback
     //remove(cb);
     iterator di = std::find(begin(), end(), cb);
