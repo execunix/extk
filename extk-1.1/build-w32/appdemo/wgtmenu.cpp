@@ -8,6 +8,70 @@
 
 const UINT IDM_EXIT = 100;
 
+void Menu::detach() {
+    if (parent == NULL)
+        return;
+    Menu* head = NULL;
+    if (next != this) {
+        next->prev = prev;
+        prev->next = next;
+        head = next;
+    }
+    if (parent->child == this) {
+        parent->child = head;
+    }
+    parent->size--;
+    parent = next = prev = NULL;
+}
+
+void Menu::attach(Menu* menu) {
+    if (menu == NULL)
+        return;
+    if (child && child->prev == menu) // already attached to the tail
+        return;
+
+    menu->detach();
+
+    if (child == NULL) {
+        child = menu;
+        menu->next = menu;
+        menu->prev = menu;
+    } else {
+        menu->next = child;
+        menu->prev = child->prev;
+        child->prev->next = menu;
+        child->prev = menu;
+    }
+    menu->parent = this;
+    size++;
+}
+
+Menu::~Menu() {
+    Menu* menu;
+    while (child) {
+        menu = child->prev;
+        menu->detach();
+        delete menu;
+    }
+}
+
+Menu::Menu()
+    : flag(0), id(0)
+    , parent(NULL), child(NULL), next(NULL), prev(NULL)
+    , size(0), view(NULL) {
+    text[0] = 0;
+    extents.width = 0;
+}
+
+Menu* Menu::add(const wchar* text, int id) {
+    Menu* menu = new Menu;
+    wcsncpy(menu->text, text, 255);
+    menu->text[255] = 0;
+    menu->id = id;
+    attach(menu);
+    return menu;
+}
+
 void WgtMenu::Popup::clear() {
     destroy();
     if (menuPop)
@@ -24,9 +88,10 @@ void WgtMenu::onDrawMenu(ExCanvas* canvas, const ExWidget* widget, const ExRegio
     cairo_clip(cr);
 
     ExCairo::Color fc; // fill color
+    Menu* menu = (Menu*)widget->getData();
     if (widget->getParent() == this) { // is menuBar ?
         Popup* pop = popList.empty() ? NULL : popList.back();
-        if (pop && pop->link == (Menu*)widget->getData()) {
+        if (pop && pop->link == menu) { // is selected ?
             fc.set(0.f, 0.f, 0.f, .85f);
         } else if (widget->getFlags(Ex_PtrEntered)) {
             fc.set(.5f, .5f, .5f, 1.f);
@@ -44,7 +109,6 @@ void WgtMenu::onDrawMenu(ExCanvas* canvas, const ExWidget* widget, const ExRegio
 
     cairo_set_font_face(cr, canvas->crf[0]);
     cairo_set_font_size(cr, fontSize);
-    Menu* menu = (Menu*)widget->getData();
     cairo_text_extents_t& extents = menu->extents;
     ExCairo::Point pt;
     pt.x = 18.f; // left
@@ -121,8 +185,17 @@ int WgtMenu::onFilter(ExWidget* widget, ExCbInfo* cbinfo) {
             }
         }
 #if 1 // like modal
-        if (menu)
-            window->wgtEntered = menu->view;
+        if (menu) {
+            if (window->wgtEntered != menu->view) {
+                if (window->wgtEntered) {
+                    window->wgtEntered->setFlags(Ex_PtrEntered, Ex_BitFalse);
+                    window->wgtEntered->damage();
+                }
+                window->wgtEntered = menu->view;
+                menu->view->setFlags(Ex_PtrEntered, Ex_BitTrue);
+                menu->view->damage();
+            }
+        }
         return Ex_Break;
 #else
         return Ex_Continue;
@@ -142,7 +215,7 @@ int WgtMenu::onFilter(ExWidget* widget, ExCbInfo* cbinfo) {
                     return Ex_Break; // toggle
                 }
             }
-            if (menu->subList.empty()) {
+            if (menu->size == 0) {
                 showPopup(NULL); // hide
                 HWND hwnd = window->getHwnd();
                 PostMessage(hwnd, WM_COMMAND, menu->id, (LPARAM)menu);
@@ -167,6 +240,12 @@ int WgtMenu::onFilter(ExWidget* widget, ExCbInfo* cbinfo) {
                 break;
             case VK_RIGHT:
                 moveMenuFocus(Ex_DirRight);
+                break;
+            case VK_HOME:
+                moveMenuFocus(Ex_DirHome);
+                break;
+            case VK_END:
+                moveMenuFocus(Ex_DirEnd);
                 break;
             case VK_SPACE:
             case VK_RETURN: {
@@ -197,7 +276,7 @@ int WgtMenu::onFilter(ExWidget* widget, ExCbInfo* cbinfo) {
 int WgtMenu::onLayout(ExWidget* widget, ExCbInfo* cbinfo) {
     ExArea& expand = *(ExArea*)cbinfo->data;
     ExArea horz(1, 1, area.w - 2, area.h - 2);
-    for (uint n = 0; n < rootList.size(); n++) {
+    for (uint n = 0; n < rootMenu.size; n++) {
         menuBar[n].layout(horz);
     }
     expand = horz;
@@ -206,69 +285,74 @@ int WgtMenu::onLayout(ExWidget* widget, ExCbInfo* cbinfo) {
     return Ex_Continue;
 }
 
-void WgtMenu::fillMoveTable(MoveTable& mt, MenuList* ml, Menu* menu) {
+void WgtMenu::MoveTable::fill(Menu* menu) {
+    home = prev = next = end = NULL;
+    Menu* im = menu->parent->child; // iter
+    Menu* tail = im->prev;
     bool found = false;
-    if (ml == &rootList) { // pick left & right
-        Menu* head = NULL;
-        Menu* tail = NULL;
-        mt.left = mt.right = NULL;
-        MenuList::iterator it = ml->begin();
-        while (it != ml->end() && !mt.fDone) {
-            Menu* im = *it++;
-            if (im->flag & Menu::Disabled) continue;
-            if (found && !mt.right) mt.right = im;
+    while (im) {
+        if (!(im->flag & Menu::Disabled)) {
+            if (found && !next) next = im;
             if (im == menu) found = true;
-            if (!found) mt.left = im;
-            if (!head) head = im;
-            tail = im;
+            if (!found) prev = im;
+            if (!home) home = im;
+            end = im;
         }
-        if (!mt.left) mt.left = tail;
-        if (!mt.right) mt.right = head;
-    } else {
-        Menu* head = NULL;
-        Menu* tail = NULL;
-        mt.up = mt.down = NULL;
-        MenuList::iterator it = ml->begin();
-        while (it != ml->end() && !mt.fDone) {
-            Menu* im = *it++;
-            if (im->flag & Menu::Disabled) continue;
-            if (found && !mt.down) mt.down = im;
-            if (im == menu) found = true;
-            if (!found) mt.up = im;
-            if (!head) head = im;
-            tail = im;
-        }
-        if (!mt.up) mt.up = tail;
-        if (!mt.down) mt.down = head;
-        mt.home = head;
-        mt.end = tail;
+        im = im != tail ? im->next : NULL;
     }
+    if (!prev) prev = end;
+    if (!next) next = home;
 }
 
 void WgtMenu::moveMenuFocus(int dir) {
-    MoveTable moveTable;
-    MenuList* path[8];
-    int depth = 0;
-
-    // fill path
-    path[depth++] = &rootList;
-    PopList::iterator it = popList.end();
-    while (depth < 8 && it != popList.begin())
-        path[depth++] = &(*--it)->link->subList;
-
-    for (int i = 0; i < depth; i++) {
-        fillMoveTable(moveTable, path[i], focused);
-        if (path[i] == &focused->subList)
-            break;
+    Menu* up = NULL;
+    Menu* down = NULL;
+    Menu* left = NULL;
+    Menu* right = NULL;
+    Menu* home = NULL;
+    Menu* end = NULL;
+    MoveTable mtBar, mtPop;
+    if (focused->parent == &rootMenu) {
+        mtBar.fill(focused);
+        left = mtBar.prev;
+        right = mtBar.next;
+        mtPop.fill(focused->child);
+        up = mtPop.home;
+        down = mtPop.home;
+        home = mtPop.home;
+        end = mtPop.end;
+    } else { // focus has popup
+        mtPop.fill(focused);
+        up = mtPop.prev;
+        down = mtPop.next;
+        home = mtPop.home;
+        end = mtPop.end;
+        Menu* bar = focused;
+        while (bar->parent != &rootMenu)
+            bar = bar->parent;
+        mtBar.fill(bar);
+        if (focused->parent->parent == &rootMenu) {
+            left = mtBar.prev;
+        } else {
+            left = focused->parent;
+        }
+        if (!focused->child) {
+            right = mtBar.next;
+        } else {
+            mtPop.fill(focused->child);
+            right = mtPop.home;
+        }
     }
 
     switch (dir) {
-        case Ex_DirUp: showPopup(moveTable.up); break;
-        case Ex_DirDown: showPopup(moveTable.down); break;
-        case Ex_DirLeft: showPopup(moveTable.left); break;
-        case Ex_DirRight: showPopup(moveTable.right); break;
-        case Ex_DirTabPrev: showPopup(moveTable.left); break;
-        case Ex_DirTabNext: showPopup(moveTable.right); break;
+        case Ex_DirHome: showPopup(home); break;
+        case Ex_DirEnd: showPopup(end); break;
+        case Ex_DirUp: showPopup(up); break;
+        case Ex_DirDown: showPopup(down); break;
+        case Ex_DirLeft: showPopup(left); break;
+        case Ex_DirRight: showPopup(right); break;
+        case Ex_DirTabPrev: showPopup(left); break;
+        case Ex_DirTabNext: showPopup(right); break;
     }
 }
 
@@ -300,8 +384,10 @@ void WgtMenu::menuFocus(Menu* menu) {
 void WgtMenu::showPopup(Menu* link) {
     while (!popList.empty()) {
         Popup* pop = popList.front();
-        if (pop->link == link)
+        if (pop->link == link) {
+            menuFocus(link);
             return; // already poped
+        }
         if (pop->link->view->getParent() == this)
             pop->link->view->damage();
         if (link && link->view->getParent() == pop)
@@ -309,7 +395,7 @@ void WgtMenu::showPopup(Menu* link) {
         popList.pop_front();
         delete pop;
     }
-    if (link && !link->subList.empty()) {
+    if (link && link->size != 0) {
         ExRect rc = link->view->getRect();
         if (popList.empty())
             popList.push_front(popup(rc.l, rc.b, link));
@@ -324,11 +410,10 @@ WgtMenu::Popup* WgtMenu::popup(int x, int y, Menu* link) {
     pop->init(window);
     pop->link = link;
     pop->layout(ExArea(x, y, 100, 30));
-    pop->menuPop = new ExWidget[link->subList.size()];
-    MenuList::iterator it = link->subList.begin();
+    pop->menuPop = new ExWidget[link->size];
+    Menu* menu = link->child;
     ExArea vert(1, 1, 1, 1);
-    for (uint n = 0; n < link->subList.size(); n++) {
-        Menu* menu = *it++;
+    for (uint n = 0; n < link->size; n++) {
         menu->view = &pop->menuPop[n];
         pop->menuPop[n].setData(menu);
         pop->menuPop[n].init(pop, menu->text);
@@ -338,20 +423,20 @@ WgtMenu::Popup* WgtMenu::popup(int x, int y, Menu* link) {
         pop->menuPop[n].addCallback(this, &WgtMenu::onFocused, Ex_CbGotFocus);
         pop->menuPop[n].drawFunc = ExDrawFunc(this, &WgtMenu::onDrawMenu);
         pop->menuPop[n].layout(vert);
+        menu = menu->next;
     }
     pop->area.w = vert.w + 2;
     pop->area.h = vert.y + 2;
-    for (uint n = 0; n < link->subList.size(); n++) {
+    for (uint n = 0; n < link->size; n++) {
         pop->menuPop[n].area.w = vert.w; // expand max width
     }
     return pop;
 }
 
 void WgtMenu::setup() {
-    menuBar = new ExWidget[rootList.size()];
-    MenuList::iterator it = rootList.begin();
-    for (uint n = 0; n < rootList.size(); n++) {
-        Menu* menu = *it++;
+    menuBar = new ExWidget[rootMenu.size];
+    Menu* menu = rootMenu.child;
+    for (uint n = 0; n < rootMenu.size; n++) {
         menu->view = &menuBar[n];
         menuBar[n].setData(menu);
         menuBar[n].init(this, menu->text);
@@ -360,6 +445,7 @@ void WgtMenu::setup() {
         menuBar[n].addCallback(this, &WgtMenu::onActivate, Ex_CbActivate);
         menuBar[n].addCallback(this, &WgtMenu::onFocused, Ex_CbGotFocus);
         menuBar[n].drawFunc = ExDrawFunc(this, &WgtMenu::onDrawMenu);
+        menu = menu->next;
     }
 }
 
@@ -394,58 +480,58 @@ void WgtMenu::load() {
     Menu* menu2 = NULL; // depth 2
     Menu* menu3 = NULL; // depth 3
 
-    menu1 = rootList.add(L"File", 1000);
-    menu2 = menu1->subList.add(L"New Project...", 1001);
-    menu2 = menu1->subList.add(L"New File...", 1002);
-    menu2 = menu1->subList.add(L"Open Project...", 1003);
-    menu2 = menu1->subList.add(L"Open File...", 1004);
-    menu2 = menu1->subList.add(L"Start Page", 1005);
-    menu2 = menu1->subList.add(L"Open from Source Control", 1006);
-    menu2 = menu1->subList.add(L"Exit", IDM_EXIT);
+    menu1 = rootMenu.add(L"File", 1000);
+    menu2 = menu1->add(L"New Project...", 1001);
+    menu2 = menu1->add(L"New File...", 1002);
+    menu2 = menu1->add(L"Open Project...", 1003);
+    menu2 = menu1->add(L"Open File...", 1004);
+    menu2 = menu1->add(L"Start Page", 1005);
+    menu2 = menu1->add(L"Open from Source Control", 1006);
+    menu2 = menu1->add(L"Exit", IDM_EXIT);
 
-    menu1 = rootList.add(L"Edit", 2000);
-    menu2 = menu1->subList.add(L"Go To", 2001);
-    menu3 = menu2->subList.add(L"Go To Line...", 2002);
-    menu3 = menu2->subList.add(L"Go To All...", 2003);
-    menu3 = menu2->subList.add(L"Go To File...", 2004);
-    menu2 = menu1->subList.add(L"Find and Replace", 2005);
-    menu3 = menu2->subList.add(L"Quick Find", 2006);
-    menu3 = menu2->subList.add(L"Quick Replace", 2007);
-    menu3 = menu2->subList.add(L"Find In Files", 2008);
-    menu3 = menu2->subList.add(L"Replace In Files", 2009);
-    menu2 = menu1->subList.add(L"Undo", 2010);
-    menu2 = menu1->subList.add(L"Redo", 2011);
-    menu2 = menu1->subList.add(L"Cut", 2012);
-    menu2 = menu1->subList.add(L"Copy", 2013);
-    menu2 = menu1->subList.add(L"Paste", 2014);
+    menu1 = rootMenu.add(L"Edit", 2000);
+    menu2 = menu1->add(L"Go To", 2001);
+    menu3 = menu2->add(L"Go To Line...", 2002);
+    menu3 = menu2->add(L"Go To All...", 2003);
+    menu3 = menu2->add(L"Go To File...", 2004);
+    menu2 = menu1->add(L"Find and Replace", 2005);
+    menu3 = menu2->add(L"Quick Find", 2006);
+    menu3 = menu2->add(L"Quick Replace", 2007);
+    menu3 = menu2->add(L"Find In Files", 2008);
+    menu3 = menu2->add(L"Replace In Files", 2009);
+    menu2 = menu1->add(L"Undo", 2010);
+    menu2 = menu1->add(L"Redo", 2011);
+    menu2 = menu1->add(L"Cut", 2012);
+    menu2 = menu1->add(L"Copy", 2013);
+    menu2 = menu1->add(L"Paste", 2014);
 
-    menu1 = rootList.add(L"View", 3000);
-    menu2 = menu1->subList.add(L"Code", 3001);
-    menu2 = menu1->subList.add(L"Start Page", 3002);
-    menu2 = menu1->subList.add(L"Solution Explorer", 3003);
-    menu2 = menu1->subList.add(L"Team Explorer", 3004);
-    menu2 = menu1->subList.add(L"Server Explorer", 3005);
-    menu2 = menu1->subList.add(L"SQL Server Object Explorer", 3006);
-    menu2 = menu1->subList.add(L"Call Hierarchy", 3007);
+    menu1 = rootMenu.add(L"View", 3000);
+    menu2 = menu1->add(L"Code", 3001);
+    menu2 = menu1->add(L"Start Page", 3002);
+    menu2 = menu1->add(L"Solution Explorer", 3003);
+    menu2 = menu1->add(L"Team Explorer", 3004);
+    menu2 = menu1->add(L"Server Explorer", 3005);
+    menu2 = menu1->add(L"SQL Server Object Explorer", 3006);
+    menu2 = menu1->add(L"Call Hierarchy", 3007);
 
-    menu1 = rootList.add(L"Window", 4000);
-    menu2 = menu1->subList.add(L"New Window", 4001);
-    menu2 = menu1->subList.add(L"Split", 4002);
-    menu2 = menu1->subList.add(L"Float", 4003);
-    menu2 = menu1->subList.add(L"Float All", 4004);
-    menu2 = menu1->subList.add(L"Dock", 4005);
-    menu2 = menu1->subList.add(L"Auto Hide", 4006);
-    menu2 = menu1->subList.add(L"Hide", 4007);
+    menu1 = rootMenu.add(L"Window", 4000);
+    menu2 = menu1->add(L"New Window", 4001);
+    menu2 = menu1->add(L"Split", 4002);
+    menu2 = menu1->add(L"Float", 4003);
+    menu2 = menu1->add(L"Float All", 4004);
+    menu2 = menu1->add(L"Dock", 4005);
+    menu2 = menu1->add(L"Auto Hide", 4006);
+    menu2 = menu1->add(L"Hide", 4007);
 
-    menu1 = rootList.add(L"Help", 5000);
-    menu2 = menu1->subList.add(L"View Help", 5001);
-    menu2 = menu1->subList.add(L"Add and Remove Help Content", 5002);
-    menu2 = menu1->subList.add(L"Set Help Preference", 5003);
-    menu2 = menu1->subList.add(L"Send Feedback", 5004);
-    menu2 = menu1->subList.add(L"Register Product", 5005);
-    menu2 = menu1->subList.add(L"Technical Support", 5006);
-    menu2 = menu1->subList.add(L"Online Privacy Statement...", 5007);
-    menu2 = menu1->subList.add(L"Manage Visual Studio Performance", 5008);
-    menu2 = menu1->subList.add(L"Check for Updates", 5009);
+    menu1 = rootMenu.add(L"Help", 5000);
+    menu2 = menu1->add(L"View Help", 5001);
+    menu2 = menu1->add(L"Add and Remove Help Content", 5002);
+    menu2 = menu1->add(L"Set Help Preference", 5003);
+    menu2 = menu1->add(L"Send Feedback", 5004);
+    menu2 = menu1->add(L"Register Product", 5005);
+    menu2 = menu1->add(L"Technical Support", 5006);
+    menu2 = menu1->add(L"Online Privacy Statement...", 5007);
+    menu2 = menu1->add(L"Manage Visual Studio Performance", 5008);
+    menu2 = menu1->add(L"Check for Updates", 5009);
 }
 

@@ -8,14 +8,6 @@
 #include <ex.h>
 #include <list>
 
-class Menu;
-class MenuList : public std::list<Menu*> {
-public:
-    ~MenuList();
-    MenuList() : std::list<Menu*>() {}
-    Menu* add(const wchar* text, int id);
-};
-
 class Menu {
 public:
     wchar text[256];
@@ -26,32 +18,21 @@ public:
         Disabled  = 1 << 1,
     };
 public:
+    Menu* parent;
+    Menu* child;
+    Menu* next;
+    Menu* prev;
+    int size;
+    void detach();
+    void attach(Menu* menu);
+public:
     ExWidget* view; // ref
-    MenuList subList;
     cairo_text_extents_t extents;
 public:
-    Menu() : view(NULL) {}
+    ~Menu();
+    Menu();
+    Menu* add(const wchar* text, int id);
 };
-
-inline MenuList::~MenuList() {
-    while (!empty()) {
-        Menu* menu = front();
-        pop_front();
-        delete menu;
-    }
-}
-
-inline Menu* MenuList::add(const wchar* text, int id) {
-    Menu* menu = new Menu;
-    wcsncpy(menu->text, text, 255);
-    menu->text[255] = 0;
-    menu->flag = 0;
-    menu->id = id;
-    menu->view = NULL;
-    menu->extents.width = 0;
-    push_back(menu);
-    return menu;
-}
 
 class WgtMenu : public ExWidget {
     class Popup : public ExWidget {
@@ -67,34 +48,21 @@ class WgtMenu : public ExWidget {
     typedef std::list<Popup*> PopList;
 
     struct MoveTable {
-        Menu* up;
-        Menu* down;
-        Menu* left;
-        Menu* right;
         Menu* home;
+        Menu* prev;
+        Menu* next;
         Menu* end;
-        union {
-            int flags;
-            struct {
-                int fDone : 1;
-                int fMatch : 1;
-            };
-        };
 
-        MoveTable() {
-            up = down = left = right = home = end = NULL;
-            flags = 0;
-        }
+        void fill(Menu* menu);
     };
 
     const UINT WM_APP_MENUPOPUP = ExRegAppMessage();
     const floatt fontSize = 12.5f;
 protected:
     ExWindow* window;
-    MenuList pathList;
 public:
+    Menu rootMenu;
     PopList popList;
-    MenuList rootList;
     ExWidget* menuBar; // new
     ExWidget* oldFocus;
     Menu* focused; // ref
@@ -110,7 +78,6 @@ public:
     int STDCALL onHandler(ExWidget* widget, ExCbInfo* cbinfo);
     int STDCALL onFilter(ExWidget* widget, ExCbInfo* cbinfo);
     int STDCALL onLayout(ExWidget* widget, ExCbInfo* cbinfo);
-    void fillMoveTable(MoveTable& mt, MenuList* ml, Menu* menu);
     void moveMenuFocus(int dir);
     Menu* findMenu(const ExPoint& pt);
     void menuFocus(Menu* menu);

@@ -194,6 +194,7 @@ enum ExEventType {
 enum ExDirType {
     Ex_DirBack,
     Ex_DirHome,
+    Ex_DirEnd,
     Ex_DirUp,
     Ex_DirDown,
     Ex_DirLeft,
