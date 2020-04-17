@@ -10,7 +10,9 @@
 
 class Menu {
 public:
+    ExImage* icon;
     wchar text[256];
+    wchar hkey[32];
     int flag;
     int id;
     enum {

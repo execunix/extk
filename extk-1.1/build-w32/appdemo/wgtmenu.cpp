@@ -56,10 +56,10 @@ Menu::~Menu() {
 }
 
 Menu::Menu()
-    : flag(0), id(0)
+    : icon(NULL), flag(0), id(0)
     , parent(NULL), child(NULL), next(NULL), prev(NULL)
     , size(0), view(NULL) {
-    text[0] = 0;
+    text[0] = hkey[0] = 0;
     extents.width = 0;
 }
 
@@ -107,6 +107,9 @@ void WgtMenu::onDrawMenuPop(ExCanvas* canvas, const ExWidget* widget, const ExRe
     cairo_clip(cr);
 
     Menu* menu = (Menu*)widget->getData();
+    bool isFocused = widget->getFlags(Ex_Focused);
+    for (Menu* im = focused; im->parent; im = im->parent)
+        if (im->view == widget) isFocused = true;
     ExCairo::Point pt;
     pt.x = rc.l + 36.f;
     if (menu->flag & Menu::Separator) {
@@ -119,8 +122,8 @@ void WgtMenu::onDrawMenuPop(ExCanvas* canvas, const ExWidget* widget, const ExRe
     }
     if (menu->child) {
         floatt h2, x1, x2, yc;
-        h2 = menuHeight / 3.f;
-        x1 = rc.r - menuHeight;
+        h2 = menuHeight / 4.5f;
+        x1 = rc.r - menuHeight * .7f;
         x2 = x1 + h2;
         yc = rc.t + menuHeight / 2.f;
         cairo_set_source_rgb(cr, 1.f, 1.f, 1.f);
@@ -132,11 +135,11 @@ void WgtMenu::onDrawMenuPop(ExCanvas* canvas, const ExWidget* widget, const ExRe
         cairo_stroke(cr);
     }
     if (!(menu->flag & Menu::Disabled) &&
-        widget->getFlags(Ex_Focused)) {
+        isFocused) {
         ExCairo::Color fc; // fill color
         fc.set(.5f, .5f, .5f, .5f);
         cairo_set_source_rgba(cr, fc.r, fc.g, fc.b, fc.a);
-        cairo_rectangle(cr, rc.l, rc.t, rc.width(), menuHeight);
+        cairo_rectangle(cr, rc.l, rc.t, rc.width(), (floatt)menuHeight);
         cairo_fill(cr);
     }
     cairo_set_font_face(cr, canvas->crf[0]);
@@ -246,16 +249,16 @@ int WgtMenu::onFocused(ExWidget* widget, ExCbInfo* cbinfo) {
 }
 
 int WgtMenu::onHandler(ExWidget* widget, ExCbInfo* cbinfo) {
-    return Ex_Continue;
-}
-
-int WgtMenu::onFilter(ExWidget* widget, ExCbInfo* cbinfo) {
     if (cbinfo->event->message == WM_COMMAND) {
         dprintf(L"WM_COMMAND: %d\n", cbinfo->event->wParam);
         if (cbinfo->event->wParam == IDM_EXIT)
             return Ex_Halt;
         return Ex_Continue;
     }
+    return Ex_Continue;
+}
+
+int WgtMenu::onFilter(ExWidget* widget, ExCbInfo* cbinfo) {
     if (cbinfo->event->message == WM_MOUSEMOVE) {
         if (popList.empty())
             return Ex_Continue;
@@ -456,7 +459,7 @@ Menu* WgtMenu::findMenu(const ExPoint& pt) {
 }
 
 void WgtMenu::menuFocus(Menu* menu) {
-    if ((focused = menu) != NULL) {
+    if (menu != NULL) {
         if (oldFocus == NULL)
             oldFocus = window->wgtFocused;
         window->giveFocus(menu->view);
@@ -464,6 +467,7 @@ void WgtMenu::menuFocus(Menu* menu) {
         window->giveFocus(oldFocus);
         oldFocus = NULL;
     }
+    focused = menu;
 }
 
 void WgtMenu::showPopup(Menu* link) {
@@ -473,8 +477,7 @@ void WgtMenu::showPopup(Menu* link) {
             menuFocus(link);
             return; // already poped
         }
-        if (pop->link->view->getParent() == this)
-            pop->link->view->damage();
+        pop->link->view->damage();
         if (link && link->view->getParent() == pop)
             break;
         popList.pop_front();
@@ -513,6 +516,7 @@ WgtMenu::Popup* WgtMenu::popup(int x, int y, Menu* link) {
     pop->drawFunc = ExDrawFunc(this, &WgtMenu::onDrawMenuPopBkgd);
     pop->area.w = vert.w + 2;
     pop->area.h = vert.y + 2;
+    // tbd - Adjust the position to fit the window size.
     for (int n = 0; n < link->size; n++) {
         pop->menuPop[n].area.w = vert.w; // expand max width
     }
