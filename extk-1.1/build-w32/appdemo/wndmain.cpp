@@ -27,7 +27,7 @@ void WgtTitle::onDrawTitle(ExCanvas* canvas, const ExWidget* widget, const ExReg
     cairo_clip(cr);
 
     cairo_set_source_rgba(cr, 0.f, 0.f, 0.f, .25f);
-    cairo_rectangle(cr, rc.l, rc.t, rc.r, rc.b);
+    cairo_rectangle(cr, rc.l, rc.t, rc.width(), rc.height());
     cairo_fill(cr);
 
     cairo_set_font_face(cr, canvas->crf[0]);

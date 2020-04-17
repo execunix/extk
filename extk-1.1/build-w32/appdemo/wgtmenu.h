@@ -31,7 +31,7 @@ public:
 public:
     ~Menu();
     Menu();
-    Menu* add(const wchar* text, int id);
+    Menu* add(const wchar* text, int id, int flag = 0);
 };
 
 class WgtMenu : public ExWidget {
@@ -57,7 +57,8 @@ class WgtMenu : public ExWidget {
     };
 
     const UINT WM_APP_MENUPOPUP = ExRegAppMessage();
-    const floatt fontSize = 12.5f;
+    const floatt fontSize = 12.f;
+    const int menuHeight = 28;
 protected:
     ExWindow* window;
 public:
@@ -70,7 +71,11 @@ public:
     ~WgtMenu() { fini();  }
     WgtMenu() : ExWidget(), menuBar(NULL), oldFocus(NULL), focused(NULL) {}
 public:
-    void STDCALL onDrawMenu(ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage);
+    void STDCALL onDrawMenuPopBkgd(ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage);
+    void STDCALL onDrawMenuPop(ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage);
+    void STDCALL onDrawMenuBarBkgd(ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage);
+    void STDCALL onDrawMenuBar(ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage);
+    //void STDCALL onDrawMenu(ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage);
     int STDCALL onLayoutHorz(ExWidget* widget, ExCbInfo* cbinfo);
     int STDCALL onLayoutVert(ExWidget* widget, ExCbInfo* cbinfo);
     int STDCALL onActivate(ExWidget* widget, ExCbInfo* cbinfo);

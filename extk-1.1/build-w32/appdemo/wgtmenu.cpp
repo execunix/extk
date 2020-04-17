@@ -63,10 +63,11 @@ Menu::Menu()
     extents.width = 0;
 }
 
-Menu* Menu::add(const wchar* text, int id) {
+Menu* Menu::add(const wchar* text, int id, int flag) {
     Menu* menu = new Menu;
     wcsncpy(menu->text, text, 255);
     menu->text[255] = 0;
+    menu->flag = flag;
     menu->id = id;
     attach(menu);
     return menu;
@@ -80,7 +81,7 @@ void WgtMenu::Popup::clear() {
     link = NULL;
 }
 
-void WgtMenu::onDrawMenu(ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage) {
+void WgtMenu::onDrawMenuPopBkgd(ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage) {
     cairo_t* cr = canvas->cr;
     ExCairo::Rect rc(widget->getRect());
     cairo_save(cr);
@@ -88,33 +89,114 @@ void WgtMenu::onDrawMenu(ExCanvas* canvas, const ExWidget* widget, const ExRegio
     cairo_clip(cr);
 
     ExCairo::Color fc; // fill color
-    Menu* menu = (Menu*)widget->getData();
-    if (widget->getParent() == this) { // is menuBar ?
-        Popup* pop = popList.empty() ? NULL : popList.back();
-        if (pop && pop->link == menu) { // is selected ?
-            fc.set(0.f, 0.f, 0.f, .85f);
-        } else if (widget->getFlags(Ex_PtrEntered)) {
-            fc.set(.5f, .5f, .5f, 1.f);
-        } else {
-            fc.set(0.f, 0.f, 0.f, .5f);
-        }
-    } else { // is menuPop ?
-        fc.set(0.f, 0.f, 0.f, .85f);
-        if (widget->getFlags(Ex_Focused))
-            fc.set(.5f, .5f, .5f, 1.f);
-    }
+    fc.set(0.f, 0.f, 0.f, .75f);
     cairo_set_source_rgba(cr, fc.r, fc.g, fc.b, fc.a);
-    cairo_rectangle(cr, rc.l, rc.t, rc.r, rc.b);
+    cairo_rectangle(cr, rc.l, rc.t, rc.width(), rc.height());
     cairo_fill(cr);
 
+    // tbd - border
+
+    cairo_restore(cr);
+}
+
+void WgtMenu::onDrawMenuPop(ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage) {
+    cairo_t* cr = canvas->cr;
+    ExCairo::Rect rc(widget->getRect());
+    cairo_save(cr);
+    canvas->setRegion(damage);
+    cairo_clip(cr);
+
+    Menu* menu = (Menu*)widget->getData();
+    ExCairo::Point pt;
+    pt.x = rc.l + 36.f;
+    if (menu->flag & Menu::Separator) {
+        pt.y = rc.t + menuHeight + 1.5f;
+        cairo_set_source_rgb(cr, 1.f, 1.f, 1.f);
+        cairo_move_to(cr, pt.x, pt.y);
+        cairo_line_to(cr, rc.r, pt.y);
+        cairo_set_line_width(cr, .2f);
+        cairo_stroke(cr);
+    }
+    if (menu->child) {
+        floatt h2, x1, x2, yc;
+        h2 = menuHeight / 3.f;
+        x1 = rc.r - menuHeight;
+        x2 = x1 + h2;
+        yc = rc.t + menuHeight / 2.f;
+        cairo_set_source_rgb(cr, 1.f, 1.f, 1.f);
+        cairo_move_to(cr, x1, yc - h2 * .6f);
+        cairo_line_to(cr, x1, yc + h2 * .6f);
+        cairo_line_to(cr, x2, yc);
+        cairo_close_path(cr);
+        cairo_set_line_width(cr, 1.f);
+        cairo_stroke(cr);
+    }
+    if (!(menu->flag & Menu::Disabled) &&
+        widget->getFlags(Ex_Focused)) {
+        ExCairo::Color fc; // fill color
+        fc.set(.5f, .5f, .5f, .5f);
+        cairo_set_source_rgba(cr, fc.r, fc.g, fc.b, fc.a);
+        cairo_rectangle(cr, rc.l, rc.t, rc.width(), menuHeight);
+        cairo_fill(cr);
+    }
     cairo_set_font_face(cr, canvas->crf[0]);
     cairo_set_font_size(cr, fontSize);
     cairo_text_extents_t& extents = menu->extents;
+    pt.y = rc.t + (menuHeight - extents.height) / 2.f - extents.y_bearing; // center
+    cairo_move_to(cr, pt.x, pt.y);
+    if (menu->flag & Menu::Disabled)
+        cairo_set_source_rgb(cr, .5f, .5f, .5f);
+    else
+        cairo_set_source_rgb(cr, 1.f, 1.f, 1.f);
+    cairo_show_text(cr, menu->text);
+
+    cairo_restore(cr);
+}
+
+void WgtMenu::onDrawMenuBarBkgd(ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage) {
+    cairo_t* cr = canvas->cr;
+    ExCairo::Rect rc(widget->getRect());
+    cairo_save(cr);
+    canvas->setRegion(damage);
+    cairo_clip(cr);
+
+    ExCairo::Color fc; // fill color
+    fc.set(0.f, 0.f, 0.f, .5f);
+    cairo_set_source_rgba(cr, fc.r, fc.g, fc.b, fc.a);
+    cairo_rectangle(cr, rc.l, rc.t, rc.width(), rc.height());
+    cairo_fill(cr);
+
+    cairo_restore(cr);
+}
+
+void WgtMenu::onDrawMenuBar(ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage) {
+    cairo_t* cr = canvas->cr;
+    ExCairo::Rect rc(widget->getRect());
+    cairo_save(cr);
+    canvas->setRegion(damage);
+    cairo_clip(cr);
+
+    Menu* menu = (Menu*)widget->getData();
+    Popup* pop = popList.empty() ? NULL : popList.back();
+    bool isPopFocused = pop && pop->link == menu;
+    bool isPtrEntered = !pop && widget->getFlags(Ex_PtrEntered);
+    if (isPopFocused || isPtrEntered) {
+        ExCairo::Color fc; // fill color
+        if (isPopFocused)
+            fc.set(0.f, 0.f, 0.f, .75f);
+        else
+            fc.set(.5f, .5f, .5f, 1.f);
+        cairo_set_source_rgba(cr, fc.r, fc.g, fc.b, fc.a);
+        cairo_rectangle(cr, rc.l, rc.t, rc.width(), rc.height());
+        cairo_fill(cr);
+    }
     ExCairo::Point pt;
-    pt.x = 18.f; // left
-    //pt.x = (rc.width() - extents.width) / 2.f - extents.x_bearing; // center
-    pt.y = (rc.height() - extents.height) / 2.f - extents.y_bearing; // center
-    cairo_move_to(cr, rc.l + pt.x, rc.t + pt.y);
+    cairo_set_font_face(cr, canvas->crf[0]);
+    cairo_set_font_size(cr, fontSize);
+    cairo_text_extents_t& extents = menu->extents;
+    pt.x = rc.l + (rc.width() - extents.width) / 2.f - extents.x_bearing; // center
+    pt.y = rc.t + (menuHeight - extents.height) / 2.f - extents.y_bearing; // center
+    cairo_move_to(cr, pt.x, pt.y);
     cairo_set_source_rgb(cr, 1.f, 1.f, 1.f);
     cairo_show_text(cr, menu->text);
 
@@ -146,10 +228,11 @@ int WgtMenu::onLayoutVert(ExWidget* widget, ExCbInfo* cbinfo) {
     cairo_set_font_size(cr, fontSize);
     Menu* menu = (Menu*)widget->getData();
     cairo_text_extents(cr, menu->text, &menu->extents);
-    int menu_width = (int)menu->extents.width + 36;
+    int menu_width = (int)menu->extents.width + 120;
+    int separator = menu->flag & Menu::Separator ? 3 : 0;
     if (vert.w < menu_width) vert.w = menu_width; // save max width
-    widget->area.set(vert.x, vert.y, vert.w, 28);
-    vert.y += 29;
+    widget->area.set(vert.x, vert.y, vert.w, menuHeight + separator);
+    vert.y += menuHeight + separator;
     cbinfo->subtype = Ex_LayoutDone;
     return Ex_Continue;
 }
@@ -184,7 +267,7 @@ int WgtMenu::onFilter(ExWidget* widget, ExCbInfo* cbinfo) {
                 showPopup(menu);
             }
         }
-#if 1 // like modal
+#if 1 // like modal loop
         if (menu) {
             if (window->wgtEntered != menu->view) {
                 if (window->wgtEntered) {
@@ -208,6 +291,8 @@ int WgtMenu::onFilter(ExWidget* widget, ExCbInfo* cbinfo) {
         int popcnt = popList.size();
         showPopup(menu);
         if (menu) {
+            //menu->view->setFlags(Ex_PtrEntered, Ex_BitFalse);
+            //menu->view->damage();
             if (menu->view->getParent() == this) {
                 menu->view->damage();
                 if (popcnt > 0) {
@@ -276,7 +361,7 @@ int WgtMenu::onFilter(ExWidget* widget, ExCbInfo* cbinfo) {
 int WgtMenu::onLayout(ExWidget* widget, ExCbInfo* cbinfo) {
     ExArea& expand = *(ExArea*)cbinfo->data;
     ExArea horz(1, 1, area.w - 2, area.h - 2);
-    for (uint n = 0; n < rootMenu.size; n++) {
+    for (int n = 0; n < rootMenu.size; n++) {
         menuBar[n].layout(horz);
     }
     expand = horz;
@@ -413,7 +498,7 @@ WgtMenu::Popup* WgtMenu::popup(int x, int y, Menu* link) {
     pop->menuPop = new ExWidget[link->size];
     Menu* menu = link->child;
     ExArea vert(1, 1, 1, 1);
-    for (uint n = 0; n < link->size; n++) {
+    for (int n = 0; n < link->size; n++) {
         menu->view = &pop->menuPop[n];
         pop->menuPop[n].setData(menu);
         pop->menuPop[n].init(pop, menu->text);
@@ -421,13 +506,14 @@ WgtMenu::Popup* WgtMenu::popup(int x, int y, Menu* link) {
         pop->menuPop[n].addCallback(this, &WgtMenu::onLayoutVert, Ex_CbLayout);
         pop->menuPop[n].addCallback(this, &WgtMenu::onActivate, Ex_CbActivate);
         pop->menuPop[n].addCallback(this, &WgtMenu::onFocused, Ex_CbGotFocus);
-        pop->menuPop[n].drawFunc = ExDrawFunc(this, &WgtMenu::onDrawMenu);
+        pop->menuPop[n].drawFunc = ExDrawFunc(this, &WgtMenu::onDrawMenuPop);
         pop->menuPop[n].layout(vert);
         menu = menu->next;
     }
+    pop->drawFunc = ExDrawFunc(this, &WgtMenu::onDrawMenuPopBkgd);
     pop->area.w = vert.w + 2;
     pop->area.h = vert.y + 2;
-    for (uint n = 0; n < link->size; n++) {
+    for (int n = 0; n < link->size; n++) {
         pop->menuPop[n].area.w = vert.w; // expand max width
     }
     return pop;
@@ -436,7 +522,7 @@ WgtMenu::Popup* WgtMenu::popup(int x, int y, Menu* link) {
 void WgtMenu::setup() {
     menuBar = new ExWidget[rootMenu.size];
     Menu* menu = rootMenu.child;
-    for (uint n = 0; n < rootMenu.size; n++) {
+    for (int n = 0; n < rootMenu.size; n++) {
         menu->view = &menuBar[n];
         menuBar[n].setData(menu);
         menuBar[n].init(this, menu->text);
@@ -444,9 +530,10 @@ void WgtMenu::setup() {
         menuBar[n].addCallback(this, &WgtMenu::onLayoutHorz, Ex_CbLayout);
         menuBar[n].addCallback(this, &WgtMenu::onActivate, Ex_CbActivate);
         menuBar[n].addCallback(this, &WgtMenu::onFocused, Ex_CbGotFocus);
-        menuBar[n].drawFunc = ExDrawFunc(this, &WgtMenu::onDrawMenu);
+        menuBar[n].drawFunc = ExDrawFunc(this, &WgtMenu::onDrawMenuBar);
         menu = menu->next;
     }
+    drawFunc = ExDrawFunc(this, &WgtMenu::onDrawMenuBarBkgd);
 }
 
 void WgtMenu::fini() {
@@ -482,10 +569,10 @@ void WgtMenu::load() {
 
     menu1 = rootMenu.add(L"File", 1000);
     menu2 = menu1->add(L"New Project...", 1001);
-    menu2 = menu1->add(L"New File...", 1002);
+    menu2 = menu1->add(L"New File...", 1002, Menu::Separator);
     menu2 = menu1->add(L"Open Project...", 1003);
     menu2 = menu1->add(L"Open File...", 1004);
-    menu2 = menu1->add(L"Start Page", 1005);
+    menu2 = menu1->add(L"Start Page", 1005, Menu::Separator);
     menu2 = menu1->add(L"Open from Source Control", 1006);
     menu2 = menu1->add(L"Exit", IDM_EXIT);
 
@@ -494,40 +581,41 @@ void WgtMenu::load() {
     menu3 = menu2->add(L"Go To Line...", 2002);
     menu3 = menu2->add(L"Go To All...", 2003);
     menu3 = menu2->add(L"Go To File...", 2004);
-    menu2 = menu1->add(L"Find and Replace", 2005);
+    menu2 = menu1->add(L"Find and Replace", 2005, Menu::Separator);
     menu3 = menu2->add(L"Quick Find", 2006);
     menu3 = menu2->add(L"Quick Replace", 2007);
     menu3 = menu2->add(L"Find In Files", 2008);
     menu3 = menu2->add(L"Replace In Files", 2009);
     menu2 = menu1->add(L"Undo", 2010);
-    menu2 = menu1->add(L"Redo", 2011);
+    menu2 = menu1->add(L"Redo", 2011, Menu::Separator);
     menu2 = menu1->add(L"Cut", 2012);
     menu2 = menu1->add(L"Copy", 2013);
     menu2 = menu1->add(L"Paste", 2014);
 
     menu1 = rootMenu.add(L"View", 3000);
-    menu2 = menu1->add(L"Code", 3001);
-    menu2 = menu1->add(L"Start Page", 3002);
+    menu2 = menu1->add(L"Code", 3001, Menu::Separator);
+    menu2 = menu1->add(L"Start Page", 3002, Menu::Separator);
     menu2 = menu1->add(L"Solution Explorer", 3003);
     menu2 = menu1->add(L"Team Explorer", 3004);
     menu2 = menu1->add(L"Server Explorer", 3005);
-    menu2 = menu1->add(L"SQL Server Object Explorer", 3006);
+    menu2 = menu1->add(L"SQL Server Object Explorer", 3006, Menu::Separator);
     menu2 = menu1->add(L"Call Hierarchy", 3007);
 
     menu1 = rootMenu.add(L"Window", 4000);
     menu2 = menu1->add(L"New Window", 4001);
-    menu2 = menu1->add(L"Split", 4002);
+    menu2 = menu1->add(L"Split", 4002, Menu::Separator);
     menu2 = menu1->add(L"Float", 4003);
     menu2 = menu1->add(L"Float All", 4004);
-    menu2 = menu1->add(L"Dock", 4005);
-    menu2 = menu1->add(L"Auto Hide", 4006);
-    menu2 = menu1->add(L"Hide", 4007);
+    menu2 = menu1->add(L"Dock", 4005, Menu::Disabled);
+    menu2 = menu1->add(L"Auto Hide", 4006, Menu::Disabled);
+    menu2 = menu1->add(L"Hide", 4007, Menu::Separator | Menu::Disabled);
+    menu2 = menu1->add(L"Pin Tab", 4008, Menu::Separator);
 
     menu1 = rootMenu.add(L"Help", 5000);
     menu2 = menu1->add(L"View Help", 5001);
     menu2 = menu1->add(L"Add and Remove Help Content", 5002);
-    menu2 = menu1->add(L"Set Help Preference", 5003);
-    menu2 = menu1->add(L"Send Feedback", 5004);
+    menu2 = menu1->add(L"Set Help Preference", 5003, Menu::Separator);
+    menu2 = menu1->add(L"Send Feedback", 5004, Menu::Separator);
     menu2 = menu1->add(L"Register Product", 5005);
     menu2 = menu1->add(L"Technical Support", 5006);
     menu2 = menu1->add(L"Online Privacy Statement...", 5007);
