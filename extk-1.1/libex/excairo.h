@@ -8,6 +8,7 @@
 
 #include <cairo.h>
 #include <exconf.h>
+#include <excanvas.h>
 #include <exgeomet.h>
 
 // float divide 8bit value
@@ -84,10 +85,30 @@ public:
     };
 
 protected:
-    cairo_t* cr;
+    ExCanvas* canvas;
+    void set_region(const ExRegion* srcrgn);
 public:
-    ~ExCairo() {}
-    ExCairo() {}
+    ~ExCairo();
+    ExCairo(ExCanvas* canvas, const ExRegion* damage);
+public:
+    operator cairo_t* () { return canvas->cr; }
+    void fill_rect_rgba(const Rect& r, const Color& c);
+    void fill_rect_rgba(floatt x, floatt y, floatt w, floatt h, const Color& c);
+    static void text_extent(ExCanvas* canvas, uint id, floatt size, const wchar* ucs2, cairo_text_extents_t* ext);
+    enum TextAlign {
+        Left    = 1 << 0,
+        Right   = 2 << 0,
+        Center  = 0 << 0,
+        Top     = 1 << 2,
+        Bottom  = 2 << 2,
+        VCenter = 0 << 2,
+    };
+    static Point text_align(const cairo_text_extents_t& ext, const Rect& r, int align = 0);
+    Point text_align(const wchar* ucs2, const Rect& r, int align = 0);
+    void show_text(const wchar* ucs2, const Color& c, const Rect& r, int align = 0);
+    void show_text(const wchar* ucs2, const Color& c, const Point& p);
+    void show_text(const wchar* ucs2, floatt r, floatt g, floatt b, floatt x, floatt y);
+    void set_font(cairo_font_face_t* font, floatt size);
 };
 
 #endif//__excairo_h__

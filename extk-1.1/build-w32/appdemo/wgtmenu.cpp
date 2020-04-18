@@ -82,38 +82,25 @@ void WgtMenu::Popup::clear() {
 }
 
 void WgtMenu::onDrawMenuPopBkgd(ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage) {
-    cairo_t* cr = canvas->cr;
+    ExCairo cr(canvas, damage);
     ExCairo::Rect rc(widget->getRect());
-    cairo_save(cr);
-    canvas->setRegion(damage);
-    cairo_clip(cr);
-
     ExCairo::Color fc; // fill color
     fc.set(0.f, 0.f, 0.f, .75f);
-    cairo_set_source_rgba(cr, fc.r, fc.g, fc.b, fc.a);
-    cairo_rectangle(cr, rc.l, rc.t, rc.width(), rc.height());
-    cairo_fill(cr);
+    cr.fill_rect_rgba(rc, fc);
 
     // tbd - border
-
-    cairo_restore(cr);
 }
 
 void WgtMenu::onDrawMenuPop(ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage) {
-    cairo_t* cr = canvas->cr;
+    ExCairo cr(canvas, damage);
     ExCairo::Rect rc(widget->getRect());
-    cairo_save(cr);
-    canvas->setRegion(damage);
-    cairo_clip(cr);
 
     Menu* menu = (Menu*)widget->getData();
     bool isFocused = widget->getFlags(Ex_Focused);
     for (Menu* im = focused; im->parent; im = im->parent)
         if (im->view == widget) isFocused = true;
-    ExCairo::Point pt;
-    pt.x = rc.l + 36.f;
     if (menu->flag & Menu::Separator) {
-        pt.y = rc.t + menuHeight + 1.5f;
+        ExCairo::Point pt(rc.l + 36.f, rc.t + menuHeight + 1.5f);
         cairo_set_source_rgb(cr, 1.f, 1.f, 1.f);
         cairo_move_to(cr, pt.x, pt.y);
         cairo_line_to(cr, rc.r, pt.y);
@@ -134,51 +121,32 @@ void WgtMenu::onDrawMenuPop(ExCanvas* canvas, const ExWidget* widget, const ExRe
         cairo_set_line_width(cr, 1.f);
         cairo_stroke(cr);
     }
+    rc.b = rc.t + (floatt)menuHeight;
     if (!(menu->flag & Menu::Disabled) &&
         isFocused) {
-        ExCairo::Color fc; // fill color
-        fc.set(.5f, .5f, .5f, .5f);
-        cairo_set_source_rgba(cr, fc.r, fc.g, fc.b, fc.a);
-        cairo_rectangle(cr, rc.l, rc.t, rc.width(), (floatt)menuHeight);
-        cairo_fill(cr);
+        cr.fill_rect_rgba(rc, ExCairo::Color(.5f));
     }
-    cairo_set_font_face(cr, canvas->crf[0]);
-    cairo_set_font_size(cr, fontSize);
-    cairo_text_extents_t& extents = menu->extents;
-    pt.y = rc.t + (menuHeight - extents.height) / 2.f - extents.y_bearing; // center
-    cairo_move_to(cr, pt.x, pt.y);
+    rc.l += 36.f;
+    ExCairo::Color tc;
     if (menu->flag & Menu::Disabled)
-        cairo_set_source_rgb(cr, .5f, .5f, .5f);
+        tc.set(.5f, .5f, .5f);
     else
-        cairo_set_source_rgb(cr, 1.f, 1.f, 1.f);
-    cairo_show_text(cr, menu->text);
-
-    cairo_restore(cr);
+        tc.set(1.f, 1.f, 1.f);
+    cr.set_font(canvas->crf[0], fontSize);
+    cr.show_text(menu->text, tc, cr.text_align(menu->extents, rc, ExCairo::Left));
 }
 
 void WgtMenu::onDrawMenuBarBkgd(ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage) {
-    cairo_t* cr = canvas->cr;
+    ExCairo cr(canvas, damage);
     ExCairo::Rect rc(widget->getRect());
-    cairo_save(cr);
-    canvas->setRegion(damage);
-    cairo_clip(cr);
-
     ExCairo::Color fc; // fill color
     fc.set(0.f, 0.f, 0.f, .5f);
-    cairo_set_source_rgba(cr, fc.r, fc.g, fc.b, fc.a);
-    cairo_rectangle(cr, rc.l, rc.t, rc.width(), rc.height());
-    cairo_fill(cr);
-
-    cairo_restore(cr);
+    cr.fill_rect_rgba(rc, fc);
 }
 
 void WgtMenu::onDrawMenuBar(ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage) {
-    cairo_t* cr = canvas->cr;
+    ExCairo cr(canvas, damage);
     ExCairo::Rect rc(widget->getRect());
-    cairo_save(cr);
-    canvas->setRegion(damage);
-    cairo_clip(cr);
-
     Menu* menu = (Menu*)widget->getData();
     Popup* pop = popList.empty() ? NULL : popList.back();
     bool isPopFocused = pop && pop->link == menu;
@@ -189,32 +157,16 @@ void WgtMenu::onDrawMenuBar(ExCanvas* canvas, const ExWidget* widget, const ExRe
             fc.set(0.f, 0.f, 0.f, .75f);
         else
             fc.set(.5f, .5f, .5f, 1.f);
-        cairo_set_source_rgba(cr, fc.r, fc.g, fc.b, fc.a);
-        cairo_rectangle(cr, rc.l, rc.t, rc.width(), rc.height());
-        cairo_fill(cr);
+        cr.fill_rect_rgba(rc, fc);
     }
-    ExCairo::Point pt;
-    cairo_set_font_face(cr, canvas->crf[0]);
-    cairo_set_font_size(cr, fontSize);
-    cairo_text_extents_t& extents = menu->extents;
-    pt.x = rc.l + (rc.width() - extents.width) / 2.f - extents.x_bearing; // center
-    pt.y = rc.t + (menuHeight - extents.height) / 2.f - extents.y_bearing; // center
-    cairo_move_to(cr, pt.x, pt.y);
-    cairo_set_source_rgb(cr, 1.f, 1.f, 1.f);
-    cairo_show_text(cr, menu->text);
-
-    cairo_restore(cr);
+    cr.set_font(canvas->crf[0], fontSize);
+    cr.show_text(menu->text, ExCairo::Color(1.f), cr.text_align(menu->extents, rc));
 }
 
 int WgtMenu::onLayoutHorz(ExWidget* widget, ExCbInfo* cbinfo) {
     ExArea& horz = *(ExArea*)cbinfo->data;
-    ExCanvas* canvas = window->canvas;
-    cairo_t* cr = canvas->cr; // tbd - assert
-    // calc cairo_text_extents
-    cairo_set_font_face(cr, canvas->crf[0]);
-    cairo_set_font_size(cr, fontSize);
     Menu* menu = (Menu*)widget->getData();
-    cairo_text_extents(cr, menu->text, &menu->extents);
+    ExCairo::text_extent(window->canvas, 0, fontSize, menu->text, &menu->extents);
     int menu_width = (int)menu->extents.width + 36;
     widget->area.set(horz.x, horz.y, menu_width, horz.h);
     horz.x += menu_width + 1;
@@ -224,13 +176,8 @@ int WgtMenu::onLayoutHorz(ExWidget* widget, ExCbInfo* cbinfo) {
 
 int WgtMenu::onLayoutVert(ExWidget* widget, ExCbInfo* cbinfo) {
     ExArea& vert = *(ExArea*)cbinfo->data;
-    ExCanvas* canvas = window->canvas;
-    cairo_t* cr = canvas->cr; // tbd - assert
-    // calc cairo_text_extents
-    cairo_set_font_face(cr, canvas->crf[0]);
-    cairo_set_font_size(cr, fontSize);
     Menu* menu = (Menu*)widget->getData();
-    cairo_text_extents(cr, menu->text, &menu->extents);
+    ExCairo::text_extent(window->canvas, 0, fontSize, menu->text, &menu->extents);
     int menu_width = (int)menu->extents.width + 120;
     int separator = menu->flag & Menu::Separator ? 3 : 0;
     if (vert.w < menu_width) vert.w = menu_width; // save max width

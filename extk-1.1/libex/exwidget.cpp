@@ -15,11 +15,8 @@ static void STDCALL s_fill(void* data, ExCanvas* canvas, const ExWidget* widget,
 #if 1
     if (!(canvas && canvas->cr))
         return;
-    cairo_t* cr = canvas->cr;
+    ExCairo cr(canvas, damage);
     ExCairo::Rect rc(widget->getRect());
-    cairo_save(cr);
-    canvas->setRegion(damage);
-    cairo_clip(cr);
 
     //rc.l += 1.f;
     //rc.t += 1.f;
@@ -43,8 +40,6 @@ static void STDCALL s_fill(void* data, ExCanvas* canvas, const ExWidget* widget,
     cairo_set_antialias(cr, CAIRO_ANTIALIAS_GRAY);
     cairo_set_source_rgba(cr, lc.r, lc.g, lc.b, lc.a);
     cairo_stroke(cr);
-
-    cairo_restore(cr);
 #else // deprecated
     HWND hwnd = widget->getWindow()->getHwnd();
     HDC hdc = GetDC(hwnd ? hwnd : GetDesktopWindow());

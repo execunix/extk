@@ -65,29 +65,21 @@ int ExCanvas::resize(int w, int h) {
 }
 
 // create cairo font
-int ExCanvas::newFace(int id, const char* faceName) {
-    if (!(0 <= id && id < 8 && crf[id] == NULL)) {
-        dprint1(L"%s(%d) invalid id", __funcw__, id);
+int ExCanvas::newFace(uint fontId, const char* faceName) {
+    if (!(fontId < 8 && crf[fontId] == NULL)) {
+        dprint1(L"%s(%d) invalid fontId", __funcw__, fontId);
         return -1;
     }
     if (ftLib != NULL &&
-        FT_New_Face(ftLib, faceName, 0, &ftFace[id]) != FT_Err_Ok) {
-        dprint1(L"%s(%d) FT_New_Face fail", __funcw__, id);
+        FT_New_Face(ftLib, faceName, 0, &ftFace[fontId]) != FT_Err_Ok) {
+        dprint1(L"%s(%d) FT_New_Face fail", __funcw__, fontId);
         return -1;
     }
-    crf[id] = cairo_ft_font_face_create_for_ft_face(ftFace[id], FT_LOAD_DEFAULT | FT_LOAD_NO_BITMAP);
-    if (crf[id] == NULL) {
-        dprint1(L"%s(%d) FT_New_Face fail", __funcw__, id);
+    crf[fontId] = cairo_ft_font_face_create_for_ft_face(ftFace[fontId], FT_LOAD_DEFAULT | FT_LOAD_NO_BITMAP);
+    if (crf[fontId] == NULL) {
+        dprint1(L"%s(%d) FT_New_Face fail", __funcw__, fontId);
         return -1;
     }
-    return 0;
-}
-
-int ExCanvas::setFont(int id, int size) {
-    if (!(0 <= id && id < 8 && crf[id]))
-        return -1;
-    cairo_set_font_face(cr, crf[id]);
-    cairo_set_font_size(cr, size);
     return 0;
 }
 
@@ -133,39 +125,6 @@ int ExCanvas::createMemGC(int width, int height) {
     dprint1("%s(%d,%d) %s\n", __func__, width, height, cairo_status_to_string(status));
     deleteMemGC();
     return -1;
-}
-
-void ExCanvas::setRegion(const ExRegion* srcrgn) {
-    //cairo_reset_clip(cr); // tbd
-    assert(!srcrgn->empty());
-    if (srcrgn->empty()) {
-        dprintf(L"srcrgn empty\n");
-        cairo_rectangle(cr,
-            -1, -1, 1, 1);
-        return;
-    }
-    for (int i = 0; i < srcrgn->n_rects; i++) {
-        cairo_rectangle(cr,
-            srcrgn->rects[i].ul.x,
-            srcrgn->rects[i].ul.y,
-            srcrgn->rects[i].width(),
-            srcrgn->rects[i].height());
-    }
-    // usage-1: paint
-    //	cairo_save(cr);
-    //	canvas->setRegion(rgn);
-    //	cairo_clip(cr); // all clipped out
-    //	cairo_set_source...(cr, ...);
-    //	cairo_paint(cr);
-    //	cairo_restore(cr);
-    // usage-2: fill
-    //	cairo_save(cr);
-    //	set_region(cr, rgn);
-    //	cairo_set_source...(cr, ...);
-    //	cairo_fill(cr);
-    //	cairo_clip(cr); // all clipped out
-    //	cairo_restore(cr);
-    // should call "cairo_restore(cr);" at application side
 }
 
 ExTripleCanvas::~ExTripleCanvas() {

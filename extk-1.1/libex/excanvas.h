@@ -27,13 +27,9 @@ public:
 public:
     int init(ExWindow* window, ExSize* sz = NULL);
     int resize(int w, int h);
-    int newFace(int id, const char* faceName);
-    int setFont(int id, int size);
-    virtual void* begin(const ExRegion* clip) { return NULL; };
-    virtual void* end() { return NULL; };
+    int newFace(uint fontId, const char* faceName);
     virtual int deleteMemGC();
     virtual int createMemGC(int width, int height); // sample
-    void setRegion(const ExRegion* srcrgn);
 public:
     Ex_DECLARE_TYPEINFO(ExCanvas, ExObject);
 };

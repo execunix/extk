@@ -20,30 +20,24 @@ int WgtTitle::onLayout(WgtTitle* widget, ExCbInfo* cbinfo) {
 }
 
 void WgtTitle::onDrawTitle(ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage) {
-    cairo_t* cr = canvas->cr;
+    ExCairo cr(canvas, damage);
     ExCairo::Rect rc(widget->getRect());
-    cairo_save(cr);
-    canvas->setRegion(damage);
-    cairo_clip(cr);
 
-    cairo_set_source_rgba(cr, 0.f, 0.f, 0.f, .25f);
-    cairo_rectangle(cr, rc.l, rc.t, rc.width(), rc.height());
-    cairo_fill(cr);
+    cr.fill_rect_rgba(rc, ExCairo::Color(.2f, .2f, .2f, .5f));
 
-    cairo_set_font_face(cr, canvas->crf[0]);
-    cairo_set_font_size(cr, rc.height() * .5f);
-    cairo_text_extents_t extents;
-    cairo_text_extents(cr, title, &extents);
-    ExCairo::Point pt;
-    //pt.x = (rc.width() - extents.width) / 2.f - extents.x_bearing; // center
-    pt.x = rc.width() - extents.width - 48.f; // right
-    //pt.x = 48.f; // left
-    pt.y = (rc.height() - extents.height) / 2.f - extents.y_bearing; // center
-    cairo_move_to(cr, rc.l + pt.x, rc.t + pt.y);
-    cairo_set_source_rgb(cr, 1.f, 1.f, 1.f);
-    cairo_show_text(cr, title);
-
-    cairo_restore(cr);
+    rc.r -= 48.f;
+    cr.set_font(canvas->crf[1], rc.height() * .5f);
+    ExCairo::Point pt = cr.text_align(title, rc, ExCairo::Right | ExCairo::VCenter);
+#if 0
+    cairo_move_to(cr, pt.x + 2.f, pt.y + 2.f);
+    cairo_set_source_rgb(cr, .2f, .2f, .2f);
+    cairo_text_path(cr, title);
+    cairo_set_line_width(cr, 2.f);
+    cairo_stroke(cr);
+#else
+    cr.show_text(title, ExCairo::Color(.2f), ExCairo::Point(pt.x + 2.f, pt.y + 2.f));
+#endif
+    cr.show_text(title, ExCairo::Color(1.f), pt);
 }
 
 static int STDCALL
@@ -89,14 +83,10 @@ void WndMain::onDrawBkgd(ExCanvas* canvas, const ExWidget* widget, const ExRegio
         } else if (imgBkgd1.crs) {
             ExCairo::Rect rc(widget->getRect());
 #if 1
-            cairo_t* cr = canvas->cr;
-            cairo_save(cr);
-            canvas->setRegion(damage);
-            cairo_clip(cr);
+            ExCairo cr(canvas, damage);
             cairo_set_source_surface(cr, imgBkgd1.crs, rc.l, rc.t);
             cairo_paint_with_alpha(cr, .75); // for alpha blend
             //cairo_paint(cr); // for opaque
-            cairo_restore(cr);
 #else // test
             //canvas->gc->blitAlphaOver(dr.l, dr.t, dr.width(), dr.height(),
             //                          &imgBkgd1, dr.l - rc.l, dr.t - rc.t);
@@ -147,11 +137,8 @@ void WndMain::onDrawBtns(ExCanvas* canvas, const ExWidget* widget, const ExRegio
         return;
     }
 #endif
-    cairo_t* cr = canvas->cr;
+    ExCairo cr(canvas, damage);
     ExCairo::Rect rc(widget->getRect());
-    cairo_save(cr);
-    canvas->setRegion(damage);
-    cairo_clip(cr);
     cairo_new_path(cr);
     cairo_move_to(cr, rc.l + 4, rc.t + 1);
     cairo_line_to(cr, rc.r - 4, rc.t + 1);
@@ -212,26 +199,17 @@ void WndMain::onDrawBtns(ExCanvas* canvas, const ExWidget* widget, const ExRegio
     cairo_stroke(cr);
 
     const wchar* text = widget->getName();
-    cairo_set_font_face(cr, canvas->crf[0]);
-    cairo_set_font_size(cr, 12);
-    cairo_text_extents_t extents;
-    cairo_text_extents(cr, text, &extents);
-    cairo_move_to(cr, rc.l - extents.x_bearing, rc.t - extents.y_bearing);
-    cairo_set_source_rgb(cr, 0, 0, 0);
-    cairo_show_text(cr, text);
+    cr.set_font(canvas->crf[0], 12.f);
+    cr.show_text(text, ExCairo::Color(0.f), rc);
 
-    cairo_restore(cr);
 #if USE_PATTERN_BTN
     cairo_pattern_destroy(crp);
 #endif//USE_PATTERN_BTN
 }
 
 void WndMain::onDrawPane(ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage) {
-    cairo_t* cr = canvas->cr;
+    ExCairo cr(canvas, damage);
     ExCairo::Rect rc(widget->getRect());
-    cairo_save(cr);
-    canvas->setRegion(damage);
-    cairo_clip(cr);
 
     cairo_new_path(cr);
     cairo_move_to(cr, rc.l + 4, rc.t + 1);
@@ -289,7 +267,6 @@ void WndMain::onDrawPane(ExCanvas* canvas, const ExWidget* widget, const ExRegio
         cairo_set_source_rgba(cr, lc.r, lc.g, lc.b, lc.a);
     cairo_stroke(cr);
 
-    cairo_restore(cr);
 #if USE_PATTERN_BTN
     cairo_pattern_destroy(crp);
 #endif//USE_PATTERN_BTN
@@ -302,7 +279,6 @@ void WndMain::onDrawToy(ExCanvas* canvas, const WndMain* w, const ExRegion* dama
         L"C.H Park <execunix@gmail.com>"
     };
 
-    cairo_t* cr = canvas->cr;
     ExRect rc = w->getRect();
 
     cairo_status_t status;
@@ -327,16 +303,12 @@ void WndMain::onDrawToy(ExCanvas* canvas, const WndMain* w, const ExRegion* dama
         }
         ExPoint p = rc.center();
         float w = glyphs[num_glyphs - 1].x + fs / 2.f;
-        cairo_save(cr);
-        canvas->setRegion(damage);
-        cairo_clip(cr);
+        ExCairo cr(canvas, damage);
         cairo_translate(cr, p.x - w / 2.f, p.y + fs / 2.f);
-        cairo_set_font_face(cr, canvas->crf[1]);
-        cairo_set_font_size(cr, fs);
+        cr.set_font(canvas->crf[1], fs);
         cairo_set_source_rgba(cr, 1, 1, 1, toy_alpha);
         cairo_show_glyphs(cr, glyphs, num_glyphs);
         cairo_glyph_free(glyphs);
-        cairo_restore(cr);
     }
     cairo_scaled_font_destroy(scaled_font);
     cairo_font_options_destroy(options);
@@ -372,26 +344,18 @@ int WndMain::onTimerToy(WndMain* wnd, ExCbInfo* cbinfo) {
 void WndMain::onDrawBackBuf(ExCanvas* canvas, const ExWidget* w, const ExRegion* damage) {
     if (w == &wgtBackViewer &&
         wndBackBuf.canvas->gc->crs) {
-        cairo_t* cr = canvas->cr;
+        ExCairo cr(canvas, damage);
         ExCairo::Rect rc(w->getRect());
-        cairo_save(cr);
-        canvas->setRegion(damage);
-        cairo_clip(cr);
         cairo_set_source_surface(cr, wndBackBuf.canvas->gc->crs, rc.l, rc.t);
         cairo_paint_with_alpha(cr, .75); // for alpha blend
-        cairo_restore(cr);
         return;
     }
     if (w == &wndBackBuf &&
         imgBkgd1.crs) { // draw to wndBackBuf canvas
-        cairo_t* cr = canvas->cr;
-        cairo_save(cr);
-        canvas->setRegion(damage);
-        cairo_clip(cr);
+        ExCairo cr(canvas, damage);
         ExCairo::Point pt(-backBufCnt, -backBufCnt);
         cairo_set_source_surface(cr, imgBkgd1.crs, 1.5f * pt.x, pt.y);
         cairo_paint_with_alpha(cr, .75); // for alpha blend
-        cairo_restore(cr);
         return;
     }
 }
