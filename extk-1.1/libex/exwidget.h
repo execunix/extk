@@ -219,16 +219,13 @@ protected: // widget callback internal
         Callback(const ExCallback& cb, int t, uint p)
             : ExCallback(cb), type(t), prio(p) {
         }
-        bool operator == (const Callback& cb) const {
-            return (func == cb.func && data == cb.data && type == cb.type && prio == cb.prio);
-        }
     };
     class CallbackList : public std::list<Callback> {
     public:
         CallbackList() : std::list<Callback>() {}
     public:
         // inherit size_type size();
-        void remove(int type);
+        bool remove(int type, uint prio);
         // inherit void remove(const Callback& cb);
         // inherit void push_back(const Callback& cb);
         // inherit void push_front(const Callback& cb);
@@ -248,8 +245,8 @@ public: // widget callback operation
     void addCallback(A* d, int(STDCALL A::*f)(W*, ExCbInfo*), int type, uint prio = 5) {
         cbList.push(Callback(ExCallback(d, f), type, prio));
     }
-    void removeCallback(int type) { // tbd
-        cbList.remove(type);
+    void removeCallback(int type, uint prio = 5) { // tbd
+        cbList.remove(type, prio);
     }
     int invokeCallback(int type) {
         return cbList.invoke(type, this, &ExCbInfo(type));

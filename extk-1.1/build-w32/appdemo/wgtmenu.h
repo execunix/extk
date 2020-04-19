@@ -41,6 +41,8 @@ class WgtMenu : public ExWidget {
     public:
         ExWidget* menuPop; // new
         Menu* link; // ref
+        floatt ani;
+        ExTimer timerAni;
     public:
         ~Popup() { clear(); }
         Popup() : ExWidget(), menuPop(NULL), link(NULL) {}
@@ -73,7 +75,8 @@ public:
     ~WgtMenu() { fini();  }
     WgtMenu() : ExWidget(), menuBar(NULL), oldFocus(NULL), focused(NULL) {}
 public:
-    void STDCALL onDrawMenuPopBkgd(ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage);
+    int STDCALL onTimerAni(Popup* popup, ExCbInfo* cbinfo);
+    void STDCALL onDrawMenuPopBkgd(ExCanvas* canvas, const Popup* popup, const ExRegion* damage);
     void STDCALL onDrawMenuPop(ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage);
     void STDCALL onDrawMenuBarBkgd(ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage);
     void STDCALL onDrawMenuBar(ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage);

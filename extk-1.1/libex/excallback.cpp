@@ -8,13 +8,15 @@
 
 // class ExWidget::CallbackList
 //
-void ExWidget::CallbackList::remove(int type) {
+bool ExWidget::CallbackList::remove(int type, uint prio) {
     for (iterator i = begin(); i != end(); ++i) {
-        if ((*i).type == type) {
+        if ((*i).type == type &&
+            (*i).prio == prio) {
             erase(i);
-            return;
+            return true; // tbd - all ?
         }
     }
+    return false;
 }
 
 void ExWidget::CallbackList::push(const Callback& cb) {

@@ -74,6 +74,7 @@ Menu* Menu::add(const wchar* text, int id, int flag) {
 }
 
 void WgtMenu::Popup::clear() {
+    timerAni.stop();
     destroy();
     if (menuPop)
         delete[] menuPop;
@@ -81,11 +82,22 @@ void WgtMenu::Popup::clear() {
     link = NULL;
 }
 
-void WgtMenu::onDrawMenuPopBkgd(ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage) {
+int WgtMenu::onTimerAni(Popup* popup, ExCbInfo* cbinfo) {
+    popup->ani += 0.05f;
+    popup->damage();
+    if (popup->ani >= 1.f) {
+        popup->ani = 1.f;
+        return Ex_Break;
+    }
+    return Ex_Continue;
+
+}
+
+void WgtMenu::onDrawMenuPopBkgd(ExCanvas* canvas, const Popup* popup, const ExRegion* damage) {
     ExCairo cr(canvas, damage);
-    ExCairo::Rect rc(widget->getRect());
+    ExCairo::Rect rc(popup->getRect());
     ExCairo::Color fc; // fill color
-    fc.set(0.f, 0.f, 0.f, .75f);
+    fc.set(0.f, 0.f, 0.f, .75f * popup->ani);
     cr.fill_rect_rgba(rc, fc);
 
     // tbd - border
@@ -444,6 +456,7 @@ WgtMenu::Popup* WgtMenu::popup(int x, int y, Menu* link) {
     Popup* pop = new Popup;
     pop->init(window);
     pop->link = link;
+    pop->ani = 0.f;
     pop->layout(ExArea(x, y, 100, 30));
     pop->menuPop = new ExWidget[link->size];
     Menu* menu = link->child;
@@ -467,6 +480,8 @@ WgtMenu::Popup* WgtMenu::popup(int x, int y, Menu* link) {
     for (int n = 0; n < link->size; n++) {
         pop->menuPop[n].area.w = vert.w; // expand max width
     }
+    pop->timerAni.setCallback(this, &WgtMenu::onTimerAni, pop);
+    pop->timerAni.start(33, 33);
     return pop;
 }
 

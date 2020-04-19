@@ -70,6 +70,8 @@ public:
         Rect(int l, int t, int r, int b) : l((floatt)l), t((floatt)t), r((floatt)r), b((floatt)b) {}
         Rect(floatt l, floatt t, floatt r, floatt b) : l(l), t(t), r(r), b(b) {}
 
+        floatt x() const { return l; }
+        floatt y() const { return t; }
         floatt width() const { return r - l; }
         floatt height() const { return b - t; }
 
