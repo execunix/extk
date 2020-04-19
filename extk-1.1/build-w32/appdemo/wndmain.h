@@ -35,7 +35,6 @@ public:
     ExImage imgBkgd0;
     ExImage imgBkgd1;
     ExPoint img_pt0;
-    ExPoint img_pt1;
     ExTimer timer;
     ExWindow wndBackBuf;
     ExWidget wgtBackBtn;
@@ -44,6 +43,7 @@ public:
     int backBufCnt;
     WgtMenu wgtMenu;
     WgtTitle wgtTitle;
+    const UINT WM_APP_TEST = ExRegAppMessage();
 public:
     ~WndMain() {}
     WndMain() : ExWindow() {}
@@ -64,6 +64,7 @@ public:
     void STDCALL onDrawTrap(ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage);
     void STDCALL onDrawBtns(ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage);
     void STDCALL onDrawPane(ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage);
+    int STDCALL onRbtnDown(WndMain* w, ExCbInfo* cbinfo);
     int STDCALL onHandler(WndMain* w, ExCbInfo* cbinfo);
     int STDCALL onFilter(WndMain* w, ExCbInfo* cbinfo);
     int STDCALL onTimer(ExTimer* timer, ExCbInfo* cbinfo);
@@ -75,5 +76,6 @@ public:
     int STDCALL onTimerToy(WndMain* w, ExCbInfo* cbinfo);
     void STDCALL onFlushBackBuf(WndMain* w, const ExRegion* updateRgn);
     void STDCALL onDrawBackBuf(ExCanvas* canvas, const ExWidget* w, const ExRegion* damage);
+    int STDCALL onBackViewMove(WndMain* widget, ExCbInfo* cbinfo);
     int STDCALL onBackBufUpdater(ExTimer* timer, ExCbInfo* cbinfo);
 };

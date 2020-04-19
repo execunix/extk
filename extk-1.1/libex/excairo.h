@@ -85,17 +85,17 @@ public:
     };
 
 protected:
-    ExCanvas* canvas;
+    const ExCanvas* const canvas;
     void set_region(const ExRegion* srcrgn);
 public:
     ~ExCairo();
-    ExCairo(ExCanvas* canvas, const ExRegion* damage);
+    ExCairo(const ExCanvas* canvas, const ExRegion* damage);
 public:
-    operator cairo_t* () { return canvas->cr; }
+    operator cairo_t* const () const { return canvas->cr; }
     void fill_rect_rgba(const Rect& r, const Color& c);
     void fill_rect_rgba(floatt x, floatt y, floatt w, floatt h, const Color& c);
-    static void text_extent(ExCanvas* canvas, uint id, floatt size, const wchar* ucs2, cairo_text_extents_t* ext);
-    enum TextAlign {
+    static void text_extent(const ExCanvas* canvas, uint id, floatt size, const wchar* ucs2, cairo_text_extents_t* ext);
+    enum {
         Left    = 1 << 0,
         Right   = 2 << 0,
         Center  = 0 << 0,

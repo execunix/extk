@@ -609,7 +609,7 @@ int ExWindow::onRepeatBut(ExTimer* timer, ExCbInfo* cbinfo) {
     if (wgtPressed &&
         wgtPressed == wgtEntered && ++ExApp::butRepeatCnt() > 0) {
         if (!wgtPressed->cbList.empty()) {
-            // tbd - backup msg ?
+            cbinfo->event = event; // tbd - backup msg ?
             cbinfo->set(Ex_CbButRepeat, ExApp::butRepeatCnt());
             return wgtPressed->invokeCallback(Ex_CbActivate, cbinfo);
         }

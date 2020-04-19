@@ -9,8 +9,7 @@ ExCairo::~ExCairo() {
     cairo_restore(canvas->cr);
 }
 
-ExCairo::ExCairo(ExCanvas* canvas, const ExRegion* damage) {
-    this->canvas = canvas;
+ExCairo::ExCairo(const ExCanvas* canvas, const ExRegion* damage) : canvas(canvas) {
     cairo_save(canvas->cr);
     set_region(damage);
     cairo_clip(canvas->cr);
@@ -64,7 +63,7 @@ void ExCairo::fill_rect_rgba(floatt x, floatt y, floatt w, floatt h, const Color
     cairo_fill(cr);
 }
 
-void ExCairo::text_extent(ExCanvas* canvas, uint id, floatt size, const wchar* ucs2, cairo_text_extents_t* ext) {
+void ExCairo::text_extent(const ExCanvas* canvas, uint id, floatt size, const wchar* ucs2, cairo_text_extents_t* ext) {
     cairo_t* cr = canvas->cr;
     cairo_set_font_face(cr, canvas->crf[id]);
     cairo_set_font_size(cr, size);

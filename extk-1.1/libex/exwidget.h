@@ -215,11 +215,12 @@ public: // widget flags operation
 protected: // widget callback internal
     struct Callback : public ExCallback {
         int type;
-        Callback(const ExCallback& cb, int t)
-            : ExCallback(cb), type(t) {
+        uint prio;
+        Callback(const ExCallback& cb, int t, uint p)
+            : ExCallback(cb), type(t), prio(p) {
         }
         bool operator == (const Callback& cb) const {
-            return (func == cb.func && data == cb.data && type == cb.type);
+            return (func == cb.func && data == cb.data && type == cb.type && prio == cb.prio);
         }
     };
     class CallbackList : public std::list<Callback> {
@@ -231,36 +232,23 @@ protected: // widget callback internal
         // inherit void remove(const Callback& cb);
         // inherit void push_back(const Callback& cb);
         // inherit void push_front(const Callback& cb);
-        void append(const Callback& cb) { push_back(cb); }
-        void add(const Callback& cb) { push_front(cb); }
-        void add(const Callback& cb, int pos);
+        void push(const Callback& cb);
         int invoke(int type, ExObject* object, ExCbInfo* cbinfo);
     };
     CallbackList cbList;
 public: // widget callback operation
-    void addCallback(int(STDCALL *f)(void*, ExWidget*, ExCbInfo*), void* d, int t) {
-        cbList.add(Callback(ExCallback(f, d), t));
-    }
-    void addCallback(int(STDCALL *f)(void*, ExWidget*, ExCbInfo*), void* d, int t, int pos) {
-        cbList.add(Callback(ExCallback(f, d), t), pos);
+    void addCallback(int(STDCALL *f)(void*, ExWidget*, ExCbInfo*), void* d, int type, uint prio = 5) {
+        cbList.push(Callback(ExCallback(f, d), type, prio));
     }
     template <typename A, class W/*inherit ExWidget*/>
-    void addCallback(A* d, int(STDCALL A::*f)(W*, ExCbInfo*), int t) {
-        cbList.add(Callback(ExCallback(d, f), t));
+    void addCallback(int(STDCALL *f)(A*, W*, ExCbInfo*), A* d, int type, uint prio = 5) {
+        cbList.push(Callback(ExCallback(f, d), type, prio));
     }
     template <typename A, class W/*inherit ExWidget*/>
-    void addCallback(A* d, int(STDCALL A::*f)(W*, ExCbInfo*), int t, int pos) {
-        cbList.add(Callback(ExCallback(d, f), t), pos);
+    void addCallback(A* d, int(STDCALL A::*f)(W*, ExCbInfo*), int type, uint prio = 5) {
+        cbList.push(Callback(ExCallback(d, f), type, prio));
     }
-    template <typename A, class W/*inherit ExWidget*/>
-    void addCallback(int(STDCALL *f)(A*, W*, ExCbInfo*), A* d, int t) {
-        cbList.add(Callback(ExCallback(f, d), t));
-    }
-    template <typename A, class W/*inherit ExWidget*/>
-    void addCallback(int(STDCALL *f)(A*, W*, ExCbInfo*), A* d, int t, int pos) {
-        cbList.add(Callback(ExCallback(f, d), t), pos);
-    }
-    void removeCallback(int type) {
+    void removeCallback(int type) { // tbd
         cbList.remove(type);
     }
     int invokeCallback(int type) {

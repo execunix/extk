@@ -17,10 +17,9 @@ void ExWidget::CallbackList::remove(int type) {
     }
 }
 
-void ExWidget::CallbackList::add(const Callback& cb, int pos) {
-    int cnt = 0;
+void ExWidget::CallbackList::push(const Callback& cb) {
     for (iterator i = begin(); i != end(); ++i) {
-        if (pos == cnt++) {
+        if (cb.prio <= (*i).prio) {
             insert(i, cb);
             return;
         }
@@ -55,7 +54,7 @@ int ExWidget::CallbackList::invoke(int type, ExObject* object, ExCbInfo* cbinfo)
 
 // class ExWindow::MsgCallbackList
 //
-void ExWindow::MsgCallbackList::push(const ExCallback& cb, int pos) {
+void ExWindow::MsgCallbackList::push(const Callback& cb) {
 #if 0 // remove duplicate callback
     //remove(cb);
     iterator di = std::find(begin(), end(), cb);
@@ -64,9 +63,8 @@ void ExWindow::MsgCallbackList::push(const ExCallback& cb, int pos) {
         erase(di);
     }
 #endif
-    int cnt = 0;
     for (iterator i = begin(); i != end(); ++i) {
-        if (pos == cnt++) {
+        if (cb.prio <= (*i).prio) {
             insert(i, cb);
             return;
         }
@@ -77,7 +75,7 @@ void ExWindow::MsgCallbackList::push(const ExCallback& cb, int pos) {
 int ExWindow::MsgCallbackList::invoke(ExObject* object, ExCbInfo* cbinfo) {
     int r = Ex_Continue;
     for (iterator i = begin(); i != end();) {
-        ExCallback& cb = *i;
+        Callback& cb = *i;
 
         // Simple implementation to pursue efficiency.
         // Be careful not to remove items from this list within the callback.

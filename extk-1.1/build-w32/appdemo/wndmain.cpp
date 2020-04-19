@@ -126,8 +126,8 @@ void WndMain::onDrawTrap(ExCanvas* canvas, const ExWidget* widget, const ExRegio
 #endif
 }
 
-#define USE_PATTERN_BTN 1
-#define USE_ALPHA_BTN 1
+#define USE_PATTERN_BTN 0
+#define USE_ALPHA_BTN 0
 
 void WndMain::onDrawBtns(ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage) {
 #if 0
@@ -377,7 +377,7 @@ int WndMain::onLayout(WndMain* widget, ExCbInfo* cbinfo) {
         panes[1].layout(a1); // do recurs here
         panes[2].layout(a2); // do recurs here
         toy.setPos(ExPoint(ar.center().x - toy.area.w / 2,
-                            ar.center().y - toy.area.h / 2));
+                           ar.center().y - toy.area.h / 2));
     } else if (widget == &panes[0]) {
         float margin_w = ar.w * 2 / 100.f; // 2 %
         float margin_h = ar.h * 8 / 100.f; // 8 %
@@ -446,12 +446,14 @@ int WndMain::onActBkgd(WndMain* widget, ExCbInfo* cbinfo) {
         MSG& msg = cbinfo->event->msg;
         if (cbinfo->type == Ex_CbButPress) {
             but_pt = msg.pt; // memory press point
+            widget->toFront();
             wgtCapture = widget;
         } else if (cbinfo->type == Ex_CbPtrMove &&
                    widget->getFlags(Ex_ButPressed)) {
-            img_pt1 += (msg.pt - but_pt);
+            ExPoint pt(wgtBkgd.area.pos);
+            pt += (msg.pt - but_pt);
             but_pt = msg.pt;
-            wgtBkgd.setPos(img_pt1);
+            wgtBkgd.setPos(pt);
         }
         return Ex_Continue;
     }
@@ -627,6 +629,20 @@ int WndMain::onDestroyed(WndMain* w, ExCbInfo* cbinfo) {
     return Ex_Continue;
 }
 
+int WndMain::onRbtnDown(WndMain* w, ExCbInfo* cbinfo) {
+    if (cbinfo->event->message == WM_RBUTTONDOWN) {
+        int xPos = LOWORD(cbinfo->event->lParam);
+        int yPos = HIWORD(cbinfo->event->lParam);
+        ExWidget* w = getPointOwner(ExPoint(xPos, yPos));
+        if (w == &wgtBackViewer ||
+            w == &wgtBkgd) {
+            w->toBack();
+        }
+        return Ex_Continue;
+    }
+    return Ex_Continue;
+}
+
 int WndMain::onHandler(WndMain* w, ExCbInfo* cbinfo) {
     dprintf(L"handler WM_0x%04x:0x%04x\n", cbinfo->event->message, cbinfo->event->msg.message);
     return Ex_Continue;
@@ -639,6 +655,7 @@ int WndMain::onFilter(WndMain* w, ExCbInfo* cbinfo) {
     if (i == 20) {
         removeHandler(ExCallback(this, &WndMain::onHandler));
     } else if (i == 40) {
+        PostMessage(w->getHwnd(), WM_APP_TEST, 0, 0);
         addHandler(this, &WndMain::onHandler);
         i = 0;
     }
@@ -790,6 +807,28 @@ void WndMain::onFlushBackBuf(WndMain* w, const ExRegion* updateRgn) {
 #endif
 }
 
+int WndMain::onBackViewMove(WndMain* widget, ExCbInfo* cbinfo) {
+    static ExPoint but_pt(0);
+    assert(widget == &wgtBackViewer);
+    if (cbinfo->type == Ex_CbButPress) {
+        int xPos = LOWORD(cbinfo->event->lParam);
+        int yPos = HIWORD(cbinfo->event->lParam);
+        but_pt.set(xPos, yPos); // memory press point
+        widget->toFront();
+        wgtCapture = widget;
+    } else if (cbinfo->type == Ex_CbPtrMove &&
+               widget->getFlags(Ex_ButPressed)) {
+        int xPos = LOWORD(cbinfo->event->lParam);
+        int yPos = HIWORD(cbinfo->event->lParam);
+        ExPoint pt(wgtBackViewer.area.pos);
+        pt.x += xPos - but_pt.x;
+        pt.y += yPos - but_pt.y;
+        but_pt.set(xPos, yPos);
+        wgtBackViewer.setPos(pt);
+    }
+    return Ex_Continue;
+}
+
 int WndMain::onBackBufUpdater(ExTimer* timer, ExCbInfo* cbinfo) {
     backBufCnt++;
     if (backBufCnt > 500)
@@ -865,7 +904,6 @@ int WndMain::start() {
     wgtBkgd.drawFunc = ExDrawFunc(this, &WndMain::onDrawBkgd);
     wgtBkgd.setFlags(Ex_Selectable);
     //wgtBkgd.setFlags(Ex_Opaque);
-    img_pt1 = wgtBkgd.area.pos;
     FLUSH_TEST();
     // ==> render() #2
 
@@ -957,6 +995,7 @@ int WndMain::start() {
 
     addFilter(this, &WndMain::onFilter);
     addHandler(this, &WndMain::onHandler);
+    addHandler(this, &WndMain::onRbtnDown);
 
     wndBackBuf.init(L"wndBackBuf", 360, 240);
     wndBackBuf.canvas = new ExCanvas;
@@ -968,7 +1007,9 @@ int WndMain::start() {
     wndBackBuf.flush();
 
     wgtBackViewer.init(this, L"wgtBackViewer", &ExArea(80, 40, 360, 240));
+    wgtBackViewer.addCallback(this, &WndMain::onBackViewMove, Ex_CbActivate);
     wgtBackViewer.drawFunc = ExDrawFunc(this, &WndMain::onDrawBackBuf);
+    wgtBackViewer.setFlags(Ex_Selectable);
 
     backBufUpdater.setCallback(this, &WndMain::onBackBufUpdater);
     backBufUpdater.start(1, 25); // 40Hz
