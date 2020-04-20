@@ -77,7 +77,7 @@ ExWindow::ExWindow()
 }
 
 int ExWindow::init(const wchar* name, int w, int h) {
-    ExWidget::init(NULL/*parent*/, name, &ExArea(0, 0, w, h));
+    ExWidget::init(NULL/*parent*/, name, &ExRect(0, 0, w, h));
     renderFlags |= Ex_RenderRebuild;
     return 0;
 }
@@ -416,7 +416,7 @@ proc_enter:
         }
         logdra0(L"mergeDamage: %s [%d,%d-%dx%d] damage:%d merged:%d\n", w->getName(),
                 w->extent.l, w->extent.t, w->extent.width(), w->extent.height(),
-                w->damageRgn.n_rects, mergedRgn.n_rects);
+                w->damageRgn.n_boxes, mergedRgn.n_boxes);
         // proc done
 
         // back to front
@@ -433,7 +433,7 @@ next_child:
                     w->extent.l, w->extent.t, w->extent.width(), w->extent.height());
             logdraw(L"mergeDamage: %s [%d,%d-%dx%d] damage:%d merged:%d\n", w->getName(),
                     w->extent.l, w->extent.t, w->extent.width(), w->extent.height(),
-                    w->damageRgn.n_rects, mergedRgn.n_rects);
+                    w->damageRgn.n_boxes, mergedRgn.n_boxes);
         }
 proc_leave:
         if (w == this ||
@@ -479,7 +479,7 @@ int ExWindow::render() {
     if (!summarize())
         return 0;
     int call_cnt = 0;
-    logdraw(L"%s(%s) enter update:%d\n", __funcw__, getName(), mergedRgn.n_rects);
+    logdraw(L"%s(%s) enter update:%d\n", __funcw__, getName(), mergedRgn.n_boxes);
     ExWidget* w = this;
     ExWidget* c;
     do { // back to front iterator
@@ -495,7 +495,7 @@ proc_enter:
             }
             if (!w->damageRgn.empty()) {
                 logdraw(L"render: %s visible:%d damage:%d\n", w->getName(),
-                        w->visibleRgn.n_rects, w->damageRgn.n_rects);
+                        w->visibleRgn.n_boxes, w->damageRgn.n_boxes);
                 w->drawFunc(canvas, w, &w->damageRgn);
 #ifdef DEBUG
                 if (exDrawFuncTrap)
@@ -548,7 +548,7 @@ void ExWindow::onExFlush(ExWindow* window, const ExRegion* updateRgn) {
 
     HDC hdc = GetDC(hwnd);
     HRGN hrgn = ExRegionToGdi(hdc, updateRgn);
-    ExRect clip(updateRgn->extent);
+    const RECT* clip = (const RECT*)&updateRgn->extent;
 
     BITMAPINFO bmi;
     memset(&bmi, 0, sizeof(BITMAPINFO));
@@ -577,7 +577,7 @@ void ExWindow::onWmPaint(ExWindow* window, const ExRegion* updateRgn) {
     PAINTSTRUCT ps;
     HDC hdc = BeginPaint(hwnd, &ps);
 #if 1 // use gdi ClipRgn
-    ExRect clip(ps.rcPaint);
+    ExBox clip(ps.rcPaint);
     HRGN hrgn = CreateRectRgnIndirect(&ps.rcPaint);
     SelectClipRgn(hdc, hrgn);
     // rcPaint : Specifies a RECT structure that specifies the upper left and lower right corners
@@ -672,8 +672,8 @@ int ExWindow::basicWndProc(ExCbInfo* cbinfo) {
                 if (height < 360)
                     height = 360;
                 ExSize sz(width, height);
-                if (this->area.size != sz) {
-                    ExArea ar(this->area.pos, sz);
+                if (this->area.sz != sz) {
+                    ExRect ar(this->area.pt, sz);
                     layout(ar);
                 }
             }

@@ -106,25 +106,26 @@ void WgtMenu::onDrawMenuPopBkgd(ExCanvas* canvas, const Popup* popup, const ExRe
 void WgtMenu::onDrawMenuPop(ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage) {
     ExCairo cr(canvas, damage);
     ExCairo::Rect rc(widget->getRect());
+    ExCairo::Point p2(rc.p2());
 
     Menu* menu = (Menu*)widget->getData();
     bool isFocused = widget->getFlags(Ex_Focused);
     for (Menu* im = focused; im->parent; im = im->parent)
         if (im->view == widget) isFocused = true;
     if (menu->flag & Menu::Separator) {
-        ExCairo::Point pt(rc.l + 36.f, rc.t + menuHeight + 1.5f);
+        ExCairo::Point p1(rc.x + 36.f, rc.y + menuHeight + 1.5f);
         cairo_set_source_rgb(cr, 1.f, 1.f, 1.f);
-        cairo_move_to(cr, pt.x, pt.y);
-        cairo_line_to(cr, rc.r, pt.y);
+        cairo_move_to(cr, p1.x, p1.y);
+        cairo_line_to(cr, p2.x, p1.y);
         cairo_set_line_width(cr, .2f);
         cairo_stroke(cr);
     }
     if (menu->child) {
         floatt h2, x1, x2, yc;
         h2 = menuHeight / 4.5f;
-        x1 = rc.r - menuHeight * .7f;
+        x1 = rc.x - menuHeight * .7f;
         x2 = x1 + h2;
-        yc = rc.t + menuHeight / 2.f;
+        yc = rc.y + menuHeight / 2.f;
         cairo_set_source_rgb(cr, 1.f, 1.f, 1.f);
         cairo_move_to(cr, x1, yc - h2 * .6f);
         cairo_line_to(cr, x1, yc + h2 * .6f);
@@ -133,12 +134,12 @@ void WgtMenu::onDrawMenuPop(ExCanvas* canvas, const ExWidget* widget, const ExRe
         cairo_set_line_width(cr, 1.f);
         cairo_stroke(cr);
     }
-    rc.b = rc.t + (floatt)menuHeight;
+    rc.h = (floatt)menuHeight;
     if (!(menu->flag & Menu::Disabled) &&
         isFocused) {
         cr.fill_rect_rgba(rc, ExCairo::Color(.5f));
     }
-    rc.l += 36.f;
+    rc.x += 36.f;
     ExCairo::Color tc;
     if (menu->flag & Menu::Disabled)
         tc.set(.5f, .5f, .5f);
@@ -176,7 +177,7 @@ void WgtMenu::onDrawMenuBar(ExCanvas* canvas, const ExWidget* widget, const ExRe
 }
 
 int WgtMenu::onLayoutHorz(ExWidget* widget, ExCbInfo* cbinfo) {
-    ExArea& horz = *(ExArea*)cbinfo->data;
+    ExRect& horz = *(ExRect*)cbinfo->data;
     Menu* menu = (Menu*)widget->getData();
     ExCairo::text_extent(window->canvas, 0, fontSize, menu->text, &menu->extents);
     int menu_width = (int)menu->extents.width + 36;
@@ -187,7 +188,7 @@ int WgtMenu::onLayoutHorz(ExWidget* widget, ExCbInfo* cbinfo) {
 }
 
 int WgtMenu::onLayoutVert(ExWidget* widget, ExCbInfo* cbinfo) {
-    ExArea& vert = *(ExArea*)cbinfo->data;
+    ExRect& vert = *(ExRect*)cbinfo->data;
     Menu* menu = (Menu*)widget->getData();
     ExCairo::text_extent(window->canvas, 0, fontSize, menu->text, &menu->extents);
     int menu_width = (int)menu->extents.width + 120;
@@ -321,8 +322,8 @@ int WgtMenu::onFilter(ExWidget* widget, ExCbInfo* cbinfo) {
 }
 
 int WgtMenu::onLayout(ExWidget* widget, ExCbInfo* cbinfo) {
-    ExArea& expand = *(ExArea*)cbinfo->data;
-    ExArea horz(1, 1, area.w - 2, area.h - 2);
+    ExRect& expand = *(ExRect*)cbinfo->data;
+    ExRect horz(1, 1, area.w - 2, area.h - 2);
     for (int n = 0; n < rootMenu.size; n++) {
         menuBar[n].layout(horz);
     }
@@ -443,11 +444,11 @@ void WgtMenu::showPopup(Menu* link) {
         delete pop;
     }
     if (link && link->size != 0) {
-        ExRect rc = link->view->getRect();
+        const ExBox& bx = link->view->getDeploy();
         if (popList.empty())
-            popList.push_front(popup(rc.l, rc.b, link));
+            popList.push_front(popup(bx.l, bx.b, link));
         else
-            popList.push_front(popup(rc.r, rc.t, link));
+            popList.push_front(popup(bx.r, bx.t, link));
     }
     menuFocus(link);
 }
@@ -457,10 +458,10 @@ WgtMenu::Popup* WgtMenu::popup(int x, int y, Menu* link) {
     pop->init(window);
     pop->link = link;
     pop->ani = 0.f;
-    pop->layout(ExArea(x, y, 100, 30));
+    pop->layout(ExRect(x, y, 100, 30));
     pop->menuPop = new ExWidget[link->size];
     Menu* menu = link->child;
-    ExArea vert(1, 1, 1, 1);
+    ExRect vert(1, 1, 1, 1);
     for (int n = 0; n < link->size; n++) {
         menu->view = &pop->menuPop[n];
         pop->menuPop[n].setData(menu);

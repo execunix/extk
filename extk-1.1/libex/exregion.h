@@ -30,66 +30,66 @@ ExRegion* ExRegionPolygon(const ExPoint* pts, int n_pts, ExFillRule fillrule);
 //
 struct ExRegion {
     short size;
-    short n_rects;
-    ExRect* rects;
-    ExRect extent;
+    short n_boxes;
+    ExBox* boxes;
+    ExBox extent;
 
     /**
      * ~ExRegion()
      * Destroys a #ExRegion.
      */
     ~ExRegion() {
-        if (rects != &extent)
-            free(rects);
+        if (boxes != &extent)
+            free(boxes);
     }
     /**
      * ExRegion()
      * Creates a new empty #ExRegion.
      */
     explicit ExRegion()
-        : size(1), n_rects(0), rects(&extent), extent(0) {}
+        : size(1), n_boxes(0), boxes(&extent), extent(0) {}
     /**
-     * ExRegion(const ExRect& rect)
-     * Creates a new region containing the area @rect.
+     * ExRegion(const ExBox& box)
+     * Creates a new region containing the area @box.
      */
-    explicit ExRegion(const ExRect& rect)
-        : size(1), n_rects(0), rects(&extent), extent(rect) {
-        if (!rect.empty())
-            n_rects = 1;
+    explicit ExRegion(const ExBox& box)
+        : size(1), n_boxes(0), boxes(&extent), extent(box) {
+        if (!box.empty())
+            n_boxes = 1;
     }
     /**
      * ExRegion(const ExRegion& region)
      * Copies @region, creating an identical new region.
      */
     explicit ExRegion(const ExRegion& srcrgn)
-        : size(1), n_rects(0), rects(&extent) {
+        : size(1), n_boxes(0), boxes(&extent) {
         copy(srcrgn);
     }
 
     ExRegion& operator = (const ExRegion& srcrgn) { copy(srcrgn); return *this; }
-    //operator int () const { return n_rects; }
+    //operator int () const { return n_boxes; }
 
     void clear();
     void copy(const ExRegion& srcrgn);
     /**
-     * ExRegion::getClipRect(ExRect& rect)
-     * @rect: return location for the clipbox
+     * ExRegion::getClipRect(ExBox& box)
+     * @box: return location for the clipbox
      * Obtains the smallest rectangle which includes the entire #ExRegion.
      */
-    void getClipRect(ExRect& rect) const {
-        rect = extent;
+    void getClipRect(ExBox& box) const {
+        box = extent;
     }
     /**
-     * ExRegion::getRects(ExRect** rects, int* n_rects):
-     * @rects: return location for an array of rectangles
-     * @n_rects: length of returned array
+     * ExRegion::getRects(ExBox** boxes, int* n_boxes):
+     * @boxes: return location for an array of rectangles
+     * @n_boxes: length of returned array
      * Obtains the area covered by the region as a list of rectangles.
      * The array returned in @rectangles must be freed with free().
      */
-    void getRects(ExRect** rects, int* n_rects) const;
-    void setRect(const ExRect& rect);
+    void getRects(ExBox** boxes, int* n_boxes) const;
+    void setRect(const ExBox& box);
     void setEmpty() {
-        n_rects = 0;
+        n_boxes = 0;
     }
     /**
      * ExRegion::move(int dx, int dy)
@@ -120,14 +120,14 @@ struct ExRegion {
      */
     void combine(const ExRegion& srcrgn);
     /**
-     * ExRegion::combine(const ExRect& rect)
-     * @rect: a #ExRect.
-     * Sets the area of @this to the union of the areas of @this and @rect.
-     * The resulting area is the set of pixels contained in either @this or @rect.
+     * ExRegion::combine(const ExBox& box)
+     * @box: a #ExBox.
+     * Sets the area of @this to the union of the areas of @this and @box.
+     * The resulting area is the set of pixels contained in either @this or @box.
      */
-    void combine(const ExRect& rect) {
-        if (!rect.empty())
-            combine(ExRegion(rect));
+    void combine(const ExBox& box) {
+        if (!box.empty())
+            combine(ExRegion(box));
     }
     /**
      * ExRegion::intersect(const ExRegion& srcrgn)
@@ -136,8 +136,8 @@ struct ExRegion {
      * The resulting area is the set of pixels contained in both @this and @srcrgn.
      */
     void intersect(const ExRegion& srcrgn);
-    void intersect(const ExRect& rect) {
-        rect.empty() ? setEmpty() : intersect(ExRegion(rect));
+    void intersect(const ExBox& box) {
+        box.empty() ? setEmpty() : intersect(ExRegion(box));
     }
     /**
      * ExRegion::subtract(const ExRegion& srcrgn)
@@ -146,9 +146,9 @@ struct ExRegion {
      * area is the set of pixels contained in @this but not in @srcrgn.
      */
     void subtract(const ExRegion& srcrgn);
-    void subtract(const ExRect& rect) {
-        if (!rect.empty())
-            subtract(ExRegion(rect));
+    void subtract(const ExBox& box) {
+        if (!box.empty())
+            subtract(ExRegion(box));
     }
     /**
      * ExRegion::xor(const ExRegion& srcrgn)
@@ -162,7 +162,7 @@ struct ExRegion {
      * Finds out if the #ExRegion is empty.
      * Returns: %TRUE if @region is empty.
      */
-    bool empty() const { return (n_rects == 0); }
+    bool empty() const { return (n_boxes == 0); }
     /**
      * ExRegion::equal(const ExRegion& rgn)
      * Finds out if the two regions are the same.
@@ -170,7 +170,7 @@ struct ExRegion {
      */
     bool equal(const ExRegion& rgn) const;
     bool operator == (const ExRegion& rgn) const { return equal(rgn); }
-    bool operator == (const ExRect& rect) const { return (n_rects == 1 && extent == rect); }
+    bool operator == (const ExBox& box) const { return (n_boxes == 1 && extent == box); }
     /**
      * ExRegion::contain(int x, int y)
      * @x: the x coordinate of a point
@@ -180,14 +180,14 @@ struct ExRegion {
      */
     bool contain(int x, int y) const;
     /**
-     * ExRegion::contain(const ExRect& rect)
-     * @rect: a #ExRect.
+     * ExRegion::contain(const ExBox& box)
+     * @box: a #ExBox.
      * Tests whether a rectangle is within a region.
      * Returns: %Ex_OverlapIn, %Ex_OverlapOut, or %Ex_OverlapPart,
      *   depending on whether the rectangle is inside, outside,
      *   or partly inside the #ExRegion, respectively.
      */
-    ExOverlap contain(const ExRect& rect) const;
+    ExOverlap contain(const ExBox& box) const;
     /**
      * ExRegion::enumSpansintersect()
      * @spans: an array of #ExSpan
@@ -198,10 +198,10 @@ struct ExRegion {
      * Calls a function on each span in the intersection of @this and @spans.
      */
     void enumSpansintersect(const ExSpan* spans,
-                        int           n_spans,
-                        bool          sorted,
-                        ExSpanFunc    spanfunc,
-                        void*         data);
+                            int           n_spans,
+                            bool          sorted,
+                            ExSpanFunc    spanfunc,
+                            void*         data);
 };
 
 inline void ExRegion:: xor(const ExRegion& srcrgn) {

@@ -16,18 +16,19 @@ static void STDCALL s_fill(void* data, ExCanvas* canvas, const ExWidget* widget,
     if (!(canvas && canvas->cr))
         return;
     ExCairo cr(canvas, damage);
-    ExCairo::Rect rc(widget->getRect());
+    //ExCairo::Rect rc(widget->getRect());
+    ExCairo::Box bx(widget->getDeploy());
 
-    //rc.l += 1.f;
-    //rc.t += 1.f;
-    //rc.r -= 1.f;
-    //rc.b -= 1.f;
+    //bx.l += 1.f;
+    //bx.t += 1.f;
+    //bx.r -= 1.f;
+    //bx.b -= 1.f;
 
     cairo_new_path(cr);
-    cairo_move_to(cr, rc.l, rc.t);
-    cairo_line_to(cr, rc.r, rc.t);
-    cairo_line_to(cr, rc.r, rc.b);
-    cairo_line_to(cr, rc.l, rc.b);
+    cairo_move_to(cr, bx.l, bx.t);
+    cairo_line_to(cr, bx.r, bx.t);
+    cairo_line_to(cr, bx.r, bx.b);
+    cairo_line_to(cr, bx.l, bx.b);
     cairo_close_path(cr);
 
     ExCairo::Color lc; // line color
@@ -45,8 +46,8 @@ static void STDCALL s_fill(void* data, ExCanvas* canvas, const ExWidget* widget,
     HDC hdc = GetDC(hwnd ? hwnd : GetDesktopWindow());
     COLORREF c = ((uint)widget) & 0xffffff;//RGB(0, 0, 128);
     HBRUSH hbr = CreateSolidBrush(c);
-    for (int i = 0; i < damage->n_rects; i++)
-        FillRect(hdc, damage->rects[i], hbr);
+    for (int i = 0; i < damage->n_boxes; i++)
+        FillRect(hdc, damage->boxes[i], hbr);
     DeleteObject(hbr);
 #endif
 }
@@ -65,7 +66,7 @@ ExWidget::ExWidget()
     , broPrev(NULL)
     , childHead(NULL)
     , name(NULL)
-    , rect(0)
+    , deploy(0)
     , extent(0)
     , select(0)
     , visibleRgn()
@@ -211,7 +212,15 @@ void ExWidget::setName(const wchar* text) {
     name = exwcsdup(text);
 }
 
-int ExWidget::init(ExWidget* parent, const wchar* name, const ExArea* area) {
+ExRect& ExWidget::getRect(ExRect& rc) const {
+    rc.x = deploy.l;
+    rc.y = deploy.t;
+    rc.w = deploy.r - deploy.l;
+    rc.h = deploy.b - deploy.t;
+    return rc;
+}
+
+int ExWidget::init(ExWidget* parent, const wchar* name, const ExRect* area) {
     this->setName(name);
     if (parent) parent->attachTail(this);
     if (area) this->area = *area;
@@ -224,7 +233,7 @@ int ExWidget::init(ExWidget* parent, const wchar* name, const ExArea* area) {
 }
 
 ExWidget* // static
-ExWidget::create(ExWidget* parent, const wchar* name, const ExArea* area) {
+ExWidget::create(ExWidget* parent, const wchar* name, const ExRect* area) {
     ExWidget* widget = new ExWidget();
     assert(widget != NULL);
     widget->flags |= Ex_FreeMemory;
@@ -374,21 +383,21 @@ int ExWidget::vanish(ExWindow* window) {
     return 0;
 }
 
-int ExWidget::layout(ExArea& ar) {
+int ExWidget::layout(ExRect& ar) {
     // Layout is to determine its own area relative to the parent,
     // regardless of whether it is visible or not.
     area = ar;
 
     if (parent == NULL) {
-        rect.l = 0;
-        rect.t = 0;
-        rect.r = area.w;
-        rect.b = area.h;
+        deploy.l = 0;
+        deploy.t = 0;
+        deploy.r = area.w;
+        deploy.b = area.h;
     } else {
-        rect.l = area.x + parent->rect.l;
-        rect.t = area.y + parent->rect.t;
-        rect.r = area.w + rect.l;
-        rect.b = area.h + rect.t;
+        deploy.l = area.x + parent->deploy.l;
+        deploy.t = area.y + parent->deploy.t;
+        deploy.r = area.w + deploy.l;
+        deploy.b = area.h + deploy.t;
     }
     invokeCallback(Ex_CbLayout, &ExCbInfo(Ex_CbLayout, Ex_LayoutInit, NULL, &ar));
 
@@ -413,7 +422,7 @@ int ExWidget::damage() {
     return 0;
 }
 
-int ExWidget::damage(const ExRect& clip) {
+int ExWidget::damage(const ExBox& clip) {
     if (!getFlags(Ex_Visible))
         return -1;
     if (getFlags(Ex_DamageFamily | Ex_ResetExtent | Ex_ResetRegion))
@@ -445,24 +454,24 @@ bool ExWidget::calcExtent() {
     visibleRgn.setEmpty();
     damageRgn.setEmpty();
     if (parent == NULL) {
-        rect.l = 0;
-        rect.t = 0;
-        rect.r = area.w;
-        rect.b = area.h;
+        deploy.l = 0;
+        deploy.t = 0;
+        deploy.r = area.w;
+        deploy.b = area.h;
     } else {
-        rect.l = area.x + parent->rect.l;
-        rect.t = area.y + parent->rect.t;
-        rect.r = area.w + rect.l;
-        rect.b = area.h + rect.t;
+        deploy.l = area.x + parent->deploy.l;
+        deploy.t = area.y + parent->deploy.t;
+        deploy.r = area.w + deploy.l;
+        deploy.b = area.h + deploy.t;
     }
-    extent = rect;
+    extent = deploy;
     if (!extent.valid())
         return false;
     if (parent && !extent.intersect(parent->extent))
         return false;
     flags |= Ex_ResetRegion; // mark as reset visibleRgn
     logdraw(L"extent: %s [%d,%d-%dx%d] [%d,%d-%dx%d]\n", getName(),
-            rect.l, rect.t, rect.width(), rect.height(),
+            deploy.l, deploy.t, deploy.width(), deploy.height(),
             extent.l, extent.t, extent.width(), extent.height());
     return true;
 }
@@ -483,7 +492,7 @@ ExWidget::calcOpaque(ExRegion& opaqueAcc) {
     flags &= ~Ex_ResetRegion;
     if (extent.empty()) {
         logdraw(L"opaque: %s extent empty visible:%d blind:%d\n", getName(),
-                visibleRgn.n_rects, opaqueAcc.n_rects);
+                visibleRgn.n_boxes, opaqueAcc.n_boxes);
         return;
     }
     visibleRgn.setRect(extent);
@@ -494,15 +503,15 @@ ExWidget::calcOpaque(ExRegion& opaqueAcc) {
         opaqueAcc.combine(extent);
     } else if (!opaqueRgn.empty()) {
         ExRegion clipRgn(extent);
-        clipRgn.move(-rect.ul);
+        clipRgn.move(-deploy.ul);
         clipRgn.intersect(opaqueRgn);
-        clipRgn.move(rect.ul);
+        clipRgn.move(deploy.ul);
         opaqueAcc.combine(clipRgn);
     }
     logdraw(L"opaque: %s [%d,%d-%dx%d] visible:%d blind:%d\n", getName(),
             visibleRgn.extent.l, visibleRgn.extent.t,
             visibleRgn.extent.width(), visibleRgn.extent.height(),
-            visibleRgn.n_rects, opaqueAcc.n_rects);
+            visibleRgn.n_boxes, opaqueAcc.n_boxes);
 }
 
 ExWidget* ExWidget::getPointOwner(const ExPoint& pt) {

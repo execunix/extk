@@ -113,8 +113,8 @@ void cb_test() {
 #ifdef DEBUG
 void exwindow_apitest() {
     ExWindow* wnd0 = ExWindow::create(L"TopWindow", 800, 480);
-    ExWidget* wgt1 = ExWidget::create(wnd0, L"Child1", &ExArea(100, 100, 100, 40));
-    ExWidget* wgt2 = ExWidget::create(wnd0, L"Child2", &ExArea(200, 200, 100, 40));
+    ExWidget* wgt1 = ExWidget::create(wnd0, L"Child1", &ExRect(100, 100, 100, 40));
+    ExWidget* wgt2 = ExWidget::create(wnd0, L"Child2", &ExRect(200, 200, 100, 40));
     wnd0->realize();
     wnd0->destroy();
 
@@ -122,8 +122,8 @@ void exwindow_apitest() {
     ExWidget* ch1 = new ExWidget;
     ExWidget* ch2 = new ExWidget;
     top->init(L"Top", 800, 480);
-    ch1->init(top, L"Ch1", &ExArea(100, 100, 100, 40));
-    ch2->init(top, L"Ch2", &ExArea(200, 200, 100, 40));
+    ch1->init(top, L"Ch1", &ExRect(100, 100, 100, 40));
+    ch2->init(top, L"Ch2", &ExRect(200, 200, 100, 40));
     ExWidget* backWgt = top->getChildHead();
     top->destroy();
     delete ch2;

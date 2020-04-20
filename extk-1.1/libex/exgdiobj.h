@@ -68,23 +68,23 @@ public:
 	virtual void BltEnd();
 public:
 	friend int ExBmpBlt(HDC dhdc, int dx, int dy, int dw, int dh, ExGdiBmp* sbmp, int sx, int sy, int sw, int sh);
-	friend int ExBmpBlt(HDC dhdc, const ExArea& da, ExGdiBmp* sbmp, const ExArea& sa);
+	friend int ExBmpBlt(HDC dhdc, const ExRect& da, ExGdiBmp* sbmp, const ExRect& sa);
 	friend int ExBmpBlt(HDC dhdc, int dx, int dy, int w, int h, ExGdiBmp* sbmp, int sx, int sy);
 	friend int ExBmpBlt(HDC dhdc, int dx, int dy, ExGdiBmp* sbmp);
-	friend int ExBmpBlt(HDC dhdc, const ExArea& da, ExGdiBmp* sbmp, int sx, int sy);
+	friend int ExBmpBlt(HDC dhdc, const ExRect& da, ExGdiBmp* sbmp, int sx, int sy);
 	friend int ExBmpBlt(HDC dhdc, const ExPoint& dp, ExGdiBmp* sbmp);
 public:
 	Ex_DECLARE_TYPEINFO(ExGdiBmp, ExObject);
 };
 
 inline int
-ExBmpBlt(HDC dhdc, const ExArea& da, ExGdiBmp* sbmp, const ExArea& sa)
+ExBmpBlt(HDC dhdc, const ExRect& da, ExGdiBmp* sbmp, const ExRect& sa)
 {
 	return ExBmpBlt(dhdc, da.x, da.y, da.w, da.h, sbmp, sa.x, sa.y, sa.w, sa.h);
 }
 
 inline int
-ExBmpBlt(HDC dhdc, const ExArea& da, ExGdiBmp* sbmp, int sx, int sy)
+ExBmpBlt(HDC dhdc, const ExRect& da, ExGdiBmp* sbmp, int sx, int sy)
 {
 	return ExBmpBlt(dhdc, da.x, da.y, da.w, da.h, sbmp, sx, sy);
 }

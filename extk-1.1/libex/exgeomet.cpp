@@ -6,52 +6,52 @@
 #include <exgeomet.h>
 
 bool /*static*/
-ExRect::isIntersect(const ExRect& r1, const ExRect& r2) {
-    return (!r1.empty() && !r2.empty() &&
-            r1.l < r2.r && r2.l < r1.r &&
-            r1.t < r2.b && r2.t < r1.b);
+ExBox::isIntersect(const ExBox& b1, const ExBox& b2) {
+    return (!b1.empty() && !b2.empty() &&
+            b1.l < b2.r && b2.l < b1.r &&
+            b1.t < b2.b && b2.t < b1.b);
 }
 
-bool ExRect::intersect(const ExRect& rc) {
-    if (!empty() && !rc.empty() &&
-        l < rc.r && rc.l < r &&
-        t < rc.b && rc.t < b) {
-        if (l < rc.l) l = rc.l;
-        if (t < rc.t) t = rc.t;
-        if (r > rc.r) r = rc.r;
-        if (b > rc.b) b = rc.b;
+bool ExBox::intersect(const ExBox& bx) {
+    if (!empty() && !bx.empty() &&
+        l < bx.r && bx.l < r &&
+        t < bx.b && bx.t < b) {
+        if (l < bx.l) l = bx.l;
+        if (t < bx.t) t = bx.t;
+        if (r > bx.r) r = bx.r;
+        if (b > bx.b) b = bx.b;
         return true;
     }
     r = l;
     return false;
 }
 
-bool ExRect::intersect(const ExRect& r1, const ExRect& r2) {
-    if (!r1.empty() && !r2.empty() &&
-        r1.l < r2.r && r2.l < r1.r &&
-        r1.t < r2.b && r2.t < r1.b) {
-        l = r1.l > r2.l ? r1.l : r2.l;
-        t = r1.t > r2.t ? r1.t : r2.t;
-        r = r1.r < r2.r ? r1.r : r2.r;
-        b = r1.b < r2.b ? r1.b : r2.b;
+bool ExBox::intersect(const ExBox& b1, const ExBox& b2) {
+    if (!b1.empty() && !b2.empty() &&
+        b1.l < b2.r && b2.l < b1.r &&
+        b1.t < b2.b && b2.t < b1.b) {
+        l = b1.l > b2.l ? b1.l : b2.l;
+        t = b1.t > b2.t ? b1.t : b2.t;
+        r = b1.r < b2.r ? b1.r : b2.r;
+        b = b1.b < b2.b ? b1.b : b2.b;
         return true;
     }
     r = l;
     return false;
 }
 
-void ExRect::join(const ExRect& rc) {
-    if (rc.empty())
+void ExBox::join(const ExBox& bx) {
+    if (bx.empty())
         return;
     if (empty()) {
-        l = rc.l;
-        t = rc.t;
-        r = rc.r;
-        b = rc.b;
+        l = bx.l;
+        t = bx.t;
+        r = bx.r;
+        b = bx.b;
     } else {
-        if (l > rc.l) l = rc.l;
-        if (t > rc.t) t = rc.t;
-        if (r < rc.r) r = rc.r;
-        if (b < rc.b) b = rc.b;
+        if (l > bx.l) l = bx.l;
+        if (t > bx.t) t = bx.t;
+        if (r < bx.r) r = bx.r;
+        if (b < bx.b) b = bx.b;
     }
 }

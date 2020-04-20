@@ -114,16 +114,16 @@ protected:
     }
     wchar*      name;
     // ExLayoutInfo
-    ExRect      rect;       // read-only
-    ExRect      extent;     // read-only : intersect with parent
-    ExRect      select;     // read-only
+    ExBox       deploy;     // read-only
+    ExBox       extent;     // read-only : intersect with parent
+    ExBox       select;     // read-only
     ExRegion    visibleRgn;
     ExRegion    opaqueRgn;
     ExRegion    damageRgn;
     int         flags;      // Common flags used by all widgets.
     void*       data;       // This resource is used internally by FrameWorks as well as by compound widgets.
 public:
-    ExArea      area;
+    ExRect      area;
     int         id;         // identity, index, etc.
     int         value;      // estimate, evaluate, etc.
     int         shape;      // flags for the widget shape
@@ -155,8 +155,8 @@ public:
     void dumpBackToFront(ExWidget* end = NULL);
     void dumpFrontToBack(ExWidget* end = NULL);
 
-    int init(ExWidget* parent, const wchar* name = NULL, const ExArea* area = NULL);
-    static ExWidget* create(ExWidget* parent, const wchar* name = NULL, const ExArea* area = NULL);
+    int init(ExWidget* parent, const wchar* name = NULL, const ExRect* area = NULL);
+    static ExWidget* create(ExWidget* parent, const wchar* name = NULL, const ExRect* area = NULL);
     virtual int destroy(); // the widget family hierarchy marks Ex_Destroyed, broadcast Ex_CbDestroyed
 #if 1 // deprecated - traditional legacy compatibility.
     virtual int realize(); // visible widgets only, marks Ex_Realized and broadcast Ex_CbRealized.
@@ -178,9 +178,9 @@ public:
     virtual int setVisible(bool show);
     bool isVisible();
     int vanish(ExWindow* window);
-    int layout(ExArea& ar);
+    int layout(ExRect& ar);
     int damage();
-    int damage(const ExRect& clip);
+    int damage(const ExBox& clip);
     bool isOpaque() const { return getFlags(Ex_Opaque) || !opaqueRgn.empty(); }
     bool isExtentContainPoint(const ExPoint& pt);
     bool isSelectContainPoint(const ExPoint& pt);
@@ -195,14 +195,15 @@ public:
     void         setName(const wchar* text);
     void* getData() const { return data; }
     void  setData(void* p) { data = p; }
-    const ExRect& getRect() const { return rect; }
-    const ExRect& getExtent() const { return extent; }
+    ExRect& getRect(ExRect& rc = ExRect()) const;
+    const ExBox& getDeploy() const { return deploy; }
+    const ExBox& getExtent() const { return extent; }
     void setOpaqueRegion(const ExRegion& op);
     void setOpaque(bool set);
-    void setSelect(const ExRect& rect) { select = rect; }
-    void setArea(const ExArea& area) { this->area = area; resetArea(); }
-    void setSize(const ExSize& size) { area.size = size; resetArea(); }
-    void setPos(const ExPoint& pos) { area.pos = pos; resetArea(); }
+    void setSelect(const ExBox& box) { select = box; }
+    void setArea(const ExRect& area) { this->area = area; resetArea(); }
+    void setSize(const ExSize& size) { area.sz = size; resetArea(); }
+    void setPos(const ExPoint& pos) { area.pt = pos; resetArea(); }
     void toBack() { if (parent) parent->attachHead(this); }
     void toFront() { if (parent) parent->attachTail(this); }
 public: // widget flags operation
@@ -273,8 +274,8 @@ inline bool ExWidget::isExtentContainPoint(const ExPoint& pt) {
 
 inline bool ExWidget::isSelectContainPoint(const ExPoint& pt) {
     return (!extent.empty() &&
-            ExRect(extent.l - select.l, extent.t - select.t,
-                   extent.r + select.r, extent.b + select.b).contain(pt));
+            ExBox(extent.l - select.l, extent.t - select.t,
+                  extent.r + select.r, extent.b + select.b).contain(pt));
 }
 
 /**

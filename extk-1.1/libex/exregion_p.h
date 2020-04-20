@@ -81,29 +81,29 @@ SOFTWARE.
             (id_rgn)->extent.y2 = (r)->y2; \
     }
 
-#define GROW_REGION(rgn, n_rects) { \
-        if ((n_rects) == 0) { \
-            if ((rgn)->rects != &(rgn)->extent) { \
-                free((rgn)->rects); \
-                (rgn)->rects = &(rgn)->extent; \
+#define GROW_REGION(rgn, n_boxes) { \
+        if ((n_boxes) == 0) { \
+            if ((rgn)->boxes != &(rgn)->extent) { \
+                free((rgn)->boxes); \
+                (rgn)->boxes = &(rgn)->extent; \
             } \
         } else \
-        if ((rgn)->rects == &(rgn)->extent) { \
-            (rgn)->rects = (ExRect*)malloc(sizeof(ExRect) * n_rects); \
-            (rgn)->rects[0] = (rgn)->extent; \
+        if ((rgn)->boxes == &(rgn)->extent) { \
+            (rgn)->boxes = (ExBox*)malloc(sizeof(ExBox) * n_boxes); \
+            (rgn)->boxes[0] = (rgn)->extent; \
         } else { \
-            (rgn)->rects = (ExRect*)realloc((rgn)->rects, sizeof(ExRect) * n_rects); \
+            (rgn)->boxes = (ExBox*)realloc((rgn)->boxes, sizeof(ExBox) * n_boxes); \
         } \
-        (rgn)->size = (n_rects); \
+        (rgn)->size = (n_boxes); \
     }
 
 /*
  *   Check to see if there is enough memory in the present region.
  */
-#define MEM_CHECK(rgn, rect, firstrect) { \
-        if ((rgn)->n_rects >= ((rgn)->size - 1)) { \
+#define MEM_CHECK(rgn, box, firstrect) { \
+        if ((rgn)->n_boxes >= ((rgn)->size - 1)) { \
             GROW_REGION(rgn, 4*(rgn)->size); \
-            (rect) = &(firstrect)[(rgn)->n_rects]; \
+            (box) = &(firstrect)[(rgn)->n_boxes]; \
         } \
     }
 
@@ -111,7 +111,7 @@ SOFTWARE.
  *  or subsumes the new rectangle to add.
  */
 #define CHECK_PREV(rgn, r, rx1, ry1, rx2, ry2) \
-        (!(((rgn)->n_rects > 0) && \
+        (!(((rgn)->n_boxes > 0) && \
            ((r-1)->y1 == (ry1)) && \
            ((r-1)->y2 == (ry2)) && \
            ((r-1)->x1 <= (rx1)) && \
@@ -126,7 +126,7 @@ SOFTWARE.
             (r)->x2 = (rx2); \
             (r)->y2 = (ry2); \
             EXTENTS((r), (rgn)); \
-            (rgn)->n_rects++; \
+            (rgn)->n_boxes++; \
             (r)++; \
         } \
     }
@@ -139,14 +139,14 @@ SOFTWARE.
             (r)->y1 = (ry1); \
             (r)->x2 = (rx2); \
             (r)->y2 = (ry2); \
-            (rgn)->n_rects++; \
+            (rgn)->n_boxes++; \
             (r)++; \
         } \
     }
 
-#define EMPTY_REGION(rgn) rgn->n_rects = 0
+#define EMPTY_REGION(rgn) rgn->n_boxes = 0
 
-#define REGION_NOT_EMPTY(rgn) rgn->n_rects
+#define REGION_NOT_EMPTY(rgn) rgn->n_boxes
 
 #define IN_BOX(r, x, y) \
         ((((r).x2 > x)) && \

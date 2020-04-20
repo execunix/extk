@@ -196,13 +196,13 @@ public:
         bits = NULL; crs = NULL;
         chroma = 0;
     }
-    void fillRectAlphaEx(const ExRect* rect, uint8 alpha, uint8 a_out);
-    void fillRectAlpha(const ExRect* rect, uint8 alpha);
-    void fillRectRgbEx(const ExRect* rect, uint32 rgb, uint32 rgb_out);
-    void fillRectRgb(const ExRect* rect, uint32 rgb);
-    void fillRectEx(const ExRect* rect, uint32 color, uint32 c_out);
-    void fillRect(const ExRect* rect, uint32 color);
-    void drawRect(const ExRect* rect, uint32 color);
+    void fillBoxAlphaEx(const ExBox* box, uint8 alpha, uint8 a_out);
+    void fillBoxAlpha(const ExBox* box, uint8 alpha);
+    void fillBoxRgbEx(const ExBox* box, uint32 rgb, uint32 rgb_out);
+    void fillBoxRgb(const ExBox* box, uint32 rgb);
+    void fillBoxEx(const ExBox* box, uint32 color, uint32 c_out);
+    void fillBox(const ExBox* box, uint32 color);
+    void drawBox(const ExBox* box, uint32 color);
     void blit(int dx, int dy, int w, int h, const ExImage* srcimg, int sx, int sy) {
         Blit(this, dx, dy, w, h, srcimg, sx, sy);
     }

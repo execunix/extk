@@ -55,7 +55,7 @@ int ExCanvas::init(ExWindow* window, ExSize* sz) {
         FT_Init_FreeType(&ftLib))
         dprint1(L"FT_Init_FreeType fail.");
     if (sz == NULL)
-        sz = window ? &wnd->area.size : &ExApp::smSize;
+        sz = window ? &wnd->area.sz : &ExApp::smSize;
     return createMemGC(sz->w, sz->h);
 }
 
@@ -141,12 +141,19 @@ ExRegionToGdi(HDC hdc, const ExRegion* srcrgn)
 {
     if (srcrgn->empty())
         return NULL;
-    HRGN hrgn = CreateRectRgnIndirect(srcrgn->rects[0]);
-    for (int i = 1; i < srcrgn->n_rects; i++) {
-        HRGN tmp_rgn = CreateRectRgnIndirect(srcrgn->rects[i]);
+#if 0
+    const RECT* lprect = (const RECT*)&srcrgn->extent;
+    HRGN hrgn = CreateRectRgnIndirect(lprect);
+#else
+    const RECT* lprect = (const RECT*)&srcrgn->boxes[0];
+    HRGN hrgn = CreateRectRgnIndirect(lprect);
+    for (int i = 1; i < srcrgn->n_boxes; i++) {
+        lprect = (const RECT*)&srcrgn->boxes[i];
+        HRGN tmp_rgn = CreateRectRgnIndirect(lprect);
         CombineRgn(hrgn, hrgn, tmp_rgn, RGN_OR);
         DeleteObject(tmp_rgn);
     }
+#endif
     SelectClipRgn(hdc, hrgn);
     return hrgn;
 }
@@ -156,10 +163,10 @@ ExRegionToPixman(pixman_region32_t* prgn, const ExRegion* srcrgn)
 {
     if (srcrgn->empty())
         return false;
-    // ExRect box segment are compatible with pixman_box32 { int32_t x1, y1, x2, y2; }
-//	pixman_box32_t* boxes = srcrgn->rects->box32();
-//	pixman_bool_t r = pixman_region32_init_rects(prgn, boxes, srcrgn->n_rects);
-    pixman_bool_t r = pixman_region32_init_rects(prgn, srcrgn->rects->box32(), srcrgn->n_rects);
+    // ExBox box segment are compatible with pixman_box32 { int32_t x1, y1, x2, y2; }
+//	pixman_box32_t* boxes = srcrgn->boxes->box32();
+//	pixman_bool_t r = pixman_region32_init_rects(prgn, boxes, srcrgn->n_boxes);
+    pixman_bool_t r = pixman_region32_init_rects(prgn, srcrgn->boxes->box32(), srcrgn->n_boxes);
     return r;
 }
 

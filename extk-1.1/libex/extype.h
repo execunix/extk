@@ -13,8 +13,8 @@
 //
 struct ExPoint;
 struct ExSize;
-struct ExArea;
 struct ExRect;
+struct ExBox;
 struct ExSpan;
 struct ExTile;
 struct ExRegion;

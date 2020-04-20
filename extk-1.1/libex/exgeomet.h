@@ -184,24 +184,24 @@ ExSize::operator -= (const ExPoint& pt) {
     return *this; // unreasonable - permit negative size
 }
 
-// ExArea
+// ExRect
 //
-struct ExArea {
+struct ExRect {
     union {
         struct { int x, y, w, h; }; // x, y, width, height
-        struct { ExPoint pos; ExSize size; };
+        struct { ExPoint pt; ExSize sz; };
     };
 
-    ExArea() {}
-    ExArea(int i) : x(i), y(i), w(i), h(i) {}
-    ExArea(int x, int y, int w, int h) : x(x), y(y), w(w), h(h) {}
-    ExArea(const ExPoint& pt, const ExSize& sz) : x(pt.x), y(pt.y), w(sz.w), h(sz.h) {}
-    ExArea(const ExArea& ar) : x(ar.x), y(ar.y), w(ar.w), h(ar.h) {}
-    ExArea(const ExRect& rc);// : x(rc.l), y(rc.t), w(rc.r - rc.l), h(rc.b - rc.t) {}
-    ExArea(const RECT& rc) : x(rc.left), y(rc.top), w(rc.right - rc.left), h(rc.bottom - rc.top) {}
-    ExArea& operator = (const ExArea& ar) { x = ar.x; y = ar.y; w = ar.w; h = ar.h; return *this; }
-    ExArea& operator = (const ExRect& rc);
-    ExArea& operator = (const RECT& rc);
+    ExRect() {}
+    ExRect(int i) : x(i), y(i), w(i), h(i) {}
+    ExRect(int x, int y, int w, int h) : x(x), y(y), w(w), h(h) {}
+    ExRect(const ExPoint& pt, const ExSize& sz) : x(pt.x), y(pt.y), w(sz.w), h(sz.h) {}
+    ExRect(const ExRect& rc) : x(rc.x), y(rc.y), w(rc.w), h(rc.h) {}
+    ExRect(const ExBox& bx);// : x(bx.l), y(bx.t), w(bx.r - bx.l), h(bx.b - bx.t) {}
+    ExRect(const RECT& rc) : x(rc.left), y(rc.top), w(rc.right - rc.left), h(rc.bottom - rc.top) {}
+    ExRect& operator = (const ExRect& rc) { x = rc.x; y = rc.y; w = rc.w; h = rc.h; return *this; }
+    ExRect& operator = (const ExBox& bx);
+    ExRect& operator = (const RECT& rc);
 
     int left() const { return x; }
     int top() const { return y; }
@@ -222,40 +222,35 @@ struct ExArea {
     void set(const ExPoint& pt, const ExSize& sz) { x = pt.x; y = pt.y; w = sz.w; h = sz.h; }
     bool valid() const { return (0 < w && 0 < h); }
     bool empty() const { return !valid(); }
-    bool equal(int x, int y, int w, int h) const { return operator == (ExArea(x, y, w, h)); }
-    bool operator == (const ExArea& ar) const { return (x == ar.x && y == ar.y && w == ar.w && h == ar.h); }
-    bool operator != (const ExArea& ar) const { return (x != ar.x || y != ar.y || w != ar.w || h != ar.h); }
-    operator RECT* () const { return (RECT*)this; }
-    RECT& ToArea(RECT& rc) const { rc.left = x; rc.top = y; rc.right = w; rc.bottom = h; return rc; }
-    RECT ToArea() const { RECT rc; rc.left = x; rc.top = y; rc.right = w; rc.bottom = h; return rc; }
-    RECT& ToRect(RECT& rc) const { rc.left = x; rc.top = y; rc.right = x + w; rc.bottom = y + h; return rc; }
-    RECT ToRect() const { RECT rc; rc.left = x; rc.top = y; rc.right = x + w; rc.bottom = y + h; return rc; }
+    bool equal(int x, int y, int w, int h) const { return operator == (ExRect(x, y, w, h)); }
+    bool operator == (const ExRect& rc) const { return (x == rc.x && y == rc.y && w == rc.w && h == rc.h); }
+    bool operator != (const ExRect& rc) const { return (x != rc.x || y != rc.y || w != rc.w || h != rc.h); }
 
     bool contain(const ExPoint& pt) const;
-    bool contain(const ExArea& ar) const;
+    bool contain(const ExRect& rc) const;
     bool contain(int x, int y) const { return contain(ExPoint(x, y)); }
     bool contain(int x, int y, int w, int h) const;
 };
 
-// ExRect
+// ExBox
 //
-struct ExRect {
+struct ExBox {
     union {
         struct { int l, t, r, b; }; // left, top, right, bottom
         struct { ExPoint ul, lr; }; // upper-left corner, lower-right corner
         struct { int x1, y1, x2, y2; }; // box segment for clip region
     };
 
-    ExRect() {}
-    ExRect(int i) : l(i), t(i), r(i), b(i) {}
-    ExRect(int l, int t, int r, int b) : l(l), t(t), r(r), b(b) {}
-    ExRect(const ExPoint& ul, const ExPoint& lr) : l(ul.x), t(ul.y), r(lr.x), b(lr.y) {}
-    ExRect(const ExArea& ar) : l(ar.x), t(ar.y), r(ar.right()), b(ar.bottom()) {}
-    ExRect(const ExRect& rc) : l(rc.l), t(rc.t), r(rc.r), b(rc.b) {}
-    ExRect(const RECT& rc) : l(rc.left), t(rc.top), r(rc.right), b(rc.bottom) {}
-    ExRect& operator = (const ExRect& rc) { l = rc.l; t = rc.t; r = rc.r; b = rc.b; return *this; }
-    ExRect& operator = (const ExArea& ar);
-    ExRect& operator = (const RECT& rc);
+    ExBox() {}
+    ExBox(int i) : l(i), t(i), r(i), b(i) {}
+    ExBox(int l, int t, int r, int b) : l(l), t(t), r(r), b(b) {}
+    ExBox(const ExPoint& ul, const ExPoint& lr) : l(ul.x), t(ul.y), r(lr.x), b(lr.y) {}
+    ExBox(const ExRect& rc) : l(rc.x), t(rc.y), r(rc.right()), b(rc.bottom()) {}
+    ExBox(const ExBox& bx) : l(bx.l), t(bx.t), r(bx.r), b(bx.b) {}
+    ExBox(const RECT& rc) : l(rc.left), t(rc.top), r(rc.right), b(rc.bottom) {}
+    ExBox& operator = (const ExBox& bx) { l = bx.l; t = bx.t; r = bx.r; b = bx.b; return *this; }
+    ExBox& operator = (const ExRect& rc);
+    ExBox& operator = (const RECT& rc);
 
     int left() const { return l; }
     int top() const { return t; }
@@ -278,61 +273,56 @@ struct ExRect {
     void set(const ExPoint& ul, const ExPoint& lr) { l = ul.x; t = ul.y; r = lr.x; b = lr.y; }
     bool valid() const { return (l < r && t < b); }
     bool empty() const { return !valid(); }
-    bool equal(int l, int t, int r, int b) const { return operator == (ExRect(l, t, r, b)); }
-    bool operator == (const ExRect& rc) const { return (l == rc.l && t == rc.t && r == rc.r && b == rc.b); }
-    bool operator != (const ExRect& rc) const { return (l != rc.l || t != rc.t || r != rc.r || b != rc.b); }
+    bool equal(int l, int t, int r, int b) const { return operator == (ExBox(l, t, r, b)); }
+    bool operator == (const ExBox& bx) const { return (l == bx.l && t == bx.t && r == bx.r && b == bx.b); }
+    bool operator != (const ExBox& bx) const { return (l != bx.l || t != bx.t || r != bx.r || b != bx.b); }
     pixman_box32_t* box32() const { return (pixman_box32_t*)this; }
-    operator RECT* () const { return (RECT*)this; }
-    RECT& ToArea(RECT& rc) const { rc.left = l; rc.top = t; rc.right = r - l; rc.bottom = b - t; return rc; }
-    RECT ToArea() const { RECT rc; rc.left = l; rc.top = t; rc.right = r - l; rc.bottom = b - t; return rc; }
-    RECT& ToRect(RECT& rc) const { rc.left = l; rc.top = t; rc.right = r; rc.bottom = b; return rc; }
-    RECT ToRect() const { RECT rc; rc.left = l; rc.top = t; rc.right = r; rc.bottom = b; return rc; }
 
     bool contain(const ExPoint& pt) const;
-    bool contain(const ExRect& rc) const;
+    bool contain(const ExBox& bx) const;
     bool contain(int x, int y) const { return contain(ExPoint(x, y)); }
-    bool contain(int l, int t, int r, int b) const { return contain(ExRect(l, t, r, b)); }
-    static bool isIntersect(const ExRect& r1, const ExRect& r2);
-    bool intersect(const ExRect& rc);
-    bool intersect(const ExRect& r1, const ExRect& r2);
+    bool contain(int l, int t, int r, int b) const { return contain(ExBox(l, t, r, b)); }
+    static bool isIntersect(const ExBox& b1, const ExBox& b2);
+    bool intersect(const ExBox& bx);
+    bool intersect(const ExBox& b1, const ExBox& b2);
     bool intersect(int l, int t, int r, int b) {
-        return intersect(ExRect(l, t, r, b));
+        return intersect(ExBox(l, t, r, b));
     }
-    void join(const ExRect& rc);
+    void join(const ExBox& bx);
     void join(int l, int t, int r, int b) {
-        join(ExRect(l, t, r, b));
+        join(ExBox(l, t, r, b));
     }
 };
 
-// area & rect cross assign operators (also copy constructors)
+// rect & box cross assign operators (also copy constructors)
 //
 inline
-ExArea::ExArea(const ExRect& rc)
-    : x(rc.l)
-    , y(rc.t)
-    , w(rc.r - rc.l)
-    , h(rc.b - rc.t) {}
+ExRect::ExRect(const ExBox& bx)
+    : x(bx.l)
+    , y(bx.t)
+    , w(bx.r - bx.l)
+    , h(bx.b - bx.t) {}
 
-inline ExArea&
-ExArea::operator = (const ExRect& rc) {
-    x = rc.l;
-    y = rc.t;
-    w = rc.r - rc.l;
-    h = rc.b - rc.t;
+inline ExRect&
+ExRect::operator = (const ExBox& bx) {
+    x = bx.l;
+    y = bx.t;
+    w = bx.r - bx.l;
+    h = bx.b - bx.t;
+    return *this;
+}
+
+inline ExBox&
+ExBox::operator = (const ExRect& rc) {
+    l = rc.x;
+    t = rc.y;
+    r = rc.x + rc.w;
+    b = rc.y + rc.h;
     return *this;
 }
 
 inline ExRect&
-ExRect::operator = (const ExArea& ar) {
-    l = ar.x;
-    t = ar.y;
-    r = ar.x + ar.w;
-    b = ar.y + ar.h;
-    return *this;
-}
-
-inline ExArea&
-ExArea::operator = (const RECT& rc) {
+ExRect::operator = (const RECT& rc) {
     x = rc.left;
     y = rc.top;
     w = rc.right - rc.left;
@@ -340,8 +330,8 @@ ExArea::operator = (const RECT& rc) {
     return *this;
 }
 
-inline ExRect&
-ExRect::operator = (const RECT& rc) {
+inline ExBox&
+ExBox::operator = (const RECT& rc) {
     l = rc.left;
     t = rc.top;
     r = rc.right;
@@ -349,35 +339,35 @@ ExRect::operator = (const RECT& rc) {
     return *this;
 }
 
-// rect & area op funcs
+// rect & box op funcs
 //
 inline bool
-ExRect::contain(const ExPoint& pt) const {
+ExBox::contain(const ExPoint& pt) const {
     return ((uint)(pt.x - l) < (uint)(r - l) &&
             (uint)(pt.y - t) < (uint)(b - t));
 }
 
 inline bool
-ExArea::contain(const ExPoint& pt) const {
+ExRect::contain(const ExPoint& pt) const {
     return ((uint)(pt.x - x) < (uint)w &&
             (uint)(pt.y - y) < (uint)h);
 }
 
 inline bool
+ExBox::contain(const ExBox& bx) const {
+    return (!bx.empty() && !empty() &&
+            l <= bx.l && t <= bx.t &&
+            r >= bx.r && b >= bx.b);
+}
+
+inline bool
 ExRect::contain(const ExRect& rc) const {
-    return (!rc.empty() && !empty() &&
-            l <= rc.l && t <= rc.t &&
-            r >= rc.r && b >= rc.b);
+    return ExBox(*this).contain(ExBox(rc));
 }
 
 inline bool
-ExArea::contain(const ExArea& ar) const {
-    return ExRect(*this).contain(ExRect(ar));
-}
-
-inline bool
-ExArea::contain(int x, int y, int w, int h) const {
-    return ExRect(*this).contain(x, y, x + w, y + h);
+ExRect::contain(int x, int y, int w, int h) const {
+    return ExBox(*this).contain(x, y, x + w, y + h);
 }
 
 // contain point funcs
@@ -385,12 +375,12 @@ ExArea::contain(int x, int y, int w, int h) const {
 #if 1 // deprecated
 inline bool
 ExContainPoint(int left, int top, int right, int bottom, int x, int y) {
-    return ExRect(left, top, right, bottom).contain(x, y);
+    return ExBox(left, top, right, bottom).contain(x, y);
 }
 
 inline bool
 ExContainPoint(const RECT& rc, const POINT& pt) {
-    return ExRect(rc).contain(ExPoint(pt));
+    return ExBox(rc).contain(ExPoint(pt));
 }
 #endif
 
@@ -419,12 +409,12 @@ struct ExSpan {
 // ExTile
 //
 struct ExTile {
-    ExRect rect;
+    ExBox box;
     ExTile* next;
 
     ExTile() {}
-    ExTile(const ExArea& ar) : rect(ar), next(NULL) {}
-    ExTile(const ExRect& rc) : rect(rc), next(NULL) {}
+    ExTile(const ExRect& rc) : box(rc), next(NULL) {}
+    ExTile(const ExBox& bx) : box(bx), next(NULL) {}
     // tbd
 };
 

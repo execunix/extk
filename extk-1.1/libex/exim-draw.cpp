@@ -7,34 +7,34 @@
 
 // impl. no clip, no mask, support 32bpp only but fast
 
-void ExImage::fillRectAlphaEx(const ExRect* rect, uint8 alpha, uint8 a_out) {
+void ExImage::fillBoxAlphaEx(const ExBox* box, uint8 alpha, uint8 a_out) {
     dprintf(L"%s\n", __funcw__);
     if (!(this->bits && this->bpp == 32))
         return;
-    ExRect rc;
-    if (rect  && rect->valid()) {
-        rc = *rect;
-        if (rc.l < 0)
-            rc.l = 0;
-        if (rc.t < 0)
-            rc.t = 0;
-        if (rc.r > this->width)
-            rc.r = this->width;
-        if (rc.b > this->height)
-            rc.b = this->height;
+    ExBox bx;
+    if (box  && box->valid()) {
+        bx = *box;
+        if (bx.l < 0)
+            bx.l = 0;
+        if (bx.t < 0)
+            bx.t = 0;
+        if (bx.r > this->width)
+            bx.r = this->width;
+        if (bx.b > this->height)
+            bx.b = this->height;
     } else {
-        rc.init0();
+        bx.init0();
     }
     register uint8* p = this->bits;
     register int y = 0;
-    for (; y < rc.t; y++) {
+    for (; y < bx.t; y++) {
         register uint8* p_end = p + this->bpl;
         for (; p < p_end; p += 4)
             p[3] = a_out;
     }
-    int rc_lx4 = (int)rc.l * 4;
-    int rc_rx4 = (int)rc.r * 4;
-    for (; y < rc.b; y++) {
+    int rc_lx4 = (int)bx.l * 4;
+    int rc_rx4 = (int)bx.r * 4;
+    for (; y < bx.b; y++) {
         register uint8* p_endl = p + rc_lx4;
         register uint8* p_endr = p + rc_rx4;
         register uint8* p_endw = p + this->bpl;
@@ -52,31 +52,31 @@ void ExImage::fillRectAlphaEx(const ExRect* rect, uint8 alpha, uint8 a_out) {
     }
 }
 
-void ExImage::fillRectAlpha(const ExRect* rect, uint8 alpha) {
+void ExImage::fillBoxAlpha(const ExBox* box, uint8 alpha) {
     if (!(this->bits && this->bpp == 32))
         return;
-    ExRect rc;
-    if (rect && rect->valid()) {
-        rc = *rect;
-        if (rc.l < 0)
-            rc.l = 0;
-        if (rc.t < 0)
-            rc.t = 0;
-        if (rc.r > this->width)
-            rc.r = this->width;
-        if (rc.b > this->height)
-            rc.b = this->height;
+    ExBox bx;
+    if (box && box->valid()) {
+        bx = *box;
+        if (bx.l < 0)
+            bx.l = 0;
+        if (bx.t < 0)
+            bx.t = 0;
+        if (bx.r > this->width)
+            bx.r = this->width;
+        if (bx.b > this->height)
+            bx.b = this->height;
     } else {
-        rc.l = 0;
-        rc.t = 0;
-        rc.r = this->width;
-        rc.b = this->height;
+        bx.l = 0;
+        bx.t = 0;
+        bx.r = this->width;
+        bx.b = this->height;
     }
-    register int y = rc.t;
+    register int y = bx.t;
     register uint8* p_y = this->bits + this->bpl * y;
-    int rc_lx4 = (int)rc.l * 4;
-    int rc_rx4 = (int)rc.r * 4;
-    for (; y < rc.b; y++) {
+    int rc_lx4 = (int)bx.l * 4;
+    int rc_rx4 = (int)bx.r * 4;
+    for (; y < bx.b; y++) {
         register uint8* p = p_y + rc_lx4;
         register uint8* q = p_y + rc_rx4;
         for (; p < q; p += 4)
@@ -85,35 +85,35 @@ void ExImage::fillRectAlpha(const ExRect* rect, uint8 alpha) {
     }
 }
 
-void ExImage::fillRectRgbEx(const ExRect* rect, uint32 rgb, uint32 rgb_out)
+void ExImage::fillBoxRgbEx(const ExBox* box, uint32 rgb, uint32 rgb_out)
 {
     dprintf(L"%s\n", __funcw__);
     if (!(this->bits && this->bpp == 32))
         return;
-    ExRect rc;
-    if (rect && rect->valid()) {
-        rc = *rect;
-        if (rc.l < 0)
-            rc.l = 0;
-        if (rc.t < 0)
-            rc.t = 0;
-        if (rc.r > this->width)
-            rc.r = this->width;
-        if (rc.b > this->height)
-            rc.b = this->height;
+    ExBox bx;
+    if (box && box->valid()) {
+        bx = *box;
+        if (bx.l < 0)
+            bx.l = 0;
+        if (bx.t < 0)
+            bx.t = 0;
+        if (bx.r > this->width)
+            bx.r = this->width;
+        if (bx.b > this->height)
+            bx.b = this->height;
     } else {
-        rc.init0();
+        bx.init0();
     }
     register uint8* p = this->bits;
     register int y = 0;
-    for (; y < rc.t; y++) {
+    for (; y < bx.t; y++) {
         register uint8* p_end = p + this->bpl;
         for (; p < p_end; p += 4)
             *(uint32*)p = (0xff000000 & *(uint32*)p) | rgb_out;
     }
-    int rc_lx4 = (int)rc.l * 4;
-    int rc_rx4 = (int)rc.r * 4;
-    for (; y < rc.b; y++) {
+    int rc_lx4 = (int)bx.l * 4;
+    int rc_rx4 = (int)bx.r * 4;
+    for (; y < bx.b; y++) {
         register uint8* p_endl = p + rc_lx4;
         register uint8* p_endr = p + rc_rx4;
         register uint8* p_endw = p + this->bpl;
@@ -131,31 +131,31 @@ void ExImage::fillRectRgbEx(const ExRect* rect, uint32 rgb, uint32 rgb_out)
     }
 }
 
-void ExImage::fillRectRgb(const ExRect* rect, uint32 rgb) {
+void ExImage::fillBoxRgb(const ExBox* box, uint32 rgb) {
     if (!(this->bits && this->bpp == 32))
         return;
-    ExRect rc;
-    if (rect && rect->valid()) {
-        rc = *rect;
-        if (rc.l < 0)
-            rc.l = 0;
-        if (rc.t < 0)
-            rc.t = 0;
-        if (rc.r > this->width)
-            rc.r = this->width;
-        if (rc.b > this->height)
-            rc.b = this->height;
+    ExBox bx;
+    if (box && box->valid()) {
+        bx = *box;
+        if (bx.l < 0)
+            bx.l = 0;
+        if (bx.t < 0)
+            bx.t = 0;
+        if (bx.r > this->width)
+            bx.r = this->width;
+        if (bx.b > this->height)
+            bx.b = this->height;
     } else {
-        rc.l = 0;
-        rc.t = 0;
-        rc.r = this->width;
-        rc.b = this->height;
+        bx.l = 0;
+        bx.t = 0;
+        bx.r = this->width;
+        bx.b = this->height;
     }
-    register int y = rc.t;
+    register int y = bx.t;
     register uint8* p_y = this->bits + this->bpl * y;
-    int rc_lx4 = (int)rc.l * 4;
-    int rc_rx4 = (int)rc.r * 4;
-    for (; y < rc.b; y++) {
+    int rc_lx4 = (int)bx.l * 4;
+    int rc_rx4 = (int)bx.r * 4;
+    for (; y < bx.b; y++) {
         register uint8* p = p_y + rc_lx4;
         register uint8* q = p_y + rc_rx4;
         for (; p < q; p += 4)
@@ -164,34 +164,34 @@ void ExImage::fillRectRgb(const ExRect* rect, uint32 rgb) {
     }
 }
 
-void ExImage::fillRectEx(const ExRect* rect, uint32 color, uint32 c_out) {
+void ExImage::fillBoxEx(const ExBox* box, uint32 color, uint32 c_out) {
     dprintf(L"%s\n", __funcw__);
     if (!(this->bits && this->bpp == 32))
         return;
-    ExRect rc;
-    if (rect && rect->valid()) {
-        rc = *rect;
-        if (rc.l < 0)
-            rc.l = 0;
-        if (rc.t < 0)
-            rc.t = 0;
-        if (rc.r > this->width)
-            rc.r = this->width;
-        if (rc.b > this->height)
-            rc.b = this->height;
+    ExBox bx;
+    if (box && box->valid()) {
+        bx = *box;
+        if (bx.l < 0)
+            bx.l = 0;
+        if (bx.t < 0)
+            bx.t = 0;
+        if (bx.r > this->width)
+            bx.r = this->width;
+        if (bx.b > this->height)
+            bx.b = this->height;
     } else {
-        rc.init0();
+        bx.init0();
     }
     register uint8* p = this->bits;
     register int y = 0;
-    for (; y < rc.t; y++) {
+    for (; y < bx.t; y++) {
         register uint8* p_end = p + this->bpl;
         for (; p < p_end; p += 4)
             *(uint32*)p = c_out;
     }
-    int rc_lx4 = (int)rc.l * 4;
-    int rc_rx4 = (int)rc.r * 4;
-    for (; y < rc.b; y++) {
+    int rc_lx4 = (int)bx.l * 4;
+    int rc_rx4 = (int)bx.r * 4;
+    for (; y < bx.b; y++) {
         register uint8* p_endl = p + rc_lx4;
         register uint8* p_endr = p + rc_rx4;
         register uint8* p_endw = p + this->bpl;
@@ -209,31 +209,31 @@ void ExImage::fillRectEx(const ExRect* rect, uint32 color, uint32 c_out) {
     }
 }
 
-void ExImage::fillRect(const ExRect* rect, uint32 color) {
+void ExImage::fillBox(const ExBox* box, uint32 color) {
     if (!(this->bits && this->bpp == 32))
         return;
-    ExRect rc;
-    if (rect && rect->valid()) {
-        rc = *rect;
-        if (rc.l < 0)
-            rc.l = 0;
-        if (rc.t < 0)
-            rc.t = 0;
-        if (rc.r > this->width)
-            rc.r = this->width;
-        if (rc.b > this->height)
-            rc.b = this->height;
+    ExBox bx;
+    if (box && box->valid()) {
+        bx = *box;
+        if (bx.l < 0)
+            bx.l = 0;
+        if (bx.t < 0)
+            bx.t = 0;
+        if (bx.r > this->width)
+            bx.r = this->width;
+        if (bx.b > this->height)
+            bx.b = this->height;
     } else {
-        rc.l = 0;
-        rc.t = 0;
-        rc.r = this->width;
-        rc.b = this->height;
+        bx.l = 0;
+        bx.t = 0;
+        bx.r = this->width;
+        bx.b = this->height;
     }
-    register int y = rc.t;
+    register int y = bx.t;
     register uint8* p_y = this->bits + this->bpl * y;
-    int rc_lx4 = (int)rc.l * 4;
-    int rc_rx4 = (int)rc.r * 4;
-    for (; y < rc.b; y++) {
+    int rc_lx4 = (int)bx.l * 4;
+    int rc_rx4 = (int)bx.r * 4;
+    for (; y < bx.b; y++) {
         register uint8* p = p_y + rc_lx4;
         register uint8* q = p_y + rc_rx4;
         for (; p < q; p += 4)
@@ -242,38 +242,38 @@ void ExImage::fillRect(const ExRect* rect, uint32 color) {
     }
 }
 
-void ExImage::drawRect(const ExRect* rect, uint32 color) {
+void ExImage::drawBox(const ExBox* box, uint32 color) {
     if (!(this->bits && this->bpp == 32))
         return;
-    ExRect rc;
-    if (rect && rect->valid()) {
-        rc = *rect;
-        if (rc.l < 0)
-            rc.l = 0;
-        if (rc.t < 0)
-            rc.t = 0;
-        if (rc.r > this->width)
-            rc.r = this->width;
-        if (rc.b > this->height)
-            rc.b = this->height;
+    ExBox bx;
+    if (box && box->valid()) {
+        bx = *box;
+        if (bx.l < 0)
+            bx.l = 0;
+        if (bx.t < 0)
+            bx.t = 0;
+        if (bx.r > this->width)
+            bx.r = this->width;
+        if (bx.b > this->height)
+            bx.b = this->height;
     } else {
-        rc.l = 0;
-        rc.t = 0;
-        rc.r = this->width;
-        rc.b = this->height;
+        bx.l = 0;
+        bx.t = 0;
+        bx.r = this->width;
+        bx.b = this->height;
     }
-    register int y = rc.t;
+    register int y = bx.t;
     register uint8* p_y = this->bits + this->bpl * y;
-    int rc_lx4 = (int)rc.l * 4;
-    int rc_rx4 = (int)rc.r * 4;
-    for (; y < rc.t+1; y++) {
+    int rc_lx4 = (int)bx.l * 4;
+    int rc_rx4 = (int)bx.r * 4;
+    for (; y < bx.t+1; y++) {
         register uint8* p = p_y + rc_lx4;
         register uint8* q = p_y + rc_rx4;
         for (; p < q; p += 4)
             *(uint32*)p = color;
         p_y += this->bpl;
     }
-    for (; y < rc.b - 1; y++) {
+    for (; y < bx.b - 1; y++) {
         register uint8* p = p_y + rc_lx4;
         register uint8* q = p_y + rc_rx4;
         *(uint32*)p = color;
@@ -281,7 +281,7 @@ void ExImage::drawRect(const ExRect* rect, uint32 color) {
         *(uint32*)q = color;
         p_y += this->bpl;
     }
-    for (; y < rc.b; y++) {
+    for (; y < bx.b; y++) {
         register uint8* p = p_y + rc_lx4;
         register uint8* q = p_y + rc_rx4;
         for (; p < q; p += 4)
@@ -294,15 +294,15 @@ void ExImage::Blit(ExImage* dstimg, int dx, int dy, int w, int h,
                    const ExImage* srcimg, int sx, int sy) {
     // tbd - clipping, masking, raster-op, bpp-mode-func-table...
     assert(dstimg != srcimg && dstimg->bpp == 32 && srcimg->bpp == 32); // 32bpp only
-    ExRect dr(dx - sx, dy - sy, srcimg->width + dx - sx, srcimg->height + dy - sy);
-    if (!dr.intersect(0, 0, dstimg->width, dstimg->height)) return;
-    if (!dr.intersect(dx, dy, dx + w, dy + h)) return;
-    sx += dr.l - dx;
-    sy += dr.t - dy;
-    dx = dr.l;
-    dy = dr.t;
-    w = dr.width();
-    h = dr.height();
+    ExBox bx(dx - sx, dy - sy, srcimg->width + dx - sx, srcimg->height + dy - sy);
+    if (!bx.intersect(0, 0, dstimg->width, dstimg->height)) return;
+    if (!bx.intersect(dx, dy, dx + w, dy + h)) return;
+    sx += bx.l - dx;
+    sy += bx.t - dy;
+    dx = bx.l;
+    dy = bx.t;
+    w = bx.width();
+    h = bx.height();
 
     size_t spnext = srcimg->bpl - w * 4;
     size_t dpnext = dstimg->bpl - w * 4;
@@ -323,15 +323,15 @@ void ExImage::Blit(ExImage* dstimg, int dx, int dy, int w, int h,
 void ExImage::BlitRgb(ExImage* dstimg, int dx, int dy, int w, int h,
                       const ExImage* srcimg, int sx, int sy) {
     assert(dstimg != srcimg && dstimg->bpp == 32 && srcimg->bpp == 32); // 32bpp only
-    ExRect dr(dx - sx, dy - sy, srcimg->width + dx - sx, srcimg->height + dy - sy);
-    if (!dr.intersect(0, 0, dstimg->width, dstimg->height)) return;
-    if (!dr.intersect(dx, dy, dx + w, dy + h)) return;
-    sx += dr.l - dx;
-    sy += dr.t - dy;
-    dx = dr.l;
-    dy = dr.t;
-    w = dr.width();
-    h = dr.height();
+    ExBox bx(dx - sx, dy - sy, srcimg->width + dx - sx, srcimg->height + dy - sy);
+    if (!bx.intersect(0, 0, dstimg->width, dstimg->height)) return;
+    if (!bx.intersect(dx, dy, dx + w, dy + h)) return;
+    sx += bx.l - dx;
+    sy += bx.t - dy;
+    dx = bx.l;
+    dy = bx.t;
+    w = bx.width();
+    h = bx.height();
 
     size_t spnext = srcimg->bpl - w * 4;
     size_t dpnext = dstimg->bpl - w * 4;
@@ -354,15 +354,15 @@ void ExImage::BlitRgb(ExImage* dstimg, int dx, int dy, int w, int h,
 void ExImage::BlitAlpha(ExImage* dstimg, int dx, int dy, int w, int h,
                         const ExImage* srcimg, int sx, int sy) {
     assert(dstimg != srcimg && dstimg->bpp == 32 && srcimg->bpp == 32); // 32bpp only
-    ExRect dr(dx - sx, dy - sy, srcimg->width + dx - sx, srcimg->height + dy - sy);
-    if (!dr.intersect(0, 0, dstimg->width, dstimg->height)) return;
-    if (!dr.intersect(dx, dy, dx + w, dy + h)) return;
-    sx += dr.l - dx;
-    sy += dr.t - dy;
-    dx = dr.l;
-    dy = dr.t;
-    w = dr.width();
-    h = dr.height();
+    ExBox bx(dx - sx, dy - sy, srcimg->width + dx - sx, srcimg->height + dy - sy);
+    if (!bx.intersect(0, 0, dstimg->width, dstimg->height)) return;
+    if (!bx.intersect(dx, dy, dx + w, dy + h)) return;
+    sx += bx.l - dx;
+    sy += bx.t - dy;
+    dx = bx.l;
+    dy = bx.t;
+    w = bx.width();
+    h = bx.height();
 
     size_t spnext = srcimg->bpl - w * 4;
     size_t dpnext = dstimg->bpl - w * 4;
@@ -596,15 +596,15 @@ static inline uint32 over(uint32 src, uint32 dest) {
 void ExImage::BlitAlphaOver(ExImage* dstimg, int dx, int dy, int w, int h,
                             const ExImage* srcimg, int sx, int sy) {
     assert(dstimg != srcimg && dstimg->bpp == 32 && srcimg->bpp == 32); // 32bpp only
-    ExRect dr(dx - sx, dy - sy, srcimg->width + dx - sx, srcimg->height + dy - sy);
-    if (!dr.intersect(0, 0, dstimg->width, dstimg->height)) return;
-    if (!dr.intersect(dx, dy, dx + w, dy + h)) return;
-    sx += dr.l - dx;
-    sy += dr.t - dy;
-    dx = dr.l;
-    dy = dr.t;
-    w = dr.width();
-    h = dr.height();
+    ExBox bx(dx - sx, dy - sy, srcimg->width + dx - sx, srcimg->height + dy - sy);
+    if (!bx.intersect(0, 0, dstimg->width, dstimg->height)) return;
+    if (!bx.intersect(dx, dy, dx + w, dy + h)) return;
+    sx += bx.l - dx;
+    sy += bx.t - dy;
+    dx = bx.l;
+    dy = bx.t;
+    w = bx.width();
+    h = bx.height();
 
     size_t spnext = srcimg->bpl - w * 4;
     size_t dpnext = dstimg->bpl - w * 4;

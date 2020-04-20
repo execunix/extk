@@ -63,20 +63,44 @@ public:
     };
 
     struct Rect {
-        floatt l, t, r, b;
+        union {
+            struct { floatt x, y, w, h; };
+            struct { Point pt; Size sz; };
+        };
 
         Rect() {}
-        Rect(ExRect rc) : l((floatt)rc.l), t((floatt)rc.t), r((floatt)rc.r), b((floatt)rc.b) {}
-        Rect(int l, int t, int r, int b) : l((floatt)l), t((floatt)t), r((floatt)r), b((floatt)b) {}
-        Rect(floatt l, floatt t, floatt r, floatt b) : l(l), t(t), r(r), b(b) {}
+        Rect(ExRect rc) : x((floatt)rc.x), y((floatt)rc.y), w((floatt)rc.w), h((floatt)rc.h) {}
+        Rect(int x, int y, int w, int h) : x((floatt)x), y((floatt)y), w((floatt)w), h((floatt)h) {}
+        Rect(floatt x, floatt y, floatt w, floatt h) : x(x), y(y), w(w), h(h) {}
 
-        floatt x() const { return l; }
-        floatt y() const { return t; }
+        void set(ExRect rc) {
+            this->x = (floatt)rc.x; this->y = (floatt)rc.y; this->w = (floatt)rc.w; this->h = (floatt)rc.h;
+        }
+        void set(int x, int y, int w, int h) {
+            this->x = (floatt)x; this->y = (floatt)y; this->w = (floatt)w; this->h = (floatt)h;
+        }
+        void set(floatt x, floatt y, floatt w, floatt h) {
+            this->x = x; this->y = y; this->w = w; this->h = h;
+        }
+        Point p2() const { return Point(x + w, y + h); }
+    };
+
+    struct Box {
+        union {
+            struct { floatt l, t, r, b; };
+            struct { Point p1, p2; };
+        };
+
+        Box() {}
+        Box(ExBox bx) : l((floatt)bx.l), t((floatt)bx.t), r((floatt)bx.r), b((floatt)bx.b) {}
+        Box(int l, int t, int r, int b) : l((floatt)l), t((floatt)t), r((floatt)r), b((floatt)b) {}
+        Box(floatt l, floatt t, floatt r, floatt b) : l(l), t(t), r(r), b(b) {}
+
         floatt width() const { return r - l; }
         floatt height() const { return b - t; }
 
-        void set(ExRect rc) {
-            this->l = (floatt)rc.l; this->t = (floatt)rc.t; this->r = (floatt)rc.r; this->b = (floatt)rc.b;
+        void set(ExBox bx) {
+            this->l = (floatt)bx.l; this->t = (floatt)bx.t; this->r = (floatt)bx.r; this->b = (floatt)bx.b;
         }
         void set(int l, int t, int r, int b) {
             this->l = (floatt)l; this->t = (floatt)t; this->r = (floatt)r; this->b = (floatt)b;
