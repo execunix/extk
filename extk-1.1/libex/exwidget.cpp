@@ -10,7 +10,25 @@
 #define logdraw dprint0
 #define logdra0 dprint0
 
- // test sample
+typedef std::list<ExWidget*> ExWidgetList;
+
+static ExWidgetList deleteWidgetList;
+
+void collectWidget() {
+    while (!deleteWidgetList.empty()) {
+        ExWidget* w = deleteWidgetList.front();
+        deleteWidgetList.pop_front();
+
+        dprint1(L"collectWidget %s\n", w->getName());
+        delete w;
+        //
+        // After destroy, can't access callback list...
+        // Be careful not to access member variables any more.
+        //
+    }
+}
+
+// test sample
 static void STDCALL s_fill(void* data, ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage) {
 #if 1
     if (!(canvas && canvas->cr))
@@ -266,13 +284,8 @@ int ExWidget::destroy() {
         ExWidget* w = *i;
         // tbd - detach cbList
         w->invokeCallback(Ex_CbDestroyed);
-        if (w->getFlags(Ex_FreeMemory)) {
-            dprint1(L"delete %s\n", w->name);
-            delete w;
-            //
-            // Be careful not to access member variables any more.
-            //
-        }
+        if (w->getFlags(Ex_FreeMemory))
+            deleteWidgetList.push_back(w);
         ++i;
     }
     return 0;

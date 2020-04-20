@@ -32,10 +32,11 @@ void ExWidget::CallbackList::push(const Callback& cb) {
 int ExWidget::CallbackList::invoke(int type, ExObject* object, ExCbInfo* cbinfo) {
     int r = Ex_Continue;
     for (iterator i = begin(); i != end();) {
-        Callback& cb = *i;
-        if (cb.type != type) {
-            ++i; continue;
-        }
+        iterator it = i++;
+        Callback& cb = *it;
+        if (cb.type != type)
+            continue;
+
         // Simple implementation to pursue efficiency.
         // Be careful not to remove items from this list within the callback.
         r = cb(object, cbinfo);
@@ -44,9 +45,7 @@ int ExWidget::CallbackList::invoke(int type, ExObject* object, ExCbInfo* cbinfo)
             return ExApp::setHalt(r);
         // should remove by invoker ?
         if (r & Ex_Remove)
-            i = erase(i);
-        else
-            ++i;
+            erase(it);
         // should skip remain callbacks ?
         if (r & Ex_Break)
             break;
@@ -77,7 +76,8 @@ void ExWindow::MsgCallbackList::push(const Callback& cb) {
 int ExWindow::MsgCallbackList::invoke(ExObject* object, ExCbInfo* cbinfo) {
     int r = Ex_Continue;
     for (iterator i = begin(); i != end();) {
-        Callback& cb = *i;
+        iterator it = i++;
+        Callback& cb = *it;
 
         // Simple implementation to pursue efficiency.
         // Be careful not to remove items from this list within the callback.
@@ -87,9 +87,7 @@ int ExWindow::MsgCallbackList::invoke(ExObject* object, ExCbInfo* cbinfo) {
             return ExApp::setHalt(r);
         // should remove by invoker ?
         if (r & Ex_Remove)
-            i = erase(i);
-        else
-            ++i;
+            erase(it);
         // should skip remain callbacks ?
         if (r & Ex_Break)
             break;

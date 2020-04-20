@@ -222,14 +222,14 @@ void ExApp::dispatch(MSG& msg) {
 }
 
 void collectWindow();
+void collectWidget();
 
 void ExApp::collect() {
     // If some objects are deleted inside the dispatch function,
     // we will have a problem, so clean up here.
 
     collectWindow();
-
-    //collectWidget();
+    collectWidget();
     //collectTimer();
     // tbd etc...
 }

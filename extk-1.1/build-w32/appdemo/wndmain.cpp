@@ -4,6 +4,7 @@
 //
 
 #include "framework.h"
+#include "wgtsetup.h"
 #include "wndmain.h"
 
 void WgtTitle::init(ExWindow* window) {
@@ -423,7 +424,7 @@ int WndMain::onActBkgd(WndMain* widget, ExCbInfo* cbinfo) {
         MSG& msg = cbinfo->event->msg;
         if (cbinfo->type == Ex_CbButPress) {
             but_pt = msg.pt; // memory press point
-            widget->toFront();
+            //widget->toFront();
             wgtCapture = widget;
         } else if (cbinfo->type == Ex_CbPtrMove &&
                    widget->getFlags(Ex_ButPressed)) {
@@ -503,6 +504,14 @@ int WndMain::onActBtns(ExWidget* widget, ExCbInfo* cbinfo) {
                 timer.start(100, 25);
             else
                 timer.stop();
+            return Ex_Continue;
+        }
+    }
+    if (widget == &btns1[1]) {
+        if (cbinfo->type == Ex_CbActivate) {
+            WgtSetup* setup = new WgtSetup;
+            setup->setFlags(Ex_FreeMemory);
+            setup->init(this, 300, 200);
             return Ex_Continue;
         }
     }

@@ -37,8 +37,11 @@ static int attachWindow(HWND hwnd, ExWindow* window) {
 
 void collectWindow() {
     while (!detachWindowList.empty()) {
-        detachWindowList.front()->destroy();
+        ExWindow* w = detachWindowList.front();
         detachWindowList.pop_front();
+
+        dprint1(L"collectWindow %s\n", w->getName());
+        w->destroy();
     }
 }
 
