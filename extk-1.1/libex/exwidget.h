@@ -80,6 +80,7 @@ enum ExWidgetClassFlags {
 enum ExWidgetFlags {
     Ex_Destroyed        = 1 << 0,   // RO
     Ex_Realized         = 1 << 1,   // RO
+    Ex_HasOwnDC         = 1 << 2,   // RO
     Ex_AutoHighlight    = 1 << 3,   // RW
     Ex_Highlighted      = 1 << 4,   // RW
     Ex_FocusRender      = 1 << 5,   // RW
@@ -181,6 +182,7 @@ public:
     int layout(ExRect& ar);
     int damage();
     int damage(const ExBox& clip);
+    int render(ExCanvas* canvas, const ExRegion& updateRgn);
     bool isOpaque() const { return getFlags(Ex_Opaque) || !opaqueRgn.empty(); }
     bool isExtentContainPoint(const ExPoint& pt);
     bool isSelectContainPoint(const ExPoint& pt);

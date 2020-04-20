@@ -502,6 +502,8 @@ proc_enter:
                     exDrawFuncTrap(canvas, w, &w->damageRgn);
 #endif
                 call_cnt++;
+                if (w->getFlags(Ex_HasOwnDC)) // tbd - tbd
+                    goto proc_clear;
             }
         }
         // proc done
@@ -514,6 +516,7 @@ proc_enter:
 next_child:
             c = c != w->childHead->broPrev ? c->broNext : NULL;
         }
+proc_clear:
         logdra0(L"render: %s clear damage\n", w->getName());
         w->flags &= ~(Ex_DamageFamily | Ex_Damaged);
         w->damageRgn.setEmpty();

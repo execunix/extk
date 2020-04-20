@@ -437,6 +437,78 @@ int ExWidget::damage(const ExBox& clip) {
     return 0;
 }
 
+#if 1 // sample pseudo code
+static void STDCALL onDrawOwnDC(void* data, ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage) {
+    if (canvas == NULL/*my_canvas*/) {
+        // draw self & child to my canvas
+    } else {
+        ExCanvas my_canvas;
+        my_canvas.gc = NULL/*my_gc*/;
+        my_canvas.cr = NULL/*my_cr*/;
+        const ExPoint& pt = widget->getDeploy().ul;
+        cairo_translate(my_canvas.cr, -pt.x, -pt.y);
+        ExWidget* w = (ExWidget*)widget;
+        ExRegion myRgn(*damage); // tbd
+        w->render(&my_canvas, myRgn);
+        //flush_my_canvas_to_canvas();
+    }
+}
+#endif
+
+int ExWidget::render(ExCanvas* canvas, const ExRegion& updateRgn) { // tbd
+    int call_cnt = 0;
+    logdraw(L"%s(%s) enter update:%d\n", __funcw__, getName(), updateRgn.n_boxes);
+    ExWidget* w = this;
+    ExWidget* c;
+    do { // back to front iterator
+proc_enter:
+        if (!w->getFlags(Ex_Visible) || w->extent.empty())
+            goto proc_leave; // leave to parent and goto next_child
+        if (w->drawFunc && !w->visibleRgn.empty()) {
+            if (w->getFlags(Ex_DamageFamily)) {
+                w->damageRgn.copy(w->visibleRgn);
+            } else {
+                w->damageRgn.copy(w->visibleRgn);
+                w->damageRgn.intersect(updateRgn);
+            }
+            if (!w->damageRgn.empty()) {
+                logdraw(L"render: %s visible:%d damage:%d\n", w->getName(),
+                        w->visibleRgn.n_boxes, w->damageRgn.n_boxes);
+                w->drawFunc(canvas, w, &w->damageRgn);
+#ifdef DEBUG
+                if (exDrawFuncTrap)
+                    exDrawFuncTrap(canvas, w, &w->damageRgn);
+#endif
+                call_cnt++;
+                if (w->getFlags(Ex_HasOwnDC)) // tbd - tbd
+                    goto proc_clear;
+            }
+        }
+        // proc done
+
+        // back to front
+        c = w->childHead;
+        while (c) {
+            w = c;
+            goto proc_enter;
+next_child:
+            c = c != w->childHead->broPrev ? c->broNext : NULL;
+        }
+proc_clear:
+        logdra0(L"render: %s clear damage\n", w->getName());
+        w->flags &= ~(Ex_DamageFamily | Ex_Damaged);
+        w->damageRgn.setEmpty();
+proc_leave:
+        if (w == this ||
+            w->parent == NULL) // is root ?
+            break;
+        c = w;
+        w = w->parent;
+        goto next_child;
+    } while (0);
+    return call_cnt;
+}
+
 /**
 Extent Method
 -------------
