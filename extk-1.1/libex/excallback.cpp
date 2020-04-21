@@ -54,7 +54,7 @@ int ExWidget::CallbackList::invoke(int type, ExObject* object, ExCbInfo* cbinfo)
         #if 1 // tbd
         // If a callback with a lower priority is added during callback execution,
         // the callback is also called at the same time.
-        if (cb.flag & fHoldOff)
+        if (cb.flag & (Ex_Remove | fHoldOff))
             continue;
         #endif
         if (cb.type != type)
@@ -65,8 +65,12 @@ int ExWidget::CallbackList::invoke(int type, ExObject* object, ExCbInfo* cbinfo)
         if (r & Ex_Halt)
             return ExApp::setHalt(r);
         // should remove by invoker ?
-        if (r & Ex_Remove)
-            erase(it);
+        if (r & Ex_Remove) {
+            if (influx > 0)
+                cb.flag |= fRemoved;
+            else
+                erase(it);
+        }
         // should skip remain callbacks ?
         if (r & Ex_Break)
             break;
@@ -136,7 +140,7 @@ int ExWindow::MsgCallbackList::invoke(ExObject* object, ExCbInfo* cbinfo) {
         #if 1 // tbd
         // If a callback with a lower priority is added during callback execution,
         // the callback is also called at the same time.
-        if (cb.flag & fHoldOff)
+        if (cb.flag & (Ex_Remove | fHoldOff))
             continue;
         #endif
 
@@ -145,8 +149,12 @@ int ExWindow::MsgCallbackList::invoke(ExObject* object, ExCbInfo* cbinfo) {
         if (r & Ex_Halt)
             return ExApp::setHalt(r);
         // should remove by invoker ?
-        if (r & Ex_Remove)
-            erase(it);
+        if (r & Ex_Remove) {
+            if (influx > 0)
+                cb.flag |= fRemoved;
+            else
+                erase(it);
+        }
         // should skip remain callbacks ?
         if (r & Ex_Break)
             break;
