@@ -66,10 +66,8 @@ int ExWidget::CallbackList::invoke(int type, ExObject* object, ExCbInfo* cbinfo)
             return ExApp::setHalt(r);
         // should remove by invoker ?
         if (r & Ex_Remove) {
-            if (influx > 0)
-                cb.flag |= fRemoved;
-            else
-                erase(it);
+            change++;
+            cb.flag |= fRemoved;
         }
         // should skip remain callbacks ?
         if (r & Ex_Break)
@@ -150,10 +148,8 @@ int ExWindow::MsgCallbackList::invoke(ExObject* object, ExCbInfo* cbinfo) {
             return ExApp::setHalt(r);
         // should remove by invoker ?
         if (r & Ex_Remove) {
-            if (influx > 0)
-                cb.flag |= fRemoved;
-            else
-                erase(it);
+            change++;
+            cb.flag |= fRemoved;
         }
         // should skip remain callbacks ?
         if (r & Ex_Break)
