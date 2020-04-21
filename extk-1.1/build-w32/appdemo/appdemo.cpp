@@ -66,6 +66,21 @@ void add_callback(ExCallback& cb) {
 void cb_test() {
     int r;
 
+#if 0
+    std::list<int> intList;
+    intList.push_back(0);
+    intList.push_back(1);
+    intList.push_back(2);
+    intList.push_back(3);
+    int n = 0;
+    for (std::list<int>::iterator i = intList.begin(); i != intList.end(); n++) {
+        std::list<int>::iterator it = i++;
+        if (n == 3) {
+            intList.push_back(4);
+            intList.erase(it);
+        }
+    }
+#endif
     ExCallback cb0(func, (void*)NULL);
     r = cb0(NULL, NULL);
     dprintf(L"r = %d\n", r);
@@ -270,6 +285,8 @@ int app_test() {
 
     dprint1(L"sizeof(ExCbInfo)=%d\n", sizeof(ExCbInfo));
     dprint1(L"sizeof(ExCallback)=%d\n", sizeof(ExCallback));
+    //dprint1(L"sizeof(ExWidget::Callback)=%d\n", sizeof(ExWidget::Callback)); // 16
+    //dprint1(L"sizeof(ExWindow::Callback)=%d\n", sizeof(ExWindow::Callback)); // 12
     dprint1(L"sizeof(ExObject)=%d\n", sizeof(ExObject));
     dprint1(L"sizeof(ExWidget)=%d\n", sizeof(ExWidget));
     dprint1(L"sizeof(ExWindow)=%d\n", sizeof(ExWindow));

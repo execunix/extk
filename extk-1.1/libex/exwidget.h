@@ -218,17 +218,20 @@ public: // widget flags operation
 protected: // widget callback internal
     struct Callback : public ExCallback {
         int type;
-        uint prio;
-        Callback(const ExCallback& cb, int t, uint p)
-            : ExCallback(cb), type(t), prio(p) {
+        uint8 prio;
+        uint8 flag;
+        uint16 mask; // tbd - ???
+        Callback(const ExCallback& cb, int t, uint8 p)
+            : ExCallback(cb), type(t), prio(p), flag(0), mask(0) {
         }
     };
     class CallbackList : public std::list<Callback> {
+        ushort influx, change; // for recurs
     public:
-        CallbackList() : std::list<Callback>() {}
+        CallbackList() : std::list<Callback>(), influx(0), change(0) {}
     public:
         // inherit size_type size();
-        bool remove(int type, uint prio);
+        bool remove(int type, uint8 prio);
         // inherit void remove(const Callback& cb);
         // inherit void push_back(const Callback& cb);
         // inherit void push_front(const Callback& cb);
@@ -237,18 +240,18 @@ protected: // widget callback internal
     };
     CallbackList cbList;
 public: // widget callback operation
-    void addCallback(int(STDCALL *f)(void*, ExWidget*, ExCbInfo*), void* d, int type, uint prio = 5) {
+    void addCallback(int(STDCALL *f)(void*, ExWidget*, ExCbInfo*), void* d, int type, uint8 prio = 5) {
         cbList.push(Callback(ExCallback(f, d), type, prio));
     }
     template <typename A, class W/*inherit ExWidget*/>
-    void addCallback(int(STDCALL *f)(A*, W*, ExCbInfo*), A* d, int type, uint prio = 5) {
+    void addCallback(int(STDCALL *f)(A*, W*, ExCbInfo*), A* d, int type, uint8 prio = 5) {
         cbList.push(Callback(ExCallback(f, d), type, prio));
     }
     template <typename A, class W/*inherit ExWidget*/>
-    void addCallback(A* d, int(STDCALL A::*f)(W*, ExCbInfo*), int type, uint prio = 5) {
+    void addCallback(A* d, int(STDCALL A::*f)(W*, ExCbInfo*), int type, uint8 prio = 5) {
         cbList.push(Callback(ExCallback(d, f), type, prio));
     }
-    void removeCallback(int type, uint prio = 5) { // tbd
+    void removeCallback(int type, uint8 prio = 5) { // tbd
         cbList.remove(type, prio);
     }
     int invokeCallback(int type) {

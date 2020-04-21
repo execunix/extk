@@ -12,7 +12,7 @@ fillRect(void* data, ExCanvas* canvas, const ExWidget* widget, const ExRegion* d
     ExCairo::Rect rc(widget->getRect());
     ExCairo::Color fc; // fill color
     floatt alpha = (int)data / 100.f;
-    fc.set(0.f, 0.f, 0.f, alpha);
+    fc.set(.8f, .8f, .8f, alpha);
     cr.fill_rect_rgba(rc, fc);
 }
 
@@ -21,7 +21,7 @@ drawName(void* data, ExCanvas* canvas, const ExWidget* widget, const ExRegion* d
     ExCairo cr(canvas, damage);
     ExCairo::Rect rc(widget->getRect());
     ExCairo::Color fc; // fill color
-    fc.set(0.f, 0.f, 0.f, .8f);
+    fc.set(.5f, .5f, .5f, .8f);
     cr.fill_rect_rgba(rc, fc);
     const wchar* text = widget->getName();
     cr.set_font(canvas->crf[0], 12.f);
@@ -35,11 +35,11 @@ void WgtPage1::fini() {
 void WgtPage1::init(ExWidget* parent, ExRect& rc) {
     ExWidget::init(parent, L"WgtPage1", &rc);
     //setFlags(Ex_Visible, Ex_BitTrue); // default
-    drawFunc = ExDrawFunc(fillRect, (void*)50);
+    drawFunc = ExDrawFunc(fillRect, (void*)30);
     label1.init(this, L"label1", &ExRect(10, 10, 100, 30));
-    label1.drawFunc = ExDrawFunc(fillRect, (void*)50);
+    label1.drawFunc = ExDrawFunc(drawName, (void*)30);
     button1.init(this, L"button1", &ExRect(10, 50, 100, 30));
-    button1.drawFunc = ExDrawFunc(fillRect, (void*)50);
+    button1.drawFunc = ExDrawFunc(drawName, (void*)30);
 }
 
 void WgtPage2::fini() {
@@ -51,9 +51,9 @@ void WgtPage2::init(ExWidget* parent, ExRect& rc) {
     setFlags(Ex_Visible, Ex_BitFalse); // delay realize
     drawFunc = ExDrawFunc(fillRect, (void*)50);
     label1.init(this, L"label1", &ExRect(10, 10, 100, 30));
-    label1.drawFunc = ExDrawFunc(fillRect, (void*)50);
+    label1.drawFunc = ExDrawFunc(drawName, (void*)50);
     button1.init(this, L"button1", &ExRect(10, 50, 100, 30));
-    button1.drawFunc = ExDrawFunc(fillRect, (void*)50);
+    button1.drawFunc = ExDrawFunc(drawName, (void*)50);
 }
 
 void WgtPage3::fini() {
@@ -65,9 +65,9 @@ void WgtPage3::init(ExWidget* parent, ExRect& rc) {
     setFlags(Ex_Visible, Ex_BitFalse); // delay realize
     drawFunc = ExDrawFunc(fillRect, (void*)50);
     label1.init(this, L"label1", &ExRect(10, 10, 100, 30));
-    label1.drawFunc = ExDrawFunc(fillRect, (void*)50);
+    label1.drawFunc = ExDrawFunc(drawName, (void*)50);
     button1.init(this, L"button1", &ExRect(10, 50, 100, 30));
-    button1.drawFunc = ExDrawFunc(fillRect, (void*)50);
+    button1.drawFunc = ExDrawFunc(drawName, (void*)50);
 }
 
 void WgtSetup::onDrawSetup(ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage) {
@@ -156,7 +156,7 @@ void WgtSetup::init(ExWidget* parent, int x, int y) {
     window->addFilter(this, &WgtSetup::onFilter);
     window->addHandler(this, &WgtSetup::onHandler);
     addCallback(this, &WgtSetup::onLayout, Ex_CbLayout);
-    drawFunc = ExDrawFunc(fillRect, (void*)50);
+    drawFunc = ExDrawFunc(fillRect, (void*)20);
     setFlags(Ex_Selectable);
 
     tab1.init(this, L"tab1", &ExRect(10, 10, 80, 40));

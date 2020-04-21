@@ -242,8 +242,10 @@ void ExApp::exit(int retCode) {
     }
     // When the system window manager closed the app, mainWnd was destroyed.
 #if 1 // It's not essential, but it's better to keep it clean.
-    if (ExApp::mainWnd != NULL) // When the halt flag is set inside the app.
+    if (ExApp::mainWnd != NULL) { // When the halt flag is set inside the app.
         ExApp::mainWnd->destroy();
+        ExApp::collect();
+    }
     ExTimerListClear();
 #endif
     ExFiniProcess();
