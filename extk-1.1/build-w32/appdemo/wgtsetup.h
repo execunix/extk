@@ -57,6 +57,7 @@ public:
     WgtSetup() : ExWidget() {}
 public:
     void STDCALL onDrawSetup(ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage);
+    int STDCALL onTitleMove(ExWidget* widget, ExCbInfo* cbinfo);
     int STDCALL onActivate(ExWidget* widget, ExCbInfo* cbinfo);
     int STDCALL onFocused(ExWidget* widget, ExCbInfo* cbinfo);
     int STDCALL onHandler(ExWidget* widget, ExCbInfo* cbinfo);

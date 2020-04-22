@@ -22,7 +22,7 @@ int WgtTitle::onLayout(WgtTitle* widget, ExCbInfo* cbinfo) {
 
 void WgtTitle::onDrawTitle(ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage) {
     ExCairo cr(canvas, damage);
-    ExCairo::Rect rc(widget->getRect());
+    ExCairo::Rect rc(widget->getDrawRect());
 
     cr.fill_rect_rgba(rc, ExCairo::Color(.2f, .2f, .2f, .5f));
 
@@ -75,14 +75,14 @@ void WndMain::onDrawBkgd(ExCanvas* canvas, const ExWidget* widget, const ExRegio
     } else if (widget == &wgtBkgd) {
         if (!imgBkgd1.bits) return;
         if (widget->isOpaque()) {
-            const ExPoint& pt = widget->getDeploy().ul;
+            const ExPoint& pt = widget->getDrawRect().pt;
             for (int i = 0; i < damage->n_boxes; i++) {
                 const ExBox& bx = damage->boxes[i];
                 canvas->gc->blitRgb(bx.l, bx.t, bx.width(), bx.height(),
                                     &imgBkgd1, bx.l - pt.x, bx.t - pt.y);
             }
         } else if (imgBkgd1.crs) {
-            ExCairo::Rect rc(widget->getRect());
+            ExCairo::Rect rc(widget->getDrawRect());
             ExCairo cr(canvas, damage);
             cairo_set_source_surface(cr, imgBkgd1.crs, rc.x, rc.y);
             cairo_paint_with_alpha(cr, .75); // for alpha blend
@@ -105,7 +105,7 @@ void WndMain::onDrawTrap(ExCanvas* canvas, const ExWidget* widget, const ExRegio
 
 void WndMain::onDrawBtns(ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage) {
     ExCairo cr(canvas, damage);
-    ExCairo::Rect rc(widget->getRect());
+    ExCairo::Rect rc(widget->getDrawRect());
     ExCairo::Point p2(rc.p2());
 
     cairo_new_path(cr);
@@ -178,7 +178,7 @@ void WndMain::onDrawBtns(ExCanvas* canvas, const ExWidget* widget, const ExRegio
 
 void WndMain::onDrawPane(ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage) {
     ExCairo cr(canvas, damage);
-    ExCairo::Rect rc(widget->getRect());
+    ExCairo::Rect rc(widget->getDrawRect());
     ExCairo::Point p2(rc.p2());
 
     cairo_new_path(cr);
@@ -249,7 +249,7 @@ void WndMain::onDrawToy(ExCanvas* canvas, const WndMain* w, const ExRegion* dama
         L"C.H Park <execunix@gmail.com>"
     };
 
-    const ExBox& bx = w->getDeploy();
+    const ExBox& bx = w->getDrawBox();
 
     cairo_status_t status;
     cairo_matrix_t font_matrix, ctm;
@@ -315,7 +315,7 @@ void WndMain::onDrawBackBuf(ExCanvas* canvas, const ExWidget* w, const ExRegion*
     if (w == &wgtBackViewer &&
         wndBackBuf.canvas->gc->crs) {
         ExCairo cr(canvas, damage);
-        ExCairo::Rect rc(w->getRect());
+        ExCairo::Rect rc(w->getDrawRect());
         cairo_set_source_surface(cr, wndBackBuf.canvas->gc->crs, rc.x, rc.y);
         cairo_paint_with_alpha(cr, .75); // for alpha blend
         return;
@@ -788,7 +788,7 @@ void WndMain::onFlushBackBuf(WndMain* w, const ExRegion* updateRgn) {
 #else
     // When using a real secondary display ...
     ExBox clip(updateRgn->extent);
-    clip.move(wgtBackViewer.getDeploy().ul);
+    clip.move(wgtBackViewer.getDrawRect().pt);
     wgtBackViewer.damage(clip);
 #endif
 }

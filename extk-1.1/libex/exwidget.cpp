@@ -34,8 +34,8 @@ static void STDCALL s_fill(void* data, ExCanvas* canvas, const ExWidget* widget,
     if (!(canvas && canvas->cr))
         return;
     ExCairo cr(canvas, damage);
-    //ExCairo::Rect rc(widget->getRect());
-    ExCairo::Box bx(widget->getDeploy());
+    //ExCairo::Rect rc(widget->getDrawRect());
+    ExCairo::Box bx(widget->getDrawBox());
 
     //bx.l += 1.f;
     //bx.t += 1.f;
@@ -84,9 +84,10 @@ ExWidget::ExWidget()
     , broPrev(NULL)
     , childHead(NULL)
     , name(NULL)
-    , deploy(0)
     , extent(0)
     , select(0)
+    , deploy(0)
+    , origin(0)
     , visibleRgn()
     , opaqueRgn()
     , damageRgn()
@@ -230,11 +231,19 @@ void ExWidget::setName(const wchar* text) {
     name = exwcsdup(text);
 }
 
-ExRect& ExWidget::getRect(ExRect& rc) const {
-    rc.x = deploy.l;
-    rc.y = deploy.t;
-    rc.w = deploy.r - deploy.l;
-    rc.h = deploy.b - deploy.t;
+ExBox& ExWidget::getDrawBox(ExBox& bx) const {
+    bx.l = deploy.x;
+    bx.t = deploy.y;
+    bx.r = bx.l + area.w;
+    bx.b = bx.t + area.h;
+    return bx;
+}
+
+ExRect& ExWidget::getDrawRect(ExRect& rc) const {
+    rc.x = deploy.x;
+    rc.y = deploy.y;
+    rc.w = area.w;
+    rc.h = area.h;
     return rc;
 }
 
@@ -401,16 +410,9 @@ int ExWidget::layout(ExRect& ar) {
     // regardless of whether it is visible or not.
     area = ar;
 
-    if (parent == NULL) {
-        deploy.l = 0;
-        deploy.t = 0;
-        deploy.r = area.w;
-        deploy.b = area.h;
-    } else {
-        deploy.l = area.x + parent->deploy.l;
-        deploy.t = area.y + parent->deploy.t;
-        deploy.r = area.w + deploy.l;
-        deploy.b = area.h + deploy.t;
+    if (parent != NULL) {
+        deploy.x = area.x + parent->deploy.x;
+        deploy.y = area.y + parent->deploy.y;
     }
     invokeCallback(Ex_CbLayout, &ExCbInfo(Ex_CbLayout, Ex_LayoutInit, NULL, &ar));
 
@@ -450,7 +452,7 @@ int ExWidget::damage(const ExBox& clip) {
     return 0;
 }
 
-#if 1 // sample pseudo code
+#if 0 // sample pseudo code
 static void STDCALL onDrawOwnDC(void* data, ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage) {
     if (canvas == NULL/*my_canvas*/) {
         // draw self & child to my canvas
@@ -458,7 +460,7 @@ static void STDCALL onDrawOwnDC(void* data, ExCanvas* canvas, const ExWidget* wi
         ExCanvas my_canvas;
         my_canvas.gc = NULL/*my_gc*/;
         my_canvas.cr = NULL/*my_cr*/;
-        const ExPoint& pt = widget->getDeploy().ul;
+        const ExPoint& pt = widget->getDrawRect().pt;
         cairo_translate(my_canvas.cr, -pt.x, -pt.y);
         ExWidget* w = (ExWidget*)widget;
         ExRegion myRgn(*damage); // tbd
@@ -538,25 +540,20 @@ completely obscured by another widget aren't drawn.
 bool ExWidget::calcExtent() {
     visibleRgn.setEmpty();
     damageRgn.setEmpty();
-    if (parent == NULL) {
-        deploy.l = 0;
-        deploy.t = 0;
-        deploy.r = area.w;
-        deploy.b = area.h;
-    } else {
-        deploy.l = area.x + parent->deploy.l;
-        deploy.t = area.y + parent->deploy.t;
-        deploy.r = area.w + deploy.l;
-        deploy.b = area.h + deploy.t;
+    if (parent != NULL) {
+        deploy.x = area.x + parent->deploy.x;
+        deploy.y = area.y + parent->deploy.y;
     }
-    extent = deploy;
+    extent.x1 = deploy.x;
+    extent.y1 = deploy.y;
+    extent.x2 = deploy.x + area.w;
+    extent.y2 = deploy.y + area.h;
     if (!extent.valid())
         return false;
     if (parent && !extent.intersect(parent->extent))
         return false;
     flags |= Ex_ResetRegion; // mark as reset visibleRgn
-    logdraw(L"extent: %s [%d,%d-%dx%d] [%d,%d-%dx%d]\n", getName(),
-            deploy.l, deploy.t, deploy.width(), deploy.height(),
+    logdraw(L"extent: %s [%d,%d-%dx%d]\n", getName(),
             extent.l, extent.t, extent.width(), extent.height());
     return true;
 }
@@ -588,9 +585,9 @@ ExWidget::calcOpaque(ExRegion& opaqueAcc) {
         opaqueAcc.combine(extent);
     } else if (!opaqueRgn.empty()) {
         ExRegion clipRgn(extent);
-        clipRgn.move(-deploy.ul);
+        clipRgn.move(-deploy);
         clipRgn.intersect(opaqueRgn);
-        clipRgn.move(deploy.ul);
+        clipRgn.move(deploy);
         opaqueAcc.combine(clipRgn);
     }
     logdraw(L"opaque: %s [%d,%d-%dx%d] visible:%d blind:%d\n", getName(),

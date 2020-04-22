@@ -9,7 +9,7 @@
 static void STDCALL
 fillRect(void* data, ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage) {
     ExCairo cr(canvas, damage);
-    ExCairo::Rect rc(widget->getRect());
+    ExCairo::Rect rc(widget->getDrawRect());
     ExCairo::Color fc; // fill color
     floatt alpha = (int)data / 100.f;
     fc.set(.8f, .8f, .8f, alpha);
@@ -19,7 +19,7 @@ fillRect(void* data, ExCanvas* canvas, const ExWidget* widget, const ExRegion* d
 static void STDCALL
 drawName(void* data, ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage) {
     ExCairo cr(canvas, damage);
-    ExCairo::Rect rc(widget->getRect());
+    ExCairo::Rect rc(widget->getDrawRect());
     ExCairo::Color fc; // fill color
     fc.set(.5f, .5f, .5f, .8f);
     cr.fill_rect_rgba(rc, fc);
@@ -72,12 +72,33 @@ void WgtPage3::init(ExWidget* parent, ExRect& rc) {
 
 void WgtSetup::onDrawSetup(ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage) {
     ExCairo cr(canvas, damage);
-    ExCairo::Rect rc(widget->getRect());
+    ExCairo::Rect rc(widget->getDrawRect());
     ExCairo::Color fc; // fill color
     fc.set(0.f, 0.f, 0.f, .75f);
     cr.fill_rect_rgba(rc, fc);
 
     // tbd - border
+}
+
+int WgtSetup::onTitleMove(ExWidget* widget, ExCbInfo* cbinfo) {
+    ExWindow* window = getWindow();
+    if (widget == &title && window) {
+        static ExPoint but_pt(0);
+        MSG& msg = cbinfo->event->msg;
+        if (cbinfo->type == Ex_CbButPress) {
+            but_pt = msg.pt; // memory press point
+            toFront();
+            window->wgtCapture = widget;
+        } else if (cbinfo->type == Ex_CbPtrMove &&
+                   widget->getFlags(Ex_ButPressed)) {
+            ExPoint pt(this->area.pt);
+            pt += (msg.pt - but_pt);
+            but_pt = msg.pt;
+            this->setPos(pt);
+        }
+        return Ex_Continue;
+    }
+    return Ex_Continue;
 }
 
 int WgtSetup::onActivate(ExWidget* widget, ExCbInfo* cbinfo) {
@@ -158,12 +179,15 @@ void WgtSetup::init(ExWidget* parent, int x, int y) {
     addCallback(this, &WgtSetup::onLayout, Ex_CbLayout);
     drawFunc = ExDrawFunc(fillRect, (void*)20);
     setFlags(Ex_Selectable);
+    //select = ExBox(9999);
 
     title.init(this, L"Setup", &ExRect(2, 2, 386, 40));
     title.drawFunc = ExDrawFunc(drawName, NULL);
+    title.setFlags(Ex_Selectable);
+    title.addCallback(this, &WgtSetup::onTitleMove, Ex_CbActivate);
     close.init(this, L"close", &ExRect(400, 2, 46, 40));
-    close.setFlags(Ex_Selectable);
     close.drawFunc = ExDrawFunc(drawName, NULL);
+    close.setFlags(Ex_Selectable);
     close.addCallback(this, &WgtSetup::onActivate, Ex_CbActivate);
 
     tab1.init(this, L"tab1", &ExRect(10, 60, 80, 40));

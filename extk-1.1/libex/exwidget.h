@@ -115,12 +115,13 @@ protected:
     }
     wchar*      name;
     // ExLayoutInfo
-    ExBox       deploy;     // read-only
     ExBox       extent;     // read-only : intersect with parent
     ExBox       select;     // read-only
-    ExRegion    visibleRgn;
-    ExRegion    opaqueRgn;
-    ExRegion    damageRgn;
+    ExPoint     deploy;     // tbd - translate to window
+    ExPoint     origin;     // tbd - translate to canvas
+    ExRegion    visibleRgn; // tbd - the origin is the nearest canvas.
+    ExRegion    opaqueRgn;  // tbd - the origin is the nearest canvas.
+    ExRegion    damageRgn;  // tbd - the origin is the nearest canvas.
     int         flags;      // Common flags used by all widgets.
     void*       data;       // This resource is used internally by FrameWorks as well as by compound widgets.
 public:
@@ -197,8 +198,8 @@ public:
     void         setName(const wchar* text);
     void* getData() const { return data; }
     void  setData(void* p) { data = p; }
-    ExRect& getRect(ExRect& rc = ExRect()) const;
-    const ExBox& getDeploy() const { return deploy; }
+    ExBox& getDrawBox(ExBox& bx = ExBox()) const;
+    ExRect& getDrawRect(ExRect& rc = ExRect()) const;
     const ExBox& getExtent() const { return extent; }
     void setOpaqueRegion(const ExRegion& op);
     void setOpaque(bool set);
