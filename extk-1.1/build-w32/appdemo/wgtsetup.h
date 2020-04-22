@@ -44,13 +44,14 @@ public:
 class WgtSetup : public ExWidget {
     const UINT WM_APP_SETUP = ExRegAppMessage();
 public:
+    ExWidget title;
+    ExWidget close;
     ExWidget tab1;
     WgtPage1 page1;
     ExWidget tab2;
     WgtPage2 page2;
     ExWidget tab3;
     WgtPage3 page3;
-    ExWidget close;
 public:
     ~WgtSetup() { fini();  }
     WgtSetup() : ExWidget() {}

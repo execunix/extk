@@ -62,7 +62,7 @@ int ExWidget::CallbackList::invoke(int type, ExObject* object, ExCbInfo* cbinfo)
 
         r = cb(object, cbinfo);
 
-        if (r & Ex_Halt)
+        if (ExApp::getHalt() || (r & Ex_Halt))
             return ExApp::setHalt(r);
         // should remove by invoker ?
         if (r & Ex_Remove) {
@@ -83,6 +83,7 @@ int ExWidget::CallbackList::invoke(int type, ExObject* object, ExCbInfo* cbinfo)
             else
                 ++i;
         }
+        change = 0;
     }
     return r;
 }
@@ -144,7 +145,7 @@ int ExWindow::MsgCallbackList::invoke(ExObject* object, ExCbInfo* cbinfo) {
 
         r = cb(object, cbinfo);
 
-        if (r & Ex_Halt)
+        if (ExApp::getHalt() || (r & Ex_Halt))
             return ExApp::setHalt(r);
         // should remove by invoker ?
         if (r & Ex_Remove) {
@@ -165,6 +166,7 @@ int ExWindow::MsgCallbackList::invoke(ExObject* object, ExCbInfo* cbinfo) {
             else
                 ++i;
         }
+        change = 0;
     }
     return r;
 }

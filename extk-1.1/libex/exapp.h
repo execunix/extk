@@ -33,23 +33,23 @@ public:
     static HINSTANCE    hPrevInstance;
     static LPTSTR       lpCmdLine;
     static int          nCmdShow;
-    static int          retCode; // 0:EXIT_SUCCESS,1:EXIT_FAILURE
-    static ExSize       smSize; // SystemMetrics
+    static int          retCode;                // 0:EXIT_SUCCESS,1:EXIT_FAILURE
+    static ExSize       smSize;                 // SystemMetrics
     static ExEvent      event;
     static int          halt;
     static ExTimer      but_timer;
     static ExTimer      key_timer;
     static long         key_state;
-    static long         button_x[2];			/* The last 2 button click positions. */
+    static long         button_x[2];            /* The last 2 button click positions. */
     static long         button_y[2];
-    static long         double_click_distance;	/* Maximum distance between clicks in pixels */
+    static long         double_click_distance;  /* Maximum distance between clicks in pixels */
     static long         double_click_count;
     static ulong        button_react_delay;
-    static ulong        button_click_time[2];	/* The last 2 button click times. */
-    static ulong        double_click_time;		/* Maximum time between clicks in msecs */
-    static int          button_number[2];		/* The last 2 buttons to be pressed. */
-    static ExWidget*    button_widget[2];		/* The last 2 widgets to receive button presses. */
-    static ExWindow*    button_window[2];		/* The last 2 windows to receive button presses. */
+    static ulong        button_click_time[2];   /* The last 2 button click times. */
+    static ulong        double_click_time;      /* Maximum time between clicks in msecs */
+    static int          button_number[2];       /* The last 2 buttons to be pressed. */
+    static ExWidget*    button_widget[2];       /* The last 2 widgets to receive button presses. */
+    static ExWindow*    button_window[2];       /* The last 2 windows to receive button presses. */
     static UINT         regAppMsgIndex;
 public:
     static void dispatch(MSG& msg);

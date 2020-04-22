@@ -151,7 +151,7 @@ void WgtSetup::fini() {
 }
 
 void WgtSetup::init(ExWidget* parent, int x, int y) {
-    ExWidget::init(parent, L"WgtSetup", &ExRect(x, y, 450, 240));
+    ExWidget::init(parent, L"WgtSetup", &ExRect(x, y, 450, 300));
     ExWindow* window = parent->getWindow();
     window->addFilter(this, &WgtSetup::onFilter);
     window->addHandler(this, &WgtSetup::onHandler);
@@ -159,18 +159,21 @@ void WgtSetup::init(ExWidget* parent, int x, int y) {
     drawFunc = ExDrawFunc(fillRect, (void*)20);
     setFlags(Ex_Selectable);
 
-    tab1.init(this, L"tab1", &ExRect(10, 10, 80, 40));
-    tab1.drawFunc = ExDrawFunc(drawName, NULL);
-    tab2.init(this, L"tab2", &ExRect(110, 10, 80, 40));
-    tab2.drawFunc = ExDrawFunc(drawName, NULL);
-    tab3.init(this, L"tab3", &ExRect(210, 10, 80, 40));
-    tab3.drawFunc = ExDrawFunc(drawName, NULL);
-    close.init(this, L"close", &ExRect(310, 10, 80, 40));
+    title.init(this, L"Setup", &ExRect(2, 2, 386, 40));
+    title.drawFunc = ExDrawFunc(drawName, NULL);
+    close.init(this, L"close", &ExRect(400, 2, 46, 40));
     close.setFlags(Ex_Selectable);
     close.drawFunc = ExDrawFunc(drawName, NULL);
     close.addCallback(this, &WgtSetup::onActivate, Ex_CbActivate);
 
-    ExRect rc(10, 50, 360, 180);
+    tab1.init(this, L"tab1", &ExRect(10, 60, 80, 40));
+    tab1.drawFunc = ExDrawFunc(drawName, NULL);
+    tab2.init(this, L"tab2", &ExRect(110, 60, 80, 40));
+    tab2.drawFunc = ExDrawFunc(drawName, NULL);
+    tab3.init(this, L"tab3", &ExRect(210, 60, 80, 40));
+    tab3.drawFunc = ExDrawFunc(drawName, NULL);
+
+    ExRect rc(10, 100, 360, 180);
     page1.init(this, rc);
     page2.init(this, rc);
     page3.init(this, rc);
