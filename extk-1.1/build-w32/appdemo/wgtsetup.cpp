@@ -84,16 +84,16 @@ int WgtSetup::onTitleMove(ExWidget* widget, ExCbInfo* cbinfo) {
     ExWindow* window = getWindow();
     if (widget == &title && window) {
         static ExPoint but_pt(0);
-        MSG& msg = cbinfo->event->msg;
+        ExPoint msg_pt(cbinfo->event->msg.pt);
         if (cbinfo->type == Ex_CbButPress) {
-            but_pt = msg.pt; // memory press point
+            but_pt = msg_pt; // memory press point
             toFront();
             window->wgtCapture = widget;
         } else if (cbinfo->type == Ex_CbPtrMove &&
                    widget->getFlags(Ex_ButPressed)) {
             ExPoint pt(this->area.pt);
-            pt += (msg.pt - but_pt);
-            but_pt = msg.pt;
+            pt += (msg_pt - but_pt);
+            but_pt = msg_pt;
             this->setPos(pt);
         }
         return Ex_Continue;

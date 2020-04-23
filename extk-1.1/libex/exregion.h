@@ -92,23 +92,23 @@ struct ExRegion {
         n_boxes = 0;
     }
     /**
-     * ExRegion::move(int dx, int dy)
+     * ExRegion::move(int16 dx, int16 dy)
      * @dx: the distance to move the region horizontally
      * @dy: the distance to move the region vertically
      * Moves a region the specified distance.
      */
-    void move(int dx, int dy);
+    void move(int16 dx, int16 dy);
     void move(const ExPoint& pt) {
         move(pt.x, pt.y);
     }
     /**
-     * ExRegion::shrink(int dx, int dy)
+     * ExRegion::shrink(int16 dx, int16 dy)
      * @dx: the number of pixels to shrink the region horizontally
      * @dy: the number of pixels to shrink the region vertically
      * Resizes a region by the specified amount.
      * Positive values shrink the region. Negative values expand it.
      */
-    void shrink(int dx, int dy);
+    void shrink(int16 dx, int16 dy);
     void shrink(const ExPoint& pt) {
         shrink(pt.x, pt.y);
     }
@@ -172,13 +172,13 @@ struct ExRegion {
     bool operator == (const ExRegion& rgn) const { return equal(rgn); }
     bool operator == (const ExBox& box) const { return (n_boxes == 1 && extent == box); }
     /**
-     * ExRegion::contain(int x, int y)
+     * ExRegion::contain(int16 x, int16 y)
      * @x: the x coordinate of a point
      * @y: the y coordinate of a point
      * Finds out if a point is in a region.
      * Returns: %TRUE if the point is in @region.
      */
-    bool contain(int x, int y) const;
+    bool contain(int16 x, int16 y) const;
     /**
      * ExRegion::contain(const ExBox& box)
      * @box: a #ExBox.

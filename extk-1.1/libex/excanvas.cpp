@@ -142,31 +142,30 @@ ExRegionToGdi(HDC hdc, const ExRegion* srcrgn)
     if (srcrgn->empty())
         return NULL;
 #if 0
-    const RECT* lprect = (const RECT*)&srcrgn->extent;
-    HRGN hrgn = CreateRectRgnIndirect(lprect);
+    RECT r;
+    r.left = srcrgn->extent.l;
+    r.top = srcrgn->extent.t;
+    r.right = srcrgn->extent.r;
+    r.bottom = srcrgn->extent.b;
+    HRGN hrgn = CreateRectRgnIndirect(&r);
 #else
-    const RECT* lprect = (const RECT*)&srcrgn->boxes[0];
-    HRGN hrgn = CreateRectRgnIndirect(lprect);
+    RECT r;
+    r.left = srcrgn->boxes[0].l;
+    r.top = srcrgn->boxes[0].t;
+    r.right = srcrgn->boxes[0].r;
+    r.bottom = srcrgn->boxes[0].b;
+    HRGN hrgn = CreateRectRgnIndirect(&r);
     for (int i = 1; i < srcrgn->n_boxes; i++) {
-        lprect = (const RECT*)&srcrgn->boxes[i];
-        HRGN tmp_rgn = CreateRectRgnIndirect(lprect);
+        r.left = srcrgn->boxes[i].l;
+        r.top = srcrgn->boxes[i].t;
+        r.right = srcrgn->boxes[i].r;
+        r.bottom = srcrgn->boxes[i].b;
+        HRGN tmp_rgn = CreateRectRgnIndirect(&r);
         CombineRgn(hrgn, hrgn, tmp_rgn, RGN_OR);
         DeleteObject(tmp_rgn);
     }
 #endif
     SelectClipRgn(hdc, hrgn);
     return hrgn;
-}
-
-bool
-ExRegionToPixman(pixman_region32_t* prgn, const ExRegion* srcrgn)
-{
-    if (srcrgn->empty())
-        return false;
-    // ExBox box segment are compatible with pixman_box32 { int32_t x1, y1, x2, y2; }
-//	pixman_box32_t* boxes = srcrgn->boxes->box32();
-//	pixman_bool_t r = pixman_region32_init_rects(prgn, boxes, srcrgn->n_boxes);
-    pixman_bool_t r = pixman_region32_init_rects(prgn, srcrgn->boxes->box32(), srcrgn->n_boxes);
-    return r;
 }
 

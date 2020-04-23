@@ -350,11 +350,11 @@ int WndMain::onLayout(WndMain* widget, ExCbInfo* cbinfo) {
                            ar.center().y - toy.area.h / 2));
 #if 1
         ExBox opaqBox(0, 0, a0.w, a0.h);
-        opaqBox.l += 8;
-        opaqBox.r -= 8;
+        opaqBox.l += 8; opaqBox.t += 2;
+        opaqBox.r -= 8; opaqBox.b -= 2;
         panes[0].setOpaqueRegion(ExRegion(opaqBox));
 #else
-        panes[0].setFlags(Ex_Opaque);
+        //panes[0].setFlags(Ex_Opaque);
 #endif
     } else if (widget == &panes[0]) {
         float margin_w = ar.w * 2 / 100.f; // 2 %
@@ -389,28 +389,28 @@ int WndMain::onLayout(WndMain* widget, ExCbInfo* cbinfo) {
 int WndMain::onActMain(WndMain* widget, ExCbInfo* cbinfo) {
     if (widget == this) {
         static ExPoint but_pt(0);
-        MSG& msg = cbinfo->event->msg;
+        ExPoint msg_pt(cbinfo->event->msg.pt);
         if (cbinfo->type == Ex_CbButPress) {
-            but_pt = msg.pt; // memory press point
+            but_pt = msg_pt; // memory press point
             wgtCapture = widget;
         } else if (cbinfo->type == Ex_CbPtrMove &&
                    widget->getFlags(Ex_ButPressed)) {
-            img_pt0 += (msg.pt - but_pt);
-            but_pt = msg.pt;
+            img_pt0 += (msg_pt - but_pt);
+            but_pt = msg_pt;
             damage();
         }
         return Ex_Continue;
     } else if (widget == &panes[0]) {
         static ExPoint but_pt(0);
-        MSG& msg = cbinfo->event->msg;
+        ExPoint msg_pt(cbinfo->event->msg.pt);
         if (cbinfo->type == Ex_CbButPress) {
-            but_pt = msg.pt; // memory press point
+            but_pt = msg_pt; // memory press point
             wgtCapture = widget;
         } else if (cbinfo->type == Ex_CbPtrMove &&
                    widget->getFlags(Ex_ButPressed)) {
             ExPoint pt = widget->area.pt;
-            pt += (msg.pt - but_pt);
-            but_pt = msg.pt;
+            pt += (msg_pt - but_pt);
+            but_pt = msg_pt;
             widget->setPos(pt);
         }
         return Ex_Continue;
@@ -421,16 +421,16 @@ int WndMain::onActMain(WndMain* widget, ExCbInfo* cbinfo) {
 int WndMain::onActBkgd(WndMain* widget, ExCbInfo* cbinfo) {
     if (widget == &wgtBkgd) {
         static ExPoint but_pt(0);
-        MSG& msg = cbinfo->event->msg;
+        ExPoint msg_pt(cbinfo->event->msg.pt);
         if (cbinfo->type == Ex_CbButPress) {
-            but_pt = msg.pt; // memory press point
+            but_pt = msg_pt; // memory press point
             //widget->toFront();
             wgtCapture = widget;
         } else if (cbinfo->type == Ex_CbPtrMove &&
                    widget->getFlags(Ex_ButPressed)) {
             ExPoint pt(wgtBkgd.area.pt);
-            pt += (msg.pt - but_pt);
-            but_pt = msg.pt;
+            pt += (msg_pt - but_pt);
+            but_pt = msg_pt;
             wgtBkgd.setPos(pt);
         }
         return Ex_Continue;
@@ -1002,9 +1002,10 @@ int WndMain::start() {
         dprintf(L"[%s] WM_0x%04x\n", window->getName(), cbinfo->event->message);
         if (cbinfo->event->message == WM_CREATE) {
             cbinfo->event->lResult = 0;
-            ExRect rc;
+            RECT r;
             // The right and bottom members contain the width and height of the window.
-            GetClientRect(cbinfo->event->hwnd, (RECT*)&rc);
+            GetClientRect(cbinfo->event->hwnd, &r);
+            ExRect rc(r);
             dprintf(L"GetClientRect %d,%d-%dx%d\n",
                     rc.x, rc.y, rc.w, rc.h);
             window->layout(rc);
@@ -1013,15 +1014,15 @@ int WndMain::start() {
         }
 #if 0 // window caption remove or change
         if (cbinfo->event->message == WM_NCCALCSIZE) {
-            RECT* rc = (RECT*)cbinfo->event->lParam;
+            RECT* r = (RECT*)cbinfo->event->lParam;
             //NCCALCSIZE_PARAMS* rc = (NCCALCSIZE_PARAMS*)lParam;
             dprintf(L"[0x%p] WM_NCCALCSIZE wParam=%d %d,%d-%d,%d\n",
                     cbinfo->event->hwnd, cbinfo->event->wParam,
-                    rc->left, rc->top, rc->right, rc->bottom);
-            //rc->top += 31;
-            //rc->left += 8;
-            //rc->right -= 8;
-            //rc->bottom -= 8;
+                    r->left, r->top, r->right, r->bottom);
+            //r->top += 31;
+            //r->left += 8;
+            //r->right -= 8;
+            //r->bottom -= 8;
             cbinfo->event->lResult = 0;
             return Ex_Break;
         }

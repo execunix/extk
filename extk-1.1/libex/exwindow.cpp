@@ -554,7 +554,6 @@ void ExWindow::onExFlush(ExWindow* window, const ExRegion* updateRgn) {
 
     HDC hdc = GetDC(hwnd);
     HRGN hrgn = ExRegionToGdi(hdc, updateRgn);
-    const RECT* clip = (const RECT*)&updateRgn->extent;
 
     BITMAPINFO bmi;
     memset(&bmi, 0, sizeof(BITMAPINFO));
@@ -571,7 +570,16 @@ void ExWindow::onExFlush(ExWindow* window, const ExRegion* updateRgn) {
     SelectClipRgn(hdc, NULL);
     DeleteObject(hrgn);
     ReleaseDC(hwnd, hdc);
-    ValidateRect(hwnd, clip);
+#if 1
+    ValidateRect(hwnd, NULL);
+#else
+    RECT clip;
+    clip.left = updateRgn->extent.l;
+    clip.top = updateRgn->extent.t;
+    clip.right = updateRgn->extent.r;
+    clip.bottom = updateRgn->extent.b;
+    ValidateRect(hwnd, &clip);
+#endif
 }
 
 void ExWindow::onWmPaint(ExWindow* window, const ExRegion* updateRgn) {
@@ -583,13 +591,13 @@ void ExWindow::onWmPaint(ExWindow* window, const ExRegion* updateRgn) {
     PAINTSTRUCT ps;
     HDC hdc = BeginPaint(hwnd, &ps);
 #if 1 // use gdi ClipRgn
-    ExBox clip(ps.rcPaint);
-    HRGN hrgn = CreateRectRgnIndirect(&ps.rcPaint);
+    RECT* clip = &ps.rcPaint;
+    HRGN hrgn = CreateRectRgnIndirect(clip);
     SelectClipRgn(hdc, hrgn);
     // rcPaint : Specifies a RECT structure that specifies the upper left and lower right corners
     //           of the rectangle in which the painting is requested.
     logdraw(L"[0x%p] WM_PAINT hdc=0x%p x=%d y=%d w=%d h=%d\n",
-            hwnd, hdc, clip.l, clip.t, clip.width(), clip.height());
+            hwnd, hdc, clip->left, clip->top, clip->right - clip->left, clip->bottom - clip->top);
 #endif
 
     BITMAPINFO bmi;
@@ -652,10 +660,10 @@ int ExWindow::basicWndProc(ExCbInfo* cbinfo) {
         }
 #if 0
         case WM_NCCALCSIZE: {
-            RECT* rc = (RECT*)lParam;
+            RECT* r = (RECT*)lParam;
             //NCCALCSIZE_PARAMS* rc = (NCCALCSIZE_PARAMS*)lParam;
             logproc(L"[0x%p] WM_NCCALCSIZE wParam=%d %d,%d-%d,%d\n", hwnd, wParam,
-                    rc->left, rc->top, rc->right, rc->bottom);
+                    r->left, r->top, r->right, r->bottom);
             cbinfo->event->lResult = 0;
             return Ex_Break;
         }
