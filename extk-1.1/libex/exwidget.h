@@ -176,6 +176,19 @@ protected:
     void addUpdateRegion(const ExRegion& rgn);
     void subUpdateRegion(const ExRegion& rgn);
     void resetArea();
+#if 0
+    struct RenderCtx {
+        ExRegion opaqueAcc;
+        ExRegion mergedRgn;
+        ExRegion updateRgn;
+
+        int checkExtentRebuild();
+        int setupVisibleRegion();
+        int mergeDamagedRegion();
+        int clearPendingUpdate();
+        int summarize();
+    };
+#endif
 public:
     virtual int setVisible(bool show);
     bool isVisible();
@@ -198,9 +211,11 @@ public:
     void         setName(const wchar* text);
     void* getData() const { return data; }
     void  setData(void* p) { data = p; }
-    ExBox& getDrawBox(ExBox& bx = ExBox()) const;
-    ExRect& getDrawRect(ExRect& rc = ExRect()) const;
-    const ExBox& getExtent() const { return extent; }
+    ExBox& getBox(ExBox& bx = ExBox()) const; // for event processing
+    ExRect& getRect(ExRect& rc = ExRect()) const; // for event processing
+    ExBox& calcBox(ExBox& bx = ExBox()) const; // for drawing on canvas
+    ExRect& calcRect(ExRect& rc = ExRect()) const; // for drawing on canvas
+    //const ExBox& getExtent() const { return extent; } // tbd
     void setOpaqueRegion(const ExRegion& op);
     void setOpaque(bool set);
     void setSelect(const ExBox& box) { select = box; }
@@ -275,10 +290,11 @@ public:
 };
 
 inline bool ExWidget::isExtentContainPoint(const ExPoint& pt) {
-    return extent.contain(pt);
+    return extent.contain(pt); // tbd - deprecated ?
 }
 
 inline bool ExWidget::isSelectContainPoint(const ExPoint& pt) {
+    // tbd
     return (!extent.empty() &&
             ExBox(extent.l - select.l, extent.t - select.t,
                   extent.r + select.r, extent.b + select.b).contain(pt));

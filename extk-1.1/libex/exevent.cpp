@@ -28,7 +28,7 @@ bool ExEmitPtrEvent(ExWidget* widget, UINT message, WPARAM wParam, int x, int y)
     HWND hwnd;
     if (widget && widget->getFlags(Ex_Realized) &&
         (hwnd = widget->getWindow()->getHwnd()) != NULL) {
-        ExPoint pt(widget->getDrawRect().center());
+        ExPoint pt(widget->calcRect().center());
         x += pt.x;
         y += pt.y;
         SetCursorPos(x, y);

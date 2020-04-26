@@ -545,6 +545,9 @@ int ExWindow::paint() {
     return 0;
 }
 
+#define GDICLIP_FLUSH
+#define GDICLIP_PAINT
+
 void ExWindow::onExFlush(ExWindow* window, const ExRegion* updateRgn) {
     // updateRgn is filled after render call.
     this->render();
@@ -553,8 +556,9 @@ void ExWindow::onExFlush(ExWindow* window, const ExRegion* updateRgn) {
         return;
 
     HDC hdc = GetDC(hwnd);
+#ifdef GDICLIP_FLUSH
     HRGN hrgn = ExRegionToGdi(hdc, updateRgn);
-
+#endif
     BITMAPINFO bmi;
     memset(&bmi, 0, sizeof(BITMAPINFO));
     bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
@@ -566,9 +570,10 @@ void ExWindow::onExFlush(ExWindow* window, const ExRegion* updateRgn) {
     bmi.bmiHeader.biSizeImage = 0; // This may be set to zero for BI_RGB bitmaps
     SetDIBitsToDevice(hdc, 0, 0, canvas->gc->width, canvas->gc->height,
                       0, 0, 0, canvas->gc->height, canvas->gc->bits, &bmi, DIB_RGB_COLORS);
-
+#ifdef GDICLIP_FLUSH
     SelectClipRgn(hdc, NULL);
     DeleteObject(hrgn);
+#endif
     ReleaseDC(hwnd, hdc);
 #if 1
     ValidateRect(hwnd, NULL);
@@ -590,7 +595,7 @@ void ExWindow::onWmPaint(ExWindow* window, const ExRegion* updateRgn) {
 
     PAINTSTRUCT ps;
     HDC hdc = BeginPaint(hwnd, &ps);
-#if 1 // use gdi ClipRgn
+#ifdef GDICLIP_PAINT
     RECT* clip = &ps.rcPaint;
     HRGN hrgn = CreateRectRgnIndirect(clip);
     SelectClipRgn(hdc, hrgn);
@@ -612,7 +617,7 @@ void ExWindow::onWmPaint(ExWindow* window, const ExRegion* updateRgn) {
     SetDIBitsToDevice(hdc, 0, 0, canvas->gc->width, canvas->gc->height,
                       0, 0, 0, canvas->gc->height, canvas->gc->bits, &bmi, DIB_RGB_COLORS);
 
-#if 1 // use gdi ClipRgn
+#ifdef GDICLIP_PAINT
     SelectClipRgn(hdc, NULL);
     DeleteObject(hrgn);
 #endif

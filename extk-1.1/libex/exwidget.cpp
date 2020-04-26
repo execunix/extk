@@ -34,8 +34,8 @@ static void STDCALL s_fill(void* data, ExCanvas* canvas, const ExWidget* widget,
     if (!(canvas && canvas->cr))
         return;
     ExCairo cr(canvas, damage);
-    //ExCairo::Rect rc(widget->getDrawRect());
-    ExCairo::Box bx(widget->getDrawBox());
+    //ExCairo::Rect rc(widget->calcRect());
+    ExCairo::Box bx(widget->calcBox());
 
     //bx.l += 1.f;
     //bx.t += 1.f;
@@ -231,17 +231,43 @@ void ExWidget::setName(const wchar* text) {
     name = exwcsdup(text);
 }
 
-ExBox& ExWidget::getDrawBox(ExBox& bx) const {
-    bx.l = deploy.x;
-    bx.t = deploy.y;
+ExBox& ExWidget::getBox(ExBox& bx) const {
+    ExPoint pt = area.pt;
+    const ExWidget* w = this;
+    for (; w && !w->getClassFlags(Ex_DISJOINT); w = w->parent)
+        pt += w->area.pt;
+
+    bx.l = pt.x;
+    bx.t = pt.y;
     bx.r = bx.l + area.w;
     bx.b = bx.t + area.h;
     return bx;
 }
 
-ExRect& ExWidget::getDrawRect(ExRect& rc) const {
-    rc.x = deploy.x;
-    rc.y = deploy.y;
+ExRect& ExWidget::getRect(ExRect& rc) const {
+    ExPoint pt = area.pt;
+    const ExWidget* w = this;
+    for (; w && !w->getClassFlags(Ex_DISJOINT); w = w->parent)
+        pt += w->area.pt;
+
+    rc.x = pt.x;
+    rc.y = pt.y;
+    rc.w = area.w;
+    rc.h = area.h;
+    return rc;
+}
+
+ExBox& ExWidget::calcBox(ExBox& bx) const {
+    bx.l = origin.x;
+    bx.t = origin.y;
+    bx.r = bx.l + area.w;
+    bx.b = bx.t + area.h;
+    return bx;
+}
+
+ExRect& ExWidget::calcRect(ExRect& rc) const {
+    rc.x = origin.x;
+    rc.y = origin.y;
     rc.w = area.w;
     rc.h = area.h;
     return rc;
@@ -411,8 +437,8 @@ int ExWidget::layout(ExRect& ar) {
     area = ar;
 
     if (parent != NULL) {
-        deploy.x = area.x + parent->deploy.x;
-        deploy.y = area.y + parent->deploy.y;
+        origin.x = area.x + parent->origin.x;
+        origin.y = area.y + parent->origin.y;
     }
     invokeCallback(Ex_CbLayout, &ExCbInfo(Ex_CbLayout, Ex_LayoutInit, NULL, &ar));
 
@@ -460,7 +486,7 @@ static void STDCALL onDrawOwnDC(void* data, ExCanvas* canvas, const ExWidget* wi
         ExCanvas my_canvas;
         my_canvas.gc = NULL/*my_gc*/;
         my_canvas.cr = NULL/*my_cr*/;
-        const ExPoint& pt = widget->getDrawRect().pt;
+        const ExPoint& pt = widget->calcRect().pt;
         cairo_translate(my_canvas.cr, -pt.x, -pt.y);
         ExWidget* w = (ExWidget*)widget;
         ExRegion myRgn(*damage); // tbd
@@ -541,13 +567,13 @@ bool ExWidget::calcExtent() {
     visibleRgn.setEmpty();
     damageRgn.setEmpty();
     if (parent != NULL) {
-        deploy.x = area.x + parent->deploy.x;
-        deploy.y = area.y + parent->deploy.y;
+        origin.x = area.x + parent->origin.x;
+        origin.y = area.y + parent->origin.y;
     }
-    extent.x1 = deploy.x;
-    extent.y1 = deploy.y;
-    extent.x2 = deploy.x + area.w;
-    extent.y2 = deploy.y + area.h;
+    extent.x1 = origin.x;
+    extent.y1 = origin.y;
+    extent.x2 = origin.x + area.w;
+    extent.y2 = origin.y + area.h;
     if (!extent.valid())
         return false;
     if (parent && !extent.intersect(parent->extent))
@@ -585,9 +611,9 @@ ExWidget::calcOpaque(ExRegion& opaqueAcc) {
         opaqueAcc.combine(extent);
     } else if (!opaqueRgn.empty()) {
         ExRegion clipRgn(extent);
-        clipRgn.move(-deploy);
+        clipRgn.move(-origin);
         clipRgn.intersect(opaqueRgn);
-        clipRgn.move(deploy);
+        clipRgn.move(origin);
         opaqueAcc.combine(clipRgn);
     }
     logdraw(L"opaque: %s [%d,%d-%dx%d] visible:%d blind:%d\n", getName(),

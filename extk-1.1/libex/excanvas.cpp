@@ -141,7 +141,7 @@ ExRegionToGdi(HDC hdc, const ExRegion* srcrgn)
 {
     if (srcrgn->empty())
         return NULL;
-#if 0
+#if 1
     RECT r;
     r.left = srcrgn->extent.l;
     r.top = srcrgn->extent.t;

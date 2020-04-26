@@ -9,7 +9,7 @@
 static void STDCALL
 fillRect(void* data, ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage) {
     ExCairo cr(canvas, damage);
-    ExCairo::Rect rc(widget->getDrawRect());
+    ExCairo::Rect rc(widget->calcRect());
     ExCairo::Color fc; // fill color
     floatt alpha = (int)data / 100.f;
     fc.set(.8f, .8f, .8f, alpha);
@@ -19,7 +19,7 @@ fillRect(void* data, ExCanvas* canvas, const ExWidget* widget, const ExRegion* d
 static void STDCALL
 drawName(void* data, ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage) {
     ExCairo cr(canvas, damage);
-    ExCairo::Rect rc(widget->getDrawRect());
+    ExCairo::Rect rc(widget->calcRect());
     ExCairo::Color fc; // fill color
     fc.set(.5f, .5f, .5f, .8f);
     cr.fill_rect_rgba(rc, fc);
@@ -72,7 +72,7 @@ void WgtPage3::init(ExWidget* parent, ExRect& rc) {
 
 void WgtSetup::onDrawSetup(ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage) {
     ExCairo cr(canvas, damage);
-    ExCairo::Rect rc(widget->getDrawRect());
+    ExCairo::Rect rc(widget->calcRect());
     ExCairo::Color fc; // fill color
     fc.set(0.f, 0.f, 0.f, .75f);
     cr.fill_rect_rgba(rc, fc);

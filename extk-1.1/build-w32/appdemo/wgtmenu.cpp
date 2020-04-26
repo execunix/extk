@@ -95,7 +95,7 @@ int WgtMenu::onTimerAni(Popup* popup, ExCbInfo* cbinfo) {
 
 void WgtMenu::onDrawMenuPopBkgd(ExCanvas* canvas, const Popup* popup, const ExRegion* damage) {
     ExCairo cr(canvas, damage);
-    ExCairo::Rect rc(popup->getDrawRect());
+    ExCairo::Rect rc(popup->calcRect());
     ExCairo::Color fc; // fill color
     fc.set(0.f, 0.f, 0.f, .75f * popup->ani);
     cr.fill_rect_rgba(rc, fc);
@@ -105,7 +105,7 @@ void WgtMenu::onDrawMenuPopBkgd(ExCanvas* canvas, const Popup* popup, const ExRe
 
 void WgtMenu::onDrawMenuPop(ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage) {
     ExCairo cr(canvas, damage);
-    ExCairo::Rect rc(widget->getDrawRect());
+    ExCairo::Rect rc(widget->calcRect());
     ExCairo::Point p2(rc.p2());
 
     Menu* menu = (Menu*)widget->getData();
@@ -151,7 +151,7 @@ void WgtMenu::onDrawMenuPop(ExCanvas* canvas, const ExWidget* widget, const ExRe
 
 void WgtMenu::onDrawMenuBarBkgd(ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage) {
     ExCairo cr(canvas, damage);
-    ExCairo::Rect rc(widget->getDrawRect());
+    ExCairo::Rect rc(widget->calcRect());
     ExCairo::Color fc; // fill color
     fc.set(0.f, 0.f, 0.f, .5f);
     cr.fill_rect_rgba(rc, fc);
@@ -159,7 +159,7 @@ void WgtMenu::onDrawMenuBarBkgd(ExCanvas* canvas, const ExWidget* widget, const 
 
 void WgtMenu::onDrawMenuBar(ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage) {
     ExCairo cr(canvas, damage);
-    ExCairo::Rect rc(widget->getDrawRect());
+    ExCairo::Rect rc(widget->calcRect());
     Menu* menu = (Menu*)widget->getData();
     Popup* pop = popList.empty() ? NULL : popList.back();
     bool isPopFocused = pop && pop->link == menu;
@@ -444,7 +444,7 @@ void WgtMenu::showPopup(Menu* link) {
         delete pop;
     }
     if (link && link->size != 0) {
-        const ExBox& bx = link->view->getDrawBox();
+        const ExBox& bx = link->view->calcBox();
         if (popList.empty())
             popList.push_front(popup(bx.l, bx.b, link));
         else
