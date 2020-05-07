@@ -105,6 +105,9 @@
     <ClInclude Include="..\..\libex\excanvas.h">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\libex\exrender.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\libex\exapp.cpp">
@@ -189,6 +192,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\libex\excanvas.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libex\exrender.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

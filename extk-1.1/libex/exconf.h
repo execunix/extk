@@ -11,6 +11,7 @@
 #endif
 
 #if defined(_MSC_VER)
+#define _CRT_NON_CONFORMING_SWPRINTFS
 #define _CRT_NONSTDC_NO_DEPRECATE
 #define _CRT_SECURE_NO_DEPRECATE
 #endif

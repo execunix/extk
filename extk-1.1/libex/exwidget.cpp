@@ -86,12 +86,12 @@ ExWidget::ExWidget()
     , name(NULL)
     , extent(0)
     , select(0)
-    , deploy(0)
+    //, deploy(0)
     , origin(0)
-    , visibleRgn()
-    , opaqueRgn()
     , damageRgn()
-    , flags(0)
+    , exposeRgn()
+    , opaqueRgn()
+    , flags(Ex_Destroyed)
     , data(NULL)
     , area(0)
     , id(0)
@@ -105,6 +105,8 @@ ExWidget::ExWidget()
 #ifdef DEBUG // test
     drawFunc = ExDrawFunc(&s_fill, NULL); // tbd
 #endif
+    //flags |= Ex_Opaque; // test
+    flags |= Ex_Visible; // default visible
 }
 
 void ExWidget::detachAll() {
@@ -154,7 +156,7 @@ void ExWidget::attachHead(ExWidget* child) {
     }
     childHead = child;
     child->parent = this;
-    child->flags |= Ex_DamageFamily;
+    child->flags |= Ex_Damaged;
 }
 
 void ExWidget::attachTail(ExWidget* child) {
@@ -177,7 +179,7 @@ void ExWidget::attachTail(ExWidget* child) {
         childHead->broPrev = child;
     }
     child->parent = this;
-    child->flags |= Ex_DamageFamily;
+    child->flags |= Ex_Damaged;
 }
 
 ExWidget* ExWidget::seekNext(ExWidget* seek) {
@@ -277,11 +279,9 @@ int ExWidget::init(ExWidget* parent, const wchar* name, const ExRect* area) {
     this->setName(name);
     if (parent) parent->attachTail(this);
     if (area) this->area = *area;
-    if (calcExtent()) { // is valid ?
-        flags |= Ex_DamageFamily;
-        addRenderFlags(Ex_RenderRebuild); // for setup visibleRgn
-    }
-    flags |= Ex_Visible; // default visible
+    flags |= Ex_Exposed | Ex_Damaged;
+    addRenderFlags(Ex_RenderRebuild); // for setup exposeRgn
+    flags &= ~Ex_Destroyed;
     return 0;
 }
 
@@ -370,7 +370,7 @@ void ExWidget::addRenderFlags(int value) {
 void ExWidget::addUpdateRegion(const ExRegion& rgn) {
     for (ExWidget* w = this; w; w = w->parent) {
         if (w->getClassFlags(Ex_DISJOINT) && w->getFlags(Ex_Visible)) {
-            ((ExWindow*)w)->updateRgn.combine(rgn);
+            ((ExWindow*)w)->damageRgn.combine(rgn);
             return;
         }
     }
@@ -379,20 +379,21 @@ void ExWidget::addUpdateRegion(const ExRegion& rgn) {
 void ExWidget::subUpdateRegion(const ExRegion& rgn) {
     for (ExWidget* w = this; w; w = w->parent) {
         if (w->getClassFlags(Ex_DISJOINT) && w->getFlags(Ex_Visible)) {
-            ((ExWindow*)w)->updateRgn.subtract(rgn);
+            ((ExWindow*)w)->damageRgn.subtract(rgn);
             return;
         }
     }
 }
 
 void ExWidget::resetArea() {
-    if (isVisible() && !(getFlags(Ex_ResetExtent))) {
+    if (isVisible() && !(getFlags(Ex_Exposed))) {
         // marks that the old area should be updated
         if (extent.valid())
             addUpdateRegion(ExRegion(extent));
         addRenderFlags(Ex_RenderRebuild);
     }
-    flags |= Ex_ResetExtent;
+    // tbd - distinguish between move and resize
+    flags |= Ex_Exposed;
 }
 
 int ExWidget::setVisible(bool show) {
@@ -402,8 +403,10 @@ int ExWidget::setVisible(bool show) {
     if (!show) {
         vanish(getWindow());
         flags &= ~Ex_Visible;
-    } else if (calcExtent()) { // tbd
-        flags |= (Ex_Visible | Ex_DamageFamily);
+        exposeRgn.setEmpty();
+        damageRgn.setEmpty();
+    } else /*if (calcExtent()) */{ // tbd
+        flags |= Ex_Visible | Ex_Exposed;
         addRenderFlags(Ex_RenderRebuild);
     }
     return 0;
@@ -424,8 +427,9 @@ int ExWidget::vanish(ExWindow* window) {
         if (getFlags(Ex_Focused))
             window->giveFocus(parent);
         if (window != this && isVisible()) {
-            window->updateRgn.combine(ExRegion(extent)); // inval
-            window->renderFlags |= Ex_RenderDamaged;
+            window->damageRgn.combine(ExRegion(extent)); // inval
+            window->renderFlags |= Ex_RenderRebuild;
+            flags |= Ex_Rebuild; // tbd - merge to exposeAcc
         }
     }
     return 0;
@@ -436,118 +440,32 @@ int ExWidget::layout(ExRect& ar) {
     // regardless of whether it is visible or not.
     area = ar;
 
-    if (parent != NULL) {
-        origin.x = area.x + parent->origin.x;
-        origin.y = area.y + parent->origin.y;
-    }
+    //if (parent != NULL) {
+    //    origin.x = area.x + parent->origin.x;
+    //    origin.y = area.y + parent->origin.y;
+    //}
     invokeCallback(Ex_CbLayout, &ExCbInfo(Ex_CbLayout, Ex_LayoutInit, NULL, &ar));
 
-    flags |= Ex_ResetExtent; // mark as reset visibleRgn
+    flags |= Ex_Exposed; // mark as reset exposeRgn
     addRenderFlags(Ex_RenderRebuild);
 
     return 0;
 }
 
-/*
-Ex_ResetExtent  - Ex_RenderRebuild bit call calcExtent back to front, setup extent
-Ex_ResetRegion  - Ex_RenderRebuild bit call calcOpaque front to back, setup visibleRgn
-Ex_DamageFamily - Ex_RenderDamaged bit combine the widget visibleRgn, skip child
-Ex_Damaged      - Ex_RenderDamaged bit combine each widget damageRgn recursively
-*/
-
 int ExWidget::damage() {
     if (!getFlags(Ex_Visible))
         return -1;
-    flags |= Ex_DamageFamily;
-    addRenderFlags(Ex_RenderDamaged);
+    if (getFlags(Ex_Damaged | Ex_Exposed) ||
+        exposeRgn.empty())
+        return 1;
+    flags |= Ex_Damaged;
+    addUpdateRegion(exposeRgn);
     return 0;
 }
 
 int ExWidget::damage(const ExBox& clip) {
-    if (!getFlags(Ex_Visible))
-        return -1;
-    if (getFlags(Ex_DamageFamily | Ex_ResetExtent | Ex_ResetRegion))
-        return 1;
-    ExRegion clip_rgn(clip);
-    clip_rgn.intersect(visibleRgn);
-    if (clip_rgn.empty())
-        return 1;
-    damageRgn.combine(clip_rgn);
-    flags |= Ex_Damaged;
-    addRenderFlags(Ex_RenderDamaged);
+    addUpdateRegion(ExRegion(clip));
     return 0;
-}
-
-#if 0 // sample pseudo code
-static void STDCALL onDrawOwnDC(void* data, ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage) {
-    if (canvas == NULL/*my_canvas*/) {
-        // draw self & child to my canvas
-    } else {
-        ExCanvas my_canvas;
-        my_canvas.gc = NULL/*my_gc*/;
-        my_canvas.cr = NULL/*my_cr*/;
-        const ExPoint& pt = widget->calcRect().pt;
-        cairo_translate(my_canvas.cr, -pt.x, -pt.y);
-        ExWidget* w = (ExWidget*)widget;
-        ExRegion myRgn(*damage); // tbd
-        w->render(&my_canvas, myRgn);
-        //flush_my_canvas_to_canvas();
-    }
-}
-#endif
-
-int ExWidget::render(ExCanvas* canvas, const ExRegion& updateRgn) { // tbd
-    int call_cnt = 0;
-    logdraw(L"%s(%s) enter update:%d\n", __funcw__, getName(), updateRgn.n_boxes);
-    ExWidget* w = this;
-    ExWidget* c;
-    do { // back to front iterator
-proc_enter:
-        if (!w->getFlags(Ex_Visible) || w->extent.empty())
-            goto proc_leave; // leave to parent and goto next_child
-        if (w->drawFunc && !w->visibleRgn.empty()) {
-            if (w->getFlags(Ex_DamageFamily)) {
-                w->damageRgn.copy(w->visibleRgn);
-            } else {
-                w->damageRgn.copy(w->visibleRgn);
-                w->damageRgn.intersect(updateRgn);
-            }
-            if (!w->damageRgn.empty()) {
-                logdraw(L"render: %s visible:%d damage:%d\n", w->getName(),
-                        w->visibleRgn.n_boxes, w->damageRgn.n_boxes);
-                w->drawFunc(canvas, w, &w->damageRgn);
-#ifdef DEBUG
-                if (exDrawFuncTrap)
-                    exDrawFuncTrap(canvas, w, &w->damageRgn);
-#endif
-                call_cnt++;
-                if (w->getFlags(Ex_HasOwnDC)) // tbd - tbd
-                    goto proc_clear;
-            }
-        }
-        // proc done
-
-        // back to front
-        c = w->childHead;
-        while (c) {
-            w = c;
-            goto proc_enter;
-next_child:
-            c = c != w->childHead->broPrev ? c->broNext : NULL;
-        }
-proc_clear:
-        logdra0(L"render: %s clear damage\n", w->getName());
-        w->flags &= ~(Ex_DamageFamily | Ex_Damaged);
-        w->damageRgn.setEmpty();
-proc_leave:
-        if (w == this ||
-            w->parent == NULL) // is root ?
-            break;
-        c = w;
-        w = w->parent;
-        goto next_child;
-    } while (0);
-    return call_cnt;
 }
 
 /**
@@ -564,21 +482,25 @@ This rectangle is the area capable of obscuring any widgets beneath. Widgets
 completely obscured by another widget aren't drawn.
 */
 bool ExWidget::calcExtent() {
-    visibleRgn.setEmpty();
-    damageRgn.setEmpty();
-    if (parent != NULL) {
+    if (parent && !getFlags(Ex_HasOwnGC)) {
         origin.x = area.x + parent->origin.x;
         origin.y = area.y + parent->origin.y;
+    //} else if (getFlags(Ex_HasOwnGC)) {
+    //    origin.x = area.x;
+    //    origin.y = area.y;
+    } else {
+        origin.x = 0;
+        origin.y = 0;
     }
-    extent.x1 = origin.x;
-    extent.y1 = origin.y;
-    extent.x2 = origin.x + area.w;
-    extent.y2 = origin.y + area.h;
+    extent.l = origin.x;
+    extent.t = origin.y;
+    extent.r = origin.x + area.w;
+    extent.b = origin.y + area.h;
     if (!extent.valid())
         return false;
-    if (parent && !extent.intersect(parent->extent))
+    if (parent && !getFlags(Ex_HasOwnGC) &&
+        !extent.intersect(parent->extent))
         return false;
-    flags |= Ex_ResetRegion; // mark as reset visibleRgn
     logdraw(L"extent: %s [%d,%d-%dx%d]\n", getName(),
             extent.l, extent.t, extent.width(), extent.height());
     return true;
@@ -596,15 +518,9 @@ transparent(i.e. any widget beneath can be seen), the Ex_Opaque flag must be cle
 */
 void
 ExWidget::calcOpaque(ExRegion& opaqueAcc) {
-    // should Ex_ResetRegion remove
-    flags &= ~Ex_ResetRegion;
-    if (extent.empty()) {
-        logdraw(L"opaque: %s extent empty visible:%d blind:%d\n", getName(),
-                visibleRgn.n_boxes, opaqueAcc.n_boxes);
-        return;
-    }
-    visibleRgn.setRect(extent);
-    visibleRgn.subtract(opaqueAcc);
+    assert(!extent.empty());
+    exposeRgn.setRect(extent);
+    exposeRgn.subtract(opaqueAcc);
     if (!drawFunc) {
         ; // if no drawFunc then it's transparent
     } else if (getFlags(Ex_Opaque)) {
@@ -617,10 +533,109 @@ ExWidget::calcOpaque(ExRegion& opaqueAcc) {
         opaqueAcc.combine(clipRgn);
     }
     logdraw(L"opaque: %s [%d,%d-%dx%d] visible:%d blind:%d\n", getName(),
-            visibleRgn.extent.l, visibleRgn.extent.t,
-            visibleRgn.extent.width(), visibleRgn.extent.height(),
-            visibleRgn.n_boxes, opaqueAcc.n_boxes);
+            exposeRgn.extent.l, exposeRgn.extent.t,
+            exposeRgn.extent.width(), exposeRgn.extent.height(),
+            exposeRgn.n_boxes, opaqueAcc.n_boxes);
 }
+
+void ExWidget::buildExtent() {
+    assert(getFlags(Ex_Visible));
+    if (!calcExtent()) {
+        flags &= ~(Ex_Exposed | Ex_Damaged);
+        exposeRgn.setEmpty();
+        damageRgn.setEmpty();
+        return;
+    }
+    flags |= Ex_Exposed;
+    for (ExWidget* c = getChildHead(); c; c = c->getBroNext()) {
+        if (c->getFlags(Ex_Visible)) {
+            c->buildExtent();
+        }
+    }
+}
+
+void ExWidget::buildRegion() { // simple ver for gpu
+    assert(getFlags(Ex_Visible) && !extent.empty());
+    for (ExWidget* c = getChildTail(); c; c = c->getBroPrev()) {
+        if (c->getFlags(Ex_Exposed) &&
+            c->getFlags(Ex_Visible)) {
+            c->buildRegion();
+        }
+    }
+    exposeRgn.setRect(extent);
+}
+
+void ExWidget::dumpImage(ExCanvas* canvas) {
+    assert(getFlags(Ex_Visible) && !extent.empty());
+    if (drawFunc && !exposeRgn.empty()) {
+        drawFunc(canvas, this, &exposeRgn);
+#ifdef DEBUG
+        if (exDrawFuncTrap)
+            exDrawFuncTrap(canvas, this, &exposeRgn);
+#endif
+    }
+    for (ExWidget* c = getChildHead(); c; c = c->getBroNext()) {
+        if (c->getFlags(Ex_Visible) && !c->extent.empty()) {
+            c->dumpImage(canvas);
+        }
+    }
+}
+
+#if 0 // deprecated...
+int ExWidget::dumpImage(ExCanvas* canvas, const ExRegion& updateRgn) { // tbd
+    int call_cnt = 0;
+    logdraw(L"%s(%s) enter update:%d\n", __funcw__, getName(), updateRgn.n_boxes);
+    ExWidget* w = this;
+    ExWidget* c;
+    do { // back to front iterator
+proc_enter:
+        if (!w->getFlags(Ex_Visible) || w->extent.empty())
+            goto proc_leave; // leave to parent and goto next_child
+        if (w->drawFunc && !w->exposeRgn.empty()) {
+            if (w->getFlags(Ex_Damaged)) {
+                w->damageRgn.copy(w->exposeRgn);
+            } else {
+                w->damageRgn.copy(w->exposeRgn);
+                w->damageRgn.intersect(updateRgn);
+            }
+            if (!w->damageRgn.empty()) {
+                logdraw(L"render: %s visible:%d damage:%d\n", w->getName(),
+                        w->exposeRgn.n_boxes, w->damageRgn.n_boxes);
+                w->drawFunc(canvas, w, &w->damageRgn);
+#ifdef DEBUG
+                if (exDrawFuncTrap)
+                    exDrawFuncTrap(canvas, w, &w->damageRgn);
+#endif
+                call_cnt++;
+                if (w->getFlags(Ex_HasOwnGC)) // tbd - tbd
+                    goto proc_clear;
+            }
+        }
+        // proc done
+
+        // back to front
+        c = w->childHead;
+        while (c) {
+            w = c;
+            goto proc_enter;
+next_child:
+            c = c != w->childHead->broPrev ? c->broNext : NULL;
+        }
+proc_clear:
+        logdra0(L"render: %s clear damage\n", w->getName());
+        w->flags &= ~Ex_Damaged;
+        w->damageRgn.setEmpty();
+proc_leave:
+        if (w == this ||
+            w->parent == NULL) // is root ?
+            break;
+        c = w;
+        w = w->parent;
+        goto next_child;
+    } while (0);
+    return call_cnt;
+}
+#endif
 
 ExWidget* ExWidget::getPointOwner(const ExPoint& pt) {
     ExWidget* w = this;
@@ -695,6 +710,7 @@ void ExWidget::setOpaqueRegion(const ExRegion& op) {
     if (opaqueRgn.equal(op))
         return;
     opaqueRgn.copy(op);
+    flags |= Ex_Exposed;
     addRenderFlags(Ex_RenderRebuild);
 }
 
@@ -705,6 +721,7 @@ void ExWidget::setOpaque(bool set) {
         flags |= Ex_Opaque;
     else
         flags &= ~Ex_Opaque;
+    flags |= Ex_Exposed;
     addRenderFlags(Ex_RenderRebuild);
 }
 

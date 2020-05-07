@@ -23,15 +23,14 @@ protected:
     HWND        hwnd;
     DWORD       dwStyle;
     DWORD       dwExStyle;
-    int         notifyFlags;    // EventPending,...
-    int         renderFlags;
-    ExRegion    opaqueAcc;
-    ExRegion    mergedRgn;
-    ExRegion    updateRgn;
+    int         notifyFlags;    // tbd - remove
+    int         renderFlags;    // tbd - remove
+    //ExRegion    exposeAcc;  // tbd - replace Ex_RenderRebuild
+    //ExRegion    opaqueAcc;
 public:
     ExWidget*   wgtCapture;
-    ExWidget*   wgtEntered; // cause event broken
-    ExWidget*   wgtPressed; // cause event broken
+    ExWidget*   wgtEntered;
+    ExWidget*   wgtPressed;
     ExWidget*   wgtFocused; // focused child
     ExFlushFunc flushFunc;
     ExFlushFunc paintFunc;
@@ -72,16 +71,6 @@ public:
     HWND getHwnd() const { return this ? hwnd : NULL; }
     ExWidget* giveFocus(ExWidget* newFocus);
     ExWidget* moveFocus(int dir); // sample
-    bool hasPendingUpdate() {
-        return (renderFlags & (Ex_RenderRebuild | Ex_RenderDamaged)) != 0;
-    }
-protected:
-    //int STDCALL test1(ExWidget* widget, ExCbInfo* cbinfo);
-    int checkExtentRebuild();
-    int setupVisibleRegion();
-    int mergeDamagedRegion();
-    int clearPendingUpdate();
-    int summarize();
 public:
     int render(); // call drawfunc for back buffer
     int flush(); // App Callback: GetDC-render-ReleaseDC

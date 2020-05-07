@@ -19,6 +19,7 @@
 #include <exmemory.h>
 #include <exobject.h>
 #include <exregion.h>
+#include <exrender.h>
 #include <exsearch.h>
 #include <exstyle.h>
 #include <exthread.h>

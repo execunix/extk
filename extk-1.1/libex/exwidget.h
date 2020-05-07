@@ -48,8 +48,6 @@ enum ExWidgetClassFlags {
         Prevent the widget and all its children from interacting with any events.
     Ex_Damaged (read-only)
         The widget requires repair.
-    Ex_DamageFamily (read-only)
-        The widget and all its children need to be repaired.
     Ex_Destroyed (read-only)
         The widget has been marked for destruction.
     Ex_FocusRender
@@ -64,6 +62,8 @@ enum ExWidgetClassFlags {
         This widget obscures everything directly behind it (i.e. it isn't transparent)
     Ex_Realized (read-only)
         The widget is realized.
+    Ex_Exposed (read-only)
+        The widget and all its children need to be rebuild.
     Ex_Selectable
         You can select (press, release, repeat, activate) the widget. Widgets usually provide visual feedback when selected.
     Ex_Set
@@ -80,7 +80,7 @@ enum ExWidgetClassFlags {
 enum ExWidgetFlags {
     Ex_Destroyed        = 1 << 0,   // RO
     Ex_Realized         = 1 << 1,   // RO
-    Ex_HasOwnDC         = 1 << 2,   // RO
+    Ex_HasOwnGC         = 1 << 2,   // RW
     Ex_AutoHighlight    = 1 << 3,   // RW
     Ex_Highlighted      = 1 << 4,   // RW
     Ex_FocusRender      = 1 << 5,   // RW
@@ -94,11 +94,10 @@ enum ExWidgetFlags {
     Ex_Set              = 1 << 13,  // RW
     Ex_Toggle           = 1 << 14,  // RW
     Ex_Opaque           = 1 << 15,  // RW
-    Ex_Damaged          = 1 << 16,  // RO
-    Ex_DamageFamily     = 1 << 17,  // RO
-    Ex_ResetExtent      = 1 << 19,  // RO
-    Ex_ResetRegion      = 1 << 20,  // RO
-    Ex_SkipLayout       = 1 << 21,  // RO
+    Ex_Damaged          = 1 << 27,  // RO
+    Ex_Exposed          = 1 << 28,  // RO
+    Ex_Rebuild          = 1 << 29,  // RO tbd - used only by OwnGC.
+    Ex_SkipLayout       = 1 << 30,  // RO tbd
     Ex_FreeMemory       = 1 << 31,  // RW
 };
 
@@ -115,13 +114,13 @@ protected:
     }
     wchar*      name;
     // ExLayoutInfo
-    ExBox       extent;     // read-only : intersect with parent
+    ExBox       extent;     // the origin is the nearest canvas. intersect with parent
     ExBox       select;     // read-only
-    ExPoint     deploy;     // tbd - translate to window
-    ExPoint     origin;     // tbd - translate to canvas
-    ExRegion    visibleRgn; // tbd - the origin is the nearest canvas.
-    ExRegion    opaqueRgn;  // tbd - the origin is the nearest canvas.
-    ExRegion    damageRgn;  // tbd - the origin is the nearest canvas.
+    //ExPoint     deploy;     // tbd - translate to window
+    ExPoint     origin;     // translate to the nearest canvas.
+    ExRegion    damageRgn;  // the origin is the nearest canvas.
+    ExRegion    exposeRgn;  // the origin is the nearest canvas. visible or repair
+    ExRegion    opaqueRgn;  // the origin is the widget's left-top.
     int         flags;      // Common flags used by all widgets.
     void*       data;       // This resource is used internally by FrameWorks as well as by compound widgets.
 public:
@@ -172,23 +171,10 @@ protected:
         this->ExWidget::~ExWidget(); // nonvirtual explicit destructor calls
         this->ExWidget::ExWidget(); // nonvirtual explicit constructor calls
     }
-    void addRenderFlags(int value); // Ex_RenderDamaged Ex_RenderRebuild
+    void addRenderFlags(int value); // Ex_RenderRebuild
     void addUpdateRegion(const ExRegion& rgn);
     void subUpdateRegion(const ExRegion& rgn);
     void resetArea();
-#if 0
-    struct RenderCtx {
-        ExRegion opaqueAcc;
-        ExRegion mergedRgn;
-        ExRegion updateRgn;
-
-        int checkExtentRebuild();
-        int setupVisibleRegion();
-        int mergeDamagedRegion();
-        int clearPendingUpdate();
-        int summarize();
-    };
-#endif
 public:
     virtual int setVisible(bool show);
     bool isVisible();
@@ -196,7 +182,6 @@ public:
     int layout(ExRect& ar);
     int damage();
     int damage(const ExBox& clip);
-    int render(ExCanvas* canvas, const ExRegion& updateRgn);
     bool isOpaque() const { return getFlags(Ex_Opaque) || !opaqueRgn.empty(); }
     bool isExtentContainPoint(const ExPoint& pt);
     bool isSelectContainPoint(const ExPoint& pt);
@@ -279,10 +264,34 @@ public: // widget callback operation
 protected:
     bool calcExtent();
     void calcOpaque(ExRegion& opaqueAcc);
+    void buildExtent();
+    void buildRegion();
+    #if 0 // tbd
+    struct Build {
+        ExRegion exposeAcc;
+        ExRegion opaqueAcc;
+
+        void checkExtent(ExWidget* w);
+        void buildExtent(ExWidget* w);
+        void buildOpaque(ExWidget* w);
+        Build(ExWidget* w);
+    };
+    struct Draw {
+        ExCanvas* canvas;
+        ExRegion& updateRgn;
+        void draw(ExWidget* w);
+        Draw(ExCanvas*, ExWidget*);
+    };
+    static void render(ExCanvas* canvas, ExWidget* widget, int flags);
+    #endif
+public:
+    void dumpImage(ExCanvas* canvas); // for dumping images to a temporary canvas
+    //int dumpImage(ExCanvas* canvas, const ExRegion& updateRgn);
 public:
     static ExWidget* enumBackToFront(ExWidget* begin, ExWidget* end, ExCallback& cb, ExCbInfo* cbinfo);
     static ExWidget* enumFrontToBack(ExWidget* begin, ExWidget* end, ExCallback& cb, ExCbInfo* cbinfo);
 public:
+    friend struct ExRender;
     friend class ExWindow;
     friend class ExApp;
 public:

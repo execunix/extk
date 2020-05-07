@@ -3,6 +3,7 @@
  * SPDX-License-Identifier:     GPL-2.0+
  */
 
+#include <exrender.h>
 #include <exapp.h>
 #include <map>
 
@@ -61,9 +62,6 @@ ExWindow::ExWindow()
     , dwExStyle(0)
     , notifyFlags(0)
     , renderFlags(0)
-    , opaqueAcc()
-    , mergedRgn()
-    , updateRgn()
     , wgtCapture(NULL)
     , wgtEntered(NULL)
     , wgtPressed(NULL)
@@ -74,7 +72,7 @@ ExWindow::ExWindow()
     , event(NULL)
     , filterList()
     , handlerList() {
-    //setFlags(Ex_Opaque); // test
+    flags |= Ex_HasOwnGC;
     flushFunc = ExFlushFunc(this, &ExWindow::onExFlush);
     paintFunc = ExFlushFunc(this, &ExWindow::onWmPaint);
 }
@@ -244,304 +242,26 @@ ExWidget* ExWindow::moveFocus(int dir) { // sample
     return wgtFocused;
 }
 
-#if 0
-int ExWindow::test1(ExWidget* w, ExCbInfo* cbinfo) {
-    if (cbinfo->type != Ex_CbEnumEnter)
-        return Ex_Continue;
-    if (!w->getFlags(Ex_Visible)) {
-        dprintf(L"%s [%d,%d-%dx%d] invisible\n", w->getName(),
-                w->extent.l, w->extent.t, w->extent.width(), w->extent.height());
-        return Ex_Discard;
-    }
-    dprintf(L"%s [%d,%d-%dx%d] visible\n", w->getName(),
-            w->extent.l, w->extent.t, w->extent.width(), w->extent.height());
-    return Ex_Continue;
-}
-#endif
-
-// reason: widget attach/detach/move/size/visible changes
-// 1. check Ex_ResetExtent
-// 2. check Ex_ResetRegion
-// 3. calc extent recursively
-// 4. mark Ex_ResetRegion
-// 5. calc each visibleRgn
-// 6. merge root damageRgn
-
-int ExWindow::checkExtentRebuild() {
-    if (!(renderFlags & Ex_RenderRebuild))
-        return 0;
-    logdraw(L"%s(%s) enter\n", __funcw__, getName());
-    renderFlags &= ~Ex_RenderRebuild;
-    ExWidget* resetExtentFamily = NULL;
-    ExWidget* resetRegionFamily = NULL;
-    ExWidget* w = this;
-    ExWidget* c;
-    do { // back to front iterator
-proc_enter:
-        if (!w->getFlags(Ex_Visible)) {
-            logdraw(L"resetExtent: %s [%d,%d-%dx%d] invisible - skip\n", w->getName(),
-                    w->extent.l, w->extent.t, w->extent.width(), w->extent.height());
-            goto proc_leave;
-        }
-        // find Ex_ResetExtent and recalc it
-        if (resetExtentFamily == NULL && w->getFlags(Ex_ResetExtent)) {
-            resetExtentFamily = w; // do recurs
-            logdraw(L"resetExtent: %s [%d,%d-%dx%d] family enter\n", w->getName(),
-                    w->extent.l, w->extent.t, w->extent.width(), w->extent.height());
-        }
-        if (resetExtentFamily) {
-            mergedRgn.combine(w->visibleRgn); // merge old_rgn
-            if (w->getFlags(Ex_Opaque) || !w->opaqueRgn.empty()) {
-                renderFlags |= (Ex_RenderRebuild | Ex_RenderDamaged); // join opaque
-            }
-            if (w->calcExtent()) {
-                w->flags |= (Ex_ResetRegion | Ex_DamageFamily | Ex_Damaged);
-                renderFlags |= Ex_RenderRebuild;
-            }
-            w->flags &= ~Ex_ResetExtent;
-        }
-        // find Ex_ResetRegion and mark as recalc it
-        if (resetRegionFamily == NULL && w->getFlags(Ex_ResetRegion)) {
-            renderFlags |= Ex_RenderRebuild;
-            resetRegionFamily = w; // do recurs
-            logdraw(L"resetRegion: %s [%d,%d-%dx%d] family enter\n", w->getName(),
-                    w->extent.l, w->extent.t, w->extent.width(), w->extent.height());
-        }
-        if (resetRegionFamily) {
-            if (w->extent.empty()) {
-                w->flags &= ~(Ex_ResetRegion | Ex_DamageFamily | Ex_Damaged);
-            } else if (w->getFlags(Ex_DamageFamily)) {
-                renderFlags |= Ex_RenderDamaged;
-            }
-        }
-        // proc done
-
-        // back to front
-        c = w->childHead;
-        while (c) {
-            w = c;
-            goto proc_enter;
-next_child:
-            c = c != w->childHead->broPrev ? c->broNext : NULL;
-        }
-        if (resetExtentFamily == w) {
-            resetExtentFamily = NULL;
-            logdraw(L"resetExtent: %s [%d,%d-%dx%d] family leave\n", w->getName(),
-                    w->extent.l, w->extent.t, w->extent.width(), w->extent.height());
-        }
-        if (resetRegionFamily == w) {
-            resetRegionFamily = NULL;
-            logdraw(L"resetRegion: %s [%d,%d-%dx%d] family leave\n", w->getName(),
-                    w->extent.l, w->extent.t, w->extent.width(), w->extent.height());
-        }
-proc_leave:
-        if (w == this ||
-            w->parent == NULL) // is root ?
-            break;
-        c = w;
-        w = w->parent;
-        goto next_child;
-    } while (0);
-    logdraw(L"%s(%s) leave\n", __funcw__, getName());
-    return 0;
-}
-
-int ExWindow::setupVisibleRegion() {
-    if (!(renderFlags & Ex_RenderRebuild))
-        return 0;
-    logdraw(L"%s(%s) enter\n", __funcw__, getName());
-    renderFlags &= ~Ex_RenderRebuild;
-    // calc each visibleRgn and accumulate opaque region of the widget from front to back
-    opaqueAcc.setEmpty();
-    ExWidget* w = this;
-    ExWidget* c;
-    do { // front to back iterator
-proc_enter:
-        if (!w->getFlags(Ex_Visible)) {
-            logdraw(L"setupVisible: %s [%d,%d-%dx%d] invisible - skip\n", w->getName(),
-                    w->extent.l, w->extent.t, w->extent.width(), w->extent.height());
-            goto proc_leave;
-        }
-        // front to back
-        c = w->childHead ? w->childHead->broPrev : NULL;
-        while (c) {
-            w = c;
-            goto proc_enter;
-next_child:
-            c = c != w->childHead ? c->broPrev : NULL;
-        }
-        // w is visible and ...
-        w->calcOpaque(opaqueAcc);
-        // proc done
-proc_leave:
-        if (w == this ||
-            w->parent == NULL) // is root ?
-            break;
-        c = w;
-        w = w->parent;
-        goto next_child;
-    } while (0);
-    logdraw(L"%s(%s) leave\n", __funcw__, getName());
-    return 0;
-}
-
-int ExWindow::mergeDamagedRegion() {
-    if (!(renderFlags & Ex_RenderDamaged))
-        return 0;
-    logdraw(L"%s(%s) enter\n", __funcw__, getName());
-    renderFlags &= ~Ex_RenderDamaged;
-    // Ex_DamageFamily : combine visibleRgn
-    // Ex_Damaged : combine visibleRgn & damageRgn
-    ExWidget* mergeDamageFamily = NULL;
-    ExWidget* w = this; // arg
-    ExWidget* c; // child
-    do { // back to front iterator
-proc_enter:
-        if (!w->getFlags(Ex_Visible)) {
-            goto proc_leave; // leave to parent and goto next_child
-        }
-        // find Ex_DamageFamily and merge it
-        if (mergeDamageFamily == NULL && w->getFlags(Ex_DamageFamily)) {
-            mergeDamageFamily = w;
-            logdraw(L"mergeDamage: %s [%d,%d-%dx%d] family enter\n", w->getName(),
-                    w->extent.l, w->extent.t, w->extent.width(), w->extent.height());
-        }
-        if (w->visibleRgn.empty()) {
-            w->flags &= ~(Ex_DamageFamily | Ex_Damaged);
-            w->damageRgn.setEmpty();
-        } else if (mergeDamageFamily) { // is family mode ?
-            w->flags |= (Ex_DamageFamily | Ex_Damaged);
-            w->damageRgn.setEmpty();
-            mergedRgn.combine(w->visibleRgn);
-        } else if (w->getFlags(Ex_Damaged)) {
-            w->damageRgn.intersect(w->visibleRgn);
-            mergedRgn.combine(w->damageRgn);
-        }
-        logdra0(L"mergeDamage: %s [%d,%d-%dx%d] damage:%d merged:%d\n", w->getName(),
-                w->extent.l, w->extent.t, w->extent.width(), w->extent.height(),
-                w->damageRgn.n_boxes, mergedRgn.n_boxes);
-        // proc done
-
-        // back to front
-        c = w->childHead;
-        while (c) {
-            w = c;
-            goto proc_enter;
-next_child:
-            c = c != w->childHead->broPrev ? c->broNext : NULL;
-        }
-        if (mergeDamageFamily == w) {
-            mergeDamageFamily = NULL;
-            logdraw(L"mergeDamage: %s [%d,%d-%dx%d] family leave\n", w->getName(),
-                    w->extent.l, w->extent.t, w->extent.width(), w->extent.height());
-            logdraw(L"mergeDamage: %s [%d,%d-%dx%d] damage:%d merged:%d\n", w->getName(),
-                    w->extent.l, w->extent.t, w->extent.width(), w->extent.height(),
-                    w->damageRgn.n_boxes, mergedRgn.n_boxes);
-        }
-proc_leave:
-        if (w == this ||
-            w->parent == NULL) // is root ?
-            break;
-        c = w;
-        w = w->parent;
-        goto next_child;
-    } while (0);
-    logdraw(L"%s(%s) leave\n", __funcw__, getName());
-    return 0;
-}
-
-int ExWindow::clearPendingUpdate() {
-    renderFlags &= ~(Ex_RenderRebuild | Ex_RenderDamaged);
-    mergedRgn.setEmpty();
-    return 0;
-}
-
-int ExWindow::summarize() {
-    if (getFlags(Ex_Visible) && !extent.empty()) {
-        mergedRgn.setEmpty();
-        checkExtentRebuild();
-        setupVisibleRegion();
-        mergeDamagedRegion();
-        mergedRgn.combine(updateRgn);
-        updateRgn.setEmpty();
-        if (!mergedRgn.empty())
-            return 1;
-    }
-    return 0; // nothing to do
-}
-
-// reason: WM_PAINT(paint) or UpdateWindow(flush)
-// 1. check Ex_DamageFamily
-// 2. mark Ex_Damage
-// 3. calc draw_rgn = clip & visibleRgn
-// 4. calc damageRgn = draw_rgn & visibleRgn
-// 5. do rendering recursively
-// 6. blit draw_rgn to window
-
 int ExWindow::render() {
-    if (!summarize())
-        return 0;
-    int call_cnt = 0;
-    logdraw(L"%s(%s) enter update:%d\n", __funcw__, getName(), mergedRgn.n_boxes);
-    ExWidget* w = this;
-    ExWidget* c;
-    do { // back to front iterator
-proc_enter:
-        if (!w->getFlags(Ex_Visible) || w->extent.empty())
-            goto proc_leave; // leave to parent and goto next_child
-        if (w->drawFunc && !w->visibleRgn.empty()) {
-            if (w->getFlags(Ex_DamageFamily)) {
-                w->damageRgn.copy(w->visibleRgn);
-            } else {
-                w->damageRgn.copy(w->visibleRgn);
-                w->damageRgn.intersect(mergedRgn);
-            }
-            if (!w->damageRgn.empty()) {
-                logdraw(L"render: %s visible:%d damage:%d\n", w->getName(),
-                        w->visibleRgn.n_boxes, w->damageRgn.n_boxes);
-                w->drawFunc(canvas, w, &w->damageRgn);
-#ifdef DEBUG
-                if (exDrawFuncTrap)
-                    exDrawFuncTrap(canvas, w, &w->damageRgn);
+#if 0
+    buildExtent();
+    buildRegion();
+    damageRgn.setRect(extent);
+    ExWidget::render(canvas);
+#else
+    ExRender::render(canvas, this, renderFlags);
 #endif
-                call_cnt++;
-                if (w->getFlags(Ex_HasOwnDC)) // tbd - tbd
-                    goto proc_clear;
-            }
-        }
-        // proc done
-
-        // back to front
-        c = w->childHead;
-        while (c) {
-            w = c;
-            goto proc_enter;
-next_child:
-            c = c != w->childHead->broPrev ? c->broNext : NULL;
-        }
-proc_clear:
-        logdra0(L"render: %s clear damage\n", w->getName());
-        w->flags &= ~(Ex_DamageFamily | Ex_Damaged);
-        w->damageRgn.setEmpty();
-proc_leave:
-        if (w == this ||
-            w->parent == NULL) // is root ?
-            break;
-        c = w;
-        w = w->parent;
-        goto next_child;
-    } while (0);
-    renderFlags &= ~(Ex_RenderRebuild | Ex_RenderDamaged);
-    return call_cnt;
+    renderFlags = 0;
+    return 0;
 }
 
 int ExWindow::flush() {
-    flushFunc(this, &mergedRgn);
+    flushFunc(this, &damageRgn);
     return 0;
 }
 
 int ExWindow::paint() {
-    paintFunc(this, &mergedRgn);
+    paintFunc(this, &damageRgn);
     return 0;
 }
 

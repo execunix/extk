@@ -18,6 +18,7 @@ struct ExBox;
 struct ExSpan;
 struct ExTile;
 struct ExRegion;
+struct ExRender;
 struct ExColor;
 struct ExEvent;
 struct ExInput;
