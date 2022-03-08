@@ -101,10 +101,9 @@ ExTimer::start()
     the initial time period has expired.
 */
 
+ulong ExTimerListInvoke(ulong tickCount);
+
 int ExFiniTimer();
 int ExInitTimer();
-#if !defined(HAVE_TIMERTHREAD)
-ulong ExTimerListInvoke(ulong tickCount);
-#endif
 
 #endif//__extimer_h__

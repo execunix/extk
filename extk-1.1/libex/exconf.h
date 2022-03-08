@@ -21,7 +21,7 @@
 #define WINVER _WIN32_WCE
 #include <ceconfig.h>
 #else
-//#define HAVE_TIMERTHREAD
+#define HAVE_TIMERTHREAD
 #endif
 
 #ifdef WIN32

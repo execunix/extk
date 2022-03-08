@@ -7,6 +7,7 @@
 #include <extimer.h>
 #include <set>
 
+#if defined(HAVE_TIMERTHREAD)
 // TimerThread
 //
 class TimerThread : public ExThread {
@@ -34,6 +35,7 @@ int TimerThread::stop() {
 }
 
 static TimerThread timerThread;
+#endif
 
 // ExTimerComp
 //
@@ -79,11 +81,11 @@ void ExTimerList::remove(ExTimer* timer) {
 void ExTimerList::active(ExTimer* timer) {
     timer->fActived = 1;
     if (insert(timer) == begin()) {
-#if !defined(HAVE_TIMERTHREAD)
-        ExWakeupMainThread();
-#else
+#if defined(HAVE_TIMERTHREAD)
         if (timerThread.hev)
             SetEvent(timerThread.hev);
+#else
+        ExWakeupMainThread();
 #endif
     }
 }
@@ -129,36 +131,43 @@ ulong ExTimerList::invoke(ulong tick_count) {
 
 static ExTimerList exTimerList;
 
+ulong ExTimerListInvoke(ulong tickCount) {
+    return exTimerList.invoke(tickCount);
+}
+
+#if defined(HAVE_TIMERTHREAD)
 int TimerThread::proc(ExThread* thread) {
     assert(thread == this);
-    ulong waittick = 1000;// INFINITE;
-    while (1) {
+    while (idThread) {
+        ExEnter();
+        exTickCount = GetTickCount(); // update tick
+        ulong waittick = exTimerList.invoke(exTickCount);
+        if (ExApp::mainWnd != NULL) {
+            ExApp::mainWnd->flush(); // tbd
+        }
+        ExLeave();
         if (WaitForSingleObject(hev, waittick) == WAIT_FAILED) {
             exerror(L"%s - WaitForSingleObject fail.\n", __funcw__);
         }
-        if (!idThread) {
-            break;
-        }
-        ExEnter();
-        exTickCount = GetTickCount(); // update tick
-        waittick = exTimerList.invoke(exTickCount);
-        if (ExApp::mainWnd != NULL) {
-            ExApp::mainWnd->flush();
-        }
-        ExLeave();
     }
     return 0;
 }
+#endif
 
 #if 1
 int ExFiniTimer() {
+#if defined(HAVE_TIMERTHREAD)
     timerThread.stop();
+#endif
     exTimerList.clearList();
     return 0;
 }
 
 int ExInitTimer() {
-    return timerThread.start();
+#if defined(HAVE_TIMERTHREAD)
+    timerThread.start();
+#endif
+    return 0;
 }
 #else
 static HANDLE hTimer = INVALID_HANDLE_VALUE;
@@ -189,11 +198,6 @@ int ExInitTimer(DWORD duetime, DWORD period) {
                                duetime, period, WT_EXECUTEDEFAULT/*WT_EXECUTEINTIMERTHREAD*/))
         return -1;
     return 0;
-}
-#endif
-#if !defined(HAVE_TIMERTHREAD)
-ulong ExTimerListInvoke(ulong tickCount) {
-    return exTimerList.invoke(tickCount);
 }
 #endif
 
