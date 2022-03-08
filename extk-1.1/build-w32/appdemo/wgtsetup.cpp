@@ -89,8 +89,9 @@ int WgtSetup::onTitleMove(ExWidget* widget, ExCbInfo* cbinfo) {
             but_pt = msg_pt; // memory press point
             toFront();
             window->wgtCapture = widget;
-        } else if (cbinfo->type == Ex_CbPtrMove &&
-                   widget->getFlags(Ex_ButPressed)) {
+        }
+        else if (cbinfo->type == Ex_CbPtrMove &&
+            widget->getFlags(Ex_ButPressed)) {
             ExPoint pt(this->area.pt);
             pt += (msg_pt - but_pt);
             but_pt = msg_pt;
@@ -104,6 +105,13 @@ int WgtSetup::onTitleMove(ExWidget* widget, ExCbInfo* cbinfo) {
 int WgtSetup::onActivate(ExWidget* widget, ExCbInfo* cbinfo) {
     if (widget == &close) {
         if (cbinfo->type == Ex_CbActivate) {
+#if 1
+            PostMessage(getWindow()->getHwnd(), WM_CbRemove, 0, (LPARAM)this);
+#else
+            ExWindow* window = parent->getWindow();
+            window->removeHandler(ExCallback(this, &WgtSetup::onHandler));
+            window->removeFilter(ExCallback(this, &WgtSetup::onFilter));
+#endif
             destroy();
             return Ex_Continue;
         }
@@ -116,6 +124,11 @@ int WgtSetup::onFocused(ExWidget* widget, ExCbInfo* cbinfo) {
 }
 
 int WgtSetup::onHandler(ExWidget* widget, ExCbInfo* cbinfo) {
+    if (cbinfo->event->message == WM_CbRemove &&
+        cbinfo->event->lParam == (LPARAM)this) {
+        dprintf(L"WgtSetup::onHandler - WM_CbRemove\n");
+        return Ex_Remove;
+    }
     if (cbinfo->event->message == WM_COMMAND) {
         dprintf(L"WM_COMMAND: %d\n", cbinfo->event->wParam);
         return Ex_Continue;
@@ -124,6 +137,11 @@ int WgtSetup::onHandler(ExWidget* widget, ExCbInfo* cbinfo) {
 }
 
 int WgtSetup::onFilter(ExWidget* widget, ExCbInfo* cbinfo) {
+    if (cbinfo->event->message == WM_CbRemove &&
+        cbinfo->event->lParam == (LPARAM)this) {
+        dprintf(L"WgtSetup::onFilter - WM_CbRemove\n");
+        return Ex_Remove;
+    }
     if (cbinfo->event->message == WM_MOUSEMOVE) {
         return Ex_Continue;
     }
@@ -132,29 +150,29 @@ int WgtSetup::onFilter(ExWidget* widget, ExCbInfo* cbinfo) {
     }
     if (cbinfo->event->message == WM_KEYDOWN) {
         switch (cbinfo->event->wParam) {
-            case VK_UP:
-                break;
-            case VK_DOWN:
-                break;
-            case VK_LEFT:
-                break;
-            case VK_RIGHT:
-                break;
-            case VK_HOME:
-                break;
-            case VK_END:
-                break;
-            case VK_SPACE:
-            case VK_RETURN: {
-                PostMessage(getWindow()->getHwnd(), WM_COMMAND, 12345, 0);
-                break;
-            }
-            case VK_ESCAPE: {
-                break;
-            }
-            case VK_TAB: {
-                break;
-            }
+        case VK_UP:
+            break;
+        case VK_DOWN:
+            break;
+        case VK_LEFT:
+            break;
+        case VK_RIGHT:
+            break;
+        case VK_HOME:
+            break;
+        case VK_END:
+            break;
+        case VK_SPACE:
+        case VK_RETURN: {
+            PostMessage(getWindow()->getHwnd(), WM_COMMAND, 12345, 0);
+            break;
+        }
+        case VK_ESCAPE: {
+            break;
+        }
+        case VK_TAB: {
+            break;
+        }
         }
         return Ex_Continue;
     }

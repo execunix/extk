@@ -7,6 +7,34 @@
 #include <extimer.h>
 #include <set>
 
+// TimerThread
+//
+class TimerThread : public ExThread {
+public:
+    HANDLE hev;
+public:
+    TimerThread() : ExThread(), hev(NULL) {}
+    int start();
+    int stop();
+    int STDCALL proc(ExThread* thread);
+};
+
+int TimerThread::start() {
+    hev = CreateEvent(NULL, FALSE, FALSE, NULL);
+    int r = create(Proc(this, &TimerThread::proc));
+    return r;
+}
+
+int TimerThread::stop() {
+    idThread = 0;
+    SetEvent(hev);
+    join(INFINITE);
+    CloseHandle(hev);
+    return 0;
+}
+
+static TimerThread timerThread;
+
 // ExTimerComp
 //
 struct ExTimerComp { // less traits
@@ -50,8 +78,14 @@ void ExTimerList::remove(ExTimer* timer) {
 
 void ExTimerList::active(ExTimer* timer) {
     timer->fActived = 1;
-    if (insert(timer) == begin())
+    if (insert(timer) == begin()) {
+#if !defined(HAVE_TIMERTHREAD)
         ExWakeupMainThread();
+#else
+        if (timerThread.hev)
+            SetEvent(timerThread.hev);
+#endif
+    }
 }
 
 ulong ExTimerList::invoke(ulong tick_count) {
@@ -95,13 +129,73 @@ ulong ExTimerList::invoke(ulong tick_count) {
 
 static ExTimerList exTimerList;
 
+int TimerThread::proc(ExThread* thread) {
+    assert(thread == this);
+    ulong waittick = 1000;// INFINITE;
+    while (1) {
+        if (WaitForSingleObject(hev, waittick) == WAIT_FAILED) {
+            exerror(L"%s - WaitForSingleObject fail.\n", __funcw__);
+        }
+        if (!idThread) {
+            break;
+        }
+        ExEnter();
+        exTickCount = GetTickCount(); // update tick
+        waittick = exTimerList.invoke(exTickCount);
+        if (ExApp::mainWnd != NULL) {
+            ExApp::mainWnd->flush();
+        }
+        ExLeave();
+    }
+    return 0;
+}
+
+#if 1
+int ExFiniTimer() {
+    timerThread.stop();
+    exTimerList.clearList();
+    return 0;
+}
+
+int ExInitTimer() {
+    return timerThread.start();
+}
+#else
+static HANDLE hTimer = INVALID_HANDLE_VALUE;
+
+static VOID CALLBACK cbTimer(PVOID lpParameter, BOOLEAN timeout) {
+    assert(lpParameter == &exTimerList);
+    assert(timeout);
+    ExEnter();
+    exTickCount = GetTickCount(); // update tick
+    exTimerList.invoke(exTickCount);
+    if (ExApp::mainWnd != NULL) {
+        ExApp::mainWnd->flush();
+    }
+    ExLeave();
+}
+
+int ExFiniTimer() {
+    assert(hTimer != INVALID_HANDLE_VALUE);
+    DeleteTimerQueueTimer(NULL, hTimer, INVALID_HANDLE_VALUE);
+    hTimer = INVALID_HANDLE_VALUE;
+    exTimerList.clearList();
+    return 0;
+}
+
+int ExInitTimer(DWORD duetime, DWORD period) {
+    assert(hTimer == INVALID_HANDLE_VALUE);
+    if (!CreateTimerQueueTimer(&hTimer, NULL, cbTimer, &exTimerList,
+                               duetime, period, WT_EXECUTEDEFAULT/*WT_EXECUTEINTIMERTHREAD*/))
+        return -1;
+    return 0;
+}
+#endif
+#if !defined(HAVE_TIMERTHREAD)
 ulong ExTimerListInvoke(ulong tickCount) {
     return exTimerList.invoke(tickCount);
 }
-
-void ExTimerListClear() {
-    exTimerList.clearList();
-}
+#endif
 
 // ExTimer
 //

@@ -6,6 +6,7 @@
 #include "framework.h"
 #include "wgtsetup.h"
 #include "wndmain.h"
+#include "wndtest.h"
 
 void WgtTitle::init(ExWindow* window) {
     ExWidget::init(window, L"WgtTitle", &ExRect(0, 0, 800, 36));
@@ -515,6 +516,14 @@ int WndMain::onActBtns(ExWidget* widget, ExCbInfo* cbinfo) {
             return Ex_Continue;
         }
     }
+    if (widget == &btns1[3]) {
+        if (cbinfo->type == Ex_CbActivate) {
+            WndTest* wndTest = new WndTest;
+            wndTest->setFlags(Ex_FreeMemory);
+            wndTest->start();
+            return Ex_Continue;
+        }
+    }
     if (widget == &btns1[4]) {
         if (cbinfo->type == Ex_CbButRepeat) {
             dprintf(L"Ex_CbButRepeat %d\n", cbinfo->subtype);
@@ -748,7 +757,7 @@ ExWidget* WndMain::moveFocus(int dir) {
 
 int WndMain::onFocused(WndMain* widget, ExCbInfo* cbinfo) {
     static ExWidget* losted[3] = { NULL, };
-    if (cbinfo->type == Ex_CbLostFocus) {\
+    if (cbinfo->type == Ex_CbLostFocus) {
         // memory focused child
         if (cbinfo->subtype == 0) {
             if (widget == this) {
@@ -1028,6 +1037,7 @@ int WndMain::start() {
         }
 #endif
         return Ex_Continue; }, this);
+    //showWindow(0, WS_POPUP | WS_VISIBLE);
     showWindow(0, WS_OVERLAPPEDWINDOW | WS_VISIBLE);
     return 0;
 #else

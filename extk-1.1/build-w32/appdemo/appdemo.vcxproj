@@ -169,6 +169,7 @@
     <ClCompile Include="wgtmenu.cpp" />
     <ClCompile Include="wgtsetup.cpp" />
     <ClCompile Include="wndmain.cpp" />
+    <ClCompile Include="wndtest.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="appdemo.h" />
@@ -178,6 +179,7 @@
     <ClInclude Include="wgtmenu.h" />
     <ClInclude Include="wgtsetup.h" />
     <ClInclude Include="wndmain.h" />
+    <ClInclude Include="wndtest.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="appdemo.ico" />

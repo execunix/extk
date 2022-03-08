@@ -49,7 +49,6 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ************************************************************************/
-/* $XFree86: xc/lib/X11/ExRegion.c,v 1.11 2006/01/09 14:58:33 dawes Exp $ */
 /*
  * The functions in this file implement the ExRegion abstraction, similar to one
  * used in the X11 sample server. A ExRegion is simply an area, as the name

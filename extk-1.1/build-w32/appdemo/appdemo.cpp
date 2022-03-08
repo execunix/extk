@@ -412,7 +412,9 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
         return EXIT_FAILURE;
 
     assert(ExApp::mainWnd == wndMain);
+    ExInitTimer();
     ExMainLoop();
+    ExFiniTimer();
 
     // cleanup
     ExApp::exit(1);

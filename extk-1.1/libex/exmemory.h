@@ -142,4 +142,6 @@ ExShmemDestroy()
 void* ExShmemCreate(size_t size, const wchar* name);
 int   ExShmemDestroy(void* addr);
 
+// tbd - add open/close api
+
 #endif//__exmemory_h__

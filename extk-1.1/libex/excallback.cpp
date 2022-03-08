@@ -54,7 +54,7 @@ int ExWidget::CallbackList::invoke(int type, ExObject* object, ExCbInfo* cbinfo)
         #if 1 // tbd
         // If a callback with a lower priority is added during callback execution,
         // the callback is also called at the same time.
-        if (cb.flag & (Ex_Remove | fHoldOff))
+        if (cb.flag & (fRemoved | fHoldOff))
             continue;
         #endif
         if (cb.type != type)
@@ -139,7 +139,7 @@ int ExWindow::MsgCallbackList::invoke(ExObject* object, ExCbInfo* cbinfo) {
         #if 1 // tbd
         // If a callback with a lower priority is added during callback execution,
         // the callback is also called at the same time.
-        if (cb.flag & (Ex_Remove | fHoldOff))
+        if (cb.flag & (fRemoved | fHoldOff))
             continue;
         #endif
 

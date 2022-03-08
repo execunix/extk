@@ -27,6 +27,9 @@
     <ClCompile Include="wgtsetup.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="wndtest.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Resource.h">
@@ -48,6 +51,9 @@
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="wgtsetup.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="wndtest.h">
       <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>

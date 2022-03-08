@@ -318,16 +318,16 @@
 #define SIZEOF_INT 4
 
 /* The size of `long', as computed by sizeof. */
-#define SIZEOF_LONG 4/*8*/ // extk
+#define SIZEOF_LONG 8/*8*/ // extk
 
 /* The size of `long long', as computed by sizeof. */
 #define SIZEOF_LONG_LONG 8
 
 /* The size of `size_t', as computed by sizeof. */
-#define SIZEOF_SIZE_T 4/*8*/ // extk
+#define SIZEOF_SIZE_T 8/*8*/ // extk
 
 /* The size of `void *', as computed by sizeof. */
-#define SIZEOF_VOID_P 4/*8*/ // extk
+#define SIZEOF_VOID_P 8/*8*/ // extk
 
 /* Define to 1 if you have the ANSI C header files. */
 #define STDC_HEADERS 1

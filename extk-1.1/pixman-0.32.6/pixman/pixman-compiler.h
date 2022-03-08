@@ -104,7 +104,7 @@
     ((type *)(((uint8_t *)data) - offsetof (type, member)))
 
 /* TLS */
-#if 1/*defined(PIXMAN_NO_TLS)*/ // extk
+#if defined(PIXMAN_NO_TLS)
 
 #   define PIXMAN_DEFINE_THREAD_LOCAL(type, name)			\
     static type name

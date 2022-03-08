@@ -50,7 +50,7 @@
 # define CAIRO_END_DECLS
 #endif
 
-#define floattype_flt // extk
+//#define floattype_flt // extk
 #ifndef floattype_flt
 typedef double floatt;
 #else

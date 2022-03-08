@@ -519,7 +519,11 @@ transparent(i.e. any widget beneath can be seen), the Ex_Opaque flag must be cle
 void
 ExWidget::calcOpaque(ExRegion& opaqueAcc) {
     assert(!extent.empty());
+#if 0
+    //exposeRgn.setRect(extent);
+#else
     exposeRgn.setRect(extent);
+#endif
     exposeRgn.subtract(opaqueAcc);
     if (!drawFunc) {
         ; // if no drawFunc then it's transparent

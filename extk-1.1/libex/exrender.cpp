@@ -45,9 +45,20 @@ void ExRender::Build::checkExtent(ExWidget* w) {
     if (!w->getFlags(Ex_Visible))
         return;
     if (w->getFlags(Ex_Exposed)) {
+#if 0
+        //exposeAcc.combine(w->extent); // add old extent
+        buildExtent(w); // recurs
+        if (!w->getFlags(Ex_HasOwnGC)) {
+            if (w->getFlags(Ex_Opaque))
+                exposeAcc.combine(w->extent); // add new extent
+            else if (!w->opaqueRgn.empty())
+                exposeAcc.combine(w->opaqueRgn);
+        }
+#else
         exposeAcc.combine(w->extent); // add old extent
         buildExtent(w); // recurs
         exposeAcc.combine(w->extent); // add new extent
+#endif
         return;
     }
     for (ExWidget* c = w->getChildHead(); c; c = c->getBroNext())
@@ -62,7 +73,12 @@ void ExRender::Build::buildExtent(ExWidget* w) {
         w->damageRgn.setEmpty();
         return;
     }
+#if 0
+    w->exposeRgn.setRect(w->extent);
+    w->flags |= (Ex_Exposed | Ex_Damaged);
+#else
     w->flags |= Ex_Exposed;
+#endif
     for (ExWidget* c = w->getChildHead(); c; c = c->getBroNext()) {
         if (c->getFlags(Ex_Visible)) {
             if (c->getFlags(Ex_HasOwnGC)) {
@@ -88,8 +104,17 @@ void ExRender::Build::buildOpaque(ExWidget* w) { // remove hidden areas
     }
 }
 
-ExRender::Build::Build(ExWidget* w) : exposeAcc(), opaqueAcc() {
+ExRender::Build::Build(ExWidget* w)
+    : exposeAcc()
+    , opaqueAcc() {
+#if 0
+    assert(w->getFlags(Ex_Rebuild) &&
+           w->getFlags(Ex_Visible) &&
+           w->getFlags(Ex_HasOwnGC));
+    exposeAcc.copy(w->exposeRgn);
+#else
     assert(w->getFlags(Ex_Visible) && w->getFlags(Ex_HasOwnGC));
+#endif
     checkExtent(w);
     if (!w->extent.empty() &&
         !exposeAcc.empty())
@@ -122,11 +147,13 @@ void ExRender::Draw::draw(ExWidget* w) {
     w->flags &= ~(Ex_Exposed | Ex_Damaged);
     for (ExWidget* c = w->getChildHead(); c; c = c->getBroNext()) {
         if (c->getFlags(Ex_Visible)) {
+#if 1 // tbd
             if (c->getFlags(Ex_HasOwnGC)) {
                 c->drawFunc(NULL, c, &c->damageRgn);
                 // I don't know, but you know what canvas to draw on ...
                 // I will give you the opportunity to fill in the content of the canvas ...
             }
+#endif
             draw(c);
         }
     }

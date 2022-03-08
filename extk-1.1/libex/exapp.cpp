@@ -174,7 +174,11 @@ void ExMainLoop() {
     ExEvent& event = ExApp::event;
 
     while (ExApp::getHalt() == 0) {
+#if defined(HAVE_TIMERTHREAD)
+        waittick = INFINITE;
+#else
         waittick = ExTimerListInvoke(exTickCount);
+#endif
         dprint0(L"waittick=%d\n", waittick);
         if (ExApp::getHalt()) // is halt ?
             break; // stop event loop
@@ -193,9 +197,7 @@ void ExMainLoop() {
                 ExApp::setHalt(0); // stop event loop
                 break;
             }
-            //ExLeave();
             ExApp::dispatch(event.msg);
-            //ExEnter();
             ExApp::collect();
         }
     }
@@ -217,8 +219,10 @@ void ExQuitMainLoop() {
 }
 
 void ExApp::dispatch(MSG& msg) {
+    ExLeave();
     TranslateMessage(&msg);
     DispatchMessage(&msg);
+    ExEnter();
 }
 
 void collectWindow();
@@ -246,7 +250,6 @@ void ExApp::exit(int retCode) {
         ExApp::mainWnd->destroy();
         ExApp::collect();
     }
-    ExTimerListClear();
 #endif
     ExFiniProcess();
     ExitProcess(retCode);

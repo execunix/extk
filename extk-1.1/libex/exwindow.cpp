@@ -642,7 +642,11 @@ int ExWindow::basicWndProc(ExCbInfo* cbinfo) {
         }
 #endif
     } // end switch
-    cbinfo->event->lResult = DefWindowProc(hwnd, message, wParam, lParam);
+    LRESULT lResult;
+    ExLeave();
+    lResult = DefWindowProc(hwnd, message, wParam, lParam);
+    ExEnter();
+    cbinfo->event->lResult = lResult;
 #if 0 // tbd - pass to handler ?
     if (cbinfo->event->lResult != 0) {
         logproc(L"hwnd=%p msg=%p lResult=%d\n",
@@ -656,6 +660,7 @@ int ExWindow::basicWndProc(ExCbInfo* cbinfo) {
 LRESULT CALLBACK // static
 ExWindow::sysWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
     ExWindow* window = NULL;
+    ExEnter();
 #if 0
     MSG& m = ExApp::event.msg;
     logproc(L"hwnd=%p,%p msg=%p,%p wp=%p,%p lp=%p,%p\n",
@@ -672,6 +677,7 @@ ExWindow::sysWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
         logproc(L"[0x%p][0x%p] WM_CREATE\n", hwnd, window);
         // If an application processes this message, it should return 0 to continue creation of the window.
         // If the application returns -1, the window is destroyed and the CreateWindowEx or CreateWindow function returns a NULL handle.
+        ExLeave();
         return 0;
     }
 #else
@@ -681,6 +687,7 @@ ExWindow::sysWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
         attachWindow(hwnd, window);
         window->hwnd = hwnd;
         logproc(L"[0x%p][0x%p] WM_NCCREATE\n", hwnd, window);
+        ExLeave();
         return TRUE;
     }
 #endif
@@ -689,6 +696,7 @@ ExWindow::sysWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
     window = attachWindowMap[hwnd];
     if (!(window && window->hwnd == hwnd)) {
         logproc(L"[0x%p] WM_0x%04x\n", hwnd, message);
+        ExLeave();
         return DefWindowProc(hwnd, message, wParam, lParam);
     }
 
@@ -703,6 +711,7 @@ ExWindow::sysWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
             ExApp::mainWnd = NULL; // stop timer/flush/input exlib proc
             PostQuitMessage(ExApp::retCode); // stop main loop
         }
+        ExLeave();
         // An application should return zero if it processes this message.
         return 0;
     }
@@ -736,6 +745,7 @@ ExWindow::sysWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
     if (window->invokeHandler(cbinfo) & Ex_Break)
         goto leave;
 leave:
+    ExLeave();
     return cbinfo->event->lResult;
 }
 

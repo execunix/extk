@@ -123,7 +123,7 @@ void WgtMenu::onDrawMenuPop(ExCanvas* canvas, const ExWidget* widget, const ExRe
     if (menu->child) {
         floatt h2, x1, x2, yc;
         h2 = menuHeight / 4.5f;
-        x1 = rc.x - menuHeight * .7f;
+        x1 = p2.x - menuHeight * .7f;
         x2 = x1 + h2;
         yc = rc.y + menuHeight / 2.f;
         cairo_set_source_rgb(cr, 1.f, 1.f, 1.f);
