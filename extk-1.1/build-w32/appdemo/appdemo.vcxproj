@@ -154,6 +154,7 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <SDLCheck>true</SDLCheck>
     </ClCompile>
     <Link>
       <AdditionalDependencies>libex.lib;libpng.lib;libz.lib;libcairo.lib;libpixman.lib;libft.lib;%(AdditionalDependencies)</AdditionalDependencies>

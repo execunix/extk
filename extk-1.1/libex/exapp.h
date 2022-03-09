@@ -58,7 +58,7 @@ public:
     static int init(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCmdLine, int nCmdShow);
 public:
     static int getHalt() { return halt; }
-    static int setHalt(int r) { return halt = (r | 0x80000000); }
+    static int setHalt(int r);
     static long& butRepeatCnt() { return (long&)but_timer.userdata; };
     static long& keyRepeatCnt() { return (long&)key_timer.userdata; };
 public:

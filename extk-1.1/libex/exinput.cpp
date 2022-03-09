@@ -137,8 +137,12 @@ int ExInputList::invoke(ulong waittick)
 
     ExLeave();
     //Sleep(1);
+#if defined(HAVE_TIMERTHREAD)
+    dwWaitRet = WaitForMultipleObjects(nCount, pHandles, FALSE, dwMilliseconds);
+#else
     dwWaitRet = MsgWaitForMultipleObjectsEx(nCount, pHandles,
                                             dwMilliseconds, dwWakeMask, dwFlags);
+#endif
     ExEnter();
 
     exTickCount = GetTickCount(); // update tick

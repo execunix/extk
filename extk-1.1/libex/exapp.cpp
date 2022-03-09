@@ -63,11 +63,28 @@ ExWidget*    ExApp::button_widget[2];        /* The last 2 widgets to receive bu
 ExWindow*    ExApp::button_window[2];        /* The last 2 windows to receive button presses. */
 UINT         ExApp::regAppMsgIndex = WM_APP;
 
+int ExApp::setHalt(int r) {
+#if defined(HAVE_TIMERTHREAD)
+    assert((halt | r) & Ex_Halt);
+    if (!(halt & 0x80000000)) {
+        halt |= 0x80000000;
+        ExQuitMainLoop();
+    }
+#else
+    halt |= 0x80000000;
+#endif
+    return halt |= r;
+}
+
 int ExEventPeek(ExEvent& event) {
     BOOL bRet;
 
     ExLeave();
+#if defined(HAVE_TIMERTHREAD)
+    bRet = GetMessage(&event.msg, NULL, 0, 0);
+#else
     bRet = PeekMessage(&event.msg, NULL, 0, 0, PM_REMOVE);
+#endif
     ExEnter();
 
     return bRet;
@@ -145,8 +162,9 @@ void* ExModalBlock(ExModalCtrl* ctrl, long flags) {
         while ((ctrl->flags & 0x80000000) &&
             exEventFunc(event) > 0) { // is message available ?
             if (event.msg.message == WM_ExEvWake)
-                continue;
+                break;
             if (event.msg.message == WM_QUIT) { // WM_DESTROY => PostQuitMessage
+                dprintf(L"message == WM_QUIT tick=%d\n", exTickCount);
                 ExApp::retCode = (int)event.msg.wParam; // cause DestroyWindow
                 ExApp::setHalt(0); // stop event loop
                 break;
@@ -170,15 +188,15 @@ Description:
     ExEventNext() and ExEventHandler().
 */
 void ExMainLoop() {
-    ulong waittick;
     ExEvent& event = ExApp::event;
 
+    ExInitTimer();
     while (ExApp::getHalt() == 0) {
 #if defined(HAVE_TIMERTHREAD)
-        waittick = INFINITE;
+        /*ulong waittick = INFINITE*/;
 #else
+        ulong waittick;
         waittick = ExTimerListInvoke(exTickCount);
-#endif
         dprint0(L"waittick=%d\n", waittick);
         if (ExApp::getHalt()) // is halt ?
             break; // stop event loop
@@ -188,9 +206,10 @@ void ExMainLoop() {
         ExInput::invoke(waittick); // The only waiting point.
         if (ExApp::getHalt()) // is halt ?
             break; // stop event loop
+#endif
         while (exEventFunc(event) > 0) { // is message available ?
             if (event.msg.message == WM_ExEvWake)
-                continue;
+                break;
             if (event.msg.message == WM_QUIT) { // WM_DESTROY => PostQuitMessage
                 dprintf(L"message == WM_QUIT tick=%d\n", exTickCount);
                 ExApp::retCode = (int)event.msg.wParam; // cause DestroyWindow
@@ -202,6 +221,7 @@ void ExMainLoop() {
         }
     }
     ExApp::collect();
+    ExFiniTimer();
 }
 
 /**

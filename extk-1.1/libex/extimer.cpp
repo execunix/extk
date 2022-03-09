@@ -4,6 +4,7 @@
  */
 
 #include <exapp.h>
+#include <exinput.h>
 #include <extimer.h>
 #include <set>
 
@@ -13,24 +14,45 @@
 class TimerThread : public ExThread {
 public:
     HANDLE hev;
+    ExInput* sigTimer;
 public:
-    TimerThread() : ExThread(), hev(NULL) {}
+    TimerThread() : ExThread(), hev(NULL), sigTimer(NULL) {}
+    int wakeup() {
+        if (hev)
+            SetEvent(hev);
+        return 0;
+    }
     int start();
     int stop();
     int STDCALL proc(ExThread* thread);
+    int STDCALL noti(ExInput*, ExCbInfo*) {
+        dprintf(L"TimerThread::hev signaled...\n");
+        return Ex_Continue;
+    }
 };
 
 int TimerThread::start() {
     hev = CreateEvent(NULL, FALSE, FALSE, NULL);
+    //sigTimer = ExInput::add(hev, [](void* d, ExInput* input, ExCbInfo* cbinfo)->int {
+    //    dprintf(L"TimerThread::hev signaled...\n");
+    //    return Ex_Continue; }, NULL);
+    sigTimer = ExInput::add(hev, ExCallback(this, &TimerThread::noti));
     int r = create(Proc(this, &TimerThread::proc));
     return r;
 }
 
 int TimerThread::stop() {
+    assert(ExIsMainThread());
     idThread = 0;
+
+    ExLeave();
     SetEvent(hev);
     join(INFINITE);
     CloseHandle(hev);
+    ExEnter();
+
+    ExInput::remove(sigTimer);
+
     return 0;
 }
 
@@ -82,8 +104,7 @@ void ExTimerList::active(ExTimer* timer) {
     timer->fActived = 1;
     if (insert(timer) == begin()) {
 #if defined(HAVE_TIMERTHREAD)
-        if (timerThread.hev)
-            SetEvent(timerThread.hev);
+        timerThread.wakeup();
 #else
         ExWakeupMainThread();
 #endif
@@ -138,18 +159,23 @@ ulong ExTimerListInvoke(ulong tickCount) {
 #if defined(HAVE_TIMERTHREAD)
 int TimerThread::proc(ExThread* thread) {
     assert(thread == this);
-    while (idThread) {
-        ExEnter();
-        exTickCount = GetTickCount(); // update tick
-        ulong waittick = exTimerList.invoke(exTickCount);
+
+    ExEnter();
+    while (idThread != 0 &&
+           ExApp::getHalt() == 0) {
+        ulong waittick;
+        waittick = exTimerList.invoke(exTickCount);
+        dprint0(L"waittick=%d\n", waittick);
+        if (ExApp::getHalt()) // is halt ?
+            break; // stop event loop
         if (ExApp::mainWnd != NULL) {
             ExApp::mainWnd->flush(); // tbd
         }
-        ExLeave();
-        if (WaitForSingleObject(hev, waittick) == WAIT_FAILED) {
-            exerror(L"%s - WaitForSingleObject fail.\n", __funcw__);
-        }
+        ExInput::invoke(waittick); // The only waiting point.
+        if (ExApp::getHalt()) // is halt ?
+            break; // stop event loop
     }
+    ExLeave();
     return 0;
 }
 #endif

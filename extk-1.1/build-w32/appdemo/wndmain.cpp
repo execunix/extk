@@ -849,7 +849,7 @@ public:
 #define DISP_AT_ONCE 1
 
 int WndMain::start() {
-    this->init(L"WndMain", 1280, 720);
+    this->init(L"AppDemoWndMain", 1280, 720);
 
     struct _stat statbuf;
     swprintf(respath, L"%s/res", exModulePath);
@@ -1039,6 +1039,7 @@ int WndMain::start() {
         return Ex_Continue; }, this);
     //showWindow(0, WS_POPUP | WS_VISIBLE);
     showWindow(0, WS_OVERLAPPEDWINDOW | WS_VISIBLE);
+    SetWindowText(hwnd, L"AppDemo-extk-1.1");
     return 0;
 #else
     layout(area);

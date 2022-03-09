@@ -28,14 +28,14 @@ struct ExInput {
     static ExInput* ExInput::add(HANDLE handle, int(STDCALL *f)(void*, ExInput*, ExCbInfo*), void* d) {
         return ExInput::add(handle, ExCallback(f, d));
     }
-    template <typename A>
-    static ExInput* ExInput::add(HANDLE handle, int(STDCALL *f)(A*, ExInput*, ExCbInfo*), A* d) {
-        return ExInput::add(handle, ExCallback(f, d));
-    }
-    template <typename A>
-    static ExInput* ExInput::add(HANDLE handle, A* d, int(STDCALL A::*f)(ExInput*, ExCbInfo*)) {
-        return ExInput::add(handle, ExCallback(f, d));
-    }
+    //template <typename A>
+    //static ExInput* ExInput::add(HANDLE handle, int(STDCALL *f)(A*, ExInput*, ExCbInfo*), A* d) {
+    //    return ExInput::add(handle, ExCallback(f, d));
+    //}
+    //template <typename A>
+    //static ExInput* ExInput::add(HANDLE handle, A* d, int(STDCALL A::*f)(ExInput*, ExCbInfo*)) {
+    //    return ExInput::add(handle, ExCallback(f, d));
+    //}
 };
 
 #endif//__exinput_h__
