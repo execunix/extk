@@ -43,4 +43,9 @@ bool ExEmitPtrEvent(ExWidget* widget, UINT message, WPARAM wParam, int x, int y)
 bool ExEmitButPress(ExWidget* widget, int x, int y);
 bool ExEmitButRelease(ExWidget* widget, int x, int y);
 
+void ExWakeupEventProc();
+
+int ExEventProcFini();
+int ExEventProcInit();
+
 #endif//__exevent_h__

@@ -8,57 +8,6 @@
 #include <extimer.h>
 #include <set>
 
-#if defined(HAVE_TIMERTHREAD)
-// TimerThread
-//
-class TimerThread : public ExThread {
-public:
-    HANDLE hev;
-    ExInput* sigTimer;
-public:
-    TimerThread() : ExThread(), hev(NULL), sigTimer(NULL) {}
-    int wakeup() {
-        if (hev)
-            SetEvent(hev);
-        return 0;
-    }
-    int start();
-    int stop();
-    int STDCALL proc(ExThread* thread);
-    int STDCALL noti(ExInput*, ExCbInfo*) {
-        dprintf(L"TimerThread::hev signaled...\n");
-        return Ex_Continue;
-    }
-};
-
-int TimerThread::start() {
-    hev = CreateEvent(NULL, FALSE, FALSE, NULL);
-    //sigTimer = ExInput::add(hev, [](void* d, ExInput* input, ExCbInfo* cbinfo)->int {
-    //    dprintf(L"TimerThread::hev signaled...\n");
-    //    return Ex_Continue; }, NULL);
-    sigTimer = ExInput::add(hev, ExCallback(this, &TimerThread::noti));
-    int r = create(Proc(this, &TimerThread::proc));
-    return r;
-}
-
-int TimerThread::stop() {
-    assert(ExIsMainThread());
-    idThread = 0;
-
-    ExLeave();
-    SetEvent(hev);
-    join(INFINITE);
-    CloseHandle(hev);
-    ExEnter();
-
-    ExInput::remove(sigTimer);
-
-    return 0;
-}
-
-static TimerThread timerThread;
-#endif
-
 // ExTimerComp
 //
 struct ExTimerComp { // less traits
@@ -103,11 +52,7 @@ void ExTimerList::remove(ExTimer* timer) {
 void ExTimerList::active(ExTimer* timer) {
     timer->fActived = 1;
     if (insert(timer) == begin()) {
-#if defined(HAVE_TIMERTHREAD)
-        timerThread.wakeup();
-#else
-        ExWakeupMainThread();
-#endif
+        ExWakeupEventProc();
     }
 }
 
@@ -152,50 +97,15 @@ ulong ExTimerList::invoke(ulong tick_count) {
 
 static ExTimerList exTimerList;
 
+void ExTimerListClear() {
+    exTimerList.clearList();
+}
+
 ulong ExTimerListInvoke(ulong tickCount) {
     return exTimerList.invoke(tickCount);
 }
 
-#if defined(HAVE_TIMERTHREAD)
-int TimerThread::proc(ExThread* thread) {
-    assert(thread == this);
-
-    ExEnter();
-    while (idThread != 0 &&
-           ExApp::getHalt() == 0) {
-        ulong waittick;
-        waittick = exTimerList.invoke(exTickCount);
-        dprint0(L"waittick=%d\n", waittick);
-        if (ExApp::getHalt()) // is halt ?
-            break; // stop event loop
-        if (ExApp::mainWnd != NULL) {
-            ExApp::mainWnd->flush(); // tbd
-        }
-        ExInput::invoke(waittick); // The only waiting point.
-        if (ExApp::getHalt()) // is halt ?
-            break; // stop event loop
-    }
-    ExLeave();
-    return 0;
-}
-#endif
-
-#if 1
-int ExFiniTimer() {
-#if defined(HAVE_TIMERTHREAD)
-    timerThread.stop();
-#endif
-    exTimerList.clearList();
-    return 0;
-}
-
-int ExInitTimer() {
-#if defined(HAVE_TIMERTHREAD)
-    timerThread.start();
-#endif
-    return 0;
-}
-#else
+#if 0 // win32 test - poor performance
 static HANDLE hTimer = INVALID_HANDLE_VALUE;
 
 static VOID CALLBACK cbTimer(PVOID lpParameter, BOOLEAN timeout) {

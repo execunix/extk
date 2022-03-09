@@ -54,7 +54,7 @@ void ExInputList::remove(ExInput* input) {
                 return;
             }
             input->fRemoved = 1;
-            ExWakeupMainThread();
+            ExWakeupEventProc();
             assert(count > 0);
             count--;
             dirty++;
@@ -105,7 +105,7 @@ ExInput* ExInputList::insert(HANDLE handle, ExCallback& callback, int pos) {
     }
     count++;
     dirty++;
-    ExWakeupMainThread();
+    ExWakeupEventProc();
     return &*std::list<ExInput>::insert(i, ExInput(handle, callback));
 }
 
@@ -121,7 +121,7 @@ ExInput* ExInputList::append(HANDLE handle, ExCallback& callback) {
     }
     count++;
     dirty++;
-    ExWakeupMainThread();
+    ExWakeupEventProc();
     push_back(ExInput(handle, callback));
     return &back();
 }
@@ -137,7 +137,7 @@ int ExInputList::invoke(ulong waittick)
 
     ExLeave();
     //Sleep(1);
-#if defined(HAVE_TIMERTHREAD)
+#if defined(EX_EVENTPROC_HAVETHREAD)
     dwWaitRet = WaitForMultipleObjects(nCount, pHandles, FALSE, dwMilliseconds);
 #else
     dwWaitRet = MsgWaitForMultipleObjectsEx(nCount, pHandles,

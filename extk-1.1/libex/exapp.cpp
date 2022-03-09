@@ -64,7 +64,7 @@ ExWindow*    ExApp::button_window[2];        /* The last 2 windows to receive bu
 UINT         ExApp::regAppMsgIndex = WM_APP;
 
 int ExApp::setHalt(int r) {
-#if defined(HAVE_TIMERTHREAD)
+#if defined(EX_EVENTPROC_HAVETHREAD)
     assert((halt | r) & Ex_Halt);
     if (!(halt & 0x80000000)) {
         halt |= 0x80000000;
@@ -80,7 +80,7 @@ int ExEventPeek(ExEvent& event) {
     BOOL bRet;
 
     ExLeave();
-#if defined(HAVE_TIMERTHREAD)
+#if defined(EX_EVENTPROC_HAVETHREAD)
     if ((bRet = GetMessage(&event.msg, NULL, 0, 0)) != TRUE) {
         assert(event.msg.message == WM_QUIT);
         // WM_DESTROY => PostQuitMessage
@@ -194,11 +194,12 @@ Description:
 void ExMainLoop() {
     ExEvent& event = ExApp::event;
 
-    ExInitTimer();
+    ExEventProcInit();
     while (ExApp::getHalt() == 0) {
-#if defined(HAVE_TIMERTHREAD)
+#if defined(EX_EVENTPROC_HAVETHREAD)
         /*ulong waittick = INFINITE*/;
 #else
+        // The main thread handles timers and inputs.
         ulong waittick;
         waittick = ExTimerListInvoke(exTickCount);
         dprint0(L"waittick=%d\n", waittick);
@@ -225,7 +226,7 @@ void ExMainLoop() {
         }
     }
     ExApp::collect();
-    ExFiniTimer();
+    ExEventProcFini();
 }
 
 /**
