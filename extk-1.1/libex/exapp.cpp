@@ -81,7 +81,11 @@ int ExEventPeek(ExEvent& event) {
 
     ExLeave();
 #if defined(HAVE_TIMERTHREAD)
-    bRet = GetMessage(&event.msg, NULL, 0, 0);
+    if ((bRet = GetMessage(&event.msg, NULL, 0, 0)) != TRUE) {
+        assert(event.msg.message == WM_QUIT);
+        // WM_DESTROY => PostQuitMessage
+        bRet = TRUE;
+    }
 #else
     bRet = PeekMessage(&event.msg, NULL, 0, 0, PM_REMOVE);
 #endif
@@ -166,7 +170,7 @@ void* ExModalBlock(ExModalCtrl* ctrl, long flags) {
             if (event.msg.message == WM_QUIT) { // WM_DESTROY => PostQuitMessage
                 dprintf(L"message == WM_QUIT tick=%d\n", exTickCount);
                 ExApp::retCode = (int)event.msg.wParam; // cause DestroyWindow
-                ExApp::setHalt(0); // stop event loop
+                ExApp::setHalt(Ex_Halt); // stop event loop
                 break;
             }
             //ExLeave(); // tbd ctrl->leave()
@@ -213,7 +217,7 @@ void ExMainLoop() {
             if (event.msg.message == WM_QUIT) { // WM_DESTROY => PostQuitMessage
                 dprintf(L"message == WM_QUIT tick=%d\n", exTickCount);
                 ExApp::retCode = (int)event.msg.wParam; // cause DestroyWindow
-                ExApp::setHalt(0); // stop event loop
+                ExApp::setHalt(Ex_Halt); // stop event loop
                 break;
             }
             ExApp::dispatch(event.msg);
