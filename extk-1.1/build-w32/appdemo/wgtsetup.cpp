@@ -24,7 +24,7 @@ drawName(void* data, ExCanvas* canvas, const ExWidget* widget, const ExRegion* d
     fc.set(.5f, .5f, .5f, .8f);
     cr.fill_rect_rgba(rc, fc);
     const wchar* text = widget->getName();
-    cr.set_font(canvas->crf[0], 12.f);
+    cr.set_font(res.f.gothic.crf, 12.f);
     cr.show_text(text, ExCairo::Color(1.f), rc);
 }
 

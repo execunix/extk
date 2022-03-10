@@ -120,7 +120,7 @@ public:
     operator cairo_t* const () const { return canvas->cr; }
     void fill_rect_rgba(const Rect& r, const Color& c);
     void fill_rect_rgba(floatt x, floatt y, floatt w, floatt h, const Color& c);
-    static void text_extent(const ExCanvas* canvas, uint id, floatt size, const wchar* ucs2, cairo_text_extents_t* ext);
+    void text_extent(cairo_font_face_t* crf, floatt size, const wchar* ucs2, cairo_text_extents_t* ext);
     enum {
         Left    = 1 << 0,
         Right   = 2 << 0,

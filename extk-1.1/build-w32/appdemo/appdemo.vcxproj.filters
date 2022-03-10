@@ -30,6 +30,12 @@
     <ClCompile Include="wndtest.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="env.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="res.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Resource.h">
@@ -54,6 +60,12 @@
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="wndtest.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="env.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="res.h">
       <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>

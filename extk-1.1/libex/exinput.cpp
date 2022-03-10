@@ -131,8 +131,6 @@ int ExInputList::invoke(ulong waittick)
     DWORD nCount = setup();
     LPHANDLE pHandles = handles;
     DWORD dwMilliseconds = waittick;//INFINITE;
-    DWORD dwWakeMask = QS_ALLEVENTS;//QS_ALLINPUT;
-    DWORD dwFlags = MWMO_INPUTAVAILABLE;
     DWORD dwWaitRet; // signaled number
 
     ExLeave();
@@ -140,6 +138,8 @@ int ExInputList::invoke(ulong waittick)
 #if defined(EX_EVENTPROC_HAVETHREAD)
     dwWaitRet = WaitForMultipleObjects(nCount, pHandles, FALSE, dwMilliseconds);
 #else
+    DWORD dwWakeMask = QS_ALLEVENTS;//QS_ALLINPUT;
+    DWORD dwFlags = MWMO_INPUTAVAILABLE;
     dwWaitRet = MsgWaitForMultipleObjectsEx(nCount, pHandles,
                                             dwMilliseconds, dwWakeMask, dwFlags);
 #endif
@@ -151,10 +151,12 @@ int ExInputList::invoke(ulong waittick)
         dprint0(L"ExInputMgr: nCount=%d WAIT_TIMEOUT\n", nCount);
         return 0; // no messages are available
     }
+#if !defined(EX_EVENTPROC_HAVETHREAD)
     if (dwWaitRet == WAIT_OBJECT_0 + nCount) {
         dprint0(L"ExInputMgr: nCount=%d GOT_GWES_MSG\n", nCount);
         return 1; // got message from gwes
     }
+#endif
     if (dwWaitRet >= WAIT_OBJECT_0 &&
         dwWaitRet < (WAIT_OBJECT_0 + nCount)) {
         dprintf(L"ExInputMgr: dwWaitRet=%p nCount=%d\n", dwWaitRet, nCount);

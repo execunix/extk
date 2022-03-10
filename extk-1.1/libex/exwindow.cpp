@@ -725,6 +725,7 @@ ExWindow::sysWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
     cbinfo->event->message = message;
     cbinfo->event->wParam = wParam;
     cbinfo->event->lParam = lParam;
+    cbinfo->event->lResult = 0;
     //assert(cbinfo->event->msg.time == window->event->msg.time);
     //assert(cbinfo->event->msg.pt == window->event->msg.pt);
 #if 0 // deprecated

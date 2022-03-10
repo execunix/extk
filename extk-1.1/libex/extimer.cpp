@@ -4,7 +4,6 @@
  */
 
 #include <exapp.h>
-#include <exinput.h>
 #include <extimer.h>
 #include <set>
 

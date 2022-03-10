@@ -10,27 +10,27 @@
 #include <cairo-ft.h>
 #include FT_FREETYPE_H
 
-static FT_Library ftLib;
-static FT_Face ftFace[8];
-
-static int refcnt = 0; // tbd
-cairo_font_face_t* ExCanvas::crf[8];
+//static FT_Library ftLib;
+//static FT_Face ftFace[8];
+//
+//static int refcnt = 0; // tbd
+//cairo_font_face_t* ExCanvas::crf[8];
 
 // class ExCanvas
 //
 ExCanvas::~ExCanvas() {
     deleteMemGC();
-    refcnt--;
-    if (refcnt == 0) {
-        for (int i = 0; i < 8; i++) {
-            if (ftFace[i])
-                FT_Done_Face(ftFace[i]);
-            if (crf[i])
-                cairo_font_face_destroy(crf[i]);
-            ftFace[i] = NULL;
-            crf[i] = NULL;
-        }
-    }
+    //refcnt--;
+    //if (refcnt == 0) {
+    //    for (int i = 0; i < 8; i++) {
+    //        if (ftFace[i])
+    //            FT_Done_Face(ftFace[i]);
+    //        if (crf[i])
+    //            cairo_font_face_destroy(crf[i]);
+    //        ftFace[i] = NULL;
+    //        crf[i] = NULL;
+    //    }
+    //}
 }
 
 ExCanvas::ExCanvas()
@@ -39,21 +39,21 @@ ExCanvas::ExCanvas()
     , gc(NULL)
     , dc(NULL)
     , cr(NULL) {
-    if (refcnt == 0) {
-        for (int i = 0; i < 8; i++) {
-            ftFace[i] = NULL;
-            crf[i] = NULL;
-        }
-    }
-    refcnt++;
+    //if (refcnt == 0) {
+    //    for (int i = 0; i < 8; i++) {
+    //        ftFace[i] = NULL;
+    //        crf[i] = NULL;
+    //    }
+    //}
+    //refcnt++;
 }
 
 int ExCanvas::init(ExWindow* window, ExSize* sz) {
     wnd = window;
     wnd->canvas = this;
-    if (ftLib == NULL &&
-        FT_Init_FreeType(&ftLib))
-        dprint1(L"FT_Init_FreeType fail.");
+    //if (ftLib == NULL &&
+    //    FT_Init_FreeType(&ftLib))
+    //    dprint1(L"FT_Init_FreeType fail.");
     if (sz == NULL)
         sz = window ? &wnd->area.sz : &ExApp::smSize;
     return createMemGC(sz->w, sz->h);
@@ -64,6 +64,7 @@ int ExCanvas::resize(int w, int h) {
     return createMemGC(w, h);
 }
 
+#if 0
 // create cairo font
 int ExCanvas::newFace(uint fontId, const char* faceName) {
     if (!(fontId < 8 && crf[fontId] == NULL)) {
@@ -82,6 +83,7 @@ int ExCanvas::newFace(uint fontId, const char* faceName) {
     }
     return 0;
 }
+#endif
 
 int ExCanvas::deleteMemGC() {
     if (cr) {
@@ -125,6 +127,12 @@ int ExCanvas::createMemGC(int width, int height) {
     dprint1("%s(%d,%d) %s\n", __func__, width, height, cairo_status_to_string(status));
     deleteMemGC();
     return -1;
+}
+
+void ExCanvas::text_extent(cairo_font_face_t* crf, floatt size, const wchar* ucs2, cairo_text_extents_t* ext) {
+    cairo_set_font_face(cr, crf);
+    cairo_set_font_size(cr, size);
+    cairo_text_extents(cr, ucs2, ext);
 }
 
 ExTripleCanvas::~ExTripleCanvas() {

@@ -26,14 +26,11 @@ public:
 
 class WndMain : public ExWindow {
 public:
-    wchar respath[256];
     ExWidget panes[3];
     ExWidget btns0[5];
     ExWidget btns1[6];
     ExWidget btns2[6];
     ExWidget wgtBkgd;
-    ExImage imgBkgd0;
-    ExImage imgBkgd1;
     ExPoint img_pt0;
     ExTimer timer;
     ExWindow wndBackBuf;
@@ -50,7 +47,6 @@ public:
 public:
     int start();
     int initInput();
-    int initCanvas();
     int initBtn(ExWidget* parent, ExWidget* btn, const wchar* name);
     void STDCALL onExFlush(WndMain* w, const ExRegion* updateRgn) { ExWindow::onExFlush(w, updateRgn); } // apitest
     void STDCALL onWmPaint(WndMain* w, const ExRegion* updateRgn) { ExWindow::onWmPaint(w, updateRgn); } // apitest

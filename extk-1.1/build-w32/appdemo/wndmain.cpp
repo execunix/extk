@@ -28,7 +28,7 @@ void WgtTitle::onDrawTitle(ExCanvas* canvas, const ExWidget* widget, const ExReg
     cr.fill_rect_rgba(rc, ExCairo::Color(.2f, .2f, .2f, .5f));
 
     rc.w -= 48.f;
-    cr.set_font(canvas->crf[1], rc.h * .5f);
+    cr.set_font(res.f.gothic_B.crf, rc.h * .5f);
     ExCairo::Point pt = cr.text_align(title, rc, ExCairo::Right | ExCairo::VCenter);
 #if 0
     cairo_move_to(cr, pt.x + 2.f, pt.y + 2.f);
@@ -63,29 +63,29 @@ onDrawBkgd(void* data, ExCanvas* canvas, const ExWidget* widget, const ExRegion*
 void WndMain::onDrawBkgd(ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage) {
     if (widget == this) {
         ExRegion rgn(*damage);
-        rgn.subtract(ExBox(img_pt0.x, img_pt0.y, imgBkgd0.width + img_pt0.x, imgBkgd0.height + img_pt0.y));
+        rgn.subtract(ExBox(img_pt0.x, img_pt0.y, res.i.bg0.width + img_pt0.x, res.i.bg0.height + img_pt0.y));
         for (int i = 0; i < rgn.n_boxes; i++)
             canvas->gc->fillBox(&rgn.boxes[i], ((uint)widget) & 0xffffff);
-        if (imgBkgd0.bits) {
+        if (res.i.bg0.bits) {
             for (int i = 0; i < damage->n_boxes; i++) {
                 const ExBox& bx = damage->boxes[i];
                 canvas->gc->blitRgb(bx.l, bx.t, bx.width(), bx.height(),
-                                    &imgBkgd0, bx.l - img_pt0.x, bx.t - img_pt0.y);
+                                    &res.i.bg0, bx.l - img_pt0.x, bx.t - img_pt0.y);
             }
         }
     } else if (widget == &wgtBkgd) {
-        if (!imgBkgd1.bits) return;
+        if (!res.i.bg1.bits) return;
         if (widget->isOpaque()) {
             const ExPoint& pt = widget->calcRect().pt;
             for (int i = 0; i < damage->n_boxes; i++) {
                 const ExBox& bx = damage->boxes[i];
                 canvas->gc->blitRgb(bx.l, bx.t, bx.width(), bx.height(),
-                                    &imgBkgd1, bx.l - pt.x, bx.t - pt.y);
+                                    &res.i.bg1, bx.l - pt.x, bx.t - pt.y);
             }
-        } else if (imgBkgd1.crs) {
+        } else if (res.i.bg1.crs) {
             ExCairo::Rect rc(widget->calcRect());
             ExCairo cr(canvas, damage);
-            cairo_set_source_surface(cr, imgBkgd1.crs, rc.x, rc.y);
+            cairo_set_source_surface(cr, res.i.bg1.crs, rc.x, rc.y);
             cairo_paint_with_alpha(cr, .75); // for alpha blend
         }
     }
@@ -169,7 +169,7 @@ void WndMain::onDrawBtns(ExCanvas* canvas, const ExWidget* widget, const ExRegio
     cairo_stroke(cr);
 
     const wchar* text = widget->getName();
-    cr.set_font(canvas->crf[0], 12.f);
+    cr.set_font(res.f.gothic.crf, 12.f);
     cr.show_text(text, ExCairo::Color(0.f), rc);
 
 #if USE_PATTERN_BTN
@@ -263,7 +263,7 @@ void WndMain::onDrawToy(ExCanvas* canvas, const WndMain* w, const ExRegion* dama
     int num_glyphs = 0;
     int len = wcslen(str);
     float delta = bx.height()/2 * .9f;
-    cairo_scaled_font_t* scaled_font = cairo_scaled_font_create(canvas->crf[1],
+    cairo_scaled_font_t* scaled_font = cairo_scaled_font_create(res.f.gothic_B.crf,
         &font_matrix, &ctm, options);
     status = cairo_scaled_font_text_to_glyphs(scaled_font, 0, 0, str, len,
         &glyphs, &num_glyphs, NULL, NULL, NULL);
@@ -276,7 +276,7 @@ void WndMain::onDrawToy(ExCanvas* canvas, const WndMain* w, const ExRegion* dama
         float w = glyphs[num_glyphs - 1].x + fs / 2.f;
         ExCairo cr(canvas, damage);
         cairo_translate(cr, p.x - w / 2.f, p.y + fs / 2.f);
-        cr.set_font(canvas->crf[1], fs);
+        cr.set_font(res.f.gothic_B.crf, fs);
         cairo_set_source_rgba(cr, 1, 1, 1, toy_alpha);
         cairo_show_glyphs(cr, glyphs, num_glyphs);
         cairo_glyph_free(glyphs);
@@ -322,10 +322,10 @@ void WndMain::onDrawBackBuf(ExCanvas* canvas, const ExWidget* w, const ExRegion*
         return;
     }
     if (w == &wndBackBuf &&
-        imgBkgd1.crs) { // draw to wndBackBuf canvas
+        res.i.bg1.crs) { // draw to wndBackBuf canvas
         ExCairo cr(canvas, damage);
         ExCairo::Point pt(-backBufCnt, -backBufCnt);
-        cairo_set_source_surface(cr, imgBkgd1.crs, 1.5f * pt.x, pt.y);
+        cairo_set_source_surface(cr, res.i.bg1.crs, 1.5f * pt.x, pt.y);
         cairo_paint_with_alpha(cr, .75); // for alpha blend
         return;
     }
@@ -592,20 +592,6 @@ int WndMain::initInput() {
     return 0;
 }
 
-int WndMain::initCanvas() {
-    canvas = new ExCanvas;
-    canvas->init(this, &ExApp::smSize);
-
-    char faceName[256];
-    sprintf(faceName, "%S/%s", respath, "NanumGothic.ttf");
-    if (canvas->newFace(0, faceName) != 0)
-        return -1;
-    sprintf(faceName, "%S/%s", respath, "NanumGothicBold.ttf");
-    if (canvas->newFace(1, faceName) != 0)
-        return -1;
-    return 0;
-}
-
 int WndMain::initBtn(ExWidget* parent, ExWidget* btn, const wchar* name) {
     btn->init(parent, name, NULL);
     //btn->setFlags(Ex_Opaque); // test
@@ -621,6 +607,8 @@ int WndMain::onDestroyed(WndMain* w, ExCbInfo* cbinfo) {
     assert(w == this);
     timerToy.stop();
     timer.stop();
+    finiRes();
+    saveEnv();
     return Ex_Continue;
 }
 
@@ -645,6 +633,8 @@ int WndMain::onHandler(WndMain* w, ExCbInfo* cbinfo) {
 
 int WndMain::onFilter(WndMain* w, ExCbInfo* cbinfo) {
     dprintf(L"filter WM_0x%04x\n", cbinfo->event->message);
+#if 1 // test
+    // filter and handler can be installed intersection each other
     static int i = 0;
     ++i;
     if (i == 20) {
@@ -654,6 +644,44 @@ int WndMain::onFilter(WndMain* w, ExCbInfo* cbinfo) {
         addHandler(this, &WndMain::onHandler);
         i = 0;
     }
+#endif
+#if 1
+    if (cbinfo->event->message == WM_SYSCOMMAND) {
+        if (cbinfo->event->wParam == SC_MAXIMIZE) {
+            env.wnd.show = SW_SHOWMAXIMIZED;
+            return Ex_Continue;
+        }
+        if (cbinfo->event->wParam == SC_RESTORE) {
+            env.wnd.show = SW_SHOWNORMAL;
+            return Ex_Continue;
+        }
+        return Ex_Continue;
+    }
+    if (cbinfo->event->message == WM_WINDOWPOSCHANGED) {
+        WINDOWPOS* wndpos = (WINDOWPOS*)cbinfo->event->lParam;
+        if (env.wnd.show == SW_SHOWNORMAL) {
+            env.wnd.w = wndpos->cx;
+            env.wnd.h = wndpos->cy;
+            env.wnd.x = wndpos->x;
+            env.wnd.y = wndpos->y;
+        }
+        return Ex_Continue;
+    }
+    if (cbinfo->event->message == WM_ACTIVATE) {
+        // extend the frame into the client area
+        MARGINS margins;
+        margins.cxLeftWidth = 8; // 0;
+        margins.cxRightWidth = 8;
+        margins.cyBottomHeight = 20;
+        margins.cyTopHeight = 20;
+        HRESULT hr = DwmExtendFrameIntoClientArea(hwnd, &margins);
+        if (!SUCCEEDED(hr)) {
+            dprintf(L"%s: %s fail.\n", __funcw__, L"DwmExtendFrameIntoClientArea");
+        }
+        //cbinfo->event->lResult = 0;
+        return Ex_Continue;
+    }
+#endif
     if (cbinfo->event->message == WM_KEYDOWN) {
         switch (cbinfo->event->wParam) {
             case VK_UP:
@@ -849,27 +877,14 @@ public:
 #define DISP_AT_ONCE 1
 
 int WndMain::start() {
-    this->init(L"AppDemoWndMain", 1280, 720);
+    initEnv();
+    initRes();
+    this->init(L"AppDemoWndMain", env.wnd.w, env.wnd.h);
 
-    struct _stat statbuf;
-    swprintf(respath, L"%s/res", exModulePath);
-    if (_wstat(respath, &statbuf))
-        swprintf(respath, L"%s/../../res", exModulePath);
-
-    if (initCanvas() != 0) {
-        return -1;
-    }
-    wchar fname[256];
-    swprintf(fname, L"%s/%s", respath, L"S01090.bmp");
-    if (imgBkgd0.load(fname) != 0) {
-        dprintf(L"%s: imgBkgd0.load(%s) fail\n", __funcw__, fname);
-        return -1;
-    }
-    swprintf(fname, L"%s/%s", respath, L"S01051.PNG");
-    if (imgBkgd1.load(fname) != 0) {
-        dprintf(L"%s: imgBkgd1.load(%s) fail\n", __funcw__, fname);
-        return -1;
-    }
+    // init canvas
+    canvas = new ExCanvas;
+    //canvas->init(this, &ExApp::smSize);
+    canvas->init(this, &ExSize(env.sm_w, env.sm_h));
 
     ExApp::mainWnd = this;
 
@@ -894,7 +909,7 @@ int WndMain::start() {
 #endif
     setFlags(Ex_Selectable);
 
-    wgtBkgd.init(this, L"imgBkgd1", &ExRect(300, 300, imgBkgd1.width, imgBkgd1.height));
+    wgtBkgd.init(this, L"res.i.bg1", &ExRect(300, 300, res.i.bg1.width, res.i.bg1.height));
     wgtBkgd.addCallback(this, &WndMain::onActBkgd, Ex_CbActivate);
     wgtBkgd.drawFunc = ExDrawFunc(this, &WndMain::onDrawBkgd);
     wgtBkgd.setFlags(Ex_Selectable);
@@ -1038,8 +1053,11 @@ int WndMain::start() {
 #endif
         return Ex_Continue; }, this);
     //showWindow(0, WS_POPUP | WS_VISIBLE);
-    showWindow(0, WS_OVERLAPPEDWINDOW | WS_VISIBLE);
-    SetWindowText(hwnd, L"AppDemo-extk-1.1");
+    showWindow(0, WS_OVERLAPPEDWINDOW | WS_VISIBLE, env.wnd.x, env.wnd.y);
+    SetWindowText(hwnd, res.s.title);
+    if (env.wnd.show == SW_SHOWMAXIMIZED) {
+        ShowWindow(hwnd, SW_SHOWMAXIMIZED);
+    }
     return 0;
 #else
     layout(area);

@@ -145,7 +145,7 @@ void WgtMenu::onDrawMenuPop(ExCanvas* canvas, const ExWidget* widget, const ExRe
         tc.set(.5f, .5f, .5f);
     else
         tc.set(1.f, 1.f, 1.f);
-    cr.set_font(canvas->crf[0], fontSize);
+    cr.set_font(res.f.gothic.crf, fontSize);
     cr.show_text(menu->text, tc, cr.text_align(menu->extents, rc, ExCairo::Left));
 }
 
@@ -172,14 +172,14 @@ void WgtMenu::onDrawMenuBar(ExCanvas* canvas, const ExWidget* widget, const ExRe
             fc.set(.5f, .5f, .5f, 1.f);
         cr.fill_rect_rgba(rc, fc);
     }
-    cr.set_font(canvas->crf[0], fontSize);
+    cr.set_font(res.f.gothic.crf, fontSize);
     cr.show_text(menu->text, ExCairo::Color(1.f), cr.text_align(menu->extents, rc));
 }
 
 int WgtMenu::onLayoutHorz(ExWidget* widget, ExCbInfo* cbinfo) {
     ExRect& horz = *(ExRect*)cbinfo->data;
     Menu* menu = (Menu*)widget->getData();
-    ExCairo::text_extent(window->canvas, 0, fontSize, menu->text, &menu->extents);
+    window->canvas->text_extent(res.f.gothic.crf, fontSize, menu->text, &menu->extents);
     int menu_width = (int)menu->extents.width + 36;
     widget->area.set(horz.x, horz.y, menu_width, horz.h);
     horz.x += menu_width + 1;
@@ -190,7 +190,7 @@ int WgtMenu::onLayoutHorz(ExWidget* widget, ExCbInfo* cbinfo) {
 int WgtMenu::onLayoutVert(ExWidget* widget, ExCbInfo* cbinfo) {
     ExRect& vert = *(ExRect*)cbinfo->data;
     Menu* menu = (Menu*)widget->getData();
-    ExCairo::text_extent(window->canvas, 0, fontSize, menu->text, &menu->extents);
+    window->canvas->text_extent(res.f.gothic.crf, fontSize, menu->text, &menu->extents);
     int menu_width = (int)menu->extents.width + 120;
     int separator = menu->flag & Menu::Separator ? 3 : 0;
     if (vert.w < menu_width) vert.w = menu_width; // save max width

@@ -20,16 +20,17 @@ public:
     ExMemDC*    dc; // tbd
     cairo_t*    cr;
     // tbd - protect with window->mutex
-    static cairo_font_face_t* crf[8];
+    //static cairo_font_face_t* crf[8];
 public:
     virtual ~ExCanvas();
     explicit ExCanvas();
 public:
     int init(ExWindow* window, ExSize* sz = NULL);
     int resize(int w, int h);
-    int newFace(uint fontId, const char* faceName);
+    //int newFace(uint fontId, const char* faceName);
     virtual int deleteMemGC();
     virtual int createMemGC(int width, int height); // sample
+    void text_extent(cairo_font_face_t* crf, floatt size, const wchar* ucs2, cairo_text_extents_t* ext);
 public:
     Ex_DECLARE_TYPEINFO(ExCanvas, ExObject);
 };

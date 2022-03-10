@@ -63,9 +63,9 @@ void ExCairo::fill_rect_rgba(floatt x, floatt y, floatt w, floatt h, const Color
     cairo_fill(cr);
 }
 
-void ExCairo::text_extent(const ExCanvas* canvas, uint id, floatt size, const wchar* ucs2, cairo_text_extents_t* ext) {
+void ExCairo::text_extent(cairo_font_face_t* crf, floatt size, const wchar* ucs2, cairo_text_extents_t* ext) {
     cairo_t* cr = canvas->cr;
-    cairo_set_font_face(cr, canvas->crf[id]);
+    cairo_set_font_face(cr, crf);
     cairo_set_font_size(cr, size);
     cairo_text_extents(cr, ucs2, ext);
 }
