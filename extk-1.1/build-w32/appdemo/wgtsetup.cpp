@@ -200,20 +200,20 @@ void WgtSetup::init(ExWidget* parent, int x, int y) {
     //select = ExBox(9999);
 
     title.init(this, L"Setup", &ExRect(2, 2, 386, 40));
-    title.drawFunc = ExDrawFunc(drawName, NULL);
+    title.drawFunc = ExDrawFunc(drawName, (void*)NULL);
     title.setFlags(Ex_Selectable);
     title.addCallback(this, &WgtSetup::onTitleMove, Ex_CbActivate);
     close.init(this, L"close", &ExRect(400, 2, 46, 40));
-    close.drawFunc = ExDrawFunc(drawName, NULL);
+    close.drawFunc = ExDrawFunc(drawName, (void*)NULL);
     close.setFlags(Ex_Selectable);
     close.addCallback(this, &WgtSetup::onActivate, Ex_CbActivate);
 
     tab1.init(this, L"tab1", &ExRect(10, 60, 80, 40));
-    tab1.drawFunc = ExDrawFunc(drawName, NULL);
+    tab1.drawFunc = ExDrawFunc(drawName, (void*)NULL);
     tab2.init(this, L"tab2", &ExRect(110, 60, 80, 40));
-    tab2.drawFunc = ExDrawFunc(drawName, NULL);
+    tab2.drawFunc = ExDrawFunc(drawName, (void*)NULL);
     tab3.init(this, L"tab3", &ExRect(210, 60, 80, 40));
-    tab3.drawFunc = ExDrawFunc(drawName, NULL);
+    tab3.drawFunc = ExDrawFunc(drawName, (void*)NULL);
 
     ExRect rc(10, 100, 360, 180);
     page1.init(this, rc);

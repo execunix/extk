@@ -535,7 +535,7 @@ int WndMain::onActBtns(ExWidget* widget, ExCbInfo* cbinfo) {
             if (!exDrawFuncTrap) {
                 exDrawFuncTrap = ExDrawFunc(this, &WndMain::onDrawTrap);
             } else {
-                exDrawFuncTrap = ExDrawFunc(NULL, NULL);
+                exDrawFuncTrap = ExDrawFunc();
                 damage();
             }
             return Ex_Continue;
@@ -891,7 +891,7 @@ int WndMain::start() {
     backBufCnt = 0;
     img_pt0.set(0, 0);
 
-    drawFunc = ExDrawFunc(&::onDrawBkgd, this); // test
+    drawFunc = ExDrawFunc(&::onDrawBkgd, (void*)this); // test
     drawFunc = ExDrawFunc(this, &WndMain::onDrawBkgd);
 
     FlushTest flushTest;

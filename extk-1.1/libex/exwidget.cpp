@@ -103,7 +103,7 @@ ExWidget::ExWidget()
     , drawFunc()
     , cbList() {
 #ifdef DEBUG // test
-    drawFunc = ExDrawFunc(&s_fill, NULL); // tbd
+    drawFunc = ExDrawFunc(&s_fill, (void*)NULL); // tbd
 #endif
     //flags |= Ex_Opaque; // test
     flags |= Ex_Visible; // default visible

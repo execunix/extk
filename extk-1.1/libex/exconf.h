@@ -44,10 +44,19 @@
 #include <exmacro.h>
 #include <exdebug.h>
 
-#ifdef WIN32
+#ifndef STDCALL
+#ifdef __GNUC__
+#define STDCALL //__attribute__((stdcall)) /* ignored by modern gcc*/
+#else // M$ WIN32
 #define STDCALL __stdcall
+#endif
+#endif /* STDCALL */
+
+#define EX2CONF_LAMBDA_CALLBACK 1
+#if defined(_MSC_VER) || defined(ARCH_AARCH64)
+#define EX2CONF_DISABLE_STDCALL 0
 #else
-#define STDCALL
+#define EX2CONF_DISABLE_STDCALL 1
 #endif
 
 #ifdef __cplusplus
