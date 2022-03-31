@@ -5,6 +5,7 @@
 
 #include <exapp.h>
 #include <exinput.h>
+#include "exwatch.h"
 
 // app private variables
 //
@@ -79,7 +80,7 @@ int ExApp::setHalt(int r) {
 int ExEventPeek(ExEvent& event) {
     BOOL bRet;
 
-    ExLeave();
+    exWatchGui->leave();
 #if defined(EX_EVENTPROC_HAVETHREAD)
     if ((bRet = GetMessage(&event.msg, NULL, 0, 0)) != TRUE) {
         assert(event.msg.message == WM_QUIT);
@@ -89,7 +90,7 @@ int ExEventPeek(ExEvent& event) {
 #else
     bRet = PeekMessage(&event.msg, NULL, 0, 0, PM_REMOVE);
 #endif
-    ExEnter();
+    exWatchGui->enter();
 
     return bRet;
 }
@@ -173,9 +174,9 @@ void* ExModalBlock(ExModalCtrl* ctrl, long flags) {
                 ExApp::setHalt(Ex_Halt); // stop event loop
                 break;
             }
-            //ExLeave(); // tbd ctrl->leave()
+            //exWatchGui->leave(); // tbd ctrl->leave()
             ExApp::dispatch(event.msg);
-            //ExEnter(); // tbd ctrl->enter()
+            //exWatchGui->enter(); // tbd ctrl->enter()
             ExApp::collect();
         }
     }
@@ -194,7 +195,6 @@ Description:
 void ExMainLoop() {
     ExEvent& event = ExApp::event;
 
-    ExEventProcInit();
     while (ExApp::getHalt() == 0) {
 #if defined(EX_EVENTPROC_HAVETHREAD)
         /*ulong waittick = INFINITE*/;
@@ -226,7 +226,6 @@ void ExMainLoop() {
         }
     }
     ExApp::collect();
-    ExEventProcFini();
 }
 
 /**
@@ -244,10 +243,10 @@ void ExQuitMainLoop() {
 }
 
 void ExApp::dispatch(MSG& msg) {
-    ExLeave();
+    exWatchGui->leave();
     TranslateMessage(&msg);
     DispatchMessage(&msg);
-    ExEnter();
+    exWatchGui->enter();
 }
 
 void collectWindow();
@@ -267,7 +266,7 @@ void ExApp::exit(int retCode) {
     dprintf(L"%s(%d)\n", __funcw__, retCode);
     if (!ExIsMainThread()) {
         dprintf(L"pause main thread\n");
-        ExEnter();
+        //exWatchGui->enter();
     }
     // When the system window manager closed the app, mainWnd was destroyed.
 #if 1 // It's not essential, but it's better to keep it clean.

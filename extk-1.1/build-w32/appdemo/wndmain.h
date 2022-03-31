@@ -46,7 +46,7 @@ public:
     WndMain() : ExWindow() {}
 public:
     int start();
-    int initInput();
+    int initIomux();
     int initBtn(ExWidget* parent, ExWidget* btn, const wchar* name);
     void STDCALL onExFlush(WndMain* w, const ExRegion* updateRgn) { ExWindow::onExFlush(w, updateRgn); } // apitest
     void STDCALL onWmPaint(WndMain* w, const ExRegion* updateRgn) { ExWindow::onWmPaint(w, updateRgn); } // apitest

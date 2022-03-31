@@ -6,6 +6,8 @@
 #ifndef __exwatch_h__
 #define __exwatch_h__
 
+#ifdef __linux__
+
 #include "excallback.h"
 #include <sys/epoll.h>
 #include <map>
@@ -137,5 +139,14 @@ public:
 protected:
     friend class ExTimer;
 };
+
+#else // __linux__
+
+#include "exwatch_w32.h"
+
+#endif
+
+extern ExWatch* exWatchGui;
+extern ExWatch* exWatchDef;
 
 #endif//__exwatch_h__

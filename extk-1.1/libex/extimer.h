@@ -9,61 +9,63 @@
 #include <exobject.h>
 #include <excallback.h>
 
+class ExWatch;
+extern ExWatch* exWatchDef;
+
 // class ExTimer
 //
 class ExTimer : public ExObject {
 protected:
-    ulong           value;      // The time, in milliseconds, reference time
-    ulong           repeat;     // The time, in milliseconds, repeat period
-    ExWidget*       widget;     // Pass the widget connected to the timer to the callback.
+    ExWatch*        watch;
+    uint32_t        value;      // The time, in milliseconds, reference time
+    uint32_t        repeat;     // The time, in milliseconds, repeat period
     ExCallback      callback;
-private: // Modify the flags only in the ExTimerList class.
-    int             fActived;   // is started and inserted ?
+private: // Modify the flags only in the ExWatch::TimerSet class.
+    mutable int     fActived;   // is started and inserted ?
 public:
-    void*           userdata;   // Storing arbitrary user data
+    ExObject*       object;     // Pass the object linked to the timer
+    union {
+        void*       userdata;   // Storing arbitrary user data
+        uint32_t    u32[2];
+    };
 public:
     virtual ~ExTimer() { stop(); }
     explicit ExTimer()
-        : ExObject(), value(0), repeat(0)
-        , widget(NULL), callback(), fActived(0), userdata(NULL) {}
+        : ExObject(), watch(NULL), value(0), repeat(0), callback(), fActived(0)
+        , object(NULL), userdata(NULL) {}
+protected:
+    void setup(ExWatch* watch, const ExCallback& callback, ExObject* object = NULL) {
+        this->watch = watch ? watch : exWatchDef;
+        this->callback = callback;
+        this->object = object;
+    }
 public:
+    #if EX2CONF_LAMBDA_CALLBACK
+    void init(ExWatch* watch, int (STDCALL *f)(void*, ExTimer*, ExCbInfo*), void* d) {
+        setup(watch, ExCallback(f, d), NULL);
+    }
+    void init(ExWatch* watch, int (STDCALL* f)(void*, ExWidget*, ExCbInfo*), void* d, ExWidget* w) {
+        setup(watch, ExCallback(f, d), (ExObject*)w);
+    }
+    #endif
+    template <typename A, typename B>
+    void init(ExWatch* watch, int (STDCALL *f)(A*, B*, ExCbInfo*), A* d, B* obj) {
+        setup(watch, ExCallback(f, d), obj);
+    }
+    template <typename A, typename B>
+    void init(ExWatch* watch, A* d, int (STDCALL A::*f)(B*, ExCbInfo*), B* obj) {
+        setup(watch, ExCallback(d, f), obj);
+    }
+    template <typename A>
+    void init(ExWatch* watch, A* d, int (STDCALL A::*f)(ExTimer*, ExCbInfo*)) {
+        setup(watch, ExCallback(d, f));
+    }
     void stop(); // notes: clear fActived by remove from timerlist.
-    void start(ulong initial); // notes: set fActived by insert to timerlist.
-    void start(ulong initial, ulong repeat) { this->repeat = repeat; start(initial); }
-    operator ulong () const { return value; }
-
-    void setCallback(int(STDCALL *f)(void*, ExTimer*, ExCbInfo*), void* d) {
-        callback = ExCallback(f, d);
-        widget = NULL;
-    }
-    template <typename A>
-    void setCallback(int(STDCALL *f)(A*, ExTimer*, ExCbInfo*), A* d) {
-        callback = ExCallback(f, d);
-        widget = NULL;
-    }
-    template <typename A>
-    void setCallback(A* d, int(STDCALL A::*f)(ExTimer*, ExCbInfo*)) {
-        callback = ExCallback(d, f);
-        widget = NULL;
-    }
-
-    void setCallback(int(STDCALL *f)(void*, ExWidget*, ExCbInfo*), void* d, ExWidget* w) {
-        callback = ExCallback(f, d);
-        widget = w;
-    }
-    template <typename A, class W/*inherit ExWidget*/>
-    void setCallback(int(STDCALL *f)(A*, W*, ExCbInfo*), A* d, W* w) {
-        callback = ExCallback(f, d);
-        widget = w;
-    }
-    template <typename A, class W/*inherit ExWidget*/>
-    void setCallback(A* d, int(STDCALL A::*f)(W*, ExCbInfo*), W* w) {
-        callback = ExCallback(d, f);
-        widget = w;
-    }
-public:
-    friend struct ExTimerComp;
-    friend class ExTimerList;
+    void start(uint32_t initial); // notes: set fActived by insert to timerlist.
+    void start(uint32_t initial, uint32_t repeat) { this->repeat = repeat; start(initial); }
+    operator uint32_t () const { return value; }
+protected:
+    friend class ExWatch;
 public:
     Ex_DECLARE_TYPEINFO(ExTimer, ExObject);
 };
@@ -81,12 +83,12 @@ Description:
 /**
 usage1: create static allocated instance
     static ExTimer timer; // should be not stack but global instance
-    timer.setCallback(&func, data);
+    timer.init(watch, callback);
     timer.start(999, 999);
     timer.stop();
 usage2: create dynamic allocated instance
     ExTimer* timer = new ExTimer;
-    timer->setCallback(&func, data));
+    timer->init(watch, callback);
     timer->start(1);
     timer->stop();
     delete timer;
@@ -100,8 +102,5 @@ ExTimer::start()
     The time, in milliseconds, for the repeat rate of the timer once
     the initial time period has expired.
 */
-
-void ExTimerListClear();
-ulong ExTimerListInvoke(ulong tickCount);
 
 #endif//__extimer_h__

@@ -4,6 +4,7 @@
  */
 
 #include <exrender.h>
+#include "exwatch.h"
 #include <exapp.h>
 #include <map>
 
@@ -15,6 +16,8 @@
 
 #undef  ABS
 #define ABS(a)                  (((a) < 0) ? -(a) : (a))
+
+extern ExWatch* exWatchGui;
 
 typedef std::list<ExWindow*> ExWindowList;
 typedef std::map<HWND, ExWindow*> ExWindowMap;
@@ -533,7 +536,7 @@ int ExWindow::basicWndProc(ExCbInfo* cbinfo) {
                     widget->damage();
                 if (widget == wgtPressed) {
                     //SetTimer(hwnd, ID_TIMER_REPEAT_BUT, 99, NULL);
-                    ExApp::but_timer.setCallback(this, &ExWindow::onRepeatBut);
+                    ExApp::but_timer.init(exWatchGui, this, &ExWindow::onRepeatBut);
                     ExApp::but_timer.start(ex_but_timer_instant_initial, ex_but_timer_instant_repeat);
                     ExApp::butRepeatCnt() = 0;//-2;
                 }
@@ -643,9 +646,9 @@ int ExWindow::basicWndProc(ExCbInfo* cbinfo) {
 #endif
     } // end switch
     LRESULT lResult;
-    ExLeave();
+    exWatchGui->leave();
     lResult = DefWindowProc(hwnd, message, wParam, lParam);
-    ExEnter();
+    exWatchGui->enter();
     cbinfo->event->lResult = lResult;
 #if 0 // tbd - pass to handler ?
     if (cbinfo->event->lResult != 0) {
@@ -660,7 +663,7 @@ int ExWindow::basicWndProc(ExCbInfo* cbinfo) {
 LRESULT CALLBACK // static
 ExWindow::sysWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
     ExWindow* window = NULL;
-    ExEnter();
+    exWatchGui->enter();
 #if 0
     MSG& m = ExApp::event.msg;
     logproc(L"hwnd=%p,%p msg=%p,%p wp=%p,%p lp=%p,%p\n",
@@ -677,7 +680,7 @@ ExWindow::sysWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
         logproc(L"[0x%p][0x%p] WM_CREATE\n", hwnd, window);
         // If an application processes this message, it should return 0 to continue creation of the window.
         // If the application returns -1, the window is destroyed and the CreateWindowEx or CreateWindow function returns a NULL handle.
-        ExLeave();
+        exWatchGui->leave();
         return 0;
     }
 #else
@@ -687,7 +690,7 @@ ExWindow::sysWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
         attachWindow(hwnd, window);
         window->hwnd = hwnd;
         logproc(L"[0x%p][0x%p] WM_NCCREATE\n", hwnd, window);
-        ExLeave();
+        exWatchGui->leave();
         return TRUE;
     }
 #endif
@@ -696,7 +699,7 @@ ExWindow::sysWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
     window = attachWindowMap[hwnd];
     if (!(window && window->hwnd == hwnd)) {
         logproc(L"[0x%p] WM_0x%04x\n", hwnd, message);
-        ExLeave();
+        exWatchGui->leave();
         return DefWindowProc(hwnd, message, wParam, lParam);
     }
 
@@ -711,7 +714,7 @@ ExWindow::sysWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
             ExApp::mainWnd = NULL; // stop timer/flush/input exlib proc
             PostQuitMessage(ExApp::retCode); // stop main loop
         }
-        ExLeave();
+        exWatchGui->leave();
         // An application should return zero if it processes this message.
         return 0;
     }
@@ -746,7 +749,7 @@ ExWindow::sysWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
     if (window->invokeHandler(cbinfo) & Ex_Break)
         goto leave;
 leave:
-    ExLeave();
+    exWatchGui->leave();
     return cbinfo->event->lResult;
 }
 

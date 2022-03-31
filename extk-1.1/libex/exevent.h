@@ -32,7 +32,32 @@ struct ExCbInfo {
 
     ExCbInfo(int t, int s = 0, ExEvent* e = NULL, void* d = NULL)
         : type(t), subtype(s), event(e), data(d) {}
-    ExCbInfo* set(int t, int s = 0) { type = t; subtype = s; return this; }
+    // pointer
+    ExCbInfo* set(int t, int s, ExEvent* e, void* d = NULL) {
+        type = t; subtype = s; event = e; data = d;
+        return this;
+    }
+    ExCbInfo* set(int t, int s) {
+        type = t; subtype = s;
+        return this;
+    }
+    ExCbInfo* set(int t) {
+        type = t;
+        return this;
+    }
+    // reference
+    ExCbInfo& operator () (int t, int s, ExEvent* e, void* d = NULL) {
+        type = t; subtype = s; event = e; data = d;
+        return *this;
+    }
+    ExCbInfo& operator () (int t, int s) {
+        type = t; subtype = s;
+        return *this;
+    }
+    ExCbInfo& operator () (int t) {
+        type = t;
+        return *this;
+    }
 };
 
 // ExEmit APIs - deprecated => Call the callback function directly.
@@ -42,10 +67,5 @@ bool ExEmitKeyEvent(ExWidget* widget, UINT message, int virtkey, long keydata);
 bool ExEmitPtrEvent(ExWidget* widget, UINT message, WPARAM wParam, int x, int y);
 bool ExEmitButPress(ExWidget* widget, int x, int y);
 bool ExEmitButRelease(ExWidget* widget, int x, int y);
-
-void ExWakeupEventProc();
-
-int ExEventProcFini();
-int ExEventProcInit();
 
 #endif//__exevent_h__

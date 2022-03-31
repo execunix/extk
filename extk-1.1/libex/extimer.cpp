@@ -4,74 +4,67 @@
  */
 
 #include <exapp.h>
-#include <extimer.h>
+#include "exevent.h"
+#include "extimer.h"
+#include "exwatch.h"
+
 #include <set>
+#include <assert.h>
 
-// ExTimerComp
+// ExWatch::TimerSet
 //
-struct ExTimerComp { // less traits
-    bool operator () (const ExTimer* l, const ExTimer* r) const {
-        long ldiff = l->value - exTickCount;
-        long rdiff = r->value - exTickCount;
-        return (ldiff < rdiff);
-    }
-};
+bool ExWatch::TickCompare::operator () (const ExTimer* l, const ExTimer* r) const {
+    assert(l->watch != NULL && l->watch == r->watch);
+    uint32_t tick_base = l->watch->tickCount;
+    int32_t ldiff = l->value - tick_base;
+    int32_t rdiff = r->value - tick_base;
+    return (ldiff < rdiff);
+}
 
-// ExTimerList
-//
-class ExTimerList : public std::multiset<ExTimer*, ExTimerComp> {
-public:
-    ExTimerList() : std::multiset<ExTimer*, ExTimerComp>() {}
-public:
-    void  clearList();
-    void  remove(ExTimer* timer);
-    void  active(ExTimer* timer);
-    ulong invoke(ulong tick_count);
-};
-
-void ExTimerList::clearList() {
+void ExWatch::TimerSet::clearAll() {
     iterator i = begin();
     for (; i != end(); ++i)
         (*i)->fActived = 0;
     clear();
 }
 
-void ExTimerList::remove(ExTimer* timer) {
+void ExWatch::TimerSet::remove(ExTimer* timer) {
     iterator i = lower_bound(timer);
     iterator to = upper_bound(timer);
-    for (; i != to; ++i) {
-        if ((*i) == timer) {
-            timer->fActived = 0;
-            i = erase(i);
-            break;
-        }
+    while (i != to && (*i) != timer)
+        ++i;
+    if (i != to) { // (*i) == timer
+        erase(i);
+        timer->fActived = 0;
     }
 }
 
-void ExTimerList::active(ExTimer* timer) {
+void ExWatch::TimerSet::active(ExTimer* timer) {
     timer->fActived = 1;
-    if (insert(timer) == begin()) {
-        ExWakeupEventProc();
+    iterator i = insert(timer);
+    if (i == begin()) {
+        timer->watch->wakeup();
     }
 }
 
-ulong ExTimerList::invoke(ulong tick_count) {
-    long waittick;
+int ExWatch::TimerSet::invoke(uint32_t tick_count) {
+    int waittick;
     while (!empty()) {
         ExTimer* timer = *begin();
         waittick = timer->value - tick_count;
         if (waittick > 0) {
             if (waittick > 60000)
                 waittick = 60000;
-            return (ulong)waittick; // wait until next tick
+            return waittick; // wait until next tick
         }
         erase(begin());
         timer->fActived = 0;
         assert(timer->callback.func);
-        void* object = timer->widget ? (void*)timer->widget : (void*)timer;
-        int r = timer->callback(object, &ExCbInfo(Ex_CbTimer, 0, NULL, timer));
+        void* object = timer->object ? timer->object : timer;
+        ExCbInfo cbinfo(Ex_CbTimer, 0, NULL, timer);
+        int r = timer->callback(object, &cbinfo);
         if (r & Ex_Halt) {
-            ExApp::setHalt(r);
+            timer->watch->setHalt(r);
             return 60000;
         }
         if (r & (Ex_Break | Ex_Remove)) // The timer was deleted in callback.
@@ -94,29 +87,19 @@ ulong ExTimerList::invoke(ulong tick_count) {
     return 60000;
 }
 
-static ExTimerList exTimerList;
-
-void ExTimerListClear() {
-    exTimerList.clearList();
-}
-
-ulong ExTimerListInvoke(ulong tickCount) {
-    return exTimerList.invoke(tickCount);
-}
-
 #if 0 // win32 test - poor performance
 static HANDLE hTimer = INVALID_HANDLE_VALUE;
 
 static VOID CALLBACK cbTimer(PVOID lpParameter, BOOLEAN timeout) {
     assert(lpParameter == &exTimerList);
     assert(timeout);
-    ExEnter();
+    exWatchGui->enter();
     exTickCount = GetTickCount(); // update tick
     exTimerList.invoke(exTickCount);
     if (ExApp::mainWnd != NULL) {
         ExApp::mainWnd->flush();
     }
-    ExLeave();
+    exWatchGui->leave();
 }
 
 int ExFiniTimer() {
@@ -140,12 +123,12 @@ int ExInitTimer(DWORD duetime, DWORD period) {
 //
 void ExTimer::stop() {
     if (fActived)
-        exTimerList.remove(this);
+        watch->timerset.remove(this);
 }
 
-void ExTimer::start(ulong initial) {
+void ExTimer::start(uint32_t initial) {
     stop();
-    assert(callback.func);
-    this->value = exTickCount + initial;
-    exTimerList.active(this);
+    value = watch->tickCount + initial;
+    watch->timerset.active(this);
 }
+

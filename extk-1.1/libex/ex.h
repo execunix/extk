@@ -24,6 +24,7 @@
 #include <exstyle.h>
 #include <exthread.h>
 #include <extimer.h>
+#include <exwatch.h>
 #include <exwidget.h>
 #include <exwindow.h>
 

@@ -4,7 +4,7 @@
  */
 
 #include "exwatch.h"
-
+#ifdef __linux__
 #include <time.h>
 #include <pthread.h>
 #include <sys/unistd.h>
@@ -12,9 +12,11 @@
 #include <sys/epoll.h>
 #include <assert.h>
 
+#ifdef __GNUC__
 #define dprint0(...)
 #define dprint1(...) printf("ExWatch@" __VA_ARGS__)
 #define dprintf dprint1
+#endif
 
 // Iomux
 //
@@ -334,4 +336,10 @@ int ExWatch::onEvent(const epoll_event* event) {
 
     return 0;
 }
+
+#endif // __linux__
+
+static ExWatch exWatchMain;
+ExWatch* exWatchGui = &exWatchMain;
+ExWatch* exWatchDef = &exWatchMain;
 

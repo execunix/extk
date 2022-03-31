@@ -558,29 +558,27 @@ int WndMain::onTimer(ExTimer* timer, ExCbInfo* cbinfo)
     return Ex_Continue;
 }
 
-static ExInput* inp1;
-static ExInput* inp2;
 static HANDLE hWakeupNoti;
 static HANDLE hStorageNoti;
 
-int WndMain::initInput() {
+int WndMain::initIomux() {
     static ExTimer launchInputTimer;
-    launchInputTimer.setCallback([](void* d, ExTimer* t, ExCbInfo*)->int {
+    launchInputTimer.init(NULL, [](void* d, ExTimer* t, ExCbInfo*)->int {
         dprintf(L"launchInputTimer: %d\n", exTickCount);
 
         hWakeupNoti = CreateEvent(NULL, FALSE, FALSE, L"AppDemo"); // tbd
-        inp1 = ExInput::add(hWakeupNoti, [](void* d, ExInput* input, ExCbInfo* cbinfo)->int {
+        exWatchDef->ioAdd([](void* d, HANDLE handle)->int {
             dprintf(L"hWakeupNoti signaled...\n");
-            return Ex_Continue; }, NULL);
+            return 0; }, (void*)NULL, hWakeupNoti, NULL);
 
         hStorageNoti = FindFirstChangeNotification(L"\\", TRUE, FILE_NOTIFY_CHANGE_DIR_NAME);
-        inp2 = ExInput::add(hStorageNoti, [](void* d, ExInput* input, ExCbInfo* cbinfo)->int {
+        exWatchDef->ioAdd([](void* d, HANDLE handle)->int {
             dprintf(L"hStorageNoti root fs changed...\n");
             FindNextChangeNotification(hStorageNoti);
-            return Ex_Continue; }, NULL);
+            return 0; }, (void*)NULL, hStorageNoti, NULL);
 
         static ExTimer signalInputTimer;
-        signalInputTimer.setCallback([](void* d, ExTimer* t, ExCbInfo*)->int {
+        signalInputTimer.init(NULL, [](void* d, ExTimer* t, ExCbInfo*)->int {
             ((int&)t->userdata)++;
             // emulate initial state.
             if (!(((int&)t->userdata) % 5))
@@ -973,13 +971,13 @@ int WndMain::start() {
 
     FLUSH_TEST();
 
-    timer.setCallback(this, &WndMain::onTimer);
+    timer.init(NULL, this, &WndMain::onTimer);
 
     static ExTimer timerTest;
-    timerTest.setCallback([](void* d, ExWidget* w, ExCbInfo*)->int {
+    timerTest.init(NULL, [](void* d, ExWidget* w, ExCbInfo*)->int {
         dprintf(L"timerTest: %s\n", w->getName());
         return Ex_Continue; }, (void*)0, this); // test
-    timerTest.setCallback([](void* d, ExTimer* t, ExCbInfo*)->int {
+    timerTest.init(NULL, [](void* d, ExTimer* t, ExCbInfo*)->int {
         dprintf(L"timerTest: %d %u %u\n", ((int&)t->userdata)++, (ulong)*t, exTickCount);
         return Ex_Continue; }, (void*)0);
     timerTest.start(1, 1000);
@@ -992,7 +990,7 @@ int WndMain::start() {
     toy.init(this, L"toy", &ExRect(360, 300, 600, 80));
 
     (int&)timerToy.userdata = 0;
-    timerToy.setCallback(this, &WndMain::onTimerToy, this);
+    timerToy.init(NULL, this, &WndMain::onTimerToy, this);
     timerToy.start(1, 50); // 20Hz
 
     addFilter(this, &WndMain::onFilter);
@@ -1013,10 +1011,10 @@ int WndMain::start() {
     wgtBackViewer.drawFunc = ExDrawFunc(this, &WndMain::onDrawBackBuf);
     wgtBackViewer.setFlags(Ex_Selectable);
 
-    backBufUpdater.setCallback(this, &WndMain::onBackBufUpdater);
+    backBufUpdater.init(NULL, this, &WndMain::onBackBufUpdater);
     backBufUpdater.start(1, 25); // 40Hz
 
-    initInput();
+    initIomux();
 
     wgtMenu.init(this);
     wgtTitle.init(this);

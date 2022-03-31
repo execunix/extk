@@ -194,6 +194,8 @@ xcopy "$(OutDir)$(TargetFileName)" "..\extk\$(OutDir)" /d /y
     <ClInclude Include="..\..\libex\exthread.h" />
     <ClInclude Include="..\..\libex\extimer.h" />
     <ClInclude Include="..\..\libex\extype.h" />
+    <ClInclude Include="..\..\libex\exwatch.h" />
+    <ClInclude Include="..\..\libex\exwatch_w32.h" />
     <ClInclude Include="..\..\libex\exwidget.h" />
     <ClInclude Include="..\..\libex\exwindow.h" />
   </ItemGroup>
@@ -225,6 +227,8 @@ xcopy "$(OutDir)$(TargetFileName)" "..\extk\$(OutDir)" /d /y
     <ClCompile Include="..\..\libex\exstyle.cpp" />
     <ClCompile Include="..\..\libex\exthread.cpp" />
     <ClCompile Include="..\..\libex\extimer.cpp" />
+    <ClCompile Include="..\..\libex\exwatch.cpp" />
+    <ClCompile Include="..\..\libex\exwatch_w32.cpp" />
     <ClCompile Include="..\..\libex\exwidget.cpp" />
     <ClCompile Include="..\..\libex\exwindow.cpp" />
   </ItemGroup>

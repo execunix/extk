@@ -281,8 +281,6 @@ int app_test() {
     //char aaa2[sizeof(ExCallback) == 8 ? 1 : -1];
     //char aaa2[sizeof(ExCallback) == 16 ? 1 : -1];
 #endif
-    std::list<ExInput> inputList;
-
     dprint1(L"sizeof(ExCbInfo)=%d\n", sizeof(ExCbInfo));
     dprint1(L"sizeof(ExCallback)=%d\n", sizeof(ExCallback));
     //dprint1(L"sizeof(ExWidget::Callback)=%d\n", sizeof(ExWidget::Callback)); // 16
@@ -292,7 +290,6 @@ int app_test() {
     dprint1(L"sizeof(ExWindow)=%d\n", sizeof(ExWindow));
     dprint1(L"sizeof(ExTimer)=%d\n", sizeof(ExTimer));
     dprint1(L"sizeof(ExApp)=%d\n", sizeof(ExApp));
-    dprint1(L"sizeof(inputList)=%d\n", sizeof(inputList));
 
     ExWindow top;
     ExWidget w1;
@@ -391,6 +388,15 @@ int app_test() {
     return 0;
 }
 
+static int STDCALL flushMainWnd(void* data, ExWatch* watch, ExCbInfo* cbinfo) {
+    if (cbinfo->type != ExWatch::HookTimer)
+        return -1;
+    if (ExApp::mainWnd != NULL) {
+        ExApp::mainWnd->flush();
+    }
+    return 0;
+}
+
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
                       _In_opt_ HINSTANCE hPrevInstance,
                       _In_ LPWSTR    lpCmdLine,
@@ -401,6 +407,9 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     //flt_test();
 
     ExApp::init(hInstance, hPrevInstance, lpCmdLine, nCmdShow);
+
+    exWatchGui->hooks = ExCallback(&flushMainWnd, (void*)NULL);
+    exWatchGui->init();
 
     // startup
     // tbd - parse args
@@ -413,6 +422,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
     assert(ExApp::mainWnd == wndMain);
     ExMainLoop();
+    exWatchGui->fini();
 
     // cleanup
     ExApp::exit(1);

@@ -108,6 +108,12 @@
     <ClInclude Include="..\..\libex\exrender.h">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\libex\exwatch.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\libex\exwatch_w32.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\libex\exapp.cpp">
@@ -195,6 +201,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\libex\exrender.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libex\exwatch.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libex\exwatch_w32.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
