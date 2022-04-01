@@ -133,8 +133,7 @@ int ExWatch::IomuxMap::del(HANDLE handle) {
     return -1;
 }
 
-int ExWatch::IomuxMap::invoke(int waittick)
-{
+int ExWatch::IomuxMap::invoke(int waittick) {
     DWORD nCount = setup();
     LPHANDLE pHandles = handles;
     DWORD dwMilliseconds = waittick;//INFINITE;
@@ -214,14 +213,14 @@ int ExWatch::fini() {
     int r = 0;
     idThread = 0;
     if (hThread != NULL) {
-        leave();
         setHalt(Ex_Halt);
+        leave();
         if (WaitForSingleObject(hThread, INFINITE) == WAIT_FAILED)
             exerror(L"%s - WaitForSingleObject fail.\n", __funcw__);
+        enter();
         if (CloseHandle(hThread) == 0)
             exerror(L"%s - CloseHandle fail.\n", __funcw__);
         hThread = NULL;
-        enter();
     }
     iomuxmap.fini();
     timerset.clearAll();

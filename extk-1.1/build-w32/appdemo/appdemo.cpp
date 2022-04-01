@@ -408,6 +408,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
     ExApp::init(hInstance, hPrevInstance, lpCmdLine, nCmdShow);
 
+    exWatchGui->enter();
     exWatchGui->hooks = ExCallback(&flushMainWnd, (void*)NULL);
     exWatchGui->init();
 
@@ -423,6 +424,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     assert(ExApp::mainWnd == wndMain);
     ExMainLoop();
     exWatchGui->fini();
+    exWatchGui->leave();
 
     // cleanup
     ExApp::exit(1);

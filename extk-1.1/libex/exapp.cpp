@@ -266,7 +266,6 @@ void ExApp::exit(int retCode) {
     dprintf(L"%s(%d)\n", __funcw__, retCode);
     if (!ExIsMainThread()) {
         dprintf(L"pause main thread\n");
-        //exWatchGui->enter();
     }
     // When the system window manager closed the app, mainWnd was destroyed.
 #if 1 // It's not essential, but it's better to keep it clean.
