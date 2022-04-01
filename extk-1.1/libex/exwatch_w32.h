@@ -51,7 +51,7 @@ protected:
         HANDLE          handles[MAXIMUM_WAIT_OBJECTS];
     public:
         ~IomuxMap() { fini(); }
-        IomuxMap(ExWatch* watch) : watch(watch), std::list<Iomux>(), count(0), dirty(0) {}
+        IomuxMap(ExWatch* watch) : std::list<Iomux>(), watch(watch), count(0), dirty(0) {}
     protected:
         void fini();
         void init();

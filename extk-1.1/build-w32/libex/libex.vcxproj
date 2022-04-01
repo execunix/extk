@@ -171,7 +171,7 @@ xcopy "$(OutDir)$(TargetFileName)" "..\extk\$(OutDir)" /d /y
     <ClInclude Include="..\..\libex\excairo.h" />
     <ClInclude Include="..\..\libex\excallback.h" />
     <ClInclude Include="..\..\libex\excanvas.h" />
-    <ClInclude Include="..\..\libex\exconf.h" />
+    <ClInclude Include="..\..\libex\exconfig.h" />
     <ClInclude Include="..\..\libex\exdebug.h" />
     <ClInclude Include="..\..\libex\exevent.h" />
     <ClInclude Include="..\..\libex\exgdiobj.h" />
@@ -193,7 +193,7 @@ xcopy "$(OutDir)$(TargetFileName)" "..\extk\$(OutDir)" /d /y
     <ClInclude Include="..\..\libex\exstyle.h" />
     <ClInclude Include="..\..\libex\exthread.h" />
     <ClInclude Include="..\..\libex\extimer.h" />
-    <ClInclude Include="..\..\libex\extype.h" />
+    <ClInclude Include="..\..\libex\extypes.h" />
     <ClInclude Include="..\..\libex\exwatch.h" />
     <ClInclude Include="..\..\libex\exwatch_w32.h" />
     <ClInclude Include="..\..\libex\exwidget.h" />

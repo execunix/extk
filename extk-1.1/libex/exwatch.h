@@ -62,7 +62,7 @@ protected:
             pthread_mutex_destroy(&mutex);
             #endif
         }
-        IomuxMap(ExWatch* watch) : watch(watch), std::map<int, Iomux*>(), epfd(-1), events(NULL), maxevents(0) {
+        IomuxMap(ExWatch* watch) : std::map<int, Iomux*>(), watch(watch), epfd(-1), events(NULL), maxevents(0) {
             #if EX2CONF_ENABLE_IOMUX_LOCK
             pthread_mutex_init(&mutex, NULL);
             pthread_cond_init(&cond, NULL);

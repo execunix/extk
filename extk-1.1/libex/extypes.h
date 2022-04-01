@@ -6,7 +6,7 @@
 #ifndef __extype_h__
 #define __extype_h__
 
-#include <exconf.h>
+#include <exconfig.h>
 #include <new>
 
 // Classes and primitive data types declared in this file

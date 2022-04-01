@@ -6,7 +6,7 @@
 #ifndef __exapp_h__
 #define __exapp_h__
 
-#include <extype.h>
+#include <extypes.h>
 #include <extimer.h>
 #include <exevent.h>
 #include <exwindow.h>
@@ -59,8 +59,8 @@ public:
 public:
     static int getHalt() { return halt; }
     static int setHalt(int r);
-    static long& butRepeatCnt() { return (long&)but_timer.userdata; };
-    static long& keyRepeatCnt() { return (long&)key_timer.userdata; };
+    static long& butRepeatCnt() { return (long&)but_timer.u64; };
+    static long& keyRepeatCnt() { return (long&)key_timer.u64; };
 public:
     friend class ExWindow;
     friend class ExWidget;

@@ -132,3 +132,11 @@ void ExTimer::start(uint32_t initial) {
     watch->timerset.active(this);
 }
 
+int ExTimer::enter() const {
+    return watch->enter();
+}
+
+int ExTimer::leave() const {
+    return watch->leave();
+}
+

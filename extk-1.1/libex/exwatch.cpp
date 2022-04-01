@@ -95,7 +95,7 @@ int ExWatch::IomuxMap::add(int fd, uint32_t events, const ExNotify& notify) {
     watch->wakeup();
     enter_mux();
     #endif
-    if (size() < maxevents) {
+    if (size() < (size_t)maxevents) {
         Iomux* iomux = new Iomux();
         assert(iomux != NULL);
         std::pair<iterator, bool> pr;
@@ -214,7 +214,9 @@ int ExWatch::fini() {
         r = pthread_cancel(tid);
         assert(r == 0);
         #endif
+        leave();
         r = pthread_join(tid, NULL);
+        enter();
         assert(r == 0);
         tid = 0;
     }
@@ -328,7 +330,7 @@ int ExWatch::onEvent(const epoll_event* event) {
     getEvent(&u64);
     dprintf("%s: got event %lu\n", __func__, u64);
 
-    #if 0 // tbd - cond wait and signal
+    #if 0/*EX2CONF_ENABLE_IOMUX_LOCK*/ // tbd - cond wait and signal
     pthread_cond_wait(&cond, &mutex);
     ...
     pthread_cond_signal(&cond);

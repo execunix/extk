@@ -6,7 +6,7 @@
 #ifndef __exthread_h__
 #define __exthread_h__
 
-#include <extype.h>
+#include <extypes.h>
 #include <list>
 
 typedef struct {

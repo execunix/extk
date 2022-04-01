@@ -6,7 +6,7 @@
 #ifndef __exgeomet_h__
 #define __exgeomet_h__
 
-#include <extype.h>
+#include <extypes.h>
 
 // ExPoint
 //

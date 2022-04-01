@@ -30,7 +30,7 @@
     <ClInclude Include="..\..\libex\excallback.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\libex\exconf.h">
+    <ClInclude Include="..\..\libex\exconfig.h">
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\libex\exdebug.h">
@@ -93,7 +93,7 @@
     <ClInclude Include="..\..\libex\extimer.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\libex\extype.h">
+    <ClInclude Include="..\..\libex\extypes.h">
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\libex\exwidget.h">

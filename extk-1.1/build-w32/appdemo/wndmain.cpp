@@ -286,7 +286,7 @@ void WndMain::onDrawToy(ExCanvas* canvas, const WndMain* w, const ExRegion* dama
 }
 
 int WndMain::onTimerToy(WndMain* wnd, ExCbInfo* cbinfo) {
-    int& cnt = (int&)timerToy.userdata;
+    int& cnt = (int&)timerToy.u64;
     int& textId = (int&)toy.userdata;
     cnt++; // 0 ~ 100
     if (cnt > 100) {
@@ -500,8 +500,8 @@ int WndMain::onActBtns(ExWidget* widget, ExCbInfo* cbinfo) {
     }
     if (widget == &btns1[0]) {
         if (cbinfo->type == Ex_CbActivate) {
-            (int&)timer.userdata = !(int&)timer.userdata;
-            if (timer.userdata)
+            (int&)timer.u64 = !(int&)timer.u64;
+            if (timer.u64)
                 timer.start(100, 25);
             else
                 timer.stop();
@@ -579,9 +579,9 @@ int WndMain::initIomux() {
 
         static ExTimer signalInputTimer;
         signalInputTimer.init(NULL, [](void* d, ExTimer* t, ExCbInfo*)->int {
-            ((int&)t->userdata)++;
+            ((int&)t->u64)++;
             // emulate initial state.
-            if (!(((int&)t->userdata) % 5))
+            if (!(((int&)t->u64) % 5))
                 SetEvent(hWakeupNoti);
             return Ex_Continue; }, NULL);
         signalInputTimer.start(1, 1000);
@@ -978,7 +978,7 @@ int WndMain::start() {
         dprintf(L"timerTest: %s\n", w->getName());
         return Ex_Continue; }, (void*)0, this); // test
     timerTest.init(NULL, [](void* d, ExTimer* t, ExCbInfo*)->int {
-        dprintf(L"timerTest: %d %u %u\n", ((int&)t->userdata)++, (ulong)*t, exTickCount);
+        dprintf(L"timerTest: %d %u %u\n", ((int&)t->u64)++, (ulong)*t, exTickCount);
         return Ex_Continue; }, (void*)0);
     timerTest.start(1, 1000);
 
@@ -989,7 +989,7 @@ int WndMain::start() {
     toy.drawFunc = ExDrawFunc(this, &WndMain::onDrawToy);
     toy.init(this, L"toy", &ExRect(360, 300, 600, 80));
 
-    (int&)timerToy.userdata = 0;
+    (int&)timerToy.u64 = 0;
     timerToy.init(NULL, this, &WndMain::onTimerToy, this);
     timerToy.start(1, 50); // 20Hz
 

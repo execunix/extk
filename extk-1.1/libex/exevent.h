@@ -6,7 +6,7 @@
 #ifndef __exevent_h__
 #define __exevent_h__
 
-#include <extype.h>
+#include <extypes.h>
 
 // ExEvent
 //

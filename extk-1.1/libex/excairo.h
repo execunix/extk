@@ -7,7 +7,7 @@
 #define __excairo_h__
 
 #include <cairo.h>
-#include <exconf.h>
+#include <exconfig.h>
 #include <excanvas.h>
 #include <exgeomet.h>
 

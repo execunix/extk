@@ -25,14 +25,15 @@ private: // Modify the flags only in the ExWatch::TimerSet class.
 public:
     ExObject*       object;     // Pass the object linked to the timer
     union {
-        void*       userdata;   // Storing arbitrary user data
+        uint64_t    u64;        // Storing arbitrary user data
         uint32_t    u32[2];
+        void*       ptr;
     };
 public:
     virtual ~ExTimer() { stop(); }
     explicit ExTimer()
         : ExObject(), watch(NULL), value(0), repeat(0), callback(), fActived(0)
-        , object(NULL), userdata(NULL) {}
+        , object(NULL), u64(0ull) {}
 protected:
     void setup(ExWatch* watch, const ExCallback& callback, ExObject* object = NULL) {
         this->watch = watch ? watch : exWatchDef;
@@ -64,6 +65,8 @@ public:
     void start(uint32_t initial); // notes: set fActived by insert to timerlist.
     void start(uint32_t initial, uint32_t repeat) { this->repeat = repeat; start(initial); }
     operator uint32_t () const { return value; }
+    int enter() const;
+    int leave() const;
 protected:
     friend class ExWatch;
 public:

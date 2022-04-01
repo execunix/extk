@@ -3,8 +3,8 @@
  * SPDX-License-Identifier:     GPL-2.0+
  */
 
-#ifndef __exconf_h__
-#define __exconf_h__
+#ifndef __exconfig_h__
+#define __exconfig_h__
 
 #ifndef __cplusplus
 #error FrameWork of the Widget requires C++ compilation (use a *.cpp suffix)
@@ -30,6 +30,7 @@
 //#include <stdio.h>
 #endif
 
+#ifdef _MSC_VER
 #include <limits.h>
 #include <assert.h>
 #include <malloc.h>
@@ -43,6 +44,13 @@
 #include <pixman.h>
 #include <exmacro.h>
 #include <exdebug.h>
+#else // __GNUC__
+#include <stdint.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <unistd.h>
+#endif
 
 #ifndef STDCALL
 #ifdef __GNUC__
@@ -53,7 +61,7 @@
 #endif /* STDCALL */
 
 #define EX2CONF_LAMBDA_CALLBACK 1
-#if defined(_MSC_VER) || defined(ARCH_AARCH64)
+#if defined(_MSC_VER) || defined(ARCH_ARM)
 #define EX2CONF_DISABLE_STDCALL 0
 #else
 #define EX2CONF_DISABLE_STDCALL 1
@@ -63,6 +71,7 @@
 extern "C" {
 #endif
 
+#ifdef _MSC_VER
 typedef             char int8;
 typedef            short int16;
 typedef              int int32;
@@ -84,6 +93,7 @@ typedef unsigned    long ulong;
 typedef unsigned     int uint;
 
 typedef wchar_t         wchar;
+#endif
 
 #ifdef _DEBUG
 #ifndef DEBUG
@@ -108,4 +118,4 @@ typedef wchar_t         wchar;
 }
 #endif
 
-#endif//__exconf_h__
+#endif//__exconfig_h__

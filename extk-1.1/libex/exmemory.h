@@ -6,7 +6,7 @@
 #ifndef __exmemory_h__
 #define __exmemory_h__
 
-#include <extype.h>
+#include <extypes.h>
 
 inline void
 bcopy(const void* src_ptr, void* dst_ptr, size_t n_bytes) {
