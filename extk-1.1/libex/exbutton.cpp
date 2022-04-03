@@ -3,7 +3,7 @@
  * SPDX-License-Identifier:     GPL-2.0+
  */
 
-#include <exbutton.h>
+#include "exbutton.h"
 
 void
 exbutton_apitest()

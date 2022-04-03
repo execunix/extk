@@ -3,9 +3,9 @@
  * SPDX-License-Identifier:     GPL-2.0+
  */
 
-#include <exrender.h>
+#include "exrender.h"
 #include "exwatch.h"
-#include <exapp.h>
+#include "exapp.h"
 #include <map>
 
 #define logdraw dprint0

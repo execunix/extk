@@ -6,8 +6,8 @@
 #ifndef __eximage_h__
 #define __eximage_h__
 
-#include <exobject.h>
-#include <exregion.h>
+#include "exobject.h"
+#include "exregion.h"
 
 // Graphics macro functions
 //

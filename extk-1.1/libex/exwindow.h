@@ -6,8 +6,8 @@
 #ifndef __exwindow_h__
 #define __exwindow_h__
 
-#include <exwidget.h>
-#include <excanvas.h>
+#include "exwidget.h"
+#include "excanvas.h"
 
 // Window constants definition
 //

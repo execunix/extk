@@ -3,9 +3,8 @@
  * SPDX-License-Identifier:     GPL-2.0+
  */
 
-#include <exapp.h>
-#include <exinput.h>
 #include "exwatch.h"
+#include "exapp.h"
 
 // app private variables
 //

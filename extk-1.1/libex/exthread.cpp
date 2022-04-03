@@ -3,8 +3,8 @@
  * SPDX-License-Identifier:     GPL-2.0+
  */
 
-#include <exthread.h>
-#include <exmemory.h>
+#include "exthread.h"
+#include "exmemory.h"
 #include <algorithm>
 
 #ifndef TLS_OUT_OF_INDEXES

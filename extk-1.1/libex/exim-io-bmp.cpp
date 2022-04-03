@@ -3,7 +3,7 @@
  * SPDX-License-Identifier:     GPL-2.0+
  */
 
-#include <eximage.h>
+#include "eximage.h"
 
 #define BMP_BPL(w,bpp)	((((w)*(bpp)+7)/8 + (sizeof(UINT)-1)) & ~(sizeof(UINT)-1))
 

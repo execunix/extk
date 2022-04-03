@@ -3,12 +3,11 @@
  * SPDX-License-Identifier:     GPL-2.0+
  */
 
-#include <exapp.h>
-#include <exevent.h>
-#include <exinput.h>
-#include <extimer.h>
-#include <exthread.h>
-#include <exwindow.h>
+#include "exevent.h"
+#include "exinput.h"
+#include "extimer.h"
+#include "exthread.h"
+#include "exwindow.h"
 
 // ExEmit APIs - deprecated
 //

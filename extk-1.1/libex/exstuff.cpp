@@ -3,7 +3,7 @@
  * SPDX-License-Identifier:     GPL-2.0+
  */
 
-#include <exstuff.h>
+#include "exstuff.h"
 
 void
 exstuff_apitest()

@@ -6,8 +6,8 @@
 #ifndef __exgdiobj_h__
 #define __exgdiobj_h__
 
-#include <exobject.h>
-#include <exgeomet.h>
+#include "exobject.h"
+#include "exgeomet.h"
 
 /////////////////////////////////////////////////////////////////////////////
 // class ExGdiObj

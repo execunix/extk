@@ -40,8 +40,8 @@
 #include <float.h>
 #include <cairo.h>
 #include <pixman.h>
-#include <exmacro.h>
-#include <exdebug.h>
+#include "exmacro.h"
+#include "exdebug.h"
 #else // __GNUC__
 #include <stdint.h>
 #include <stdlib.h>

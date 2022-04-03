@@ -7,9 +7,9 @@
 #define __excairo_h__
 
 #include <cairo.h>
-#include <exconfig.h>
-#include <excanvas.h>
-#include <exgeomet.h>
+#include "exconfig.h"
+#include "excanvas.h"
+#include "exgeomet.h"
 
 // float divide 8bit value
 #define FD8V(v) ((v) / 255.f)

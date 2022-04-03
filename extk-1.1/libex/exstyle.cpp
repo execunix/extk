@@ -3,7 +3,7 @@
  * SPDX-License-Identifier:     GPL-2.0+
  */
 
-#include <exstyle.h>
+#include "exstyle.h"
 
 void
 exstyle_apitest()

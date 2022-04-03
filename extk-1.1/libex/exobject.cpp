@@ -3,7 +3,7 @@
  * SPDX-License-Identifier:     GPL-2.0+
  */
 
-#include <exobject.h>
+#include "exobject.h"
 
 void
 exobject_apitest()

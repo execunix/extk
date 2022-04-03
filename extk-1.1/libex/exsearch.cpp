@@ -3,8 +3,8 @@
  * SPDX-License-Identifier:     GPL-2.0+
  */
 
-#include <exsearch.h>
-#include <exdebug.h>
+#include "exsearch.h"
+#include "exdebug.h"
 
 #ifdef _WIN32_WCE
 

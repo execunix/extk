@@ -3,7 +3,7 @@
  * SPDX-License-Identifier:     GPL-2.0+
  */
 
-#include <exgeomet.h>
+#include "exgeomet.h"
 
 bool /*static*/
 ExBox::isIntersect(const ExBox& b1, const ExBox& b2) {

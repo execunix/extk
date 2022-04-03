@@ -6,10 +6,10 @@
 #ifndef __excanvas_h__
 #define __excanvas_h__
 
-#include <exobject.h>
-#include <exregion.h>
-#include <exgdiobj.h>
-#include <eximage.h>
+#include "exobject.h"
+#include "exregion.h"
+#include "exgdiobj.h"
+#include "eximage.h"
 
 // class ExCanvas
 //

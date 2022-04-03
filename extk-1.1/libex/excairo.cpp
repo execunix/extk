@@ -3,7 +3,7 @@
  * SPDX-License-Identifier:     GPL-2.0+
  */
 
-#include <excairo.h>
+#include "excairo.h"
 
 ExCairo::~ExCairo() {
     cairo_restore(canvas->cr);

@@ -3,9 +3,9 @@
  * SPDX-License-Identifier:     GPL-2.0+
  */
 
-#include <exgdiobj.h>
-#include <exwindow.h>
-#include <eximage.h>
+#include "exgdiobj.h"
+#include "exwindow.h"
+#include "eximage.h"
 
 /////////////////////////////////////////////////////////////////////////////
 // class ExGdiBmp

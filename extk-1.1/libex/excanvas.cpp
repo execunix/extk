@@ -3,9 +3,9 @@
  * SPDX-License-Identifier:     GPL-2.0+
  */
 
-#include <exapp.h>
-#include <excanvas.h>
-#include <exwindow.h>
+#include "exapp.h"
+#include "excanvas.h"
+#include "exwindow.h"
 #include <ft2build.h>
 #include <cairo-ft.h>
 #include FT_FREETYPE_H

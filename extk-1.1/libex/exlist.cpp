@@ -3,7 +3,7 @@
  * SPDX-License-Identifier:     GPL-2.0+
  */
 
-#include <exlist.h>
+#include "exlist.h"
 
 void
 exlist_apitest()

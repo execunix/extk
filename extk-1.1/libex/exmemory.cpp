@@ -3,7 +3,7 @@
  * SPDX-License-Identifier:     GPL-2.0+
  */
 
-#include <exmemory.h>
+#include "exmemory.h"
 
 typedef struct {
     HANDLE hmap;

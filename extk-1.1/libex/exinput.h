@@ -6,8 +6,8 @@
 #ifndef __exinput_h__
 #define __exinput_h__
 
-#include <excallback.h>
-#include <exobject.h>
+#include "excallback.h"
+#include "exobject.h"
 
 // ExInput
 //

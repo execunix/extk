@@ -6,7 +6,7 @@
 #ifndef __extype_h__
 #define __extype_h__
 
-#include <exconfig.h>
+#include "exconfig.h"
 #include <new>
 
 // Classes and primitive data types declared in this file
@@ -32,8 +32,6 @@ class ExTimer;
 class ExWidget;
 class ExWindow;
 class ExCanvas;
-
-class ExAny {};
 
 #define Ex_BitFalse (0)
 #define Ex_BitTrue (-1)
@@ -248,6 +246,6 @@ template <typename T> inline void exswap(T& a, T& b) { T c(a); a = b; b = c; }
 
 // functions
 //
-typedef void(*ExDestroyNotify)(void* data);
+typedef void (*ExDestroyNotify)(void* data);
 
 #endif//__extype_h__

@@ -3,7 +3,7 @@
  * SPDX-License-Identifier:     GPL-2.0+
  */
 
-#include <eximage.h>
+#include "eximage.h"
 #include <jpeglib.h>
 #include <setjmp.h>
 #include <stdio.h>

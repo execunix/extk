@@ -3,7 +3,7 @@
  * SPDX-License-Identifier:     GPL-2.0+
  */
 
-#include <exdebug.h>
+#include "exdebug.h"
 #include <stdio.h>
 
 #define vdprintf debug_vprintf

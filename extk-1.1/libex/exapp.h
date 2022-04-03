@@ -6,10 +6,10 @@
 #ifndef __exapp_h__
 #define __exapp_h__
 
-#include <extypes.h>
-#include <extimer.h>
-#include <exevent.h>
-#include <exwindow.h>
+#include "extypes.h"
+#include "extimer.h"
+#include "exevent.h"
+#include "exwindow.h"
 
 extern ulong exTickCount;
 

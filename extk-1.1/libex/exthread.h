@@ -6,7 +6,8 @@
 #ifndef __exthread_h__
 #define __exthread_h__
 
-#include <extypes.h>
+#include "extypes.h"
+#include "excallback.h"
 #include <list>
 
 typedef struct {
@@ -58,19 +59,20 @@ public:
         bool timedWait(Mutex* enteredMutex, ExTimeVal* absTime);
         void wait(Mutex* enteredMutex) { timedWait(enteredMutex, NULL); }
     };
-    struct Proc {
-        typedef int(STDCALL ExAny::*AnyFunc)(ExThread*);
-        typedef int(STDCALL *Func)(void*, ExThread*);
-        union { AnyFunc anyfunc; Func func; };
-        void* data;
-
-        template <class T>
-        Proc(T* d, int(STDCALL T::*f)(ExThread*)) : anyfunc((AnyFunc)f), data(d) {}
-        Proc(Func f, void* d) : func(f), data(d) {}
-        Proc(const Proc& p) : func(p.func), data(p.data) {}
-        Proc() : func(NULL), data(NULL) {}
-        int operator () (ExThread* thread) const { return func(data, thread); }
-        operator bool() const { return (func != NULL); }
+    struct Proc : public ExPolyFunc<int, ExThread*> {
+        template <typename A>
+        Proc(A* d, int (STDCALL A::*f)(ExThread*)) : ExPolyFunc(d) {
+            func = reinterpret_cast<ThisFunc>(f);
+        }
+        template <typename A>
+        Proc(int (STDCALL *f)(A*, ExThread*), A* d) : ExPolyFunc(d) {
+            vfunc = reinterpret_cast<FuncPtr>(f);
+#if EX2CONF_DISABLE_STDCALL
+            invoker = &funcptr;
+#endif
+        }
+        Proc(const Proc& cb) : ExPolyFunc(cb) {}
+        Proc() : ExPolyFunc() {}
     };
     enum Attr {
         Detached = 0,

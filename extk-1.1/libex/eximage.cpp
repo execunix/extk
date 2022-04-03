@@ -3,7 +3,7 @@
  * SPDX-License-Identifier:     GPL-2.0+
  */
 
-#include <eximage.h>
+#include "eximage.h"
 
 ExImage::~ExImage() {
     if (crs) cairo_surface_destroy(crs);

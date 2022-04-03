@@ -6,8 +6,8 @@
 #ifndef __extimer_h__
 #define __extimer_h__
 
-#include <exobject.h>
-#include <excallback.h>
+#include "exobject.h"
+#include "excallback.h"
 
 class ExWatch;
 extern ExWatch* exWatchDef;

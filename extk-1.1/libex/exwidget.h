@@ -6,13 +6,13 @@
 #ifndef __exwidget_h__
 #define __exwidget_h__
 
-#include <excallback.h>
-#include <exobject.h>
-#include <exthread.h>
-#include <exgeomet.h>
-#include <exgdiobj.h>
-#include <exregion.h>
-#include <exstyle.h>
+#include "excallback.h"
+#include "exobject.h"
+#include "exthread.h"
+#include "exgeomet.h"
+#include "exgdiobj.h"
+#include "exregion.h"
+#include "exstyle.h"
 #include <list>
 
 typedef std::list<ExWidget*> ExWidgetList;

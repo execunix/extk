@@ -75,7 +75,7 @@ SOFTWARE.
  * the y-x-banding that's so nice to have...
  */
 
-#include <exregion.h>
+#include "exregion.h"
 #include "exregion_p.h"
 
 #undef  ABS

@@ -3,7 +3,7 @@
  * SPDX-License-Identifier:     GPL-2.0+
  */
 
-#include <eximage.h>
+#include "eximage.h"
 
 int ExImage::loadGif(HANDLE hFile, const wchar* fname, bool query)
 {

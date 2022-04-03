@@ -3,7 +3,7 @@
  * SPDX-License-Identifier:     GPL-2.0+
  */
 
-#include <eximage.h>
+#include "eximage.h"
 #include <pngpriv.h>
 #include <stdio.h>
 

@@ -3,9 +3,9 @@
  * SPDX-License-Identifier:     GPL-2.0+
  */
 
-#include <exapp.h>
-#include <excairo.h>
-#include <eximage.h>
+#include "excairo.h"
+#include "eximage.h"
+#include "exapp.h"
 
 #define logdraw dprint0
 #define logdra0 dprint0

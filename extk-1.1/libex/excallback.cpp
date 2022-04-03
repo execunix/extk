@@ -3,8 +3,8 @@
  * SPDX-License-Identifier:     GPL-2.0+
  */
 
-#include <exapp.h>
-#include <excallback.h>
+#include "excallback.h"
+#include "exwindow.h"
 #include "exwatch.h"
 
 enum CallbackFlags {

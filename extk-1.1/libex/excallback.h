@@ -6,7 +6,7 @@
 #ifndef __excallback_h__
 #define __excallback_h__
 
-#include <exevent.h>
+#include "exevent.h"
 #include <list>
 
 // ExPolyFunc

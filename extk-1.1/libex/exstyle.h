@@ -6,7 +6,7 @@
 #ifndef __exstyle_h__
 #define __exstyle_h__
 
-#include <exevent.h>
+#include "exevent.h"
 
 struct ExStyle
 {

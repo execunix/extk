@@ -6,8 +6,8 @@
 #ifndef __exregion_h__
 #define __exregion_h__
 
-#include <exgeomet.h>
-#include <exmemory.h>
+#include "exgeomet.h"
+#include "exmemory.h"
 
 enum ExOverlap {
     Ex_OverlapIn,               // rectangle is in region

@@ -6,7 +6,7 @@
 #ifndef __exobject_h__
 #define __exobject_h__
 
-#include <exmemory.h>
+#include "extypes.h"
 
 /* Emulate The C++ RTTI(Run-Time Type Info)
  */

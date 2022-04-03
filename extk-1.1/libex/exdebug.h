@@ -6,7 +6,7 @@
 #ifndef __exdebug_h__
 #define __exdebug_h__
 
-#include <exconfig.h>
+#include "exconfig.h"
 #include <stdarg.h>
 
 #ifndef _WIN32_WCE
