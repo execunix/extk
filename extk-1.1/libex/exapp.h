@@ -57,8 +57,6 @@ public:
     static void exit(int retCode);
     static int init(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCmdLine, int nCmdShow);
 public:
-    static int getHalt() { return halt; }
-    static int setHalt(int r);
     static long& butRepeatCnt() { return (long&)but_timer.u64; };
     static long& keyRepeatCnt() { return (long&)key_timer.u64; };
 public:

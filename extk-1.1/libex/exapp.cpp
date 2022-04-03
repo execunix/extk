@@ -64,32 +64,15 @@ ExWidget*    ExApp::button_widget[2];        /* The last 2 widgets to receive bu
 ExWindow*    ExApp::button_window[2];        /* The last 2 windows to receive button presses. */
 UINT         ExApp::regAppMsgIndex = WM_APP;
 
-int ExApp::setHalt(int r) {
-#if defined(EX_EVENTPROC_HAVETHREAD)
-    assert((halt | r) & Ex_Halt);
-    if (!(halt & 0x80000000)) {
-        halt |= 0x80000000;
-        ExQuitMainLoop();
-    }
-#else
-    halt |= 0x80000000;
-#endif
-    return halt |= r;
-}
-
 int ExEventPeek(ExEvent& event) {
     BOOL bRet;
 
     exWatchGui->leave();
-#if defined(EX_EVENTPROC_HAVETHREAD)
     if ((bRet = GetMessage(&event.msg, NULL, 0, 0)) != TRUE) {
         assert(event.msg.message == WM_QUIT);
         // WM_DESTROY => PostQuitMessage
         bRet = TRUE;
     }
-#else
-    bRet = PeekMessage(&event.msg, NULL, 0, 0, PM_REMOVE);
-#endif
     exWatchGui->enter();
 
     return bRet;
@@ -154,15 +137,15 @@ void* ExModalBlock(ExModalCtrl* ctrl, long flags) {
     ctrl->cond = NULL;
     ctrl->prev = NULL;
     ctrl->next = NULL;
-    while (ExApp::getHalt() == 0 && (ctrl->flags & 0x80000000)) {
+    while (exWatchGui->getHalt() == 0 && (ctrl->flags & 0x80000000)) {
         waittick = ExTimerListInvoke(exTickCount);
         dprint0(L"waittick=%d\n", waittick);
-        if (ExApp::getHalt()) // is halt ?
+        if (exWatchGui->getHalt()) // is halt ?
             break; // stop event loop
         if (ExApp::mainWnd != NULL)
             ExApp::mainWnd->flush();
         ExInput::invoke(waittick); // The only waiting point.
-        if (ExApp::getHalt()) // is halt ?
+        if (exWatchGui->getHalt()) // is halt ?
             break; // stop event loop
         while ((ctrl->flags & 0x80000000) &&
             exEventFunc(event) > 0) { // is message available ?
@@ -171,7 +154,7 @@ void* ExModalBlock(ExModalCtrl* ctrl, long flags) {
             if (event.msg.message == WM_QUIT) { // WM_DESTROY => PostQuitMessage
                 dprintf(L"message == WM_QUIT tick=%d\n", exTickCount);
                 ExApp::retCode = (int)event.msg.wParam; // cause DestroyWindow
-                ExApp::setHalt(Ex_Halt); // stop event loop
+                exWatchGui->setHalt(Ex_Halt); // stop event loop
                 break;
             }
             //exWatchGui->leave(); // tbd ctrl->leave()
@@ -195,35 +178,18 @@ Description:
 void ExMainLoop() {
     ExEvent& event = ExApp::event;
 
-    while (ExApp::getHalt() == 0) {
-#if defined(EX_EVENTPROC_HAVETHREAD)
-        /*ulong waittick = INFINITE*/;
-#else
-        // The main thread handles timers and inputs.
-        ulong waittick;
-        waittick = ExTimerListInvoke(exTickCount);
-        dprint0(L"waittick=%d\n", waittick);
-        if (ExApp::getHalt()) // is halt ?
-            break; // stop event loop
-        if (ExApp::mainWnd != NULL) {
-            ExApp::mainWnd->flush(); // tbd
+    while (exWatchGui->getHalt() == 0 &&
+           exEventFunc(event) > 0) { // is message available ?
+        if (event.msg.message == WM_ExEvWake)
+            continue;
+        if (event.msg.message == WM_QUIT) { // WM_DESTROY => PostQuitMessage
+            dprintf(L"message == WM_QUIT tick=%d\n", exTickCount);
+            ExApp::retCode = (int)event.msg.wParam; // cause DestroyWindow
+            exWatchGui->setHalt(Ex_Halt); // stop event loop
+            break;
         }
-        ExInput::invoke(waittick); // The only waiting point.
-        if (ExApp::getHalt()) // is halt ?
-            break; // stop event loop
-#endif
-        while (exEventFunc(event) > 0) { // is message available ?
-            if (event.msg.message == WM_ExEvWake)
-                break;
-            if (event.msg.message == WM_QUIT) { // WM_DESTROY => PostQuitMessage
-                dprintf(L"message == WM_QUIT tick=%d\n", exTickCount);
-                ExApp::retCode = (int)event.msg.wParam; // cause DestroyWindow
-                ExApp::setHalt(Ex_Halt); // stop event loop
-                break;
-            }
-            ExApp::dispatch(event.msg);
-            ExApp::collect();
-        }
+        ExApp::dispatch(event.msg);
+        ExApp::collect();
     }
     ExApp::collect();
 }

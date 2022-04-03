@@ -8,6 +8,8 @@
 #include "extimer.h"
 #include <assert.h>
 
+#define EVENTPROC_HAVETHREAD
+
 // Iomux
 //
 void ExWatch::IomuxMap::fini() {
@@ -141,7 +143,7 @@ int ExWatch::IomuxMap::invoke(int waittick) {
 
     watch->leave();
     //Sleep(1);
-#if defined(EX_EVENTPROC_HAVETHREAD)
+#if defined(EVENTPROC_HAVETHREAD)
     dwWaitRet = WaitForMultipleObjects(nCount, pHandles, FALSE, dwMilliseconds);
 #else
     DWORD dwWakeMask = QS_ALLEVENTS;//QS_ALLINPUT;
@@ -156,7 +158,7 @@ int ExWatch::IomuxMap::invoke(int waittick) {
         dprint0(L"IomuxMap: nCount=%d WAIT_TIMEOUT\n", nCount);
         return 0; // no messages are available
     }
-#if !defined(EX_EVENTPROC_HAVETHREAD)
+#if !defined(EVENTPROC_HAVETHREAD)
     if (dwWaitRet == WAIT_OBJECT_0 + nCount) {
         dprint0(L"IomuxMap: nCount=%d GOT_GWES_MSG\n", nCount);
         return 1; // got message from gwes

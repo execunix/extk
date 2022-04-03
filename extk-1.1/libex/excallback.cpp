@@ -5,6 +5,7 @@
 
 #include <exapp.h>
 #include <excallback.h>
+#include "exwatch.h"
 
 enum CallbackFlags {
     fRemoved = 1 << 0,
@@ -62,8 +63,8 @@ int ExWidget::CallbackList::invoke(int type, ExObject* object, ExCbInfo* cbinfo)
 
         r = cb(object, cbinfo);
 
-        if (ExApp::getHalt() || (r & Ex_Halt))
-            return ExApp::setHalt(r);
+        if (exWatchGui->getHalt() || (r & Ex_Halt))
+            return exWatchGui->setHalt(r);
         // should remove by invoker ?
         if (r & Ex_Remove) {
             change++;
@@ -145,8 +146,8 @@ int ExWindow::MsgCallbackList::invoke(ExObject* object, ExCbInfo* cbinfo) {
 
         r = cb(object, cbinfo);
 
-        if (ExApp::getHalt() || (r & Ex_Halt))
-            return ExApp::setHalt(r);
+        if (exWatchGui->getHalt() || (r & Ex_Halt))
+            return exWatchGui->setHalt(r);
         // should remove by invoker ?
         if (r & Ex_Remove) {
             change++;

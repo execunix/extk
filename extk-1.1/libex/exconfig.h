@@ -20,8 +20,6 @@
 #ifdef _WIN32_WCE
 #define WINVER _WIN32_WCE
 #include <ceconfig.h>
-#else
-#define EX_EVENTPROC_HAVETHREAD
 #endif
 
 #ifdef WIN32
