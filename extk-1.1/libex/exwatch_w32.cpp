@@ -302,23 +302,23 @@ int ExWatch::setEvent(uint64_t u) const {
 int ExWatch::proc() {
     ExCbInfo cbinfo(0);
     enter();
-    if (hooks)
-        hooks(this, &cbinfo(HookStart));
+    if (hookStart)
+        hookStart(this, &cbinfo(HookStart));
     while (getHalt() == 0) {
         int waittick = timerset.invoke(tickCount);
         if (getHalt() != 0) // is halt ?
             break; // stop event loop
-        if (hooks)
-            hooks(this, &cbinfo(HookTimer));
+        if (hookTimer)
+            hookTimer(this, &cbinfo(HookTimer));
         // blocked
         iomuxmap.invoke(waittick); // The only waiting point.
         if (getHalt() != 0) // is halt ?
             break; // stop event loop
-        if (hooks)
-            hooks(this, &cbinfo(HookIomux));
+        if (hookIomux)
+            hookIomux(this, &cbinfo(HookIomux));
     }
-    if (hooks)
-        hooks(this, &cbinfo(HookClean));
+    if (hookClean)
+        hookClean(this, &cbinfo(HookClean));
     leave();
     return 0;
 }

@@ -92,13 +92,13 @@ static HANDLE hTimer = INVALID_HANDLE_VALUE;
 static VOID CALLBACK cbTimer(PVOID lpParameter, BOOLEAN timeout) {
     assert(lpParameter == &exTimerList);
     assert(timeout);
-    exWatchGui->enter();
+    exWatchMain->enter();
     exTickCount = GetTickCount(); // update tick
     exTimerList.invoke(exTickCount);
     if (ExApp::mainWnd != NULL) {
         ExApp::mainWnd->flush();
     }
-    exWatchGui->leave();
+    exWatchMain->leave();
 }
 
 int ExFiniTimer() {

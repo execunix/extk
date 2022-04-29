@@ -80,15 +80,18 @@ protected:
     mutable HANDLE  mutex;
 public:
     enum { HookStart, HookTimer, HookIomux, HookClean };
-    ExCallback      hooks;
+    ExCallback      hookStart;
+    ExCallback      hookTimer;
+    ExCallback      hookIomux;
+    ExCallback      hookClean;
 public:
     virtual ~ExWatch() {
         fini();
         CloseHandle(mutex);
     }
-    explicit ExWatch() : iomuxmap(this), timerset(),
-        idThread(0), hThread(NULL), hev(NULL), halt(0),
-        tickCount(0), hooks() {
+    explicit ExWatch() : iomuxmap(this)
+        , timerset(), idThread(0), hThread(NULL), hev(NULL), halt(0)
+        , tickCount(0), hookStart(), hookTimer(), hookIomux(), hookClean() {
         mutex = CreateMutex(NULL, FALSE, NULL);
     }
     int fini();

@@ -63,8 +63,8 @@ int ExWidget::CallbackList::invoke(int type, ExObject* object, ExCbInfo* cbinfo)
 
         r = cb(object, cbinfo);
 
-        if (exWatchGui->getHalt() || (r & Ex_Halt))
-            return exWatchGui->setHalt(r);
+        if (exWatchMain->getHalt() || (r & Ex_Halt))
+            return exWatchMain->setHalt(r);
         // should remove by invoker ?
         if (r & Ex_Remove) {
             change++;
@@ -146,8 +146,8 @@ int ExWindow::MsgCallbackList::invoke(ExObject* object, ExCbInfo* cbinfo) {
 
         r = cb(object, cbinfo);
 
-        if (exWatchGui->getHalt() || (r & Ex_Halt))
-            return exWatchGui->setHalt(r);
+        if (exWatchMain->getHalt() || (r & Ex_Halt))
+            return exWatchMain->setHalt(r);
         // should remove by invoker ?
         if (r & Ex_Remove) {
             change++;

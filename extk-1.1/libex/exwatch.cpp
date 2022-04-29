@@ -6,7 +6,6 @@
 #include "exwatch.h"
 #ifdef __linux__
 #include <time.h>
-#include <pthread.h>
 #include <sys/unistd.h>
 #include <sys/eventfd.h>
 #include <sys/epoll.h>
@@ -301,23 +300,23 @@ int ExWatch::proc() {
     pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
     ExCbInfo cbinfo(0);
     enter();
-    if (hooks)
-        hooks(this, &cbinfo(HookStart));
+    if (hookStart)
+        hookStart(this, &cbinfo(HookStart));
     while (getHalt() == 0) {
         int waittick = timerset.invoke(tickCount);
         if (getHalt() != 0)
             break;
-        if (hooks)
-            hooks(this, &cbinfo(HookTimer));
+        if (hookTimer)
+            hookTimer(this, &cbinfo(HookTimer));
         // blocked
         iomuxmap.invoke(waittick);
         if (getHalt() != 0)
             break;
-        if (hooks)
-            hooks(this, &cbinfo(HookIomux));
+        if (hookIomux)
+            hookIomux(this, &cbinfo(HookIomux));
     }
-    if (hooks)
-        hooks(this, &cbinfo(HookClean));
+    if (hookClean)
+        hookClean(this, &cbinfo(HookClean));
     leave();
     return 0;
 }
@@ -341,7 +340,7 @@ int ExWatch::onEvent(const epoll_event* event) {
 
 #endif // __linux__
 
-static ExWatch exWatchMain;
-ExWatch* exWatchGui = &exWatchMain;
-ExWatch* exWatchDef = &exWatchMain;
+static ExWatch exWatchDflt;
+ExWatch* exWatchMain = &exWatchDflt;
+ExWatch* exWatchLast = &exWatchDflt;
 

@@ -6,11 +6,11 @@
 #ifndef __extimer_h__
 #define __extimer_h__
 
-#include "exobject.h"
 #include "excallback.h"
+#include "exobject.h"
 
 class ExWatch;
-extern ExWatch* exWatchDef;
+extern ExWatch* exWatchLast;
 
 // class ExTimer
 //
@@ -36,7 +36,7 @@ public:
         , object(NULL), u64(0ull) {}
 protected:
     void setup(ExWatch* watch, const ExCallback& callback, ExObject* object = NULL) {
-        this->watch = watch ? watch : exWatchDef;
+        this->watch = watch ? watch : exWatchLast;
         this->callback = callback;
         this->object = object;
     }

@@ -567,12 +567,12 @@ int WndMain::initIomux() {
         dprintf(L"launchInputTimer: %d\n", exTickCount);
 
         hWakeupNoti = CreateEvent(NULL, FALSE, FALSE, L"AppDemo"); // tbd
-        exWatchDef->ioAdd([](void* d, HANDLE handle)->int {
+        exWatchLast->ioAdd([](void* d, HANDLE handle)->int {
             dprintf(L"hWakeupNoti signaled...\n");
             return 0; }, (void*)NULL, hWakeupNoti, NULL);
 
         hStorageNoti = FindFirstChangeNotification(L"\\", TRUE, FILE_NOTIFY_CHANGE_DIR_NAME);
-        exWatchDef->ioAdd([](void* d, HANDLE handle)->int {
+        exWatchLast->ioAdd([](void* d, HANDLE handle)->int {
             dprintf(L"hStorageNoti root fs changed...\n");
             FindNextChangeNotification(hStorageNoti);
             return 0; }, (void*)NULL, hStorageNoti, NULL);

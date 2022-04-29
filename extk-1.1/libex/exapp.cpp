@@ -66,13 +66,13 @@ UINT         ExApp::regAppMsgIndex = WM_APP;
 int ExEventPeek(ExEvent& event) {
     BOOL bRet;
 
-    exWatchGui->leave();
+    exWatchMain->leave();
     if ((bRet = GetMessage(&event.msg, NULL, 0, 0)) != TRUE) {
         assert(event.msg.message == WM_QUIT);
         // WM_DESTROY => PostQuitMessage
         bRet = TRUE;
     }
-    exWatchGui->enter();
+    exWatchMain->enter();
 
     return bRet;
 }
@@ -136,15 +136,15 @@ void* ExModalBlock(ExModalCtrl* ctrl, long flags) {
     ctrl->cond = NULL;
     ctrl->prev = NULL;
     ctrl->next = NULL;
-    while (exWatchGui->getHalt() == 0 && (ctrl->flags & 0x80000000)) {
+    while (exWatchMain->getHalt() == 0 && (ctrl->flags & 0x80000000)) {
         waittick = ExTimerListInvoke(exTickCount);
         dprint0(L"waittick=%d\n", waittick);
-        if (exWatchGui->getHalt()) // is halt ?
+        if (exWatchMain->getHalt()) // is halt ?
             break; // stop event loop
         if (ExApp::mainWnd != NULL)
             ExApp::mainWnd->flush();
         ExInput::invoke(waittick); // The only waiting point.
-        if (exWatchGui->getHalt()) // is halt ?
+        if (exWatchMain->getHalt()) // is halt ?
             break; // stop event loop
         while ((ctrl->flags & 0x80000000) &&
             exEventFunc(event) > 0) { // is message available ?
@@ -153,12 +153,12 @@ void* ExModalBlock(ExModalCtrl* ctrl, long flags) {
             if (event.msg.message == WM_QUIT) { // WM_DESTROY => PostQuitMessage
                 dprintf(L"message == WM_QUIT tick=%d\n", exTickCount);
                 ExApp::retCode = (int)event.msg.wParam; // cause DestroyWindow
-                exWatchGui->setHalt(Ex_Halt); // stop event loop
+                exWatchMain->setHalt(Ex_Halt); // stop event loop
                 break;
             }
-            //exWatchGui->leave(); // tbd ctrl->leave()
+            //exWatchMain->leave(); // tbd ctrl->leave()
             ExApp::dispatch(event.msg);
-            //exWatchGui->enter(); // tbd ctrl->enter()
+            //exWatchMain->enter(); // tbd ctrl->enter()
             ExApp::collect();
         }
     }
@@ -177,14 +177,14 @@ Description:
 void ExMainLoop() {
     ExEvent& event = ExApp::event;
 
-    while (exWatchGui->getHalt() == 0 &&
+    while (exWatchMain->getHalt() == 0 &&
            exEventFunc(event) > 0) { // is message available ?
         if (event.msg.message == WM_ExEvWake)
             continue;
         if (event.msg.message == WM_QUIT) { // WM_DESTROY => PostQuitMessage
             dprintf(L"message == WM_QUIT tick=%d\n", exTickCount);
             ExApp::retCode = (int)event.msg.wParam; // cause DestroyWindow
-            exWatchGui->setHalt(Ex_Halt); // stop event loop
+            exWatchMain->setHalt(Ex_Halt); // stop event loop
             break;
         }
         ExApp::dispatch(event.msg);
@@ -208,10 +208,10 @@ void ExQuitMainLoop() {
 }
 
 void ExApp::dispatch(MSG& msg) {
-    exWatchGui->leave();
+    exWatchMain->leave();
     TranslateMessage(&msg);
     DispatchMessage(&msg);
-    exWatchGui->enter();
+    exWatchMain->enter();
 }
 
 void collectWindow();

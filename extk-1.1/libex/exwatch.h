@@ -10,6 +10,7 @@
 
 #include "excallback.h"
 #include <sys/epoll.h>
+#include <pthread.h>
 #include <map>
 #include <set>
 
@@ -99,15 +100,20 @@ protected:
     mutable pthread_cond_t  cond;
 public:
     enum { HookStart, HookTimer, HookIomux, HookClean };
-    ExCallback      hooks;
+    ExCallback      hookStart;
+    ExCallback      hookTimer;
+    ExCallback      hookIomux;
+    ExCallback      hookClean;
+
 public:
     virtual ~ExWatch() {
         fini();
         pthread_cond_destroy(&cond);
         pthread_mutex_destroy(&mutex);
     }
-    explicit ExWatch() : iomuxmap(this), timerset(), tid(0), efd(-1), halt(0),
-                         tickCount(0), hooks() {
+    explicit ExWatch() : iomuxmap(this)
+        , timerset(), tid(0), efd(-1), halt(0)
+        , tickCount(0), hookStart(), hookTimer(), hookIomux(), hookClean() {
         pthread_mutex_init(&mutex, NULL);
         pthread_cond_init(&cond, NULL);
     }
@@ -146,7 +152,7 @@ protected:
 
 #endif
 
-extern ExWatch* exWatchGui;
-extern ExWatch* exWatchDef;
+extern ExWatch* exWatchMain;
+extern ExWatch* exWatchLast;
 
 #endif//__exwatch_h__
