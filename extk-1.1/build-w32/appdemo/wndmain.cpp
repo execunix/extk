@@ -7,17 +7,19 @@
 #include "wgtsetup.h"
 #include "wndmain.h"
 #include "wndtest.h"
+#include <assert.h>
 
 void WgtTitle::init(ExWindow* window) {
-    ExWidget::init(window, L"WgtTitle", &ExRect(0, 0, 800, 36));
+    ExRect rc;
+    ExWidget::init(window, L"WgtTitle", &rc.set(0, 0, 800, 36));
     setTitle(L"Welcome to Rectangles and Callbacks World.");
     setFlags(Ex_Selectable);
-    addCallback(this, &WgtTitle::onLayout, Ex_CbLayout);
+    addListener(this, &WgtTitle::onLayout, Ex_CbLayout);
     drawFunc = ExDrawFunc(this, &WgtTitle::onDrawTitle);
 }
 
 int WgtTitle::onLayout(WgtTitle* widget, ExCbInfo* cbinfo) {
-    //ExRect& expand = *(ExRect*)cbinfo->data;
+    //ExRect* expand = (ExRect*)cbinfo->data;
     return Ex_Continue;
 }
 
@@ -44,20 +46,20 @@ void WgtTitle::onDrawTitle(ExCanvas* canvas, const ExWidget* widget, const ExReg
 
 static int STDCALL
 onUnrealized(void* data, ExWidget* w, ExCbInfo* cbinfo) {
-    dprintf(L"onUnrealized()\n");
+    dprint(L"onUnrealized()\n");
     return Ex_Continue;
 }
 
 static int STDCALL
 onRealized(WndMain* data, ExWindow* w, ExCbInfo* cbinfo) {
-    dprintf(L"onRealized()\n");
+    dprint(L"onRealized()\n");
     //GetLocalTime(&app.tm);
     return Ex_Continue;
 }
 
 static void STDCALL
 onDrawBkgd(void* data, ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage) {
-    dprintf(L"onDrawBkgd()\n");
+    dprint(L"onDrawBkgd()\n");
 }
 
 void WndMain::onDrawBkgd(ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage) {
@@ -65,7 +67,7 @@ void WndMain::onDrawBkgd(ExCanvas* canvas, const ExWidget* widget, const ExRegio
         ExRegion rgn(*damage);
         rgn.subtract(ExBox(img_pt0.x, img_pt0.y, res.i.bg0.width + img_pt0.x, res.i.bg0.height + img_pt0.y));
         for (int i = 0; i < rgn.n_boxes; i++)
-            canvas->gc->fillBox(&rgn.boxes[i], ((uint)widget) & 0xffffff);
+            canvas->gc->fillBox(&rgn.boxes[i], ((uint64)widget) & 0xffffff);
         if (res.i.bg0.bits) {
             for (int i = 0; i < damage->n_boxes; i++) {
                 const ExBox& bx = damage->boxes[i];
@@ -76,7 +78,7 @@ void WndMain::onDrawBkgd(ExCanvas* canvas, const ExWidget* widget, const ExRegio
     } else if (widget == &wgtBkgd) {
         if (!res.i.bg1.bits) return;
         if (widget->isOpaque()) {
-            const ExPoint& pt = widget->calcRect().pt;
+            const ExPoint& pt = widget->calcRect().u.pt;
             for (int i = 0; i < damage->n_boxes; i++) {
                 const ExBox& bx = damage->boxes[i];
                 canvas->gc->blitRgb(bx.l, bx.t, bx.width(), bx.height(),
@@ -154,7 +156,7 @@ void WndMain::onDrawBtns(ExCanvas* canvas, const ExWidget* widget, const ExRegio
     } else if (widget->getFlags(Ex_ButPressed)) {
         lc.setv(255, 255, 255, 255);
     } else {
-        uint32 c = ((uint)widget) & 0xffffff;
+        uint32 c = ((uint64)widget) & 0xffffff;
         lc.setv(ExRValue(c), ExGValue(c), ExBValue(c), 255);
     }
     cairo_set_line_width(cr, widget->getFlags(Ex_Focused) ? 3.6f : 1.2f);
@@ -332,13 +334,14 @@ void WndMain::onDrawBackBuf(ExCanvas* canvas, const ExWidget* w, const ExRegion*
 }
 
 int WndMain::onLayout(WndMain* widget, ExCbInfo* cbinfo) {
-    dprintf(L"%s(%s) %d (%d,%d-%dx%d)\n", __funcw__, widget->getName(),
-            cbinfo->subtype, widget->area.x, widget->area.y, widget->area.w, widget->area.h);
+    dprint(L"%s(%s) %d (%d,%d-%dx%d)\n", __funcw__, widget->getName(),
+           cbinfo->subtype, widget->area.x, widget->area.y, widget->area.w, widget->area.h);
     ExRect ar(0, 0, widget->area.w, widget->area.h);
+    ExRect rc;
     if (widget == this) {
-        wgtTitle.layout(ExRect(ar.x, ar.y, ar.w, 36));
+        wgtTitle.layout(rc.set(ar.x, ar.y, ar.w, 36));
         ar.offset(0, 36, 0, 0);
-        wgtMenu.layout(ExRect(ar.x, ar.y, ar.w, 30));
+        wgtMenu.layout(rc.set(ar.x, ar.y, ar.w, 30));
         ar.offset(0, 30, 0, 0);
         ar.inset(16, 16);
         ExRect a0(ar.x, ar.y, ar.w, ar.h * 12 / 100); a0.y += (ar.h * 88 / 100);
@@ -366,7 +369,7 @@ int WndMain::onLayout(WndMain* widget, ExCbInfo* cbinfo) {
         float p_x = (float)ar.x;
         ExSize sz((int)(grid_x - gap_x), ar.h);
         for (int i = 0; i < 5; i++) {
-            btns0[i].layout(ExRect(ExPoint((int)p_x, ar.y), sz));
+            btns0[i].layout(rc.set(ExPoint((int)p_x, ar.y), sz));
             p_x += grid_x;
         }
     } else if (widget == &panes[1] || widget == &panes[2]) {
@@ -379,7 +382,7 @@ int WndMain::onLayout(WndMain* widget, ExCbInfo* cbinfo) {
         ExSize sz(ar.w, (int)(grid_y - gap_y));
         ExWidget* btns = widget == &panes[1] ? btns1 : btns2;
         for (int i = 0; i < 6; i++) {
-            btns[i].layout(ExRect(ExPoint(ar.x, (int)p_y), sz));
+            btns[i].layout(rc.set(ExPoint(ar.x, (int)p_y), sz));
             p_y += grid_y;
         }
     }
@@ -409,7 +412,7 @@ int WndMain::onActMain(WndMain* widget, ExCbInfo* cbinfo) {
             wgtCapture = widget;
         } else if (cbinfo->type == Ex_CbPtrMove &&
                    widget->getFlags(Ex_ButPressed)) {
-            ExPoint pt = widget->area.pt;
+            ExPoint pt = widget->area.u.pt;
             pt += (msg_pt - but_pt);
             but_pt = msg_pt;
             widget->setPos(pt);
@@ -429,7 +432,7 @@ int WndMain::onActBkgd(WndMain* widget, ExCbInfo* cbinfo) {
             wgtCapture = widget;
         } else if (cbinfo->type == Ex_CbPtrMove &&
                    widget->getFlags(Ex_ButPressed)) {
-            ExPoint pt(wgtBkgd.area.pt);
+            ExPoint pt(wgtBkgd.area.u.pt);
             pt += (msg_pt - but_pt);
             but_pt = msg_pt;
             wgtBkgd.setPos(pt);
@@ -442,14 +445,14 @@ int WndMain::onActBkgd(WndMain* widget, ExCbInfo* cbinfo) {
 static int STDCALL
 onEnum(void* data, ExWidget* widget, ExCbInfo* cbinfo) {
     if (cbinfo->type == Ex_CbEnumEnter) {
-        dprintf(L"enum: %s enter\n", widget->getName());
+        dprint(L"enum: %s enter\n", widget->getName());
         return (widget->getFlags(Ex_Visible)) ? Ex_Continue : Ex_Discard;
     }
     if (cbinfo->type == Ex_CbEnumLeave) {
-        dprintf(L"enum: %s leave\n", widget->getName());
+        dprint(L"enum: %s leave\n", widget->getName());
         return (widget->getFlags(Ex_Visible)) ? Ex_Continue : Ex_Discard;
     }
-    dprintf(L"enum: %s invalid *****************\n", widget->getName());
+    dprint(L"enum: %s invalid *****************\n", widget->getName());
     return Ex_Break;
 }
 
@@ -461,9 +464,9 @@ int WndMain::onActBtns(ExWidget* widget, ExCbInfo* cbinfo) {
     }
     if (widget == &btns0[0]) {
         if (cbinfo->type == Ex_CbActivate) {
-            dprintf(L"*** enumBackToFront\n");
+            dprint(L"*** enumBackToFront\n");
             enumBackToFront(this, this, ExCallback(onEnum, (void*)NULL), NULL);
-            dprintf(L"*** enumFrontToBack\n");
+            dprint(L"*** enumFrontToBack\n");
             enumFrontToBack(this, this, ExCallback(onEnum, (void*)NULL), NULL);
             return Ex_Continue;
         }
@@ -478,8 +481,8 @@ int WndMain::onActBtns(ExWidget* widget, ExCbInfo* cbinfo) {
         if ((cbinfo->type == Ex_CbActivate && cbinfo->subtype == 0) ||
             cbinfo->type == Ex_CbButRepeat) {
             panes[2].area.x -= 10;
-            panes[2].setPos(panes[2].area.pt);
-            dprintf(L"repeat left %d\n", cbinfo->subtype);
+            panes[2].setPos(panes[2].area.u.pt);
+            dprint(L"repeat left %d\n", cbinfo->subtype);
             return Ex_Continue;
         }
     }
@@ -487,14 +490,14 @@ int WndMain::onActBtns(ExWidget* widget, ExCbInfo* cbinfo) {
         if ((cbinfo->type == Ex_CbActivate && cbinfo->subtype == 0) ||
             cbinfo->type == Ex_CbButRepeat) {
             panes[2].area.x += 10;
-            panes[2].setPos(panes[2].area.pt);
-            dprintf(L"repeat right %d\n", cbinfo->subtype);
+            panes[2].setPos(panes[2].area.u.pt);
+            dprint(L"repeat right %d\n", cbinfo->subtype);
             return Ex_Continue;
         }
     }
     if (widget == &btns0[4]) {
         if (cbinfo->type == Ex_CbActivate) {
-            dprintf(L"Ex_Halt\n");
+            dprint(L"Ex_Halt\n");
             return Ex_Halt;
         }
     }
@@ -526,7 +529,7 @@ int WndMain::onActBtns(ExWidget* widget, ExCbInfo* cbinfo) {
     }
     if (widget == &btns1[4]) {
         if (cbinfo->type == Ex_CbButRepeat) {
-            dprintf(L"Ex_CbButRepeat %d\n", cbinfo->subtype);
+            dprint(L"Ex_CbButRepeat %d\n", cbinfo->subtype);
             return Ex_Continue;
         }
     }
@@ -554,7 +557,7 @@ int WndMain::onTimer(ExTimer* timer, ExCbInfo* cbinfo)
     if (state == 0 && panes[1].area.y > 480 ||
         state != 0 && panes[1].area.y < 0)
         state = !state;
-    panes[1].setPos(panes[1].area.pt);
+    panes[1].setPos(panes[1].area.u.pt);
     return Ex_Continue;
 }
 
@@ -564,16 +567,16 @@ static HANDLE hStorageNoti;
 int WndMain::initIomux() {
     static ExTimer launchInputTimer;
     launchInputTimer.init(NULL, [](void* d, ExTimer* t, ExCbInfo*)->int {
-        dprintf(L"launchInputTimer: %d\n", exTickCount);
+        dprint(L"launchInputTimer: %d\n", exTickCount);
 
         hWakeupNoti = CreateEvent(NULL, FALSE, FALSE, L"AppDemo"); // tbd
         exWatchLast->ioAdd([](void* d, HANDLE handle)->int {
-            dprintf(L"hWakeupNoti signaled...\n");
+            dprint(L"hWakeupNoti signaled...\n");
             return 0; }, (void*)NULL, hWakeupNoti, NULL);
 
         hStorageNoti = FindFirstChangeNotification(L"\\", TRUE, FILE_NOTIFY_CHANGE_DIR_NAME);
         exWatchLast->ioAdd([](void* d, HANDLE handle)->int {
-            dprintf(L"hStorageNoti root fs changed...\n");
+            dprint(L"hStorageNoti root fs changed...\n");
             FindNextChangeNotification(hStorageNoti);
             return 0; }, (void*)NULL, hStorageNoti, NULL);
 
@@ -596,12 +599,12 @@ int WndMain::initBtn(ExWidget* parent, ExWidget* btn, const wchar* name) {
     btn->setFlags(Ex_FocusRender);
     btn->setFlags(Ex_Selectable | Ex_AutoHighlight);
     btn->drawFunc = ExDrawFunc(this, &WndMain::onDrawBtns);
-    btn->addCallback(this, &WndMain::onActBtns, Ex_CbActivate);
+    btn->addListener(this, &WndMain::onActBtns, Ex_CbActivate);
     return 0;
 }
 
 int WndMain::onDestroyed(WndMain* w, ExCbInfo* cbinfo) {
-    dprintf(L"%s()\n", __funcw__);
+    dprint(L"%s()\n", __funcw__);
     assert(w == this);
     timerToy.stop();
     timer.stop();
@@ -625,12 +628,12 @@ int WndMain::onRbtnDown(WndMain* w, ExCbInfo* cbinfo) {
 }
 
 int WndMain::onHandler(WndMain* w, ExCbInfo* cbinfo) {
-    dprintf(L"handler WM_0x%04x:0x%04x\n", cbinfo->event->message, cbinfo->event->msg.message);
+    dprint(L"handler WM_0x%04x:0x%04x\n", cbinfo->event->message, cbinfo->event->msg.message);
     return Ex_Continue;
 }
 
 int WndMain::onFilter(WndMain* w, ExCbInfo* cbinfo) {
-    dprintf(L"filter WM_0x%04x\n", cbinfo->event->message);
+    dprint(L"filter WM_0x%04x\n", cbinfo->event->message);
 #if 1 // test
     // filter and handler can be installed intersection each other
     static int i = 0;
@@ -674,48 +677,49 @@ int WndMain::onFilter(WndMain* w, ExCbInfo* cbinfo) {
         margins.cyTopHeight = 20;
         HRESULT hr = DwmExtendFrameIntoClientArea(hwnd, &margins);
         if (!SUCCEEDED(hr)) {
-            dprintf(L"%s: %s fail.\n", __funcw__, L"DwmExtendFrameIntoClientArea");
+            dprint(L"%s: %s fail.\n", __funcw__, L"DwmExtendFrameIntoClientArea");
         }
         //cbinfo->event->lResult = 0;
         return Ex_Continue;
     }
 #endif
     if (cbinfo->event->message == WM_KEYDOWN) {
+        ExCbInfo cbinfo2(0);
         switch (cbinfo->event->wParam) {
             case VK_UP:
-                dprintf(L"0x%04x %s\n", cbinfo->event->message, L"VK_UP");
+                dprint(L"0x%04x %s\n", cbinfo->event->message, L"VK_UP");
                 moveFocus(Ex_DirUp);
                 break;
             case VK_DOWN:
-                dprintf(L"0x%04x %s\n", cbinfo->event->message, L"VK_DOWN");
+                dprint(L"0x%04x %s\n", cbinfo->event->message, L"VK_DOWN");
                 moveFocus(Ex_DirDown);
                 break;
             case VK_LEFT:
-                dprintf(L"0x%04x %s\n", cbinfo->event->message, L"VK_LEFT");
+                dprint(L"0x%04x %s\n", cbinfo->event->message, L"VK_LEFT");
                 moveFocus(Ex_DirLeft);
                 break;
             case VK_RIGHT:
-                dprintf(L"0x%04x %s\n", cbinfo->event->message, L"VK_RIGHT");
+                dprint(L"0x%04x %s\n", cbinfo->event->message, L"VK_RIGHT");
                 moveFocus(Ex_DirRight);
                 break;
             case VK_SPACE:
             case VK_RETURN:
-                dprintf(L"0x%04x %s\n", cbinfo->event->message, L"VK_RETURN");
-                wgtFocused->invokeCallback(Ex_CbActivate, &ExCbInfo(Ex_CbActivate, 0, event));
+                dprint(L"0x%04x %s\n", cbinfo->event->message, L"VK_RETURN");
+                wgtFocused->invokeListener(Ex_CbActivate, &cbinfo2(Ex_CbActivate, 0, event));
                 break;
             case VK_ESCAPE:
-                dprintf(L"0x%04x %s\n", cbinfo->event->message, L"VK_ESCAPE");
+                dprint(L"0x%04x %s\n", cbinfo->event->message, L"VK_ESCAPE");
                 return Ex_Halt;
             case VK_HOME:
-                dprintf(L"0x%04x %s\n", cbinfo->event->message, L"VK_HOME");
+                dprint(L"0x%04x %s\n", cbinfo->event->message, L"VK_HOME");
                 moveFocus(Ex_DirHome);
                 break;
             case VK_BACK:
-                dprintf(L"0x%04x %s\n", cbinfo->event->message, L"VK_BACK");
+                dprint(L"0x%04x %s\n", cbinfo->event->message, L"VK_BACK");
                 moveFocus(Ex_DirBack);
                 break;
             case VK_TAB: {
-                dprintf(L"0x%04x %s\n", cbinfo->event->message, L"VK_TAB");
+                dprint(L"0x%04x %s\n", cbinfo->event->message, L"VK_TAB");
                 SHORT ks = GetKeyState(VK_SHIFT);
                 moveFocus(ks & 0x100 ? Ex_DirTabPrev : Ex_DirTabNext);
                 break;
@@ -762,7 +766,7 @@ ExWidget* WndMain::moveFocus(int dir) {
     int i = 0;
     while (focusmap[i][0] && focusmap[i][0] != wgtFocused) i++;
     if (!focusmap[i][0]) {
-        dprintf(L"Where did the focus go?\n");
+        dprint(L"Where did the focus go?\n");
         return giveFocus(&btns1[0]);
     }
 
@@ -841,7 +845,7 @@ int WndMain::onBackViewMove(WndMain* widget, ExCbInfo* cbinfo) {
                widget->getFlags(Ex_ButPressed)) {
         int xPos = LOWORD(cbinfo->event->lParam);
         int yPos = HIWORD(cbinfo->event->lParam);
-        ExPoint pt(wgtBackViewer.area.pt);
+        ExPoint pt(wgtBackViewer.area.u.pt);
         pt.x += xPos - but_pt.x;
         pt.y += yPos - but_pt.y;
         but_pt.set(xPos, yPos);
@@ -855,8 +859,8 @@ int WndMain::onBackBufUpdater(ExTimer* timer, ExCbInfo* cbinfo) {
     if (backBufCnt > 500)
         backBufCnt = 0;
     ExRect ar = wgtBackBtn.area;
-    if (ar.pt.x++ > 180)
-        ar.pt.x = 0;
+    if (ar.u.pt.x++ > 180)
+        ar.u.pt.x = 0;
     wgtBackBtn.setArea(ar);
     // render backbuf
     wndBackBuf.damage();
@@ -875,6 +879,7 @@ public:
 #define DISP_AT_ONCE 1
 
 int WndMain::start() {
+    ExRect rc;
     initEnv();
     initRes();
     this->init(L"AppDemoWndMain", env.wnd.w, env.wnd.h);
@@ -882,7 +887,7 @@ int WndMain::start() {
     // init canvas
     canvas = new ExCanvas;
     //canvas->init(this, &ExApp::smSize);
-    canvas->init(this, &ExSize(env.sm_w, env.sm_h));
+    canvas->init(this, ExSize(env.sm_w, env.sm_h));
 
     ExApp::mainWnd = this;
 
@@ -907,44 +912,44 @@ int WndMain::start() {
 #endif
     setFlags(Ex_Selectable);
 
-    wgtBkgd.init(this, L"res.i.bg1", &ExRect(300, 300, res.i.bg1.width, res.i.bg1.height));
-    wgtBkgd.addCallback(this, &WndMain::onActBkgd, Ex_CbActivate);
+    wgtBkgd.init(this, L"res.i.bg1", &rc.set(300, 300, res.i.bg1.width, res.i.bg1.height));
+    wgtBkgd.addListener(this, &WndMain::onActBkgd, Ex_CbActivate);
     wgtBkgd.drawFunc = ExDrawFunc(this, &WndMain::onDrawBkgd);
     wgtBkgd.setFlags(Ex_Selectable);
     //wgtBkgd.setFlags(Ex_Opaque);
     FLUSH_TEST();
     // ==> render() #2
 
-    addCallback(this, &WndMain::onDestroyed, Ex_CbDestroyed);
-    addCallback(&onUnrealized, this, Ex_CbUnrealized);
-    addCallback(&onRealized, this, Ex_CbRealized);
-    addCallback(this, &WndMain::onLayout, Ex_CbLayout);
-    addCallback(this, &WndMain::onFocused, Ex_CbGotFocus);
-    addCallback(this, &WndMain::onActMain, Ex_CbActivate);
-    addCallback([](void* data, ExWidget* widget, ExCbInfo* cbinfo)->int {
-        dprintf(L"%s Activate %d,%d\n", widget->getName(), cbinfo->type, cbinfo->subtype);
+    addListener(this, &WndMain::onDestroyed, Ex_CbDestroyed);
+    addListener(&onUnrealized, this, Ex_CbUnrealized);
+    addListener(&onRealized, this, Ex_CbRealized);
+    addListener(this, &WndMain::onLayout, Ex_CbLayout);
+    addListener(this, &WndMain::onFocused, Ex_CbGotFocus);
+    addListener(this, &WndMain::onActMain, Ex_CbActivate);
+    addListener([](void* data, ExWidget* widget, ExCbInfo* cbinfo)->int {
+        dprint(L"%s Activate %d,%d\n", widget->getName(), cbinfo->type, cbinfo->subtype);
         return Ex_Continue; }, this, Ex_CbActivate);
 
-    panes[0].init(this, L"pan0", &ExRect(20, 400, 760, 60));
-    panes[1].init(this, L"pan1", &ExRect(20, 20, 120, 360));
-    panes[2].init(this, L"pan2", &ExRect(660, 20, 120, 360));
+    panes[0].init(this, L"pan0", &rc.set(20, 400, 760, 60));
+    panes[1].init(this, L"pan1", &rc.set(20, 20, 120, 360));
+    panes[2].init(this, L"pan2", &rc.set(660, 20, 120, 360));
     panes[0].drawFunc = ExDrawFunc(this, &WndMain::onDrawPane);
     panes[1].drawFunc = ExDrawFunc(this, &WndMain::onDrawPane);
     panes[2].drawFunc = ExDrawFunc(this, &WndMain::onDrawPane);
-    panes[0].addCallback(this, &WndMain::onLayout, Ex_CbLayout);
-    panes[1].addCallback(this, &WndMain::onLayout, Ex_CbLayout);
-    panes[2].addCallback(this, &WndMain::onLayout, Ex_CbLayout);
-    panes[0].addCallback(this, &WndMain::onFocused, Ex_CbGotFocus);
-    panes[1].addCallback(this, &WndMain::onFocused, Ex_CbGotFocus);
-    panes[2].addCallback(this, &WndMain::onFocused, Ex_CbGotFocus);
-    panes[0].addCallback(this, &WndMain::onFocused, Ex_CbLostFocus);
-    panes[1].addCallback(this, &WndMain::onFocused, Ex_CbLostFocus);
-    panes[2].addCallback(this, &WndMain::onFocused, Ex_CbLostFocus);
+    panes[0].addListener(this, &WndMain::onLayout, Ex_CbLayout);
+    panes[1].addListener(this, &WndMain::onLayout, Ex_CbLayout);
+    panes[2].addListener(this, &WndMain::onLayout, Ex_CbLayout);
+    panes[0].addListener(this, &WndMain::onFocused, Ex_CbGotFocus);
+    panes[1].addListener(this, &WndMain::onFocused, Ex_CbGotFocus);
+    panes[2].addListener(this, &WndMain::onFocused, Ex_CbGotFocus);
+    panes[0].addListener(this, &WndMain::onFocused, Ex_CbLostFocus);
+    panes[1].addListener(this, &WndMain::onFocused, Ex_CbLostFocus);
+    panes[2].addListener(this, &WndMain::onFocused, Ex_CbLostFocus);
     panes[0].setFlags(Ex_FocusRender);
     panes[1].setFlags(Ex_FocusRender);
     panes[2].setFlags(Ex_FocusRender);
 
-    panes[0].addCallback(this, &WndMain::onActMain, Ex_CbActivate);
+    panes[0].addListener(this, &WndMain::onActMain, Ex_CbActivate);
     panes[0].setFlags(Ex_Selectable);
     panes[2].setFlags(Ex_Visible, Ex_BitFalse);
     FLUSH_TEST();
@@ -975,10 +980,10 @@ int WndMain::start() {
 
     static ExTimer timerTest;
     timerTest.init(NULL, [](void* d, ExWidget* w, ExCbInfo*)->int {
-        dprintf(L"timerTest: %s\n", w->getName());
+        dprint(L"timerTest: %s\n", w->getName());
         return Ex_Continue; }, (void*)0, this); // test
     timerTest.init(NULL, [](void* d, ExTimer* t, ExCbInfo*)->int {
-        dprintf(L"timerTest: %d %u %u\n", ((int&)t->u64)++, (ulong)*t, exTickCount);
+        dprint(L"timerTest: %d %u %u\n", ((int&)t->u64)++, (ulong)*t, exTickCount);
         return Ex_Continue; }, (void*)0);
     timerTest.start(1, 1000);
 
@@ -987,7 +992,7 @@ int WndMain::start() {
     toy_scale = 1.f;
     (int&)toy.userdata = 0;
     toy.drawFunc = ExDrawFunc(this, &WndMain::onDrawToy);
-    toy.init(this, L"toy", &ExRect(360, 300, 600, 80));
+    toy.init(this, L"toy", &rc.set(360, 300, 600, 80));
 
     (int&)timerToy.u64 = 0;
     timerToy.init(NULL, this, &WndMain::onTimerToy, this);
@@ -1001,13 +1006,13 @@ int WndMain::start() {
     wndBackBuf.canvas = new ExCanvas;
     wndBackBuf.canvas->init(&wndBackBuf);
     wndBackBuf.flushFunc = ExFlushFunc(this, &WndMain::onFlushBackBuf);
-    wgtBackBtn.init(&wndBackBuf, L"wgtBackBtn", &ExRect(20, 20, 120, 40));
+    wgtBackBtn.init(&wndBackBuf, L"wgtBackBtn", &rc.set(20, 20, 120, 40));
     wndBackBuf.drawFunc = ExDrawFunc(this, &WndMain::onDrawBackBuf);
     wgtBackBtn.drawFunc = ExDrawFunc(this, &WndMain::onDrawBtns);
     wndBackBuf.flush();
 
-    wgtBackViewer.init(this, L"wgtBackViewer", &ExRect(80, 40, 360, 240));
-    wgtBackViewer.addCallback(this, &WndMain::onBackViewMove, Ex_CbActivate);
+    wgtBackViewer.init(this, L"wgtBackViewer", &rc.set(80, 40, 360, 240));
+    wgtBackViewer.addListener(this, &WndMain::onBackViewMove, Ex_CbActivate);
     wgtBackViewer.drawFunc = ExDrawFunc(this, &WndMain::onDrawBackBuf);
     wgtBackViewer.setFlags(Ex_Selectable);
 
@@ -1021,15 +1026,15 @@ int WndMain::start() {
 
 #if DISP_AT_ONCE
     addFilter([](void* data, ExWindow* window, ExCbInfo* cbinfo)->int {
-        dprintf(L"[%s] WM_0x%04x\n", window->getName(), cbinfo->event->message);
+        dprint(L"[%s] WM_0x%04x\n", window->getName(), cbinfo->event->message);
         if (cbinfo->event->message == WM_CREATE) {
             cbinfo->event->lResult = 0;
             RECT r;
             // The right and bottom members contain the width and height of the window.
             GetClientRect(cbinfo->event->hwnd, &r);
             ExRect rc(r);
-            dprintf(L"GetClientRect %d,%d-%dx%d\n",
-                    rc.x, rc.y, rc.w, rc.h);
+            dprint(L"GetClientRect %d,%d-%dx%d\n",
+                   rc.x, rc.y, rc.w, rc.h);
             window->layout(rc);
             // To remove an anonymous callback, simply return Ex_Remove.
             return Ex_Break | Ex_Remove;
@@ -1038,9 +1043,9 @@ int WndMain::start() {
         if (cbinfo->event->message == WM_NCCALCSIZE) {
             RECT* r = (RECT*)cbinfo->event->lParam;
             //NCCALCSIZE_PARAMS* rc = (NCCALCSIZE_PARAMS*)lParam;
-            dprintf(L"[0x%p] WM_NCCALCSIZE wParam=%d %d,%d-%d,%d\n",
-                    cbinfo->event->hwnd, cbinfo->event->wParam,
-                    r->left, r->top, r->right, r->bottom);
+            dprint(L"[0x%p] WM_NCCALCSIZE wParam=%d %d,%d-%d,%d\n",
+                   cbinfo->event->hwnd, cbinfo->event->wParam,
+                   r->left, r->top, r->right, r->bottom);
             //r->top += 31;
             //r->left += 8;
             //r->right -= 8;

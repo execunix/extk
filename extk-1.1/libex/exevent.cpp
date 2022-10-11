@@ -4,9 +4,8 @@
  */
 
 #include "exevent.h"
-#include "exinput.h"
 #include "extimer.h"
-#include "exthread.h"
+#include "exwatch.h"
 #include "exwindow.h"
 
 // ExEmit APIs - deprecated

@@ -4,6 +4,7 @@
  */
 
 #include "exrender.h"
+#include <assert.h>
 
 #define logdraw dprint0
 #define logdra0 dprint0
@@ -194,7 +195,7 @@ static void STDCALL onDrawOwnGC(void* data, ExCanvas* canvas, const ExWidget* wi
         ExCanvas my_canvas;
         my_canvas.gc = NULL/*my_gc*/;
         my_canvas.cr = NULL/*my_cr*/;
-        const ExPoint& pt = widget->calcRect().pt;
+        ExPoint pt = widget->calcRect().u.pt;
         // tbd - translate
         cairo_translate(my_canvas.cr, -pt.x, -pt.y);
         ExWidget* w = (ExWidget*)widget;
@@ -209,11 +210,11 @@ static int test1(void*, ExWidget* w, ExCbInfo* cbinfo) {
     if (cbinfo->type != Ex_CbEnumEnter)
         return Ex_Continue;
     if (!w->getFlags(Ex_Visible)) {
-        dprintf(L"%s [%d,%d-%dx%d] invisible\n", w->getName(),
-                w->area.x, w->area.y, w->area.w, w->area.h);
+        dprint(L"%s [%d,%d-%dx%d] invisible\n", w->getName(),
+               w->area.x, w->area.y, w->area.w, w->area.h);
         return Ex_Discard;
     }
-    dprintf(L"%s [%d,%d-%dx%d] visible\n", w->getName(),
-            w->area.x, w->area.y, w->area.w, w->area.h);
+    dprint(L"%s [%d,%d-%dx%d] visible\n", w->getName(),
+           w->area.x, w->area.y, w->area.w, w->area.h);
     return Ex_Continue;
 }

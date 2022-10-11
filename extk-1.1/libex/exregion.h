@@ -151,12 +151,12 @@ struct ExRegion {
             subtract(ExRegion(box));
     }
     /**
-     * ExRegion::xor(const ExRegion& srcrgn)
+     * ExRegion::x_or(const ExRegion& srcrgn)
      * @srcrgn: another #ExRegion
      * Sets the area of @this to the exclusive-OR of the areas of @this and @srcrgn.
      * The resulting area is the set of pixels contained in one or the other of the two sources but not in both.
      */
-    void xor(const ExRegion& srcrgn);
+    void x_or(const ExRegion& srcrgn);
     /**
      * ExRegion::empty()
      * Finds out if the #ExRegion is empty.
@@ -204,7 +204,7 @@ struct ExRegion {
                             void*         data);
 };
 
-inline void ExRegion:: xor(const ExRegion& srcrgn) {
+inline void ExRegion:: x_or(const ExRegion& srcrgn) {
     ExRegion tmprgn(srcrgn);
     tmprgn.subtract(*this);
     this->subtract(srcrgn);

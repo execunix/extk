@@ -5,12 +5,13 @@
 
 #include "framework.h"
 #include "wndtest.h"
+#include <assert.h>
 
 void WndTest::onDrawBkgd(ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage) {
     if (widget == this) {
         ExRegion rgn(*damage);
         for (int i = 0; i < rgn.n_boxes; i++)
-            canvas->gc->fillBox(&rgn.boxes[i], ((uint)widget) & 0xffffff);
+            canvas->gc->fillBox(&rgn.boxes[i], ((uint64)widget) & 0xffffff);
     }
 }
 
@@ -51,7 +52,7 @@ void WndTest::onDrawBtns(ExCanvas* canvas, const ExWidget* widget, const ExRegio
     } else if (widget->getFlags(Ex_ButPressed)) {
         lc.setv(255, 255, 255, 255);
     } else {
-        uint32 c = ((uint)widget) & 0xffffff;
+        uint32 c = ((uint64)widget) & 0xffffff;
         lc.setv(ExRValue(c), ExGValue(c), ExBValue(c), 255);
     }
     cairo_set_line_width(cr, widget->getFlags(Ex_Focused) ? 3.6f : 1.2f);
@@ -69,8 +70,8 @@ void WndTest::onDrawBtns(ExCanvas* canvas, const ExWidget* widget, const ExRegio
 }
 
 int WndTest::onLayout(WndTest* widget, ExCbInfo* cbinfo) {
-    dprintf(L"%s(%s) %d (%d,%d-%dx%d)\n", __funcw__, widget->getName(),
-            cbinfo->subtype, widget->area.x, widget->area.y, widget->area.w, widget->area.h);
+    dprint(L"%s(%s) %d (%d,%d-%dx%d)\n", __funcw__, widget->getName(),
+           cbinfo->subtype, widget->area.x, widget->area.y, widget->area.w, widget->area.h);
     ExRect ar(0, 0, widget->area.w, widget->area.h);
     if (widget == this) {
         ar.y = ar.h - 50;
@@ -83,7 +84,8 @@ int WndTest::onLayout(WndTest* widget, ExCbInfo* cbinfo) {
         float p_x = (float)ar.x;
         ExSize sz((int)(grid_x - gap_x), ar.h);
         for (int i = 0; i < 5; i++) {
-            btns0[i].layout(ExRect(ExPoint((int)p_x, ar.y), sz));
+            ExRect layout(ExPoint((int)p_x, ar.y), sz);
+            btns0[i].layout(layout);
             p_x += grid_x;
         }
     }
@@ -146,23 +148,23 @@ int WndTest::initBtn(ExWidget* parent, ExWidget* btn, const wchar* name) {
     btn->setFlags(Ex_FocusRender);
     btn->setFlags(Ex_Selectable | Ex_AutoHighlight);
     btn->drawFunc = ExDrawFunc(this, &WndTest::onDrawBtns);
-    btn->addCallback(this, &WndTest::onActBtns, Ex_CbActivate);
+    btn->addListener(this, &WndTest::onActBtns, Ex_CbActivate);
     return 0;
 }
 
 int WndTest::onDestroyed(WndTest* w, ExCbInfo* cbinfo) {
-    dprintf(L"%s()\n", __funcw__);
+    dprint(L"%s()\n", __funcw__);
     assert(w == this);
     timer.stop();
     return Ex_Continue;
 }
 
 int WndTest::onFilter(WndTest* w, ExCbInfo* cbinfo) {
-    dprintf(L"filter WM_0x%04x\n", cbinfo->event->message);
+    dprint(L"filter WM_0x%04x\n", cbinfo->event->message);
     if (cbinfo->event->message == WM_KEYDOWN) {
         switch (cbinfo->event->wParam) {
             case VK_UP:
-                dprintf(L"0x%04x %s\n", cbinfo->event->message, L"VK_UP");
+                dprint(L"0x%04x %s\n", cbinfo->event->message, L"VK_UP");
                 break;
         }
         return Ex_Continue;
@@ -205,29 +207,29 @@ int WndTest::start() {
     this->init(L"WndTest", 1280, 720);
 
     canvas = new ExCanvas;
-    canvas->init(this, &ExApp::smSize);
+    canvas->init(this, ExApp::smSize);
 
     drawFunc = ExDrawFunc(this, &WndTest::onDrawBkgd);
 
     flushFunc = ExFlushFunc((ExWindow*)this, &ExWindow::onExFlush);
     paintFunc = ExFlushFunc((ExWindow*)this, &ExWindow::onWmPaint);
 
-    addCallback(this, &WndTest::onDestroyed, Ex_CbDestroyed);
-    addCallback(this, &WndTest::onLayout, Ex_CbLayout);
-    addCallback(this, &WndTest::onActMain, Ex_CbActivate);
+    addListener(this, &WndTest::onDestroyed, Ex_CbDestroyed);
+    addListener(this, &WndTest::onLayout, Ex_CbLayout);
+    addListener(this, &WndTest::onActMain, Ex_CbActivate);
 
     addFilter(this, &WndTest::onFilter);
 
     addFilter([](void* data, ExWindow* window, ExCbInfo* cbinfo)->int {
-        dprintf(L"[%s] WM_0x%04x\n", window->getName(), cbinfo->event->message);
+        dprint(L"[%s] WM_0x%04x\n", window->getName(), cbinfo->event->message);
         if (cbinfo->event->message == WM_CREATE) {
             cbinfo->event->lResult = 0;
             RECT r;
             // The right and bottom members contain the width and height of the window.
             GetClientRect(cbinfo->event->hwnd, &r);
             ExRect rc(r);
-            dprintf(L"GetClientRect %d,%d-%dx%d\n",
-                    rc.x, rc.y, rc.w, rc.h);
+            dprint(L"GetClientRect %d,%d-%dx%d\n",
+                   rc.x, rc.y, rc.w, rc.h);
             window->layout(rc);
             assert(data == window);
             WndTest* w = (WndTest*)data;

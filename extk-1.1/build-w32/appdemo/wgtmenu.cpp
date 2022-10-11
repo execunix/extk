@@ -177,25 +177,25 @@ void WgtMenu::onDrawMenuBar(ExCanvas* canvas, const ExWidget* widget, const ExRe
 }
 
 int WgtMenu::onLayoutHorz(ExWidget* widget, ExCbInfo* cbinfo) {
-    ExRect& horz = *(ExRect*)cbinfo->data;
+    ExRect* horz = (ExRect*)cbinfo->data;
     Menu* menu = (Menu*)widget->getData();
     window->canvas->text_extent(res.f.gothic.crf, fontSize, menu->text, &menu->extents);
     int menu_width = (int)menu->extents.width + 36;
-    widget->area.set(horz.x, horz.y, menu_width, horz.h);
-    horz.x += menu_width + 1;
+    widget->area.set(horz->x, horz->y, menu_width, horz->h);
+    horz->x += menu_width + 1;
     cbinfo->subtype = Ex_LayoutDone;
     return Ex_Continue;
 }
 
 int WgtMenu::onLayoutVert(ExWidget* widget, ExCbInfo* cbinfo) {
-    ExRect& vert = *(ExRect*)cbinfo->data;
+    ExRect* vert = (ExRect*)cbinfo->data;
     Menu* menu = (Menu*)widget->getData();
     window->canvas->text_extent(res.f.gothic.crf, fontSize, menu->text, &menu->extents);
     int menu_width = (int)menu->extents.width + 120;
     int separator = menu->flag & Menu::Separator ? 3 : 0;
-    if (vert.w < menu_width) vert.w = menu_width; // save max width
-    widget->area.set(vert.x, vert.y, vert.w, menuHeight + separator);
-    vert.y += menuHeight + separator;
+    if (vert->w < menu_width) vert->w = menu_width; // save max width
+    widget->area.set(vert->x, vert->y, vert->w, menuHeight + separator);
+    vert->y += menuHeight + separator;
     cbinfo->subtype = Ex_LayoutDone;
     return Ex_Continue;
 }
@@ -210,7 +210,7 @@ int WgtMenu::onFocused(ExWidget* widget, ExCbInfo* cbinfo) {
 
 int WgtMenu::onHandler(ExWidget* widget, ExCbInfo* cbinfo) {
     if (cbinfo->event->message == WM_COMMAND) {
-        dprintf(L"WM_COMMAND: %d\n", cbinfo->event->wParam);
+        dprint(L"WM_COMMAND: %d\n", cbinfo->event->wParam);
         if (cbinfo->event->wParam == IDM_EXIT)
             return Ex_Halt;
         return Ex_Continue;
@@ -322,12 +322,12 @@ int WgtMenu::onFilter(ExWidget* widget, ExCbInfo* cbinfo) {
 }
 
 int WgtMenu::onLayout(ExWidget* widget, ExCbInfo* cbinfo) {
-    ExRect& expand = *(ExRect*)cbinfo->data;
+    ExRect* expand = (ExRect*)cbinfo->data;
     ExRect horz(1, 1, area.w - 2, area.h - 2);
     for (int n = 0; n < rootMenu.size; n++) {
         menuBar[n].layout(horz);
     }
-    expand = horz;
+    *expand = horz;
     //layout(horz);
     cbinfo->subtype = Ex_LayoutDone;
     return Ex_Continue;
@@ -455,10 +455,11 @@ void WgtMenu::showPopup(Menu* link) {
 
 WgtMenu::Popup* WgtMenu::popup(int x, int y, Menu* link) {
     Popup* pop = new Popup;
+    ExRect rc;
     pop->init(window);
     pop->link = link;
     pop->ani = 0.f;
-    pop->layout(ExRect(x, y, 100, 30));
+    pop->layout(rc.set(x, y, 100, 30));
     pop->menuPop = new ExWidget[link->size];
     Menu* menu = link->child;
     ExRect vert(1, 1, 1, 1);
@@ -467,9 +468,9 @@ WgtMenu::Popup* WgtMenu::popup(int x, int y, Menu* link) {
         pop->menuPop[n].setData(menu);
         pop->menuPop[n].init(pop, menu->text);
         pop->menuPop[n].setFlags(Ex_Selectable | Ex_FocusRender);
-        pop->menuPop[n].addCallback(this, &WgtMenu::onLayoutVert, Ex_CbLayout);
-        pop->menuPop[n].addCallback(this, &WgtMenu::onActivate, Ex_CbActivate);
-        pop->menuPop[n].addCallback(this, &WgtMenu::onFocused, Ex_CbGotFocus);
+        pop->menuPop[n].addListener(this, &WgtMenu::onLayoutVert, Ex_CbLayout);
+        pop->menuPop[n].addListener(this, &WgtMenu::onActivate, Ex_CbActivate);
+        pop->menuPop[n].addListener(this, &WgtMenu::onFocused, Ex_CbGotFocus);
         pop->menuPop[n].drawFunc = ExDrawFunc(this, &WgtMenu::onDrawMenuPop);
         pop->menuPop[n].layout(vert);
         menu = menu->next;
@@ -494,9 +495,9 @@ void WgtMenu::setup() {
         menuBar[n].setData(menu);
         menuBar[n].init(this, menu->text);
         menuBar[n].setFlags(Ex_Selectable | Ex_AutoHighlight | Ex_FocusRender);
-        menuBar[n].addCallback(this, &WgtMenu::onLayoutHorz, Ex_CbLayout);
-        menuBar[n].addCallback(this, &WgtMenu::onActivate, Ex_CbActivate);
-        menuBar[n].addCallback(this, &WgtMenu::onFocused, Ex_CbGotFocus);
+        menuBar[n].addListener(this, &WgtMenu::onLayoutHorz, Ex_CbLayout);
+        menuBar[n].addListener(this, &WgtMenu::onActivate, Ex_CbActivate);
+        menuBar[n].addListener(this, &WgtMenu::onFocused, Ex_CbGotFocus);
         menuBar[n].drawFunc = ExDrawFunc(this, &WgtMenu::onDrawMenuBar);
         menu = menu->next;
     }
@@ -520,7 +521,7 @@ void WgtMenu::init(ExWindow* window) {
     this->window = window;
     window->addFilter(this, &WgtMenu::onFilter, 0);
     window->addHandler(this, &WgtMenu::onHandler);
-    addCallback(this, &WgtMenu::onLayout, Ex_CbLayout);
+    addListener(this, &WgtMenu::onLayout, Ex_CbLayout);
     //setFlags(Ex_Selectable);
 
     load();

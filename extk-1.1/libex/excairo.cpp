@@ -4,6 +4,7 @@
  */
 
 #include "excairo.h"
+#include <assert.h>
 
 ExCairo::~ExCairo() {
     cairo_restore(canvas->cr);
@@ -20,15 +21,15 @@ void ExCairo::set_region(const ExRegion* srcrgn) {
     //cairo_reset_clip(cr); // tbd
     assert(!srcrgn->empty());
     if (srcrgn->empty()) {
-        dprintf(L"srcrgn empty\n");
+        dprint(L"srcrgn empty\n");
         cairo_rectangle(cr,
                         -1, -1, 1, 1);
         return;
     }
     for (int i = 0; i < srcrgn->n_boxes; i++) {
         cairo_rectangle(cr,
-                        (floatt)srcrgn->boxes[i].ul.x,
-                        (floatt)srcrgn->boxes[i].ul.y,
+                        (floatt)srcrgn->boxes[i].u.ul.x,
+                        (floatt)srcrgn->boxes[i].u.ul.y,
                         (floatt)srcrgn->boxes[i].width(),
                         (floatt)srcrgn->boxes[i].height());
     }

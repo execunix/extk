@@ -4,6 +4,7 @@
  */
 
 #ifndef __linux__
+
 #include "exwatch.h"
 #include "extimer.h"
 #include <assert.h>
@@ -53,7 +54,7 @@ const ExWatch::Iomux* ExWatch::IomuxMap::search(HANDLE handle) const {
     return NULL;
 }
 
-int ExWatch::IomuxMap::probe(ExCallback& callback, void* cbinfo) {
+int ExWatch::IomuxMap::probe(const ExCallback& callback, void* cbinfo) {
     int r = Ex_Continue;
     for (iterator i = begin(); i != end(); ++i) {
         ExWatch::Iomux& input = *i;
@@ -166,7 +167,7 @@ int ExWatch::IomuxMap::invoke(int waittick) {
 #endif
     if (dwWaitRet >= WAIT_OBJECT_0 &&
         dwWaitRet < (WAIT_OBJECT_0 + nCount)) {
-        dprintf(L"IomuxMap: dwWaitRet=%p nCount=%d\n", dwWaitRet, nCount);
+        dprint(L"IomuxMap: dwWaitRet=%p nCount=%d\n", dwWaitRet, nCount);
         int cnt = 1;
         iterator i = begin();
         for (DWORD n = 0; n < nCount; n++) {
@@ -198,11 +199,13 @@ int ExWatch::IomuxMap::invoke(int waittick) {
 
 // Watch thread
 //
-uint32_t ExWatch::getTickCount() {
-    uint32_t msec;
+uint32 ExWatch::getTickCount() {
+    uint32 msec;
     msec = GetTickCount();
     return msec;
 }
+
+uint32 ExWatch::tickAppLaunch = ExWatch::getTickCount();
 
 DWORD WINAPI ExWatch::start(_In_ LPVOID arg) {
     ExWatch* watch = (ExWatch*)arg;
@@ -239,7 +242,7 @@ int ExWatch::init(size_t stacksize) {
     assert(hThread == NULL);
     iomuxmap.init();
 
-    hev = CreateEvent(NULL, FALSE, FALSE, NULL); 
+    hev = CreateEvent(NULL, FALSE, FALSE, NULL);
     assert(hev != NULL);
     ioAdd(this, &ExWatch::onEvent, hev);
 
@@ -291,11 +294,11 @@ int ExWatch::setHalt(int r)
     return halt |= r;
 }
 
-int ExWatch::getEvent(uint64_t* u) const {
+int ExWatch::getEvent(uint64* u) const {
     return -1;
 }
 
-int ExWatch::setEvent(uint64_t u) const {
+int ExWatch::setEvent(uint64 u) const {
     return SetEvent(hev) ? 0 : -1;
 }
 

@@ -9,6 +9,7 @@
 #include <ft2build.h>
 #include <cairo-ft.h>
 #include FT_FREETYPE_H
+#include <assert.h>
 
 //static FT_Library ftLib;
 //static FT_Face ftFace[8];
@@ -48,15 +49,18 @@ ExCanvas::ExCanvas()
     //refcnt++;
 }
 
-int ExCanvas::init(ExWindow* window, ExSize* sz) {
+int ExCanvas::init(ExWindow* window) {
+    ExSize sz = window ? window->area.u.sz : ExApp::smSize;
+    return init(window, sz);
+}
+
+int ExCanvas::init(ExWindow* window, ExSize sz) {
     wnd = window;
     wnd->canvas = this;
     //if (ftLib == NULL &&
     //    FT_Init_FreeType(&ftLib))
     //    dprint1(L"FT_Init_FreeType fail.");
-    if (sz == NULL)
-        sz = window ? &wnd->area.sz : &ExApp::smSize;
-    return createMemGC(sz->w, sz->h);
+    return createMemGC(sz.w, sz.h);
 }
 
 int ExCanvas::resize(int w, int h) {

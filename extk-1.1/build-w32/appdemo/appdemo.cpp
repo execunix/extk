@@ -5,23 +5,24 @@
 #include "appdemo.h"
 #include "wndmain.h"
 #include <functional>
+#include <assert.h>
 
 class TestClass {
 public:
     int STDCALL onCb1(ExObject* object, ExCbInfo* cbinfo) {
-        dprintf(L"onCb1\n");
+        dprint(L"onCb1\n");
         return 0;
     }
     virtual int STDCALL onCb2(ExObject* object, ExCbInfo* cbinfo) {
-        dprintf(L"onCb2\n");
+        dprint(L"onCb2\n");
         return 0;
     }
     static int STDCALL onCb3(void* data, ExObject* object, ExCbInfo* cbinfo) {
-        dprintf(L"onCb3\n");
+        dprint(L"onCb3\n");
         return 0;
     }
     static int STDCALL onCb4(TestClass* data, ExObject* object, ExCbInfo* cbinfo) {
-        dprintf(L"onCb4\n");
+        dprint(L"onCb4\n");
         return 0;
     }
 };
@@ -29,14 +30,14 @@ public:
 class TestClass2 : public TestClass {
 public:
     int STDCALL onCb5(ExObject* object, TestClass* cbinfo) {
-        dprintf(L"onCb5\n");
+        dprint(L"onCb5\n");
         return 0;
     }
 };
 
 static int STDCALL
 func(void* data, ExWidget* widget, ExCbInfo* cbinfo) {
-    dprintf(L"func: data=%d type=%d\n", (int)data, cbinfo ? cbinfo->type : -1);
+    dprint(L"func: data=%d type=%d\n", (int)data, cbinfo ? cbinfo->type : -1);
     return 0;
 }
 
@@ -65,6 +66,7 @@ void add_callback(ExCallback& cb) {
 
 void cb_test() {
     int r;
+    ExCbInfo cbinfo(0);
 
 #if 0
     std::list<int> intList;
@@ -83,27 +85,27 @@ void cb_test() {
 #endif
     ExCallback cb0(func, (void*)NULL);
     r = cb0(NULL, NULL);
-    dprintf(L"r = %d\n", r);
+    dprint(L"r = %d\n", r);
 
     ExCallback cb5(&test_class2, &TestClass2::onCb5);
-    r = cb5(NULL, &ExCbInfo(0));
-    dprintf(L"r = %d\n", r);
+    r = cb5(NULL, cbinfo.set(0));
+    dprint(L"r = %d\n", r);
 
     ExCallback cb4(&TestClass::onCb3, (void*)&test_class2);
     r = cb4(NULL, NULL);
-    dprintf(L"r = %d\n", r);
+    dprint(L"r = %d\n", r);
 
     ExCallback cb3(&TestClass::onCb4, &test_class);
     r = cb3(NULL, NULL);
-    dprintf(L"r = %d\n", r);
+    dprint(L"r = %d\n", r);
 
     ExCallback cb2(&test_class, &TestClass::onCb2);
     r = cb2(NULL, NULL);
-    dprintf(L"r = %d\n", r);
+    dprint(L"r = %d\n", r);
 
     ExCallback cb1(&test_class, &TestClass::onCb1);
     r = cb1(NULL, NULL);
-    dprintf(L"r = %d\n", r);
+    dprint(L"r = %d\n", r);
 
     ExCallback cb6(cb0);
     r = cb6(NULL, NULL);
@@ -121,15 +123,16 @@ void cb_test() {
     cb_list[3](NULL, NULL);
 
     ExWidget widget;
-    widget.addCallback(&func, (void*)123, 1);
-    widget.invokeCallback(1);
+    widget.addListener(&func, (void*)123, 1);
+    widget.invokeListener(1);
 }
 
 #ifdef DEBUG
 void exwindow_apitest() {
+    ExRect rc(0);
     ExWindow* wnd0 = ExWindow::create(L"TopWindow", 800, 480);
-    ExWidget* wgt1 = ExWidget::create(wnd0, L"Child1", &ExRect(100, 100, 100, 40));
-    ExWidget* wgt2 = ExWidget::create(wnd0, L"Child2", &ExRect(200, 200, 100, 40));
+    ExWidget* wgt1 = ExWidget::create(wnd0, L"Child1", &rc.set(100, 100, 100, 40));
+    ExWidget* wgt2 = ExWidget::create(wnd0, L"Child2", &rc.set(200, 200, 100, 40));
     wnd0->realize();
     wnd0->destroy();
 
@@ -137,8 +140,8 @@ void exwindow_apitest() {
     ExWidget* ch1 = new ExWidget;
     ExWidget* ch2 = new ExWidget;
     top->init(L"Top", 800, 480);
-    ch1->init(top, L"Ch1", &ExRect(100, 100, 100, 40));
-    ch2->init(top, L"Ch2", &ExRect(200, 200, 100, 40));
+    ch1->init(top, L"Ch1", &rc.set(100, 100, 100, 40));
+    ch2->init(top, L"Ch2", &rc.set(200, 200, 100, 40));
     ExWidget* backWgt = top->getChildHead();
     top->destroy();
     delete ch2;
@@ -178,7 +181,7 @@ _fixed_from_doublem(double d)
 {
     union {
         double d;
-        int32_t i[2];
+        int32 i[2];
     } u;
 
     u.d = d + MAGIC_NUMBER_FIXED;
@@ -206,7 +209,7 @@ _fixed_16_16_from_doublem(double d)
 {
     union {
         double d;
-        int32_t i[2];
+        int32 i[2];
     } u;
 
     u.d = d + MAGIC_NUMBER_FIXED_16_16;
@@ -378,12 +381,12 @@ int app_test() {
     top.giveFocus(&w2311);
     top.giveFocus(NULL);
 
-    top.addCallback([](void* data, ExWidget* widget, ExCbInfo* cbinfo)->int {
+    top.addListener([](void* data, ExWidget* widget, ExCbInfo* cbinfo)->int {
         dprint1(L"\n*** anonymous func data=%p name=%s type=%d\n",
                 data, widget->getName(), cbinfo->type);
         return 0; }, &top, 1);
-    top.invokeCallback(1);
-    top.invokeCallback(2);
+    top.invokeListener(1);
+    top.invokeListener(2);
 
     return 0;
 }

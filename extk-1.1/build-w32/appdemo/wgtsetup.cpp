@@ -36,9 +36,9 @@ void WgtPage1::init(ExWidget* parent, ExRect& rc) {
     ExWidget::init(parent, L"WgtPage1", &rc);
     //setFlags(Ex_Visible, Ex_BitTrue); // default
     drawFunc = ExDrawFunc(fillRect, (void*)30);
-    label1.init(this, L"label1", &ExRect(10, 10, 100, 30));
+    label1.init(this, L"label1", &rc.set(10, 10, 100, 30));
     label1.drawFunc = ExDrawFunc(drawName, (void*)30);
-    button1.init(this, L"button1", &ExRect(10, 50, 100, 30));
+    button1.init(this, L"button1", &rc.set(10, 50, 100, 30));
     button1.drawFunc = ExDrawFunc(drawName, (void*)30);
 }
 
@@ -50,9 +50,9 @@ void WgtPage2::init(ExWidget* parent, ExRect& rc) {
     ExWidget::init(parent, L"WgtPage2", &rc);
     setFlags(Ex_Visible, Ex_BitFalse); // delay realize
     drawFunc = ExDrawFunc(fillRect, (void*)50);
-    label1.init(this, L"label1", &ExRect(10, 10, 100, 30));
+    label1.init(this, L"label1", &rc.set(10, 10, 100, 30));
     label1.drawFunc = ExDrawFunc(drawName, (void*)50);
-    button1.init(this, L"button1", &ExRect(10, 50, 100, 30));
+    button1.init(this, L"button1", &rc.set(10, 50, 100, 30));
     button1.drawFunc = ExDrawFunc(drawName, (void*)50);
 }
 
@@ -64,9 +64,9 @@ void WgtPage3::init(ExWidget* parent, ExRect& rc) {
     ExWidget::init(parent, L"WgtPage3", &rc);
     setFlags(Ex_Visible, Ex_BitFalse); // delay realize
     drawFunc = ExDrawFunc(fillRect, (void*)50);
-    label1.init(this, L"label1", &ExRect(10, 10, 100, 30));
+    label1.init(this, L"label1", &rc.set(10, 10, 100, 30));
     label1.drawFunc = ExDrawFunc(drawName, (void*)50);
-    button1.init(this, L"button1", &ExRect(10, 50, 100, 30));
+    button1.init(this, L"button1", &rc.set(10, 50, 100, 30));
     button1.drawFunc = ExDrawFunc(drawName, (void*)50);
 }
 
@@ -92,7 +92,7 @@ int WgtSetup::onTitleMove(ExWidget* widget, ExCbInfo* cbinfo) {
         }
         else if (cbinfo->type == Ex_CbPtrMove &&
             widget->getFlags(Ex_ButPressed)) {
-            ExPoint pt(this->area.pt);
+            ExPoint pt(this->area.u.pt);
             pt += (msg_pt - but_pt);
             but_pt = msg_pt;
             this->setPos(pt);
@@ -126,11 +126,11 @@ int WgtSetup::onFocused(ExWidget* widget, ExCbInfo* cbinfo) {
 int WgtSetup::onHandler(ExWidget* widget, ExCbInfo* cbinfo) {
     if (cbinfo->event->message == WM_CbRemove &&
         cbinfo->event->lParam == (LPARAM)this) {
-        dprintf(L"WgtSetup::onHandler - WM_CbRemove\n");
+        dprint(L"WgtSetup::onHandler - WM_CbRemove\n");
         return Ex_Remove;
     }
     if (cbinfo->event->message == WM_COMMAND) {
-        dprintf(L"WM_COMMAND: %d\n", cbinfo->event->wParam);
+        dprint(L"WM_COMMAND: %d\n", cbinfo->event->wParam);
         return Ex_Continue;
     }
     return Ex_Continue;
@@ -139,7 +139,7 @@ int WgtSetup::onHandler(ExWidget* widget, ExCbInfo* cbinfo) {
 int WgtSetup::onFilter(ExWidget* widget, ExCbInfo* cbinfo) {
     if (cbinfo->event->message == WM_CbRemove &&
         cbinfo->event->lParam == (LPARAM)this) {
-        dprintf(L"WgtSetup::onFilter - WM_CbRemove\n");
+        dprint(L"WgtSetup::onFilter - WM_CbRemove\n");
         return Ex_Remove;
     }
     if (cbinfo->event->message == WM_MOUSEMOVE) {
@@ -180,42 +180,43 @@ int WgtSetup::onFilter(ExWidget* widget, ExCbInfo* cbinfo) {
 }
 
 int WgtSetup::onLayout(ExWidget* widget, ExCbInfo* cbinfo) {
-    ExRect& expand = *(ExRect*)cbinfo->data;
+    ExRect* expand = (ExRect*)cbinfo->data;
     cbinfo->subtype = Ex_LayoutDone;
     return Ex_Continue;
 }
 
 void WgtSetup::fini() {
-    dprintf(L"%s\n", __funcw__);
+    dprint(L"%s\n", __funcw__);
 }
 
 void WgtSetup::init(ExWidget* parent, int x, int y) {
-    ExWidget::init(parent, L"WgtSetup", &ExRect(x, y, 450, 300));
+    ExRect rc;
+    ExWidget::init(parent, L"WgtSetup", &rc.set(x, y, 450, 300));
     ExWindow* window = parent->getWindow();
     window->addFilter(this, &WgtSetup::onFilter);
     window->addHandler(this, &WgtSetup::onHandler);
-    addCallback(this, &WgtSetup::onLayout, Ex_CbLayout);
+    addListener(this, &WgtSetup::onLayout, Ex_CbLayout);
     drawFunc = ExDrawFunc(fillRect, (void*)20);
     setFlags(Ex_Selectable);
     //select = ExBox(9999);
 
-    title.init(this, L"Setup", &ExRect(2, 2, 386, 40));
+    title.init(this, L"Setup", &rc.set(2, 2, 386, 40));
     title.drawFunc = ExDrawFunc(drawName, (void*)NULL);
     title.setFlags(Ex_Selectable);
-    title.addCallback(this, &WgtSetup::onTitleMove, Ex_CbActivate);
-    close.init(this, L"close", &ExRect(400, 2, 46, 40));
+    title.addListener(this, &WgtSetup::onTitleMove, Ex_CbActivate);
+    close.init(this, L"close", &rc.set(400, 2, 46, 40));
     close.drawFunc = ExDrawFunc(drawName, (void*)NULL);
     close.setFlags(Ex_Selectable);
-    close.addCallback(this, &WgtSetup::onActivate, Ex_CbActivate);
+    close.addListener(this, &WgtSetup::onActivate, Ex_CbActivate);
 
-    tab1.init(this, L"tab1", &ExRect(10, 60, 80, 40));
+    tab1.init(this, L"tab1", &rc.set(10, 60, 80, 40));
     tab1.drawFunc = ExDrawFunc(drawName, (void*)NULL);
-    tab2.init(this, L"tab2", &ExRect(110, 60, 80, 40));
+    tab2.init(this, L"tab2", &rc.set(110, 60, 80, 40));
     tab2.drawFunc = ExDrawFunc(drawName, (void*)NULL);
-    tab3.init(this, L"tab3", &ExRect(210, 60, 80, 40));
+    tab3.init(this, L"tab3", &rc.set(210, 60, 80, 40));
     tab3.drawFunc = ExDrawFunc(drawName, (void*)NULL);
 
-    ExRect rc(10, 100, 360, 180);
+    rc.set(10, 100, 360, 180);
     page1.init(this, rc);
     page2.init(this, rc);
     page3.init(this, rc);

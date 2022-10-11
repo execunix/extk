@@ -5,6 +5,7 @@
 
 #include "exwatch.h"
 #include "exapp.h"
+#include <assert.h>
 
 // app private variables
 //
@@ -66,13 +67,13 @@ UINT         ExApp::regAppMsgIndex = WM_APP;
 int ExEventPeek(ExEvent& event) {
     BOOL bRet;
 
-    exWatchMain->leave();
+    exWatchDisp->leave();
     if ((bRet = GetMessage(&event.msg, NULL, 0, 0)) != TRUE) {
         assert(event.msg.message == WM_QUIT);
         // WM_DESTROY => PostQuitMessage
         bRet = TRUE;
     }
-    exWatchMain->enter();
+    exWatchDisp->enter();
 
     return bRet;
 }
@@ -136,29 +137,29 @@ void* ExModalBlock(ExModalCtrl* ctrl, long flags) {
     ctrl->cond = NULL;
     ctrl->prev = NULL;
     ctrl->next = NULL;
-    while (exWatchMain->getHalt() == 0 && (ctrl->flags & 0x80000000)) {
+    while (exWatchDisp->getHalt() == 0 && (ctrl->flags & 0x80000000)) {
         waittick = ExTimerListInvoke(exTickCount);
         dprint0(L"waittick=%d\n", waittick);
-        if (exWatchMain->getHalt()) // is halt ?
+        if (exWatchDisp->getHalt()) // is halt ?
             break; // stop event loop
         if (ExApp::mainWnd != NULL)
             ExApp::mainWnd->flush();
         ExInput::invoke(waittick); // The only waiting point.
-        if (exWatchMain->getHalt()) // is halt ?
+        if (exWatchDisp->getHalt()) // is halt ?
             break; // stop event loop
         while ((ctrl->flags & 0x80000000) &&
             exEventFunc(event) > 0) { // is message available ?
             if (event.msg.message == WM_ExEvWake)
                 break;
             if (event.msg.message == WM_QUIT) { // WM_DESTROY => PostQuitMessage
-                dprintf(L"message == WM_QUIT tick=%d\n", exTickCount);
+                dprint(L"message == WM_QUIT tick=%d\n", exTickCount);
                 ExApp::retCode = (int)event.msg.wParam; // cause DestroyWindow
-                exWatchMain->setHalt(Ex_Halt); // stop event loop
+                exWatchDisp->setHalt(Ex_Halt); // stop event loop
                 break;
             }
-            //exWatchMain->leave(); // tbd ctrl->leave()
+            //exWatchDisp->leave(); // tbd ctrl->leave()
             ExApp::dispatch(event.msg);
-            //exWatchMain->enter(); // tbd ctrl->enter()
+            //exWatchDisp->enter(); // tbd ctrl->enter()
             ExApp::collect();
         }
     }
@@ -177,14 +178,14 @@ Description:
 void ExMainLoop() {
     ExEvent& event = ExApp::event;
 
-    while (exWatchMain->getHalt() == 0 &&
+    while (exWatchDisp->getHalt() == 0 &&
            exEventFunc(event) > 0) { // is message available ?
         if (event.msg.message == WM_ExEvWake)
             continue;
         if (event.msg.message == WM_QUIT) { // WM_DESTROY => PostQuitMessage
-            dprintf(L"message == WM_QUIT tick=%d\n", exTickCount);
+            dprint(L"message == WM_QUIT tick=%d\n", exTickCount);
             ExApp::retCode = (int)event.msg.wParam; // cause DestroyWindow
-            exWatchMain->setHalt(Ex_Halt); // stop event loop
+            exWatchDisp->setHalt(Ex_Halt); // stop event loop
             break;
         }
         ExApp::dispatch(event.msg);
@@ -208,10 +209,10 @@ void ExQuitMainLoop() {
 }
 
 void ExApp::dispatch(MSG& msg) {
-    exWatchMain->leave();
+    exWatchDisp->leave();
     TranslateMessage(&msg);
     DispatchMessage(&msg);
-    exWatchMain->enter();
+    exWatchDisp->enter();
 }
 
 void collectWindow();
@@ -228,9 +229,9 @@ void ExApp::collect() {
 }
 
 void ExApp::exit(int retCode) {
-    dprintf(L"%s(%d)\n", __funcw__, retCode);
+    dprint(L"%s(%d)\n", __funcw__, retCode);
     if (!ExIsMainThread()) {
-        dprintf(L"pause main thread\n");
+        dprint(L"pause main thread\n");
     }
     // When the system window manager closed the app, mainWnd was destroyed.
 #if 1 // It's not essential, but it's better to keep it clean.
@@ -271,7 +272,7 @@ int ExApp::init(HINSTANCE hInstance,
         smSize.h = GetDeviceCaps(hdc, VERTRES);
     }
 #endif
-    dprintf(L"%s() width=%d height=%d\n", __funcw__, smSize.w, smSize.h);
+    dprint(L"%s() width=%d height=%d\n", __funcw__, smSize.w, smSize.h);
 
     if (ExWindow::classInit(hInstance) != Ex_Continue)
         return retCode;

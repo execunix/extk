@@ -29,13 +29,11 @@ protected:
     class TimerSet : public std::multiset<ExTimer*, TickCompare> {
     public:
         TimerSet() : std::multiset<ExTimer*, TickCompare>() {}
-    protected:
+    public:
         void clearAll();
         void remove(ExTimer* timer);
         void active(ExTimer* timer);
-        int  invoke(uint32_t tick_count);
-        friend class ExTimer;
-        friend class ExWatch;
+        int  invoke(uint32 tick_count);
     };
     // IomuxMap
     struct Iomux {
@@ -53,7 +51,7 @@ protected:
         int             maxevents;
         #if EX2CONF_ENABLE_IOMUX_LOCK
         mutable pthread_mutex_t mutex;
-        mutable pthread_cond_t  cond;
+        mutable pthread_cond_t cond;
         #endif
     public:
         ~IomuxMap() {
@@ -69,7 +67,7 @@ protected:
             pthread_cond_init(&cond, NULL);
             #endif
         }
-    protected:
+    public:
         void fini();
         void init(int max);
         #if EX2CONF_ENABLE_IOMUX_LOCK
@@ -79,15 +77,15 @@ protected:
         // inherit void clear();
         // inherit iterator find(int fd);
         const Iomux* search(int fd) const;
-        int probe(ExCallback& callback, void* cbinfo);
-        int add(int fd, uint32_t events, const ExNotify& notify);
-        int mod(int fd, uint32_t events, const ExNotify& notify);
+        int probe(const ExCallback& callback, void* cbinfo);
+        int add(int fd, uint32 events, const ExNotify& notify);
+        int mod(int fd, uint32 events, const ExNotify& notify);
         int del(int fd);
         int invoke(int waittick = 60000);
-        friend class ExWatch;
     };
 protected:
-    static uint32_t getTickCount();
+    static uint32 getTickCount();
+    static uint32 tickAppLaunch;
     static void* start(void* arg);
 protected:
     IomuxMap        iomuxmap;
@@ -95,7 +93,7 @@ protected:
     pthread_t       tid;
     int             efd;    // event fd
     int             halt;
-    uint32_t        tickCount;
+    uint32          tickCount;
     mutable pthread_mutex_t mutex;
     mutable pthread_cond_t  cond;
 public:
@@ -116,32 +114,42 @@ public:
         , tickCount(0), hookStart(), hookTimer(), hookIomux(), hookClean() {
         pthread_mutex_init(&mutex, NULL);
         pthread_cond_init(&cond, NULL);
+        tickCount = tickAppLaunch;
     }
     int fini();
     int init(int max_iomux = 256, size_t stacksize = 1048576);
     int enter() const;
     int leave() const;
     int wakeup() const;
-    int setHalt(int r);
+    int setHalt(int r = Ex_Halt);
     int getHalt() const { return halt; }
-    uint32_t getTick() const { return tickCount; }
+    uint32 getTick() const { return tickCount; }
 protected:
-    int setEvent(uint64_t u) const;
-    int getEvent(uint64_t* u) const;
+    int setEvent(uint64 u) const;
+    int getEvent(uint64* u) const;
     int STDCALL proc();
-    int STDCALL onEvent(const epoll_event* event);
+    int STDCALL onEvent(epoll_event* ev);
 public:
     template <typename A>
-    int ioAdd(A* d, int (STDCALL A::*f)(const epoll_event*), int fd, uint32_t events = EPOLLIN | EPOLLERR) {
+    int ioAdd(A* d, int (STDCALL A::*f)(epoll_event*), int fd, uint32 events = EPOLLIN | EPOLLERR) {
         return iomuxmap.add(fd, events, ExNotify(d, f));
     }
     template <typename A>
-    int ioMod(A* d, int (STDCALL A::*f)(const epoll_event*), int fd, uint32_t events = EPOLLIN | EPOLLERR) {
+    int ioMod(A* d, int (STDCALL A::*f)(epoll_event*), int fd, uint32 events = EPOLLIN | EPOLLERR) {
         return iomuxmap.mod(fd, events, ExNotify(d, f));
     }
     int ioDel(int fd) {
         return iomuxmap.del(fd);
     }
+#if 0
+protected:
+    // export api for inheritance
+    void timerset_clearAll() { timerset.clearAll(); }
+    void iomuxmap_fini() { iomuxmap.fini(); }
+    void iomuxmap_init(int max) { iomuxmap.init(max); }
+    int timerset_invoke(uint32 tick_count) { return timerset_invoke(tick_count); }
+    int iomuxmap_invoke(int waittick = 60000) { return iomuxmap_invoke(waittick); }
+#endif
 protected:
     friend class ExTimer;
 };

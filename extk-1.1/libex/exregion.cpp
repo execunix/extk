@@ -77,6 +77,7 @@ SOFTWARE.
 
 #include "exregion.h"
 #include "exregion_p.h"
+#include <assert.h>
 
 #undef  ABS
 #define ABS(a)                  (((a) < 0) ? -(a) : (a))

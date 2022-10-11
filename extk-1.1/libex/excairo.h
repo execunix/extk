@@ -6,13 +6,21 @@
 #ifndef __excairo_h__
 #define __excairo_h__
 
-#include <cairo.h>
 #include "exconfig.h"
 #include "excanvas.h"
 #include "exgeomet.h"
 
-// float divide 8bit value
+#ifdef _MSC_VER
+//typedef float floatt;
+// float-32 divide 8bit value
 #define FD8V(v) ((v) / 255.f)
+#else // compat linux
+typedef double floatt;
+// float-64 divide 8bit value
+#define FD8V(v) ((v) / 255.)
+#endif
+
+#pragma pack(push, 1)
 
 class ExCairo {
 public:
@@ -65,7 +73,7 @@ public:
     struct Rect {
         union {
             struct { floatt x, y, w, h; };
-            struct { Point pt; Size sz; };
+            struct { Point pt; Size sz; } u;
         };
 
         Rect() {}
@@ -88,7 +96,7 @@ public:
     struct Box {
         union {
             struct { floatt l, t, r, b; };
-            struct { Point p1, p2; };
+            struct { Point p1, p2; } u;
         };
 
         Box() {}
@@ -136,5 +144,7 @@ public:
     void show_text(const wchar* ucs2, floatt r, floatt g, floatt b, floatt x, floatt y);
     void set_font(cairo_font_face_t* font, floatt size);
 };
+
+#pragma pack(pop)
 
 #endif//__excairo_h__

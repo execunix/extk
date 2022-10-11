@@ -17,16 +17,16 @@ extern ExWatch* exWatchLast;
 class ExTimer : public ExObject {
 protected:
     ExWatch*        watch;
-    uint32_t        value;      // The time, in milliseconds, reference time
-    uint32_t        repeat;     // The time, in milliseconds, repeat period
+    uint32          value;      // The time, in milliseconds, reference time
+    uint32          repeat;     // The time, in milliseconds, repeat period
     ExCallback      callback;
 private: // Modify the flags only in the ExWatch::TimerSet class.
     mutable int     fActived;   // is started and inserted ?
 public:
     ExObject*       object;     // Pass the object linked to the timer
     union {
-        uint64_t    u64;        // Storing arbitrary user data
-        uint32_t    u32[2];
+        uint64      u64;        // Storing arbitrary user data
+        uint32      u32[2];
         void*       ptr;
     };
 public:
@@ -62,9 +62,9 @@ public:
         setup(watch, ExCallback(d, f));
     }
     void stop(); // notes: clear fActived by remove from timerlist.
-    void start(uint32_t initial); // notes: set fActived by insert to timerlist.
-    void start(uint32_t initial, uint32_t repeat) { this->repeat = repeat; start(initial); }
-    operator uint32_t () const { return value; }
+    void start(uint32 initial); // notes: set fActived by insert to timerlist.
+    void start(uint32 initial, uint32 repeat) { this->repeat = repeat; start(initial); }
+    operator uint32 () const { return value; }
     int enter() const;
     int leave() const;
 protected:

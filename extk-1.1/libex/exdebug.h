@@ -105,9 +105,9 @@ int debug_printf(const char* fmt, ...) __attribute__((format(printf, 1, 2)));
 #endif
 
 #ifndef DPRINTF
-#define dprintf dprint0
+#define dprint dprint0
 #else
-#define dprintf dprint1
+#define dprint dprint1
 #endif
 
 /*

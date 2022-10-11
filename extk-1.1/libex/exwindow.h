@@ -8,6 +8,7 @@
 
 #include "exwidget.h"
 #include "excanvas.h"
+#include "exthread.h"
 
 // Window constants definition
 //
@@ -61,8 +62,8 @@ protected:
         return (masks & (Ex_RECTANGULAR | Ex_CONTAINER | Ex_DISJOINT));
     }
     virtual void reconstruct() {
-        this->ExWindow::~ExWindow(); // nonvirtual explicit destructor calls
-        this->ExWindow::ExWindow(); // nonvirtual explicit constructor calls
+        this->~ExWindow(); // nonvirtual explicit destructor calls
+        new (this) ExWindow(); // nonvirtual explicit constructor calls
     }
     ExThreadMutex mutex;
 public:
@@ -87,21 +88,21 @@ protected: // window callback internal
             return (func == cb.func && data == cb.data && prio == cb.prio);
         }
     };
-    class MsgCallbackList : public std::list<Callback> {
+    class CallbackList : public std::list<Callback> {
         ushort influx, change; // for recurs
     public:
-        MsgCallbackList() : std::list<Callback>(), influx(0), change(0) {}
+        CallbackList() : std::list<Callback>(), influx(0), change(0) {}
     public:
         // inherit size_type size();
-        bool remove2(ExCallback& cb);
+        bool remove2(const ExCallback& cb);
         // inherit void remove(const Callback& cb);
         // inherit void push_back(const Callback& cb);
         // inherit void push_front(const Callback& cb);
         void push(const Callback& cb);
-        int invoke(ExObject* object, ExCbInfo* cbinfo);
+        int invoke(ExWatch* watch, ExObject* object, ExCbInfo* cbinfo);
     };
-    MsgCallbackList filterList;
-    MsgCallbackList handlerList;
+    CallbackList filterList;
+    CallbackList handlerList;
 public: // window message callback operation (event filter and handler)
     void addFilter(int(STDCALL *f)(void*, ExWindow*, ExCbInfo*), void* d, uint8 prio = 5) {
         filterList.push(Callback(ExCallback(f, d), prio));
@@ -114,11 +115,11 @@ public: // window message callback operation (event filter and handler)
     void addFilter(A* d, int(STDCALL A::*f)(W*, ExCbInfo*), uint8 prio = 5) {
         filterList.push(Callback(ExCallback(d, f), prio));
     }
-    void removeFilter(ExCallback& cb) {
+    void removeFilter(const ExCallback& cb) {
         filterList.remove2(cb);
     }
     int invokeFilter(ExCbInfo* cbinfo) {
-        return filterList.invoke(this, cbinfo);
+        return filterList.invoke(exWatchDisp, this, cbinfo);
     }
 
     void addHandler(int(STDCALL *f)(void*, ExWindow*, ExCbInfo*), void* d, uint8 prio = 5) {
@@ -132,11 +133,11 @@ public: // window message callback operation (event filter and handler)
     void addHandler(A* d, int(STDCALL A::*f)(W*, ExCbInfo*), uint8 prio = 5) {
         handlerList.push(Callback(ExCallback(d, f), prio));
     }
-    void removeHandler(ExCallback& cb) {
+    void removeHandler(const ExCallback& cb) {
         handlerList.remove2(cb);
     }
     int invokeHandler(ExCbInfo* cbinfo) {
-        return handlerList.invoke(this, cbinfo);
+        return handlerList.invoke(exWatchDisp, this, cbinfo);
     }
 public:
     void STDCALL onExFlush(ExWindow* window, const ExRegion* updateRgn);

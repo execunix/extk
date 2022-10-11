@@ -8,12 +8,13 @@
 
 #include "excallback.h"
 #include "exobject.h"
-#include "exthread.h"
 #include "exgeomet.h"
 #include "exgdiobj.h"
 #include "exregion.h"
-#include "exstyle.h"
+//#include "exstyle.h"
 #include <list>
+
+extern ExWatch* exWatchDisp;
 
 typedef std::list<ExWidget*> ExWidgetList;
 
@@ -168,8 +169,8 @@ protected:
         return (masks & (Ex_RECTANGULAR | Ex_CONTAINER));
     }
     virtual void reconstruct() {
-        this->ExWidget::~ExWidget(); // nonvirtual explicit destructor calls
-        this->ExWidget::ExWidget(); // nonvirtual explicit constructor calls
+        this->~ExWidget(); // nonvirtual explicit destructor calls
+        new (this) ExWidget(); // nonvirtual explicit constructor calls
     }
     void addRenderFlags(int value); // Ex_RenderRebuild
     void addUpdateRegion(const ExRegion& rgn);
@@ -196,17 +197,21 @@ public:
     void         setName(const wchar* text);
     void* getData() const { return data; }
     void  setData(void* p) { data = p; }
-    ExBox& getBox(ExBox& bx = ExBox()) const; // for event processing
-    ExRect& getRect(ExRect& rc = ExRect()) const; // for event processing
-    ExBox& calcBox(ExBox& bx = ExBox()) const; // for drawing on canvas
-    ExRect& calcRect(ExRect& rc = ExRect()) const; // for drawing on canvas
+    ExBox& getBox(ExBox& bx) const; // for event processing
+    ExRect& getRect(ExRect& rc) const; // for event processing
+    ExBox& calcBox(ExBox& bx) const; // for drawing on canvas
+    ExRect& calcRect(ExRect& rc) const; // for drawing on canvas
+    ExBox getBox() const { ExBox bx; return getBox(bx); }
+    ExRect getRect() const { ExRect rc; return getRect(rc); }
+    ExBox calcBox() const { ExBox bx; return calcBox(bx); }
+    ExRect calcRect() const { ExRect rc; return calcRect(rc); }
     //const ExBox& getExtent() const { return extent; } // tbd
     void setOpaqueRegion(const ExRegion& op);
     void setOpaque(bool set);
     void setSelect(const ExBox& box) { select = box; }
     void setArea(const ExRect& area) { this->area = area; resetArea(); }
-    void setSize(const ExSize& size) { area.sz = size; resetArea(); }
-    void setPos(const ExPoint& pos) { area.pt = pos; resetArea(); }
+    void setSize(const ExSize& size) { area.u.sz = size; resetArea(); }
+    void setPos(const ExPoint& pos) { area.u.pt = pos; resetArea(); }
     void toBack() { if (parent) parent->attachHead(this); }
     void toFront() { if (parent) parent->attachTail(this); }
 public: // widget flags operation
@@ -217,49 +222,51 @@ public: // widget flags operation
         return (flags = ((~masks & flags) | (masks & value)));
     }
 protected: // widget callback internal
-    struct Callback : public ExCallback {
+    struct Listener : public ExCallback {
         int type;
         uint8 prio;
         uint8 flag;
         uint16 mask; // tbd - ???
-        Callback(const ExCallback& cb, int t, uint8 p)
+        Listener(const ExCallback& cb, int t, uint8 p)
             : ExCallback(cb), type(t), prio(p), flag(0), mask(0) {
         }
     };
-    class CallbackList : public std::list<Callback> {
+    class ListenerList : public std::list<Listener> {
         ushort influx, change; // for recurs
     public:
-        CallbackList() : std::list<Callback>(), influx(0), change(0) {}
+        ListenerList() : std::list<Listener>(), influx(0), change(0) {}
     public:
         // inherit size_type size();
         bool remove(int type, uint8 prio);
-        // inherit void remove(const Callback& cb);
-        // inherit void push_back(const Callback& cb);
-        // inherit void push_front(const Callback& cb);
-        void push(const Callback& cb);
-        int invoke(int type, ExObject* object, ExCbInfo* cbinfo);
+        // inherit void remove(const Listener& cb);
+        // inherit void push_back(const Listener& cb);
+        // inherit void push_front(const Listener& cb);
+        void push(const Listener& cb);
+        int invoke(ExWatch* watch, int type, ExObject* object, ExCbInfo* cbinfo);
     };
-    CallbackList cbList;
+    ListenerList listenerList;
 public: // widget callback operation
-    void addCallback(int(STDCALL *f)(void*, ExWidget*, ExCbInfo*), void* d, int type, uint8 prio = 5) {
-        cbList.push(Callback(ExCallback(f, d), type, prio));
+    void addListener(int(STDCALL *f)(void*, ExWidget*, ExCbInfo*), void* d, int type, uint8 prio = 5) {
+        listenerList.push(Listener(ExCallback(f, d), type, prio));
     }
     template <typename A, class W/*inherit ExWidget*/>
-    void addCallback(int(STDCALL *f)(A*, W*, ExCbInfo*), A* d, int type, uint8 prio = 5) {
-        cbList.push(Callback(ExCallback(f, d), type, prio));
+    void addListener(int(STDCALL *f)(A*, W*, ExCbInfo*), A* d, int type, uint8 prio = 5) {
+        listenerList.push(Listener(ExCallback(f, d), type, prio));
     }
     template <typename A, class W/*inherit ExWidget*/>
-    void addCallback(A* d, int(STDCALL A::*f)(W*, ExCbInfo*), int type, uint8 prio = 5) {
-        cbList.push(Callback(ExCallback(d, f), type, prio));
+    void addListener(A* d, int(STDCALL A::*f)(W*, ExCbInfo*), int type, uint8 prio = 5) {
+        listenerList.push(Listener(ExCallback(d, f), type, prio));
     }
-    void removeCallback(int type, uint8 prio = 5) { // tbd
-        cbList.remove(type, prio);
+    void removeListener(int type, uint8 prio = 5) { // tbd
+        listenerList.remove(type, prio);
     }
-    int invokeCallback(int type) {
-        return cbList.invoke(type, this, &ExCbInfo(type));
+    int invokeListener(int type) {
+        ExCbInfo cbinfo(type);
+        return listenerList.invoke(exWatchDisp, type, this, &cbinfo);
+        //return listenerList.invoke(type, this, &ExCbInfo(type)); // -fpermissive
     }
-    int invokeCallback(int type, ExCbInfo* cbinfo) {
-        return cbList.invoke(type, this, cbinfo);
+    int invokeListener(int type, ExCbInfo* cbinfo) {
+        return listenerList.invoke(exWatchDisp, type, this, cbinfo);
     }
 protected:
     bool calcExtent();
@@ -288,8 +295,8 @@ public:
     void dumpImage(ExCanvas* canvas); // for dumping images to a temporary canvas
     //int dumpImage(ExCanvas* canvas, const ExRegion& updateRgn);
 public:
-    static ExWidget* enumBackToFront(ExWidget* begin, ExWidget* end, ExCallback& cb, ExCbInfo* cbinfo);
-    static ExWidget* enumFrontToBack(ExWidget* begin, ExWidget* end, ExCallback& cb, ExCbInfo* cbinfo);
+    static ExWidget* enumBackToFront(ExWidget* begin, ExWidget* end, const ExCallback& cb, ExCbInfo* cbinfo);
+    static ExWidget* enumFrontToBack(ExWidget* begin, ExWidget* end, const ExCallback& cb, ExCbInfo* cbinfo);
 public:
     friend struct ExRender;
     friend class ExWindow;
@@ -337,15 +344,15 @@ Resources:
 */
 
 /**
-ExWidget::CallbackList::invoke()
+ExWidget::ListenerList::invoke()
     invoke a callback list
 Arguments:
-    cbList  The list of callbacks to invoke.
+    type    The type of callback list to invoke, for example Ex_CbActivate.
     object  The widget pointer to pass to the callbacks as the first argument.
     cbinfo  A pointer to a ExCbInfo structure that's passed to each callback
             in the list as the third argument.
 Description:
-    This function invokes the provided callback list cbList.
+    This function invokes the provided callback list listenerList.
 Returns:
     A return status from the callback list:
         Ex_Continue/Ex_Remove/Ex_Break/Ex_End/Ex_Halt
@@ -353,7 +360,7 @@ Returns:
 */
 
 /**
-ExWidget::invokeCallback()
+ExWidget::invokeListener()
     invoke a callback list of a specific type
 Arguments:
     widget  The widget pointer to pass to the callbacks as the first argument.

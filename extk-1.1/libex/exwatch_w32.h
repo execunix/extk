@@ -28,13 +28,11 @@ protected:
     class TimerSet : public std::multiset<ExTimer*, TickCompare> {
     public:
         TimerSet() : std::multiset<ExTimer*, TickCompare>() {}
-    protected:
+    public:
         void clearAll();
         void remove(ExTimer* timer);
         void active(ExTimer* timer);
-        int  invoke(uint32_t tick_count);
-        friend class ExTimer;
-        friend class ExWatch;
+        int  invoke(uint32 tick_count);
     };
     // IomuxMap
     struct Iomux {
@@ -52,22 +50,22 @@ protected:
     public:
         ~IomuxMap() { fini(); }
         IomuxMap(ExWatch* watch) : std::list<Iomux>(), watch(watch), count(0), dirty(0) {}
-    protected:
+    public:
         void fini();
         void init();
         // inherit void clear();
         // inherit iterator find(int fd);
         int setup();
         const Iomux* search(HANDLE handle) const;
-        int probe(ExCallback& callback, void* cbinfo);
+        int probe(const ExCallback& callback, void* cbinfo);
         int add(HANDLE handle, const ExNotify& notify, int pos);
         int add(HANDLE handle, const ExNotify& notify);
         int del(HANDLE handle);
         int invoke(int waittick = INFINITE);
-        friend class ExWatch;
     };
 protected:
-    static uint32_t getTickCount();
+    static uint32 getTickCount();
+    static uint32 tickAppLaunch;
     static DWORD WINAPI start(_In_ LPVOID arg);
 protected:
     IomuxMap        iomuxmap;
@@ -76,7 +74,7 @@ protected:
     HANDLE          hThread;
     HANDLE          hev;
     int             halt;
-    uint32_t        tickCount;
+    uint32          tickCount;
     mutable HANDLE  mutex;
 public:
     enum { HookStart, HookTimer, HookIomux, HookClean };
@@ -84,6 +82,7 @@ public:
     ExCallback      hookTimer;
     ExCallback      hookIomux;
     ExCallback      hookClean;
+
 public:
     virtual ~ExWatch() {
         fini();
@@ -93,18 +92,19 @@ public:
         , timerset(), idThread(0), hThread(NULL), hev(NULL), halt(0)
         , tickCount(0), hookStart(), hookTimer(), hookIomux(), hookClean() {
         mutex = CreateMutex(NULL, FALSE, NULL);
+        tickCount = tickAppLaunch;
     }
     int fini();
     int init(size_t stacksize = 1048576 * 8);
     int enter() const;
     int leave() const;
     int wakeup() const;
-    int setHalt(int r);
+    int setHalt(int r = Ex_Halt);
     int getHalt() const { return halt; }
-    uint32_t getTick() const { return tickCount; }
+    uint32 getTick() const { return tickCount; }
 protected:
-    int setEvent(uint64_t u) const;
-    int getEvent(uint64_t* u) const;
+    int setEvent(uint64 u) const;
+    int getEvent(uint64* u) const;
     int STDCALL proc();
     int STDCALL onEvent(HANDLE handle);
 public:

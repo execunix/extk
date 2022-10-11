@@ -3,9 +3,12 @@
  * SPDX-License-Identifier:     GPL-2.0+
  */
 
+#ifndef __linux__
+
 #include "exgdiobj.h"
 #include "exwindow.h"
 #include "eximage.h"
+#include <assert.h>
 
 /////////////////////////////////////////////////////////////////////////////
 // class ExGdiBmp
@@ -361,3 +364,6 @@ ExMemDC::Create(int w, int h, int planes, int bpp, DWORD biCompression)
     assert(bits == bm.bmBits);
     return 0;
 }
+
+#endif // __linux__
+

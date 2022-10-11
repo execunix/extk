@@ -7,17 +7,18 @@
 #include "exwatch.h"
 #include "exapp.h"
 #include <map>
+#include <assert.h>
 
 #define logdraw dprint0
 #define logdra1 dprint1
 #define logdra0 dprint0
-#define logproc dprintf
+#define logproc dprint
 #define logpro0 dprint0
 
 #undef  ABS
 #define ABS(a)                  (((a) < 0) ? -(a) : (a))
 
-extern ExWatch* exWatchMain;
+ExWatch* exWatchDisp;
 
 typedef std::list<ExWindow*> ExWindowList;
 typedef std::map<HWND, ExWindow*> ExWindowMap;
@@ -26,14 +27,14 @@ static ExWindowList detachWindowList;
 static ExWindowMap attachWindowMap;
 
 static int detachWindow(HWND hwnd) {
-    dprintf(L"%s: hwnd=0x%p addr=0x%p\n", __funcw__, hwnd, attachWindowMap[hwnd]);
+    dprint(L"%s: hwnd=0x%p addr=0x%p\n", __funcw__, hwnd, attachWindowMap[hwnd]);
     //SetWindowLong(hwnd, GWL_USERDATA, (LONG)NULL); // detach window handle
     attachWindowMap.erase(hwnd);
     return 0;
 }
 
 static int attachWindow(HWND hwnd, ExWindow* window) {
-    dprintf(L"%s: hwnd=0x%p addr=0x%p name=%s\n", __funcw__, hwnd, window, window->getName());
+    dprint(L"%s: hwnd=0x%p addr=0x%p name=%s\n", __funcw__, hwnd, window, window->getName());
     //SetWindowLong(hwnd, GWL_USERDATA, (LONG)this); // attach window handle
     attachWindowMap[hwnd] = window;
     return 0;
@@ -81,7 +82,8 @@ ExWindow::ExWindow()
 }
 
 int ExWindow::init(const wchar* name, int w, int h) {
-    ExWidget::init(NULL/*parent*/, name, &ExRect(0, 0, w, h));
+    ExRect rc(0, 0, w, h);
+    ExWidget::init(NULL/*parent*/, name, &rc);
     renderFlags |= Ex_RenderRebuild;
     return 0;
 }
@@ -173,7 +175,7 @@ ExWidget* ExWindow::giveFocus(ExWidget* newFocus) {
     ExWidgetList::iterator got_i = got.begin();
     ExWidgetList::iterator lost_i = lost.begin();
     while (got_i != got.end() && lost_i != lost.end()) {
-        dprintf(L"compare %s %s\n", (*got_i)->name, (*lost_i)->name);
+        dprint(L"compare %s %s\n", (*got_i)->name, (*lost_i)->name);
         if (*lost_i != *got_i)
             break;
         ++lost_i;
@@ -191,7 +193,7 @@ ExWidget* ExWindow::giveFocus(ExWidget* newFocus) {
         w->flags &= ~Ex_Focused;
         if (w->getFlags(Ex_FocusRender))
             w->damage();
-        dprintf(L"lost focus %s\n", w->name);
+        dprint(L"lost focus %s\n", w->name);
     }
     got_i = got.begin();
     while (got_i != got.end()) {
@@ -199,7 +201,7 @@ ExWidget* ExWindow::giveFocus(ExWidget* newFocus) {
         w->flags |= Ex_Focused;
         if (w->getFlags(Ex_FocusRender))
             w->damage();
-        dprintf(L"got focus %s\n", w->name);
+        dprint(L"got focus %s\n", w->name);
     }
 
     // invoke callback
@@ -209,7 +211,7 @@ ExWidget* ExWindow::giveFocus(ExWidget* newFocus) {
     while (lost_i != lost.begin()) {
         ExWidget* w = *--lost_i;
         cbinfo.subtype = w == wgtFocused ? 1 : 0;
-        w->invokeCallback(Ex_CbLostFocus, &cbinfo);
+        w->invokeListener(Ex_CbLostFocus, &cbinfo);
     }
     wgtFocused = newFocus; // tbd - change for callback refer
     got_i = got.begin();
@@ -217,7 +219,7 @@ ExWidget* ExWindow::giveFocus(ExWidget* newFocus) {
     while (got_i != got.end()) {
         ExWidget* w = *got_i++;
         cbinfo.subtype = w == wgtFocused ? 1 : 0;
-        w->invokeCallback(Ex_CbGotFocus, &cbinfo);
+        w->invokeListener(Ex_CbGotFocus, &cbinfo);
     }
     return wgtFocused;
 }
@@ -350,10 +352,10 @@ void ExWindow::onWmPaint(ExWindow* window, const ExRegion* updateRgn) {
 int ExWindow::onRepeatBut(ExTimer* timer, ExCbInfo* cbinfo) {
     if (wgtPressed &&
         wgtPressed == wgtEntered && ++ExApp::butRepeatCnt() > 0) {
-        if (!wgtPressed->cbList.empty()) {
+        if (!wgtPressed->listenerList.empty()) {
             cbinfo->event = event; // tbd - backup msg ?
             cbinfo->set(Ex_CbButRepeat, ExApp::butRepeatCnt());
-            return wgtPressed->invokeCallback(Ex_CbActivate, cbinfo);
+            return wgtPressed->invokeListener(Ex_CbActivate, cbinfo);
         }
     }
     return Ex_Continue;
@@ -414,8 +416,8 @@ int ExWindow::basicWndProc(ExCbInfo* cbinfo) {
                 if (height < 360)
                     height = 360;
                 ExSize sz(width, height);
-                if (this->area.sz != sz) {
-                    ExRect ar(this->area.pt, sz);
+                if (this->area.u.sz != sz) {
+                    ExRect ar(this->area.u.pt, sz);
                     layout(ar);
                 }
             }
@@ -430,7 +432,7 @@ int ExWindow::basicWndProc(ExCbInfo* cbinfo) {
                 if (wgtCapture == wgtEntered &&
                     wgtCapture == wgtPressed &&
                     wgtCapture->getFlags(Ex_Visible)) {
-                    return wgtCapture->invokeCallback(Ex_CbActivate, cbinfo->set(Ex_CbPtrMove, 0));
+                    return wgtCapture->invokeListener(Ex_CbActivate, cbinfo->set(Ex_CbPtrMove, 0));
                 }
                 wgtCapture = NULL;
             }
@@ -441,7 +443,7 @@ int ExWindow::basicWndProc(ExCbInfo* cbinfo) {
                 wgtEntered = widget;
                 if (wgttmp != NULL) {
                     wgttmp->flags &= ~Ex_PtrEntered;
-                    wgttmp->invokeCallback(Ex_CbActivate, cbinfo->set(Ex_CbPtrLeave, 0));
+                    wgttmp->invokeListener(Ex_CbActivate, cbinfo->set(Ex_CbPtrLeave, 0));
                     // tbd - check return code
                     if (wgttmp->getFlags(Ex_Highlighted | Ex_AutoHighlight) == Ex_AutoHighlight)
                         wgttmp->damage();
@@ -449,7 +451,7 @@ int ExWindow::basicWndProc(ExCbInfo* cbinfo) {
                 if (widget != NULL &&
                     widget == wgtEntered) {
                     widget->flags |= Ex_PtrEntered;
-                    widget->invokeCallback(Ex_CbActivate, cbinfo->set(Ex_CbPtrEnter, 0));
+                    widget->invokeListener(Ex_CbActivate, cbinfo->set(Ex_CbPtrEnter, 0));
                     // tbd - check return code
                     if (widget->getFlags(Ex_Highlighted | Ex_AutoHighlight) == Ex_AutoHighlight)
                         widget->damage();
@@ -459,7 +461,7 @@ int ExWindow::basicWndProc(ExCbInfo* cbinfo) {
                 //	ExApp::butRepeatCnt() = 0; // tbd
             }
             if (widget != NULL) {
-                widget->invokeCallback(Ex_CbActivate, cbinfo->set(Ex_CbPtrMove, 0));
+                widget->invokeListener(Ex_CbActivate, cbinfo->set(Ex_CbPtrMove, 0));
                 // tbd - check return code
             }
             // An application should return zero if it processes this message.
@@ -509,7 +511,7 @@ int ExWindow::basicWndProc(ExCbInfo* cbinfo) {
                 wgtEntered = widget;
                 if (wgttmp != NULL) {
                     wgttmp->flags &= ~Ex_PtrEntered;
-                    wgttmp->invokeCallback(Ex_CbActivate, cbinfo->set(Ex_CbPtrLeave, 0));
+                    wgttmp->invokeListener(Ex_CbActivate, cbinfo->set(Ex_CbPtrLeave, 0));
                     // tbd: proc double_click_event callback
                     if (wgttmp->getFlags(Ex_Highlighted | Ex_AutoHighlight) == Ex_AutoHighlight)
                         wgttmp->damage();
@@ -517,7 +519,7 @@ int ExWindow::basicWndProc(ExCbInfo* cbinfo) {
                 if (widget != NULL &&
                     widget == wgtEntered) {
                     widget->flags |= Ex_PtrEntered;
-                    widget->invokeCallback(Ex_CbActivate, cbinfo->set(Ex_CbPtrEnter, 0));
+                    widget->invokeListener(Ex_CbActivate, cbinfo->set(Ex_CbPtrEnter, 0));
                     // tbd: proc double_click_event callback
                     if (widget->getFlags(Ex_Highlighted | Ex_AutoHighlight) == Ex_AutoHighlight)
                         widget->damage();
@@ -530,13 +532,13 @@ int ExWindow::basicWndProc(ExCbInfo* cbinfo) {
                 ex_but_timer_instant_initial = ex_but_timer_default_initial;
                 ex_but_timer_instant_repeat = ex_but_timer_default_repeat;
                 widget->flags |= Ex_ButPressed;
-                widget->invokeCallback(Ex_CbActivate, cbinfo->set(Ex_CbButPress, 0));
+                widget->invokeListener(Ex_CbActivate, cbinfo->set(Ex_CbButPress, 0));
                 // tbd: proc double_click_event callback
                 if (widget->getFlags(Ex_Highlighted | Ex_AutoHighlight) == Ex_AutoHighlight)
                     widget->damage();
                 if (widget == wgtPressed) {
                     //SetTimer(hwnd, ID_TIMER_REPEAT_BUT, 99, NULL);
-                    ExApp::but_timer.init(exWatchMain, this, &ExWindow::onRepeatBut);
+                    ExApp::but_timer.init(exWatchDisp, this, &ExWindow::onRepeatBut);
                     ExApp::but_timer.start(ex_but_timer_instant_initial, ex_but_timer_instant_repeat);
                     ExApp::butRepeatCnt() = 0;//-2;
                 }
@@ -573,7 +575,7 @@ int ExWindow::basicWndProc(ExCbInfo* cbinfo) {
             ExApp::but_timer.stop();
             if (wgttmp != NULL) {
                 wgttmp->flags &= ~Ex_ButPressed;
-                wgttmp->invokeCallback(Ex_CbActivate, cbinfo->set(Ex_CbButRelease, 0));
+                wgttmp->invokeListener(Ex_CbActivate, cbinfo->set(Ex_CbButRelease, 0));
                 // tbd: proc double_click_event callback
                 if (wgttmp->getFlags(Ex_Highlighted | Ex_AutoHighlight) == Ex_AutoHighlight)
                     wgttmp->damage();
@@ -586,7 +588,7 @@ int ExWindow::basicWndProc(ExCbInfo* cbinfo) {
                 wgttmp == getSelectable(ExPoint(xPos, yPos))) {
                 if (ExApp::butRepeatCnt() < 0)
                     ExApp::butRepeatCnt() = 0;
-                wgttmp->invokeCallback(Ex_CbActivate, cbinfo->set(Ex_CbActivate, ExApp::butRepeatCnt()));
+                wgttmp->invokeListener(Ex_CbActivate, cbinfo->set(Ex_CbActivate, ExApp::butRepeatCnt()));
                 // tbd: proc double_click_event callback
                 //if (ExApp::butRepeatCnt() == 0)
                 //  ExApp::button_click_time[1] = GetTickCount();//exTickCount;
@@ -646,9 +648,9 @@ int ExWindow::basicWndProc(ExCbInfo* cbinfo) {
 #endif
     } // end switch
     LRESULT lResult;
-    exWatchMain->leave();
+    exWatchDisp->leave();
     lResult = DefWindowProc(hwnd, message, wParam, lParam);
-    exWatchMain->enter();
+    exWatchDisp->enter();
     cbinfo->event->lResult = lResult;
 #if 0 // tbd - pass to handler ?
     if (cbinfo->event->lResult != 0) {
@@ -663,7 +665,7 @@ int ExWindow::basicWndProc(ExCbInfo* cbinfo) {
 LRESULT CALLBACK // static
 ExWindow::sysWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
     ExWindow* window = NULL;
-    exWatchMain->enter();
+    exWatchDisp->enter();
 #if 0
     MSG& m = ExApp::event.msg;
     logproc(L"hwnd=%p,%p msg=%p,%p wp=%p,%p lp=%p,%p\n",
@@ -680,7 +682,7 @@ ExWindow::sysWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
         logproc(L"[0x%p][0x%p] WM_CREATE\n", hwnd, window);
         // If an application processes this message, it should return 0 to continue creation of the window.
         // If the application returns -1, the window is destroyed and the CreateWindowEx or CreateWindow function returns a NULL handle.
-        exWatchMain->leave();
+        exWatchDisp->leave();
         return 0;
     }
 #else
@@ -690,7 +692,7 @@ ExWindow::sysWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
         attachWindow(hwnd, window);
         window->hwnd = hwnd;
         logproc(L"[0x%p][0x%p] WM_NCCREATE\n", hwnd, window);
-        exWatchMain->leave();
+        exWatchDisp->leave();
         return TRUE;
     }
 #endif
@@ -699,7 +701,7 @@ ExWindow::sysWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
     window = attachWindowMap[hwnd];
     if (!(window && window->hwnd == hwnd)) {
         logproc(L"[0x%p] WM_0x%04x\n", hwnd, message);
-        exWatchMain->leave();
+        exWatchDisp->leave();
         return DefWindowProc(hwnd, message, wParam, lParam);
     }
 
@@ -714,7 +716,7 @@ ExWindow::sysWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
             ExApp::mainWnd = NULL; // stop timer/flush/input exlib proc
             PostQuitMessage(ExApp::retCode); // stop main loop
         }
-        exWatchMain->leave();
+        exWatchDisp->leave();
         // An application should return zero if it processes this message.
         return 0;
     }
@@ -749,7 +751,7 @@ ExWindow::sysWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
     if (window->invokeHandler(cbinfo) & Ex_Break)
         goto leave;
 leave:
-    exWatchMain->leave();
+    exWatchDisp->leave();
     return cbinfo->event->lResult;
 }
 
@@ -770,7 +772,7 @@ ExWindow::classInit(HINSTANCE hInstance) {
         wc.lpszMenuName = 0;//MAKEINTRESOURCE(IDC_APPDEMO);
         wc.lpszClassName = getClassName();
         wcid = RegisterClass(&wc);
-        dprintf(L"classInit(%s,0x%p) wcid=0x%p\n", getClassName(), hInstance, wcid);
+        dprint(L"classInit(%s,0x%p) wcid=0x%p\n", getClassName(), hInstance, wcid);
     }
     return wcid;
 }

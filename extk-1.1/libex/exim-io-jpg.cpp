@@ -83,7 +83,7 @@ jpg_cleanup:
     jpeg_destroy_decompress(&cinfo);
     fclose(infile);
     if (jerr.num_warnings) {
-        dprintf("jerr.num_warnings=%d\n", jerr.num_warnings);
+        dprint("jerr.num_warnings=%d\n", jerr.num_warnings);
     }
     return r;
 }

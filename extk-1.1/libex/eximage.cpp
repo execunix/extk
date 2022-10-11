@@ -4,6 +4,7 @@
  */
 
 #include "eximage.h"
+#include <assert.h>
 
 ExImage::~ExImage() {
     if (crs) cairo_surface_destroy(crs);

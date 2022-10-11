@@ -7,6 +7,7 @@
 #include <ft2build.h>
 #include <cairo-ft.h>
 #include FT_FREETYPE_H
+#include <assert.h>
 
 static FT_Library ftLib;
 
@@ -44,12 +45,12 @@ void Face::free()
     }
 }
 
-static int load(ExImage* img, wchar* name)
+static int load(ExImage* img, const wchar* name)
 {
     wchar pathname[256];
     swprintf_s(pathname, 256, L"%s/%s", res.path, name);
     if (img->load(pathname) != 0) {
-        dprintf(L"%s: load %s fail.\n", __funcw__, pathname);
+        dprint(L"%s: load %s fail.\n", __funcw__, pathname);
         return -1;
     }
     return 0;
@@ -62,7 +63,7 @@ int initRes()
     if (_wstat(res.path, &statbuf))
         swprintf_s(res.path, 256, L"%s/../../res", exModulePath);
     if (_wstat(res.path, &statbuf)) {
-        dprintf(L"%s: cant open res path\n", __funcw__);
+        dprint(L"%s: cant open res path\n", __funcw__);
         return -1;
     }
 

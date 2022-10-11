@@ -8,16 +8,20 @@
 
 #include "extypes.h"
 
+#pragma pack(push, 1)
+
 // ExPoint
 //
 struct ExPoint {
-    int16 x, y;
-
+    union {
+        struct { int16 x, y; };
+        uint32 u32;
+    };
     ExPoint() {}
     ExPoint(int16 i) : x(i), y(i) {}
     ExPoint(int16 x, int16 y) : x(x), y(y) {}
-    ExPoint(const ExPoint& pt) : x(pt.x), y(pt.y) {}
-    ExPoint& operator = (const ExPoint& pt) { x = pt.x; y = pt.y; return *this; }
+    ExPoint(const ExPoint& pt) : u32(pt.u32) {}
+    ExPoint& operator = (const ExPoint& pt) { u32 = pt.u32; return *this; }
 #ifdef WIN32
     ExPoint(const POINT& pt) : x((int16)pt.x), y((int16)pt.y) {}
     ExPoint& operator = (const POINT& pt) { x = (int16)pt.x; y = (int16)pt.y; return *this; }
@@ -28,7 +32,7 @@ struct ExPoint {
     void rotccw() { this->rotccw(this); }
     void rotcw() { this->rotcw(this); }
     void neg() { x = -x; y = -y; }
-    void set(int16 x, int16 y) { this->x = x; this->y = y; }
+    ExPoint& set(int16 x, int16 y) { this->x = x; this->y = y; return *this; }
     bool equal(int16 x, int16 y) const { return (this->x == x && this->y == y); }
     bool operator == (const ExPoint& pt) const { return (x == pt.x && y == pt.y); }
     bool operator != (const ExPoint& pt) const { return (x != pt.x || y != pt.y); }
@@ -61,20 +65,22 @@ operator / (const ExPoint& pt, int16 i) {
 // ExSize
 //
 struct ExSize {
-    int16 w, h;
-
+    union {
+        struct { int16 w, h; };
+        uint32 u32;
+    };
     ExSize() {}
     ExSize(int16 i) : w(i), h(i) {}
     ExSize(int16 w, int16 h) : w(w), h(h) {}
-    ExSize(const ExSize& sz) : w(sz.w), h(sz.h) {}
-    ExSize& operator = (const ExSize& sz) { w = sz.w; h = sz.h; return *this; }
+    ExSize(const ExSize& sz) : u32(sz.u32) {}
+    ExSize& operator = (const ExSize& sz) { u32 = sz.u32; return *this; }
 #ifdef WIN32
     ExSize(const SIZE& sz) : w((int16)sz.cx), h((int16)sz.cy) {}
     ExSize& operator = (const SIZE& sz) { w = (int16)sz.cx; h = (int16)sz.cy; return *this; }
 #endif
 
     void clamp() { if (w < 0) w = 0; if (h < 0) h = 0; }
-    void set(int16 w, int16 h) { this->w = w; this->h = h; }
+    ExSize& set(int16 w, int16 h) { this->w = w; this->h = h; return *this; }
     bool zero() const { return (this->w == 0 && this->h == 0); }
     bool empty() const { return (this->w <= 0 || this->h <= 0); }
     bool equal(int16 w, int16 h) const { return (this->w == w && this->h == h); }
@@ -151,16 +157,16 @@ ExSize::operator -= (const ExPoint& pt) {
 struct ExRect {
     union {
         struct { int16 x, y, w, h; }; // x, y, width, height
-        struct { ExPoint pt; ExSize sz; };
+        struct { ExPoint pt; ExSize sz; } u;
+        uint64 u64;
     };
-
     ExRect() {}
     ExRect(int16 i) : x(i), y(i), w(i), h(i) {}
     ExRect(int16 x, int16 y, int16 w, int16 h) : x(x), y(y), w(w), h(h) {}
     ExRect(const ExPoint& pt, const ExSize& sz) : x(pt.x), y(pt.y), w(sz.w), h(sz.h) {}
-    ExRect(const ExRect& rc) : x(rc.x), y(rc.y), w(rc.w), h(rc.h) {}
+    ExRect(const ExRect& rc) : u64(rc.u64) {}
     ExRect(const ExBox& bx);
-    ExRect& operator = (const ExRect& rc) { x = rc.x; y = rc.y; w = rc.w; h = rc.h; return *this; }
+    ExRect& operator = (const ExRect& rc) { u64 = rc.u64; return *this; }
     ExRect& operator = (const ExBox& bx);
 #ifdef WIN32
     ExRect(const RECT& rc);
@@ -182,8 +188,8 @@ struct ExRect {
     void move(int16 dx, int16 dy) { x += dx; y += dy; }
     void move(const ExPoint& pt) { move(pt.x, pt.y); }
     void init0() { x = y = w = h = 0; }
-    void set(int16 x, int16 y, int16 w, int16 h) { this->x = x; this->y = y; this->w = w; this->h = h; }
-    void set(const ExPoint& pt, const ExSize& sz) { x = pt.x; y = pt.y; w = sz.w; h = sz.h; }
+    ExRect& set(int16 x, int16 y, int16 w, int16 h) { this->x = x; this->y = y; this->w = w; this->h = h; return *this; }
+    ExRect& set(const ExPoint& pt, const ExSize& sz) { x = pt.x; y = pt.y; w = sz.w; h = sz.h; return *this; }
     bool valid() const { return (0 < w && 0 < h); }
     bool empty() const { return !valid(); }
     bool equal(int16 x, int16 y, int16 w, int16 h) const { return operator == (ExRect(x, y, w, h)); }
@@ -202,16 +208,16 @@ struct ExBox {
     union {
         struct { int16 x1, y1, x2, y2; }; // box segment for clip region
         struct { int16 l, t, r, b; }; // left, top, right, bottom
-        struct { ExPoint ul, lr; }; // upper-left corner, lower-right corner
+        struct { ExPoint ul, lr; } u; // upper-left corner, lower-right corner
+        uint64 u64;
     };
-
     ExBox() {}
     ExBox(int16 i) : l(i), t(i), r(i), b(i) {}
     ExBox(int16 l, int16 t, int16 r, int16 b) : l(l), t(t), r(r), b(b) {}
     ExBox(const ExPoint& ul, const ExPoint& lr) : l(ul.x), t(ul.y), r(lr.x), b(lr.y) {}
     ExBox(const ExRect& rc) : l(rc.x), t(rc.y), r(rc.right()), b(rc.bottom()) {}
-    ExBox(const ExBox& bx) : l(bx.l), t(bx.t), r(bx.r), b(bx.b) {}
-    ExBox& operator = (const ExBox& bx) { l = bx.l; t = bx.t; r = bx.r; b = bx.b; return *this; }
+    ExBox(const ExBox& bx) : u64(bx.u64) {}
+    ExBox& operator = (const ExBox& bx) { u64 = bx.u64; return *this; }
     ExBox& operator = (const ExRect& rc);
 #ifdef WIN32
     ExBox(const RECT& rc);
@@ -235,8 +241,8 @@ struct ExBox {
     void move(const ExPoint& pt) { move(pt.x, pt.y); }
     void init0() { l = t = r = b = 0; }
     void sort() { if (l > r) exswap<int16>(l, r); if (t > b) exswap<int16>(t, b); }
-    void set(int16 l, int16 t, int16 r, int16 b) { this->l = l; this->t = t; this->r = r; this->b = b; }
-    void set(const ExPoint& ul, const ExPoint& lr) { l = ul.x; t = ul.y; r = lr.x; b = lr.y; }
+    ExBox& set(int16 l, int16 t, int16 r, int16 b) { this->l = l; this->t = t; this->r = r; this->b = b; return *this; }
+    ExBox& set(const ExPoint& ul, const ExPoint& lr) { l = ul.x; t = ul.y; r = lr.x; b = lr.y; return *this; }
     bool valid() const { return (l < r && t < b); }
     bool empty() const { return !valid(); }
     bool equal(int16 l, int16 t, int16 r, int16 b) const { return operator == (ExBox(l, t, r, b)); }
@@ -400,5 +406,7 @@ struct ExTile {
     ExTile(const ExBox& bx) : box(bx), next(NULL) {}
     // tbd
 };
+
+#pragma pack(pop)
 
 #endif//__exgeomet_h__

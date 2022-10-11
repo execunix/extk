@@ -6,6 +6,7 @@
 #include "excairo.h"
 #include "eximage.h"
 #include "exapp.h"
+#include <assert.h>
 
 #define logdraw dprint0
 #define logdra0 dprint0
@@ -34,7 +35,6 @@ static void STDCALL s_fill(void* data, ExCanvas* canvas, const ExWidget* widget,
     if (!(canvas && canvas->cr))
         return;
     ExCairo cr(canvas, damage);
-    //ExCairo::Rect rc(widget->calcRect());
     ExCairo::Box bx(widget->calcBox());
 
     //bx.l += 1.f;
@@ -50,7 +50,7 @@ static void STDCALL s_fill(void* data, ExCanvas* canvas, const ExWidget* widget,
     cairo_close_path(cr);
 
     ExCairo::Color lc; // line color
-    uint32 c = ((uint)widget) & 0xffffff;
+    uint32 c = ((uint64)widget) & 0xffffff;
     lc.setv(ExRValue(c), ExGValue(c), ExBValue(c), 96);
 
     cairo_set_line_width(cr, 1.f);
@@ -62,7 +62,7 @@ static void STDCALL s_fill(void* data, ExCanvas* canvas, const ExWidget* widget,
 #else // deprecated
     HWND hwnd = widget->getWindow()->getHwnd();
     HDC hdc = GetDC(hwnd ? hwnd : GetDesktopWindow());
-    COLORREF c = ((uint)widget) & 0xffffff;//RGB(0, 0, 128);
+    COLORREF c = ((uint64)widget) & 0xffffff;//RGB(0, 0, 128);
     HBRUSH hbr = CreateSolidBrush(c);
     for (int i = 0; i < damage->n_boxes; i++)
         FillRect(hdc, damage->boxes[i], hbr);
@@ -101,7 +101,7 @@ ExWidget::ExWidget()
     , style(NULL)
     , userdata(NULL)
     , drawFunc()
-    , cbList() {
+    , listenerList() {
 #ifdef DEBUG // test
     drawFunc = ExDrawFunc(&s_fill, (void*)NULL); // tbd
 #endif
@@ -234,10 +234,10 @@ void ExWidget::setName(const wchar* text) {
 }
 
 ExBox& ExWidget::getBox(ExBox& bx) const {
-    ExPoint pt = area.pt;
+    ExPoint pt = area.u.pt;
     const ExWidget* w = this;
     for (; w && !w->getClassFlags(Ex_DISJOINT); w = w->parent)
-        pt += w->area.pt;
+        pt += w->area.u.pt;
 
     bx.l = pt.x;
     bx.t = pt.y;
@@ -247,10 +247,10 @@ ExBox& ExWidget::getBox(ExBox& bx) const {
 }
 
 ExRect& ExWidget::getRect(ExRect& rc) const {
-    ExPoint pt = area.pt;
+    ExPoint pt = area.u.pt;
     const ExWidget* w = this;
     for (; w && !w->getClassFlags(Ex_DISJOINT); w = w->parent)
-        pt += w->area.pt;
+        pt += w->area.u.pt;
 
     rc.x = pt.x;
     rc.y = pt.y;
@@ -317,8 +317,8 @@ int ExWidget::destroy() {
     ExWidgetList::iterator i = destroyed.begin();
     while (i != destroyed.end()) {
         ExWidget* w = *i;
-        // tbd - detach cbList
-        w->invokeCallback(Ex_CbDestroyed);
+        // tbd - detach listenerList
+        w->invokeListener(Ex_CbDestroyed);
         if (w->getFlags(Ex_FreeMemory))
             deleteWidgetList.push_back(w);
         ++i;
@@ -334,7 +334,7 @@ int ExWidget::realize() {
         if (!w->getFlags(Ex_Realized) && w->isVisible()) {
             dprint1(L"realize: %s\n", w->name);
             w->flags |= Ex_Realized;
-            w->invokeCallback(Ex_CbRealized);
+            w->invokeListener(Ex_CbRealized);
         }
         if (w == end)
             break;
@@ -350,7 +350,7 @@ int ExWidget::unrealize() {
         if (w->getFlags(Ex_Realized)) {
             dprint1(L"unrealize: %s\n", w->name);
             w->flags &= ~Ex_Realized;
-            w->invokeCallback(Ex_CbUnrealized);
+            w->invokeListener(Ex_CbUnrealized);
         }
         if (w == end)
             break;
@@ -444,7 +444,8 @@ int ExWidget::layout(ExRect& ar) {
     //    origin.x = area.x + parent->origin.x;
     //    origin.y = area.y + parent->origin.y;
     //}
-    invokeCallback(Ex_CbLayout, &ExCbInfo(Ex_CbLayout, Ex_LayoutInit, NULL, &ar));
+    ExCbInfo cbinfo(Ex_CbLayout, Ex_LayoutInit, NULL, &ar);
+    invokeListener(Ex_CbLayout, &cbinfo);
 
     flags |= Ex_Exposed; // mark as reset exposeRgn
     addRenderFlags(Ex_RenderRebuild);
@@ -730,7 +731,7 @@ void ExWidget::setOpaque(bool set) {
 }
 
 ExWidget* // static
-ExWidget::enumBackToFront(ExWidget* begin, ExWidget* end, ExCallback& cb, ExCbInfo* cbinfo) {
+ExWidget::enumBackToFront(ExWidget* begin, ExWidget* end, const ExCallback& cb, ExCbInfo* cbinfo) {
     int r;
     ExCbInfo ci(0);
     if (cbinfo == NULL)
@@ -769,7 +770,7 @@ proc_leave:
 }
 
 ExWidget* // static
-ExWidget::enumFrontToBack(ExWidget* begin, ExWidget* end, ExCallback& cb, ExCbInfo* cbinfo) {
+ExWidget::enumFrontToBack(ExWidget* begin, ExWidget* end, const ExCallback& cb, ExCbInfo* cbinfo) {
     int r;
     ExCbInfo ci(0);
     if (cbinfo == NULL)

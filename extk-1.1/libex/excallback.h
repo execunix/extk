@@ -6,8 +6,49 @@
 #ifndef __excallback_h__
 #define __excallback_h__
 
-#include "exevent.h"
+#include "exconfig.h"
+#include "extypes.h"
+
 #include <list>
+
+// Callback Info
+//
+struct ExCbInfo {
+    int         type;
+    int         subtype;
+    ExEvent*    event; // A pointer to a ExEvent structure that describes the event
+                       //   that caused this callback to be invoked.
+    void*       data;  // A pointer to callback-specific data.
+
+    ExCbInfo(int t, int s = 0, ExEvent* e = NULL, void* d = NULL)
+        : type(t), subtype(s), event(e), data(d) {}
+    // pointer
+    ExCbInfo* set(int t, int s, ExEvent* e, void* d = NULL) {
+        type = t; subtype = s; event = e; data = d;
+        return this;
+    }
+    ExCbInfo* set(int t, int s) {
+        type = t; subtype = s;
+        return this;
+    }
+    ExCbInfo* set(int t) {
+        type = t;
+        return this;
+    }
+    // reference
+    ExCbInfo& operator () (int t, int s, ExEvent* e, void* d = NULL) {
+        type = t; subtype = s; event = e; data = d;
+        return *this;
+    }
+    ExCbInfo& operator () (int t, int s) {
+        type = t; subtype = s;
+        return *this;
+    }
+    ExCbInfo& operator () (int t) {
+        type = t;
+        return *this;
+    }
+};
 
 // ExPolyFunc
 //
@@ -143,16 +184,16 @@ struct ExFlushFunc : public ExPolyFunc<void, const ExWidget*, const ExRegion*> {
 class ExCallbackList {
 private:
     struct Callback : public ExCallback {
-        uint8_t prio;
-        uint8_t flag;
-        uint16_t mask;
-        Callback(const ExCallback& cb, uint8_t p)
+        uint8 prio;
+        uint8 flag;
+        uint16 mask;
+        Callback(const ExCallback& cb, uint8 p)
             : ExCallback(cb), prio(p), flag(0), mask(0) {
         }
     };
     class CallbackList : public std::list<Callback> {
-        uint16_t influx; // for recurs
-        uint16_t change;
+        uint16 influx; // for recurs
+        uint16 change;
     public:
         CallbackList() : std::list<Callback>(), influx(0), change(0) {}
     public:
@@ -174,16 +215,16 @@ public:
     ExCallbackList() : cblist() {}
 public: // operations
     #if EX2CONF_LAMBDA_CALLBACK
-    void add(int (STDCALL *f)(void*, void*, ExCbInfo*), void* d, uint8_t prio = 5) {
+    void add(int (STDCALL *f)(void*, void*, ExCbInfo*), void* d, uint8 prio = 5) {
         cblist.push(Callback(ExCallback(f, d), prio));
     }
     #endif
     template <typename A, typename B, typename C>
-    void add(int (STDCALL *f)(A*, B*, C*), A* d, uint8_t prio = 5) {
+    void add(int (STDCALL *f)(A*, B*, C*), A* d, uint8 prio = 5) {
         cblist.push(Callback(ExCallback(f, d), prio));
     }
     template <typename A, typename B, typename C>
-    void add(A* d, int (STDCALL A::*f)(B*, C*), uint8_t prio = 5) {
+    void add(A* d, int (STDCALL A::*f)(B*, C*), uint8 prio = 5) {
         cblist.push(Callback(ExCallback(d, f), prio));
     }
     void remove(const ExCallback& cb) {
@@ -195,51 +236,51 @@ public: // operations
     size_t size() const { return cblist.size(); }
 };
 
-// ExCallTypeList
+// ExListenerList
 //
-class ExCallTypeList {
+class ExListenerList {
 private:
-    struct CallType : public ExCallback {
+    struct Listener : public ExCallback {
         int type;
-        uint8_t prio;
-        uint8_t flag;
-        uint16_t mask;
-        CallType(const ExCallback& cb, int t, uint8_t p)
+        uint8 prio;
+        uint8 flag;
+        uint16 mask;
+        Listener(const ExCallback& cb, int t, uint8 p)
             : ExCallback(cb), type(t), prio(p), flag(0), mask(0) {
         }
     };
-    class CallTypeList : public std::list<CallType> {
-        uint16_t influx; // for recurs
-        uint16_t change;
+    class ListenerList : public std::list<Listener> {
+        uint16 influx; // for recurs
+        uint16 change;
     public:
-        CallTypeList() : std::list<CallType>(), influx(0), change(0) {}
+        ListenerList() : std::list<Listener>(), influx(0), change(0) {}
     public:
         // inherit size_t size();
-        bool remove2(int type, uint8_t prio);
-        // inherit void remove(const CallType& cb);
-        // inherit void push_back(const CallType& cb);
-        // inherit void push_front(const CallType& cb);
-        void push(const CallType& cb); // lifo
+        bool remove2(int type, uint8 prio);
+        // inherit void remove(const Listener& cb);
+        // inherit void push_back(const Listener& cb);
+        // inherit void push_front(const Listener& cb);
+        void push(const Listener& cb); // lifo
         int invoke(int type, void* object, void* cbinfo);
     };
-    CallTypeList cblist;
+    ListenerList cblist;
 public:
-    ExCallTypeList() : cblist() {}
+    ExListenerList() : cblist() {}
 public: // operations
     #if EX2CONF_LAMBDA_CALLBACK
-    void add(int (STDCALL *f)(void*, void*, ExCbInfo*), void* d, int type, uint8_t prio = 5) {
-        cblist.push(CallType(ExCallback(f, d), type, prio));
+    void add(int (STDCALL *f)(void*, void*, ExCbInfo*), void* d, int type, uint8 prio = 5) {
+        cblist.push(Listener(ExCallback(f, d), type, prio));
     }
     #endif
     template <typename A, typename B, typename C>
-    void add(int (STDCALL *f)(A*, B*, C*), A* d, int type, uint8_t prio = 5) {
-        cblist.push(CallType(ExCallback(f, d), type, prio));
+    void add(int (STDCALL *f)(A*, B*, C*), A* d, int type, uint8 prio = 5) {
+        cblist.push(Listener(ExCallback(f, d), type, prio));
     }
     template <typename A, typename B, typename C>
-    void add(A* d, int (STDCALL A::*f)(B*, C*), int type, uint8_t prio = 5) {
-        cblist.push(CallType(ExCallback(d, f), type, prio));
+    void add(A* d, int (STDCALL A::*f)(B*, C*), int type, uint8 prio = 5) {
+        cblist.push(Listener(ExCallback(d, f), type, prio));
     }
-    void remove(int type, uint8_t prio = 5) {
+    void remove(int type, uint8 prio = 5) {
         cblist.remove2(type, prio);
     }
     int invoke(int type, void* object, void* cbinfo) {

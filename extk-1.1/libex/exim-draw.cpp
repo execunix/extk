@@ -4,11 +4,12 @@
  */
 
 #include "eximage.h"
+#include <assert.h>
 
 // impl. no clip, no mask, support 32bpp only but fast
 
 void ExImage::fillBoxAlphaEx(const ExBox* box, uint8 alpha, uint8 a_out) {
-    dprintf(L"%s\n", __funcw__);
+    dprint(L"%s\n", __funcw__);
     if (!(this->bits && this->bpp == 32))
         return;
     ExBox bx;
@@ -87,7 +88,7 @@ void ExImage::fillBoxAlpha(const ExBox* box, uint8 alpha) {
 
 void ExImage::fillBoxRgbEx(const ExBox* box, uint32 rgb, uint32 rgb_out)
 {
-    dprintf(L"%s\n", __funcw__);
+    dprint(L"%s\n", __funcw__);
     if (!(this->bits && this->bpp == 32))
         return;
     ExBox bx;
@@ -165,7 +166,7 @@ void ExImage::fillBoxRgb(const ExBox* box, uint32 rgb) {
 }
 
 void ExImage::fillBoxEx(const ExBox* box, uint32 color, uint32 c_out) {
-    dprintf(L"%s\n", __funcw__);
+    dprint(L"%s\n", __funcw__);
     if (!(this->bits && this->bpp == 32))
         return;
     ExBox bx;
@@ -419,11 +420,11 @@ It's inconvenient to write ...
     ((t) = (a) * (b) + ONE_HALF, ((((t) >> G_SHIFT ) + (t) ) >> G_SHIFT ))
 
 #define DIV_UN8(a, b) \
-    (((uint16_t) (a) * MASK) / (b))
+    (((uint16) (a) * MASK) / (b))
 
 #define ADD_UN8(x, y, t) \
     ((t) = x + y, \
-     (uint32) (uint8_t) ((t) | (0 - ((t) >> G_SHIFT))))
+     (uint32) (uint8) ((t) | (0 - ((t) >> G_SHIFT))))
 
 #define DIV_ONE_UN8(x) \
     (((x) + ONE_HALF + (((x) + ONE_HALF) >> G_SHIFT)) >> G_SHIFT)

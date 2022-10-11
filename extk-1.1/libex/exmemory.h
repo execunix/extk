@@ -56,9 +56,9 @@ exwcsdup(const wchar_t* wcs) {
 }
 
 inline void*
-exmemset4(void* dst_ptr, uint32_t set_val, size_t n_bytes) {
-    uint32_t* dst = (uint32_t*)dst_ptr;
-    uint32_t* dst_end = dst + n_bytes / sizeof(uint32_t);
+exmemset4(void* dst_ptr, uint32 set_val, size_t n_bytes) {
+    uint32* dst = (uint32*)dst_ptr;
+    uint32* dst_end = dst + n_bytes / sizeof(uint32);
     while (dst < dst_end)
         *dst++ = set_val;
     return dst_ptr;
@@ -66,9 +66,9 @@ exmemset4(void* dst_ptr, uint32_t set_val, size_t n_bytes) {
 
 inline void*
 exmemcpy4(void* dst_ptr, const void* src_ptr, size_t n_bytes) {
-    uint32_t* dst = (uint32_t*)dst_ptr;
-    uint32_t* dst_end = dst + n_bytes / sizeof(uint32_t);
-    const uint32_t* src = (const uint32_t*)src_ptr;
+    uint32* dst = (uint32*)dst_ptr;
+    uint32* dst_end = dst + n_bytes / sizeof(uint32);
+    const uint32* src = (const uint32*)src_ptr;
     while (dst < dst_end)
         *dst++ = *src++;
     return dst_ptr;
@@ -76,13 +76,13 @@ exmemcpy4(void* dst_ptr, const void* src_ptr, size_t n_bytes) {
 
 inline void*
 exmemmov4(void* dst_ptr, const void* src_ptr, size_t n_bytes) {
-    uint32_t* dst_end;
-    const uint32_t* src_end;
+    uint32* dst_end;
+    const uint32* src_end;
     if (dst_ptr <= src_ptr)
         return exmemcpy4(dst_ptr, src_ptr, n_bytes);
-    n_bytes /= sizeof(uint32_t);
-    dst_end = (uint32_t*)dst_ptr + n_bytes;
-    src_end = (const uint32_t*)src_ptr + n_bytes;
+    n_bytes /= sizeof(uint32);
+    dst_end = (uint32*)dst_ptr + n_bytes;
+    src_end = (const uint32*)src_ptr + n_bytes;
     while (dst_ptr < dst_end)
         *--dst_end = *--src_end;
     return dst_ptr;
@@ -91,9 +91,9 @@ exmemmov4(void* dst_ptr, const void* src_ptr, size_t n_bytes) {
 inline int
 exmemcmp4(const void* buf1, const void* buf2, size_t n_bytes) {
     int r = 0;
-    const uint32_t* p1 = (const uint32_t*)buf1;
-    const uint32_t* p2 = (const uint32_t*)buf2;
-    const uint32_t* p1_end = p1 + n_bytes / sizeof(uint32_t);
+    const uint32* p1 = (const uint32*)buf1;
+    const uint32* p2 = (const uint32*)buf2;
+    const uint32* p1_end = p1 + n_bytes / sizeof(uint32);
     while (p1 < p1_end) {
         if ((r = *p1 - *p2) != 0)
             break;
@@ -103,11 +103,11 @@ exmemcmp4(const void* buf1, const void* buf2, size_t n_bytes) {
     return r;
 }
 
-inline uint32_t
+inline uint32
 exmemsum4(const void* data, size_t n_bytes) {
-    uint32_t sum4 = 0;
-    const uint32_t* src = (const uint32_t*)data;
-    const uint32_t* src_end = src + n_bytes / sizeof(uint32_t);
+    uint32 sum4 = 0;
+    const uint32* src = (const uint32*)data;
+    const uint32* src_end = src + n_bytes / sizeof(uint32);
     while (src < src_end)
         sum4 += *src++;
     return sum4;

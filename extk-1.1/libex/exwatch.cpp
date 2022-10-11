@@ -11,11 +11,8 @@
 #include <sys/epoll.h>
 #include <assert.h>
 
-#ifdef __GNUC__
-#define dprint0(...)
+#undef dprint1
 #define dprint1(...) printf("ExWatch@" __VA_ARGS__)
-#define dprintf dprint1
-#endif
 
 // Iomux
 //
@@ -70,7 +67,7 @@ const ExWatch::Iomux* ExWatch::IomuxMap::search(int fd) const {
     return iomux;
 }
 
-int ExWatch::IomuxMap::probe(ExCallback& callback, void* cbinfo) {
+int ExWatch::IomuxMap::probe(const ExCallback& callback, void* cbinfo) {
     int r = Ex_Continue;
     #if EX2CONF_ENABLE_IOMUX_LOCK
     watch->wakeup();
@@ -88,7 +85,7 @@ int ExWatch::IomuxMap::probe(ExCallback& callback, void* cbinfo) {
     return r;
 }
 
-int ExWatch::IomuxMap::add(int fd, uint32_t events, const ExNotify& notify) {
+int ExWatch::IomuxMap::add(int fd, uint32 events, const ExNotify& notify) {
     int r = -1;
     #if EX2CONF_ENABLE_IOMUX_LOCK
     watch->wakeup();
@@ -118,7 +115,7 @@ int ExWatch::IomuxMap::add(int fd, uint32_t events, const ExNotify& notify) {
     return r;
 }
 
-int ExWatch::IomuxMap::mod(int fd, uint32_t events, const ExNotify& notify) {
+int ExWatch::IomuxMap::mod(int fd, uint32 events, const ExNotify& notify) {
     int r = -1;
     #if EX2CONF_ENABLE_IOMUX_LOCK
     watch->wakeup();
@@ -179,7 +176,10 @@ int ExWatch::IomuxMap::invoke(int waittick) {
     watch->tickCount = getTickCount(); // update tick
     for (int i = 0; i < cnt; i++) {
         Iomux* iomux = (Iomux*)events[i].data.ptr;
-        int r = iomux->notify(&events[i]);
+        epoll_event ev;
+        ev.data.fd = iomux->fd;
+        ev.events = events[i].events;
+        int r = iomux->notify(&ev);
         if (r & Ex_Halt) {
             return watch->setHalt(r);
         }
@@ -189,13 +189,15 @@ int ExWatch::IomuxMap::invoke(int waittick) {
 
 // Watch thread
 //
-uint32_t ExWatch::getTickCount() {
+uint32 ExWatch::getTickCount() {
     struct timespec ts;
     clock_gettime(CLOCK_MONOTONIC, &ts);
-    uint32_t msec = (uint32_t)(ts.tv_sec * 1000);
-    msec += (uint32_t)(ts.tv_nsec / 1000000);
+    uint32 msec = (uint32)(ts.tv_sec * 1000);
+    msec += (uint32)(ts.tv_nsec / 1000000);
     return msec;
 }
+
+uint32 ExWatch::tickAppLaunch = ExWatch::getTickCount();
 
 void* ExWatch::start(void* arg) {
     ExWatch* watch = (ExWatch*)arg;
@@ -280,24 +282,25 @@ int ExWatch::setHalt(int r)
     return halt |= r;
 }
 
-int ExWatch::getEvent(uint64_t* u) const {
+int ExWatch::getEvent(uint64* u) const {
     int r = 0;
     assert(efd != -1);
-    r = read(efd, u, sizeof(uint64_t));
-    assert(r == sizeof(uint64_t));
-    return r == sizeof(uint64_t) ? 0 : -1;
+    r = read(efd, u, sizeof(uint64));
+    assert(r == sizeof(uint64));
+    return r == sizeof(uint64) ? 0 : -1;
 }
 
-int ExWatch::setEvent(uint64_t u) const {
+int ExWatch::setEvent(uint64 u) const {
     int r = 0;
     assert(efd != -1);
-    r = write(efd, &u, sizeof(uint64_t));
-    assert(r == sizeof(uint64_t));
-    return r == sizeof(uint64_t) ? 0 : -1;
+    r = write(efd, &u, sizeof(uint64));
+    assert(r == sizeof(uint64));
+    return r == sizeof(uint64) ? 0 : -1;
 }
 
 int ExWatch::proc() {
     pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
+    dprint("%s: tickAppLaunch=%d tickCount=%d\n", __func__, tickAppLaunch, tickCount);
     ExCbInfo cbinfo(0);
     enter();
     if (hookStart)
@@ -321,19 +324,14 @@ int ExWatch::proc() {
     return 0;
 }
 
-int ExWatch::onEvent(const epoll_event* event) {
-    Iomux* iomux = (Iomux*)event->data.ptr;
-    dprint0("%s: fd=%d ev=%d ptr=%p\n", __func__, iomux->fd, iomux->event.events, iomux);
-    assert(efd == iomux->fd);
-    uint64_t u64;
-    getEvent(&u64);
-    dprintf("%s: got event %lu\n", __func__, u64);
-
-    #if 0/*EX2CONF_ENABLE_IOMUX_LOCK*/ // tbd - cond wait and signal
-    pthread_cond_wait(&cond, &mutex);
-    ...
-    pthread_cond_signal(&cond);
-    #endif
+int ExWatch::onEvent(epoll_event* ev) {
+    dprint0("%s: fd=%d ev=%d\n", __func__, ev->data.fd, ev->events);
+    assert(efd == ev->data.fd);
+    uint64 u64;
+    if (getEvent(&u64) == 0)
+        dprint0("%s: got event %lu\n", __func__, u64);
+    else
+        dprint1("%s: got event fail.\n", __func__);
 
     return 0;
 }

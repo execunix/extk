@@ -30,7 +30,6 @@
 
 #ifdef _MSC_VER
 #include <limits.h>
-#include <assert.h>
 #include <malloc.h>
 #include <memory.h>
 #include <stdarg.h>
@@ -48,6 +47,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
+#include <cairo/cairo.h>
 #endif
 
 #ifndef STDCALL
@@ -84,19 +84,46 @@ typedef unsigned    char uint8;
 typedef unsigned   short uint16;
 typedef unsigned     int uint32;
 typedef unsigned __int64 uint64;
+#else
+typedef           int8_t int8;
+typedef          int16_t int16;
+typedef          int32_t int32;
+typedef          int64_t int64;
 
+typedef           int8_t sint8;
+typedef          int16_t sint16;
+typedef          int32_t sint32;
+typedef          int64_t sint64;
+
+typedef          uint8_t uint8;
+typedef         uint16_t uint16;
+typedef         uint32_t uint32;
+typedef         uint64_t uint64;
+#endif
 typedef unsigned    char uchar;
 typedef unsigned   short ushort;
 typedef unsigned    long ulong;
 typedef unsigned     int uint;
 
 typedef wchar_t         wchar;
+
+#ifdef _MSC_VER
+//typedef float floatt;
+#else // compat linux
+typedef double floatt;
 #endif
 
 #ifdef _DEBUG
 #ifndef DEBUG
 #define DEBUG 1
 #endif
+#endif
+
+#ifdef __GNUC__
+//#define dprint0(...)
+//#define dprint1(...) printf("ExLib@" __VA_ARGS__)
+//#define exerror dprint1
+//#define dprint dprint1
 #endif
 
 // assertion

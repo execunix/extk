@@ -6,7 +6,7 @@
 #ifndef __exevent_h__
 #define __exevent_h__
 
-#include "extypes.h"
+#include "excallback.h"
 
 // ExEvent
 //
@@ -19,45 +19,6 @@ struct ExEvent {
     MSG         msg;
 
     ExEvent() : hwnd(0), message(0), wParam(0), lParam(0), lResult(0) {}
-};
-
-// Callback Info
-//
-struct ExCbInfo {
-    int         type;
-    int         subtype;
-    ExEvent*    event; // A pointer to a ExEvent structure that describes the event
-                       //   that caused this callback to be invoked.
-    void*       data;  // A pointer to callback-specific data.
-
-    ExCbInfo(int t, int s = 0, ExEvent* e = NULL, void* d = NULL)
-        : type(t), subtype(s), event(e), data(d) {}
-    // pointer
-    ExCbInfo* set(int t, int s, ExEvent* e, void* d = NULL) {
-        type = t; subtype = s; event = e; data = d;
-        return this;
-    }
-    ExCbInfo* set(int t, int s) {
-        type = t; subtype = s;
-        return this;
-    }
-    ExCbInfo* set(int t) {
-        type = t;
-        return this;
-    }
-    // reference
-    ExCbInfo& operator () (int t, int s, ExEvent* e, void* d = NULL) {
-        type = t; subtype = s; event = e; data = d;
-        return *this;
-    }
-    ExCbInfo& operator () (int t, int s) {
-        type = t; subtype = s;
-        return *this;
-    }
-    ExCbInfo& operator () (int t) {
-        type = t;
-        return *this;
-    }
 };
 
 // ExEmit APIs - deprecated => Call the callback function directly.

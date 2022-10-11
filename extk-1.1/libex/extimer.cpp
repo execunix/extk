@@ -14,9 +14,9 @@
 //
 bool ExWatch::TickCompare::operator () (const ExTimer* l, const ExTimer* r) const {
     assert(l->watch != NULL && l->watch == r->watch);
-    uint32_t tick_base = l->watch->tickCount;
-    int32_t ldiff = l->value - tick_base;
-    int32_t rdiff = r->value - tick_base;
+    uint32 tick_base = l->watch->tickCount;
+    int32 ldiff = l->value - tick_base;
+    int32 rdiff = r->value - tick_base;
     return (ldiff < rdiff);
 }
 
@@ -46,7 +46,7 @@ void ExWatch::TimerSet::active(ExTimer* timer) {
     }
 }
 
-int ExWatch::TimerSet::invoke(uint32_t tick_count) {
+int ExWatch::TimerSet::invoke(uint32 tick_count) {
     int waittick;
     while (!empty()) {
         ExTimer* timer = *begin();
@@ -75,7 +75,7 @@ int ExWatch::TimerSet::invoke(uint32_t tick_count) {
         timer->value += timer->repeat;
 #if 1 // To avoid racking caused by matching breakpoints when debugging.
         if ((waittick = timer->value - tick_count) < 1) {
-            //dprintf(L"timer timeout %d\n", -waittick);
+            //dprint(L"timer timeout %d\n", -waittick);
             timer->value = tick_count + 1; // adjust interval
         }
 #endif
@@ -125,7 +125,7 @@ void ExTimer::stop() {
         watch->timerset.remove(this);
 }
 
-void ExTimer::start(uint32_t initial) {
+void ExTimer::start(uint32 initial) {
     stop();
     value = watch->tickCount + initial;
     watch->timerset.active(this);

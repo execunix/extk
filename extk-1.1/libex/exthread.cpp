@@ -6,6 +6,7 @@
 #include "exthread.h"
 #include "exmemory.h"
 #include <algorithm>
+#include <assert.h>
 
 #ifndef TLS_OUT_OF_INDEXES
 #define TLS_OUT_OF_INDEXES 0xFFFFFFFF
