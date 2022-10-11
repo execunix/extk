@@ -18,7 +18,7 @@
 #undef  ABS
 #define ABS(a)                  (((a) < 0) ? -(a) : (a))
 
-ExWatch* exWatchDisp;
+ExWatch* exWatchDisp = NULL;
 
 typedef std::list<ExWindow*> ExWindowList;
 typedef std::map<HWND, ExWindow*> ExWindowMap;
