@@ -210,7 +210,7 @@ int WgtMenu::onFocused(ExWidget* widget, ExCbInfo* cbinfo) {
 
 int WgtMenu::onHandler(ExWidget* widget, ExCbInfo* cbinfo) {
     if (cbinfo->event->message == WM_COMMAND) {
-        dprint(L"WM_COMMAND: %d\n", cbinfo->event->wParam);
+        dprint("WM_COMMAND: %d\n", cbinfo->event->wParam);
         if (cbinfo->event->wParam == IDM_EXIT)
             return Ex_Halt;
         return Ex_Continue;
@@ -251,7 +251,7 @@ int WgtMenu::onFilter(ExWidget* widget, ExCbInfo* cbinfo) {
         int xPos = LOWORD(cbinfo->event->lParam);
         int yPos = HIWORD(cbinfo->event->lParam);
         Menu* menu = findMenu(ExPoint(xPos, yPos));
-        int popcnt = popList.size();
+        int popcnt = (int)popList.size();
         showPopup(menu);
         if (menu) {
             //menu->view->setFlags(Ex_PtrEntered, Ex_BitFalse);
@@ -466,7 +466,7 @@ WgtMenu::Popup* WgtMenu::popup(int x, int y, Menu* link) {
     for (int n = 0; n < link->size; n++) {
         menu->view = &pop->menuPop[n];
         pop->menuPop[n].setData(menu);
-        pop->menuPop[n].init(pop, menu->text);
+        pop->menuPop[n].init(pop, wcs2mbs(menu->text));
         pop->menuPop[n].setFlags(Ex_Selectable | Ex_FocusRender);
         pop->menuPop[n].addListener(this, &WgtMenu::onLayoutVert, Ex_CbLayout);
         pop->menuPop[n].addListener(this, &WgtMenu::onActivate, Ex_CbActivate);
@@ -493,7 +493,7 @@ void WgtMenu::setup() {
     for (int n = 0; n < rootMenu.size; n++) {
         menu->view = &menuBar[n];
         menuBar[n].setData(menu);
-        menuBar[n].init(this, menu->text);
+        menuBar[n].init(this, wcs2mbs(menu->text));
         menuBar[n].setFlags(Ex_Selectable | Ex_AutoHighlight | Ex_FocusRender);
         menuBar[n].addListener(this, &WgtMenu::onLayoutHorz, Ex_CbLayout);
         menuBar[n].addListener(this, &WgtMenu::onActivate, Ex_CbActivate);
@@ -517,7 +517,7 @@ void WgtMenu::fini() {
 }
 
 void WgtMenu::init(ExWindow* window) {
-    ExWidget::init(window, L"WgtMenu");
+    ExWidget::init(window, "WgtMenu");
     this->window = window;
     window->addFilter(this, &WgtMenu::onFilter, 0);
     window->addHandler(this, &WgtMenu::onHandler);

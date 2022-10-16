@@ -19,7 +19,7 @@ public:
 public:
     int start();
     void initEdit(int x, int y, int w, int h);
-    int initBtn(ExWidget* parent, ExWidget* btn, const wchar* name);
+    int initBtn(ExWidget* parent, ExWidget* btn, const char* name);
     int STDCALL onDestroyed(WndTest* w, ExCbInfo* cbinfo);
     int STDCALL onLayout(WndTest* widget, ExCbInfo* cbinfo);
     int STDCALL onActMain(WndTest* widget, ExCbInfo* cbinfo);

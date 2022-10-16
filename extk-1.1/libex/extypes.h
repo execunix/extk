@@ -7,6 +7,8 @@
 #define __extype_h__
 
 #include "exconfig.h"
+#include "exdebug.h"
+#include "exmacro.h"
 #include <new>
 
 // Classes and primitive data types declared in this file

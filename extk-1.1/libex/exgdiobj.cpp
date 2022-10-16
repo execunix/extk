@@ -3,14 +3,14 @@
  * SPDX-License-Identifier:     GPL-2.0+
  */
 
-#ifndef __linux__
-
 #include "exgdiobj.h"
 #include "exwindow.h"
 #include "eximage.h"
 #include <assert.h>
 
-/////////////////////////////////////////////////////////////////////////////
+#ifdef WIN32
+
+ /////////////////////////////////////////////////////////////////////////////
 // class ExGdiBmp
 
 int
@@ -42,7 +42,7 @@ ExGdiBmp::Create(int w, int h, int bpp, const void* lpvBits)
 #endif
     hbmp = CreateDIBSection(NULL, &bmi, DIB_RGB_COLORS, (void**)&bits, NULL, NULL);
     if (hbmp == NULL) {
-        exerror(L"%s - CreateDIBSection fail.\n", __funcw__);
+        exerror("%s - CreateDIBSection fail.\n", __func__);
         return -1;
     }
     GetObject(hbmp, sizeof(bm), &bm);
@@ -71,7 +71,7 @@ ExGdiBmp::Create(ExImage& img, int bpp/*[0:DDB],[15,16,24,32:DIB],[Others:Invali
         ExWndDC wnddc(GetDesktopWindow());
         ExMemDC memdc(wnddc, img.width, img.height);
         if (memdc.hbmMem == NULL) {
-            exerror(L"%s - CreateCompatibleBitmap fail.\n", __funcw__);
+            exerror("%s - CreateCompatibleBitmap fail.\n", __func__);
             return -1;
         }
         BITMAPINFO bmi;
@@ -151,7 +151,7 @@ ExGdiBmp::Create(ExImage& img, int bpp/*[0:DDB],[15,16,24,32:DIB],[Others:Invali
             }
         return 0;
     }
-    exerror(L"%s - invalid param. bpp=%d\n", __funcw__, bpp);
+    exerror("%s - invalid param. bpp=%d\n", __func__, bpp);
     return -1;
 }
 
@@ -365,5 +365,5 @@ ExMemDC::Create(int w, int h, int planes, int bpp, DWORD biCompression)
     return 0;
 }
 
-#endif // __linux__
+#endif // WIN32
 

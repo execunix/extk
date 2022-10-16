@@ -25,41 +25,38 @@
 #ifdef WIN32
 #include <windows.h>
 //#include <stddef.h>
+//#include <stdlib.h>
 //#include <stdio.h>
-#endif
-
-#ifdef _MSC_VER
 #include <limits.h>
 #include <malloc.h>
 #include <memory.h>
-#include <stdarg.h>
-#include <stdlib.h>
-#include <string.h>
-#include <wchar.h>
 #include <float.h>
-#include <cairo.h>
-#include <pixman.h>
-#include "exmacro.h"
-#include "exdebug.h"
-#else // __GNUC__
-#include <stdint.h>
+#else // linux
 #include <stdlib.h>
 #include <stdio.h>
-#include <string.h>
+#include <stdint.h>
 #include <unistd.h>
+#endif
+#include <string.h>
+#include <wchar.h>
+
+#ifdef WIN32
+#include <cairo.h>
+#include <pixman.h>
+#else // linux
 #include <cairo/cairo.h>
 #endif
 
 #ifndef STDCALL
-#ifdef __GNUC__
-#define STDCALL //__attribute__((stdcall)) /* ignored by modern gcc*/
-#else // M$ WIN32
+#if defined(_MSC_VER)
 #define STDCALL __stdcall
+#else //  __GNUC__
+#define STDCALL //__attribute__((stdcall)) /* ignored by modern gcc*/
 #endif
 #endif /* STDCALL */
 
 #define EX2CONF_LAMBDA_CALLBACK 1
-#if defined(_MSC_VER) || defined(ARCH_ARM)
+#if defined(_MSC_VER) || defined(STDCPP_EABI)
 #define EX2CONF_DISABLE_STDCALL 0
 #else
 #define EX2CONF_DISABLE_STDCALL 1
@@ -69,7 +66,7 @@
 extern "C" {
 #endif
 
-#ifdef _MSC_VER
+#if defined(_MSC_VER)
 typedef             char int8;
 typedef            short int16;
 typedef              int int32;
@@ -107,7 +104,7 @@ typedef unsigned     int uint;
 
 typedef wchar_t         wchar;
 
-#ifdef _MSC_VER
+#if defined(_MSC_VER)
 //typedef float floatt;
 #else // compat linux
 typedef double floatt;
@@ -117,13 +114,17 @@ typedef double floatt;
 #ifndef DEBUG
 #define DEBUG 1
 #endif
+#else
+#ifdef _DISABLE_STD_ASSERTION
+#define NDEBUG 1
+#endif
 #endif
 
-#ifdef __GNUC__
-//#define dprint0(...)
-//#define dprint1(...) printf("ExLib@" __VA_ARGS__)
-//#define exerror dprint1
-//#define dprint dprint1
+#if 0//def __GNUC__
+#define dprint0(...)
+#define dprint1(...) printf("ExLib@" __VA_ARGS__)
+#define exerror dprint1
+#define dprint dprint1
 #endif
 
 // assertion

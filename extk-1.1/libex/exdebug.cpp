@@ -6,37 +6,54 @@
 #include "exdebug.h"
 #include <stdio.h>
 
-#define vdprintf debug_vprintf
-
-int debug_vprintf(int lvl, const wchar_t* fmt, va_list arg);
-int debug_vprintf(int lvl, const char* fmt, va_list arg);
+#ifdef WIN32
+#define swprintf _snwprintf
+#define vswprintf _vsnwprintf
+#endif
 
 static int
-debug_handler(int lvl, const wchar_t* str) {
-    OutputDebugString(str);
+dprint_handler(int lvl, const char* mbs) {
+#ifdef WIN32
+    OutputDebugStringA(mbs);
+#else
+    puts(mbs);
+#endif
     return lvl;
 }
 
-int            dprintf_verbose = 999;
-int            dprintf_charset = 949;
-const wchar_t* dprintf_appname = L"[*] ";
-int(*ex_debug_handler)(int lvl, const wchar_t* str) = &debug_handler;
+int         dprint_verbose = 999;
+int         dprint_charset = 949;
+const char* dprint_appname = "[*] ";
+int(*ex_dprint_handler)(int lvl, const char* mbs) = &dprint_handler;
 
 int
-debug_vprintf(int lvl, const wchar_t* fmt, va_list arg)
+debug_vprintf(int lvl, const wchar* fmt, va_list arg)
 {
     if (lvl == 0) return 0;
-    if (dprintf_verbose < (lvl < 0 ? -lvl : lvl)) return 0;
+    if (dprint_verbose < (lvl < 0 ? -lvl : lvl)) return 0;
     int r = 0;
-    wchar_t buf[1024 + 1];
-    if (dprintf_appname && lvl > 0) {
-        r = _snwprintf(buf, 1024, L"%s", dprintf_appname);
+    wchar wcs[1024 + 1];
+    if (dprint_appname && lvl > 0) {
+#ifdef WIN32
+        r = swprintf(wcs, 1024, L"%S", dprint_appname);
+#else
+        r = swprintf(wcs, 1024, L"%s", dprint_appname);
+#endif
         if (r < 0) r = 0;
     }
-    int len = _vsnwprintf(buf + r, 1024 - r, fmt, arg);
+    int len = vswprintf(wcs + r, 1024 - r, fmt, arg);
     if (len < 0) len = 0;
-    buf[len += r] = 0;
-    r = ex_debug_handler(lvl, buf);
+    wcs[len += r] = 0;
+
+    char mbs[1024 + 1];
+#ifdef WIN32
+    len = WideCharToMultiByte(dprint_charset, 0, wcs, len, mbs, 1024, NULL, NULL);
+#else
+    len = wcstombs(mbs, wcs, 1024); if (len < 0) len = 0;
+#endif
+    mbs[len] = 0;
+
+    r = ex_dprint_handler(lvl, mbs);
     return r;
 }
 
@@ -44,20 +61,23 @@ int
 debug_vprintf(int lvl, const char* fmt, va_list arg)
 {
     if (lvl == 0) return 0;
-    if (dprintf_verbose < (lvl < 0 ? -lvl : lvl)) return 0;
-    char buf[1024 + 1];
-    int len = _vsnprintf(buf, 1024, fmt, arg);
+    if (dprint_verbose < (lvl < 0 ? -lvl : lvl)) return 0;
+    int r = 0;
+    char mbs[1024 + 1];
+    if (dprint_appname && lvl > 0) {
+        r = snprintf(mbs, 1024, "%s", dprint_appname);
+        if (r < 0) r = 0;
+    }
+    int len = vsnprintf(mbs, 1024, fmt, arg);
     if (len < 0) len = 0;
-    buf[len] = 0;
-    wchar_t wcs[1024 + 1];
-    len = MultiByteToWideChar(dprintf_charset, 0, buf, len, wcs, 1024);
-//	len = mbstowcs(wcs, buf, 1024); if (len < 0) len = 0;
-    wcs[len] = 0;
-    return debug_printf(lvl, wcs);
+    mbs[len += r] = 0;
+
+    r = ex_dprint_handler(lvl, mbs);
+    return r;
 }
 
 int
-debug_printf(int lvl, const wchar_t* fmt, ...)
+debug_print(int lvl, const wchar* fmt, ...)
 {
     va_list arg;
     va_start(arg, fmt);
@@ -67,7 +87,7 @@ debug_printf(int lvl, const wchar_t* fmt, ...)
 }
 
 int
-debug_printf(int lvl, const char* fmt, ...)
+debug_print(int lvl, const char* fmt, ...)
 {
     va_list arg;
     va_start(arg, fmt);
@@ -77,7 +97,7 @@ debug_printf(int lvl, const char* fmt, ...)
 }
 
 int
-debug_printf(const wchar_t* fmt, ...)
+debug_print(const wchar* fmt, ...)
 {
     va_list arg;
     va_start(arg, fmt);
@@ -87,7 +107,7 @@ debug_printf(const wchar_t* fmt, ...)
 }
 
 int
-debug_printf(const char* fmt, ...)
+debug_print(const char* fmt, ...)
 {
     va_list arg;
     va_start(arg, fmt);
@@ -117,30 +137,41 @@ const char* strerror(int errval) { // tbd
     return "syserr";
 }
 
-const wchar_t* _wcserror(int errval) { // tbd
+const wchar* _wcserror(int errval) { // tbd
     return L"syserr";
 }
 #endif//_WIN32_WCE
 
 static int
-error_handler(const wchar_t* msg) {
-    dprint1(L"err: %s", msg);
+error_handler(const char* mbs) {
+    dprint1("err: %s", mbs);
+#ifdef WIN32
     //DebugBreak();
+#endif
     return -1;
 }
 
-int(*ex_error_handler)(const wchar_t* msg) = &error_handler;
+int(*ex_error_handler)(const char* mbs) = &error_handler;
 
 int
-exerror(const wchar_t* fmt, ...)
+exerror(const wchar* fmt, ...)
 {
     va_list arg;
     va_start(arg, fmt);
-    wchar_t buf[1024 + 1];
-    int len = _vsnwprintf(buf, 1024, fmt, arg);
+    wchar wcs[1024 + 1];
+    int len = vswprintf(wcs, 1024, fmt, arg);
     if (len < 0) len = 0;
-    buf[len] = 0;
-    int r = ex_error_handler(buf);
+    wcs[len] = 0;
+
+    char mbs[1024 + 1];
+#ifdef WIN32
+    len = WideCharToMultiByte(dprint_charset, 0, wcs, len, mbs, 1024, NULL, NULL);
+#else
+    len = wcstombs(mbs, wcs, 1024); if (len < 0) len = 0;
+#endif
+    mbs[len] = 0;
+
+    int r = ex_error_handler(mbs);
     va_end(arg);
     return r;
 }
@@ -150,15 +181,12 @@ exerror(const char* fmt, ...)
 {
     va_list arg;
     va_start(arg, fmt);
-    char buf[1024 + 1];
-    int len = _vsnprintf(buf, 1024, fmt, arg);
+    char mbs[1024 + 1];
+    int len = vsnprintf(mbs, 1024, fmt, arg);
     if (len < 0) len = 0;
-    buf[len] = 0;
-    wchar_t wcs[1024 + 1];
-    len = MultiByteToWideChar(dprintf_charset, 0, buf, len, wcs, 1024);
-    wcs[len] = 0;
-    int r = ex_error_handler(wcs);
+    mbs[len] = 0;
+
+    int r = ex_error_handler(mbs);
     va_end(arg);
     return r;
 }
-

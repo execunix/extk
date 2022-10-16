@@ -9,7 +9,7 @@
 // impl. no clip, no mask, support 32bpp only but fast
 
 void ExImage::fillBoxAlphaEx(const ExBox* box, uint8 alpha, uint8 a_out) {
-    dprint(L"%s\n", __funcw__);
+    dprint("%s\n", __func__);
     if (!(this->bits && this->bpp == 32))
         return;
     ExBox bx;
@@ -88,7 +88,7 @@ void ExImage::fillBoxAlpha(const ExBox* box, uint8 alpha) {
 
 void ExImage::fillBoxRgbEx(const ExBox* box, uint32 rgb, uint32 rgb_out)
 {
-    dprint(L"%s\n", __funcw__);
+    dprint("%s\n", __func__);
     if (!(this->bits && this->bpp == 32))
         return;
     ExBox bx;
@@ -166,7 +166,7 @@ void ExImage::fillBoxRgb(const ExBox* box, uint32 rgb) {
 }
 
 void ExImage::fillBoxEx(const ExBox* box, uint32 color, uint32 c_out) {
-    dprint(L"%s\n", __funcw__);
+    dprint("%s\n", __func__);
     if (!(this->bits && this->bpp == 32))
         return;
     ExBox bx;

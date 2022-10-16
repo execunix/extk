@@ -113,26 +113,31 @@ protected:
     ExWidget* childTail() {
         return childHead ? childHead->broPrev : NULL;
     }
-    wchar*      name;
+    char*       name;
     // ExLayoutInfo
     ExBox       extent;     // the origin is the nearest canvas. intersect with parent
     ExBox       select;     // read-only
-    //ExPoint     deploy;     // tbd - translate to window
+    ExPoint     deploy;     // tbd - translate to window
     ExPoint     origin;     // translate to the nearest canvas.
     ExRegion    damageRgn;  // the origin is the nearest canvas.
     ExRegion    exposeRgn;  // the origin is the nearest canvas. visible or repair
     ExRegion    opaqueRgn;  // the origin is the widget's left-top.
     int         flags;      // Common flags used by all widgets.
+    int         _ra_1;      // reserved for align
     void*       data;       // This resource is used internally by FrameWorks as well as by compound widgets.
 public:
-    ExRect      area;
+    ExDrawFunc  drawFunc;   // Function for draw
+    ExRect      area;       // relative to the parent
     int         id;         // identity, index, etc.
     int         value;      // estimate, evaluate, etc.
     int         shape;      // flags for the widget shape
     int         state;      // flags for the widget state
     void*       style;      // Storing style struct
-    void*       userdata;   // Storing arbitrary user data
-    ExDrawFunc  drawFunc;   // Function for draw
+    union {                 // Storing arbitrary user data
+        mutable uint64 u64[4];
+        mutable uint32 u32[8];
+        mutable  void* ptr[4];
+    } /*userdata*/;
 public:
     virtual ~ExWidget();
     explicit ExWidget();
@@ -157,8 +162,8 @@ public:
     void dumpBackToFront(ExWidget* end = NULL);
     void dumpFrontToBack(ExWidget* end = NULL);
 
-    int init(ExWidget* parent, const wchar* name = NULL, const ExRect* area = NULL);
-    static ExWidget* create(ExWidget* parent, const wchar* name = NULL, const ExRect* area = NULL);
+    int init(ExWidget* parent, const char* name = NULL, const ExRect* area = NULL);
+    static ExWidget* create(ExWidget* parent, const char* name = NULL, const ExRect* area = NULL);
     virtual int destroy(); // the widget family hierarchy marks Ex_Destroyed, broadcast Ex_CbDestroyed
 #if 1 // deprecated - traditional legacy compatibility.
     virtual int realize(); // visible widgets only, marks Ex_Realized and broadcast Ex_CbRealized.
@@ -193,8 +198,8 @@ public:
     ExWidget* getChildTail() { return childHead ? childHead->broPrev : NULL; }
     ExWidget* getBroPrev() { return (this != parent->getChildHead()) ? broPrev : NULL; }
     ExWidget* getBroNext() { return (this != parent->getChildTail()) ? broNext : NULL; }
-    const wchar* getName() const { return name ? name : L"(null)"; }
-    void         setName(const wchar* text);
+    const char* getName() const { return name ? name : "(null)"; }
+    void        setName(const char* text);
     void* getData() const { return data; }
     void  setData(void* p) { data = p; }
     ExBox& getBox(ExBox& bx) const; // for event processing

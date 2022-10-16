@@ -21,7 +21,7 @@ void ExCairo::set_region(const ExRegion* srcrgn) {
     //cairo_reset_clip(cr); // tbd
     assert(!srcrgn->empty());
     if (srcrgn->empty()) {
-        dprint(L"srcrgn empty\n");
+        dprint("srcrgn empty\n");
         cairo_rectangle(cr,
                         -1, -1, 1, 1);
         return;

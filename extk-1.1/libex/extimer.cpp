@@ -75,7 +75,7 @@ int ExWatch::TimerSet::invoke(uint32 tick_count) {
         timer->value += timer->repeat;
 #if 1 // To avoid racking caused by matching breakpoints when debugging.
         if ((waittick = timer->value - tick_count) < 1) {
-            //dprint(L"timer timeout %d\n", -waittick);
+            //dprint("timer timeout %d\n", -waittick);
             timer->value = tick_count + 1; // adjust interval
         }
 #endif

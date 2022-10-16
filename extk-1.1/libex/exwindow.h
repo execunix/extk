@@ -51,8 +51,8 @@ protected: // now allow new & delete
 public:
     virtual ~ExWindow();
     explicit ExWindow();
-    int init(const wchar* name, int w, int h);
-    static ExWindow* create(const wchar* name, int w, int h);
+    int init(const char* name, int w, int h);
+    static ExWindow* create(const char* name, int w, int h);
     virtual int destroy();
     int showWindow(DWORD dwExStyle, DWORD dwStyle, int x = CW_USEDEFAULT, int y = CW_USEDEFAULT);
     int showWindow(); // ShowWindow(hwnd, SW_SHOWNORMAL); flush();
@@ -65,10 +65,10 @@ protected:
         this->~ExWindow(); // nonvirtual explicit destructor calls
         new (this) ExWindow(); // nonvirtual explicit constructor calls
     }
-    ExThreadMutex mutex;
+    //ExThreadMutex mutex;
 public:
-    void enter() { mutex.lock(); }
-    void leave() { mutex.unlock(); }
+    //void enter() { mutex.lock(); }
+    //void leave() { mutex.unlock(); }
     HWND getHwnd() const { return this ? hwnd : NULL; }
     ExWidget* giveFocus(ExWidget* newFocus);
     ExWidget* moveFocus(int dir); // sample
@@ -147,7 +147,7 @@ public:
 protected:
     virtual int basicWndProc(ExCbInfo* cbinfo);
     static LRESULT CALLBACK sysWndProc(HWND, UINT, WPARAM, LPARAM);
-    static LPCTSTR getClassName() { return *getStaticTypeInfo(); }
+    static LPCTSTR getClassName() { return L"ExWindow"; }
     static ATOM classInit(HINSTANCE hInstance);
 public:
     friend class ExWidget;

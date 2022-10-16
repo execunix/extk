@@ -11,12 +11,12 @@
 /* Emulate The C++ RTTI(Run-Time Type Info)
  */
 class ExTypeInfo {
-    const wchar* name;
+    const char* name;
     const ExTypeInfo* base;
 public:
-    explicit ExTypeInfo(const wchar* name, const ExTypeInfo* base)
+    explicit ExTypeInfo(const char* name, const ExTypeInfo* base)
         : name(name), base(base) {}
-    operator const wchar* () const { return name; }
+    operator const char* () const { return name; }
     bool isBase(const ExTypeInfo* type) const {
         for (const ExTypeInfo* t = this; t; t = t->base)
             if (t == type) return true;
@@ -31,7 +31,7 @@ protected:
     virtual ~ExObject() {}
     explicit ExObject() {}
 public:
-    const wchar* getTypeName() const {
+    const char* getTypeName() const {
         return *getDynamicTypeInfo();
     }
 public:
@@ -39,7 +39,7 @@ public:
         return getStaticTypeInfo();
     }
     static const ExTypeInfo* getStaticTypeInfo() {
-        static ExTypeInfo typeinfo(L"ExObject", NULL);
+        static ExTypeInfo typeinfo("ExObject", NULL);
         return &typeinfo;
     }
 };
@@ -48,7 +48,7 @@ public:
     virtual const ExTypeInfo* getDynamicTypeInfo() const { \
         return getStaticTypeInfo(); } \
     static const ExTypeInfo* getStaticTypeInfo() { \
-        static ExTypeInfo typeinfo(L#ClassName, BaseClass::getStaticTypeInfo()); \
+        static ExTypeInfo typeinfo(#ClassName, BaseClass::getStaticTypeInfo()); \
         return &typeinfo; }
 
 // Emulate dynamic_cast<T>(obj)

@@ -81,20 +81,26 @@ SOFTWARE.
             (id_rgn)->extent.y2 = (r)->y2; \
     }
 
-#define GROW_REGION(rgn, n_boxes) { \
-        if ((n_boxes) == 0) { \
+#define GROW_REGION(rgn, nbxes) { \
+        if ((nbxes) == 0) { \
             if ((rgn)->boxes != &(rgn)->extent) { \
                 free((rgn)->boxes); \
                 (rgn)->boxes = &(rgn)->extent; \
             } \
         } else \
         if ((rgn)->boxes == &(rgn)->extent) { \
-            (rgn)->boxes = (ExBox*)malloc(sizeof(ExBox) * n_boxes); \
+            (rgn)->boxes = (ExBox*)malloc(sizeof(ExBox) * nbxes); \
             (rgn)->boxes[0] = (rgn)->extent; \
         } else { \
-            (rgn)->boxes = (ExBox*)realloc((rgn)->boxes, sizeof(ExBox) * n_boxes); \
+            ExBox* tmpboxes = (ExBox*)malloc(sizeof(ExBox) * nbxes); \
+            for (int i = 0; i < (rgn)->n_boxes; i++) \
+                tmpboxes[i] = (rgn)->boxes[i]; \
+            free((rgn)->boxes); \
+            (rgn)->boxes = tmpboxes; \
+            /* warning: non-trivially */ \
+            /* (rgn)->boxes = (ExBox*)realloc((rgn)->boxes, sizeof(ExBox) * nbxes); */ \
         } \
-        (rgn)->size = (n_boxes); \
+        (rgn)->size = (nbxes); \
     }
 
 /*

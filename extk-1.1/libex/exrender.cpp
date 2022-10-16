@@ -210,11 +210,11 @@ static int test1(void*, ExWidget* w, ExCbInfo* cbinfo) {
     if (cbinfo->type != Ex_CbEnumEnter)
         return Ex_Continue;
     if (!w->getFlags(Ex_Visible)) {
-        dprint(L"%s [%d,%d-%dx%d] invisible\n", w->getName(),
+        dprint("%s [%d,%d-%dx%d] invisible\n", w->getName(),
                w->area.x, w->area.y, w->area.w, w->area.h);
         return Ex_Discard;
     }
-    dprint(L"%s [%d,%d-%dx%d] visible\n", w->getName(),
+    dprint("%s [%d,%d-%dx%d] visible\n", w->getName(),
            w->area.x, w->area.y, w->area.w, w->area.h);
     return Ex_Continue;
 }

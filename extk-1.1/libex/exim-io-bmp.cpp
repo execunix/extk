@@ -113,7 +113,7 @@ int ExImage::loadBmp(HANDLE hFile, const wchar* fname, bool query)
     return 0;
 
 bmp_cleanup:
-    exerror(L"%s(%s) - error.\n", __funcw__, fname);
+    exerror("%s(%s) - error.\n", __func__, fname);
     if (src_buf)
         delete[] src_buf;
     this->clear();

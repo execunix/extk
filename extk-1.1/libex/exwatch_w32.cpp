@@ -74,7 +74,7 @@ int ExWatch::IomuxMap::add(HANDLE handle, const ExNotify& notify, int pos) {
         count--;
     }
     if (count >= MAXIMUM_WAIT_OBJECTS) {
-        exerror(L"%s fail. count=%d\n", __funcw__, count);
+        exerror("%s fail. count=%d\n", __func__, count);
         return -1;
     }
     int cnt = 0;
@@ -102,7 +102,7 @@ int ExWatch::IomuxMap::add(HANDLE handle, const ExNotify& notify) {
         count--;
     }
     if (count >= MAXIMUM_WAIT_OBJECTS) {
-        exerror(L"%s fail. count=%d\n", __funcw__, count);
+        exerror("%s fail. count=%d\n", __func__, count);
         return -1;
     }
     count++;
@@ -121,7 +121,7 @@ int ExWatch::IomuxMap::del(HANDLE handle) {
         ExWatch::Iomux* input = &*i;
         if (input->handle == handle) {
             if (input->fRemoved) {
-                exerror(L"%s warn. already removed\n", __funcw__);
+                exerror("%s warn. already removed\n", __func__);
                 return -1;
             }
             input->fRemoved = 1;
@@ -132,7 +132,7 @@ int ExWatch::IomuxMap::del(HANDLE handle) {
             return 0;
         }
     }
-    exerror(L"%s fail. invalid input\n", __funcw__);
+    exerror("%s fail. invalid input\n", __func__);
     return -1;
 }
 
@@ -156,18 +156,18 @@ int ExWatch::IomuxMap::invoke(int waittick) {
     watch->tickCount = GetTickCount(); // update tick
 
     if (dwWaitRet == WAIT_TIMEOUT) {
-        dprint0(L"IomuxMap: nCount=%d WAIT_TIMEOUT\n", nCount);
+        dprint0("IomuxMap: nCount=%d WAIT_TIMEOUT\n", nCount);
         return 0; // no messages are available
     }
 #if !defined(EVENTPROC_HAVETHREAD)
     if (dwWaitRet == WAIT_OBJECT_0 + nCount) {
-        dprint0(L"IomuxMap: nCount=%d GOT_GWES_MSG\n", nCount);
+        dprint0("IomuxMap: nCount=%d GOT_GWES_MSG\n", nCount);
         return 1; // got message from gwes
     }
 #endif
     if (dwWaitRet >= WAIT_OBJECT_0 &&
         dwWaitRet < (WAIT_OBJECT_0 + nCount)) {
-        dprint(L"IomuxMap: dwWaitRet=%p nCount=%d\n", dwWaitRet, nCount);
+        dprint("IomuxMap: dwWaitRet=%p nCount=%d\n", dwWaitRet, nCount);
         int cnt = 1;
         iterator i = begin();
         for (DWORD n = 0; n < nCount; n++) {
@@ -193,7 +193,7 @@ int ExWatch::IomuxMap::invoke(int waittick) {
         }
         return cnt; // got input signal
     }
-    exerror(L"IomuxMap: dwWaitRet=%p GetLastError=0x%p\n", dwWaitRet, GetLastError());
+    exerror("IomuxMap: dwWaitRet=%p GetLastError=0x%p\n", dwWaitRet, GetLastError());
     return -1; // error
 }
 
@@ -221,10 +221,10 @@ int ExWatch::fini() {
         setHalt(Ex_Halt);
         leave();
         if (WaitForSingleObject(hThread, INFINITE) == WAIT_FAILED)
-            exerror(L"%s - WaitForSingleObject fail.\n", __funcw__);
+            exerror("%s - WaitForSingleObject fail.\n", __func__);
         enter();
         if (CloseHandle(hThread) == 0)
-            exerror(L"%s - CloseHandle fail.\n", __funcw__);
+            exerror("%s - CloseHandle fail.\n", __func__);
         hThread = NULL;
     }
     iomuxmap.fini();
@@ -249,7 +249,7 @@ int ExWatch::init(size_t stacksize) {
     tickCount = GetTickCount(); // update tick
 
     hThread = CreateThread(NULL, stacksize, start, this, 0, &idThread);
-    dprint1(L"CreateThread: hThread=%p idThread=%p\n", hThread, idThread);
+    dprint1("CreateThread: hThread=%p idThread=%p\n", hThread, idThread);
     assert(hThread != NULL);
 
     return r;
@@ -262,7 +262,7 @@ int ExWatch::enter() const {
         dwWaitRet = WaitForSingleObject(mutex, 3000);
         if (dwWaitRet == WAIT_OBJECT_0)
             break;
-        exerror(L"ExWatch::enter(TID=%p) %s %d\n", GetCurrentThreadId(),
+        exerror("ExWatch::enter(TID=%p) %s %d\n", GetCurrentThreadId(),
                 dwWaitRet == WAIT_TIMEOUT ? L"WAIT_TIMEOUT" : L"WAIT_FAILED", i);
     }
 #else

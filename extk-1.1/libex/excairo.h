@@ -6,16 +6,13 @@
 #ifndef __excairo_h__
 #define __excairo_h__
 
-#include "exconfig.h"
 #include "excanvas.h"
 #include "exgeomet.h"
 
-#ifdef _MSC_VER
-//typedef float floatt;
+#ifdef WIN32
 // float-32 divide 8bit value
 #define FD8V(v) ((v) / 255.f)
 #else // compat linux
-typedef double floatt;
 // float-64 divide 8bit value
 #define FD8V(v) ((v) / 255.)
 #endif

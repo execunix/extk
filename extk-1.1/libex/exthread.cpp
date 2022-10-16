@@ -44,7 +44,7 @@ ExThreadInitWin32Impl()
     self->priority = GetThreadPriority(self->hThread); // ExThread::PrioNormal
 #endif
     self->joinable = false; // tbd
-    dprint1(L"ExMainThread: hThread=%p idThread=%p priority=%d joinable=%d\n",
+    dprint1("ExMainThread: hThread=%p idThread=%p priority=%d joinable=%d\n",
             self->hThread, self->idThread, self->priority, self->joinable);
     TlsSetValue(exThreadSelfTls, self);
 }
@@ -146,7 +146,7 @@ bool ExThread::Cond::timedWait(Mutex* enteredMutex, ExTimeVal* absTime) {
 int ExThread::join(int wait) {
     assert(this->hThread);
     if (this->joinable == false) {
-        exerror(L"%s - not joinable.\n", __funcw__);
+        exerror("%s - not joinable.\n", __func__);
         return -1;
     }
 #if 0 // tbd - here or user ?
@@ -154,12 +154,12 @@ int ExThread::join(int wait) {
     ExWakeupMainThread();
 #endif
     if (WaitForSingleObject(this->hThread, wait) == WAIT_FAILED)
-        exerror(L"%s - WaitForSingleObject fail.\n", __funcw__);
+        exerror("%s - WaitForSingleObject fail.\n", __func__);
 #if 0 // tbd - here or user ?
     ExEnter();
 #endif
     if (CloseHandle(this->hThread) == 0)
-        exerror(L"%s - CloseHandle fail.\n", __funcw__);
+        exerror("%s - CloseHandle fail.\n", __func__);
     this->joinable = false;
     this->hThread = NULL;
     return 0;
@@ -169,7 +169,7 @@ int ExThread::create(Proc& proc, bool joinable) {
     this->userproc = proc;
     this->joinable = joinable;
     hThread = CreateThread(NULL, 0, ExThreadProcWin32Impl, this, 0, &idThread);
-    dprint1(L"CreateThread: hThread=%p idThread=%p\n", hThread, idThread);
+    dprint1("CreateThread: hThread=%p idThread=%p\n", hThread, idThread);
     return hThread == NULL ? -1 : 0;
 }
 
@@ -219,7 +219,7 @@ ExEnter()
         dwWaitRet = WaitForSingleObject(exLibMutex, 3000);
         if (dwWaitRet == WAIT_OBJECT_0)
             break;
-        exerror(L"ExEnter(TID=%p) %s %d\n", GetCurrentThreadId(),
+        exerror("ExEnter(TID=%p) %s %d\n", GetCurrentThreadId(),
                 dwWaitRet == WAIT_TIMEOUT ? L"WAIT_TIMEOUT" : L"WAIT_FAILED", i);
     }
 }
@@ -284,7 +284,7 @@ void
 ExFiniProcess()
 {
     ExThreadFiniWin32Impl();
-    dprint1(L"ExFiniProcess(%s\\%s) %p\n", exModulePath, exModuleName, exLibMutex);
+    dprint1("ExFiniProcess(%s\\%s) %p\n", exModulePath, exModuleName, exLibMutex);
     ExLeave();
     CloseHandle(exLibMutex);
     assert(exModulePath != NULL);
@@ -309,7 +309,7 @@ ExInitProcess()
     exModulePath = exwcsdup(buf);
     exModuleName = exwcsdup(buf + len + 1);
     ExEnter();
-    dprint1(L"ExInitProcess(%s\\%s) %p\n", exModulePath, exModuleName, exLibMutex);
+    dprint1("ExInitProcess(%s\\%s) %p\n", exModulePath, exModuleName, exLibMutex);
     ExThreadInitWin32Impl();
 }
 

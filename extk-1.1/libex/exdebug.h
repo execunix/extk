@@ -6,7 +6,7 @@
 #ifndef __exdebug_h__
 #define __exdebug_h__
 
-#include "exconfig.h"
+#include "extypes.h"
 #include <stdarg.h>
 
 #ifndef _WIN32_WCE
@@ -75,7 +75,7 @@ errno_t __cdecl _get_errno(__out int * _Value);
 #define EDEADLOCK       EDEADLK
 
 const char* strerror(int errval);
-const wchar_t* _wcserror(int errval);
+const wchar* _wcserror(int errval);
 
 #ifdef __cplusplus
 }
@@ -83,28 +83,28 @@ const wchar_t* _wcserror(int errval);
 
 #endif//_WIN32_WCE
 
-extern int            dprintf_verbose; // default 999
-extern int            dprintf_charset; // default 949
-extern const wchar_t* dprintf_appname; // default L"[*] "
-extern int(*ex_debug_handler)(int lvl, const wchar_t* str);
+extern int         dprint_verbose; // default 999
+extern int         dprint_charset; // default 949
+extern const char* dprint_appname; // default "[*] "
+extern int(*ex_dprint_handler)(int lvl, const char* mbs);
 
-#ifndef __GNUC__
-#define __attribute__(x)
-#endif//__GNUC__
-int debug_printf(int lvl, const wchar_t* fmt, ...) __attribute__((format(printf, 2, 3)));
-int debug_printf(int lvl, const char* fmt, ...) __attribute__((format(printf, 2, 3)));
-int debug_printf(const wchar_t* fmt, ...) __attribute__((format(printf, 1, 2)));
-int debug_printf(const char* fmt, ...) __attribute__((format(printf, 1, 2)));
+int debug_vprintf(int lvl, const wchar* fmt, va_list arg);
+int debug_vprintf(int lvl, const char* fmt, va_list arg);
+
+int debug_print(int lvl, const wchar* fmt, ...);
+int debug_print(int lvl, const char* fmt, ...);
+int debug_print(const wchar* fmt, ...);
+int debug_print(const char* fmt, ...);
 
 #if defined(_MSC_VER) && (_MSC_VER < 1400) // M$ eVC4
 #define dprint0 0 && (*(int(*)(...))0)
-#define dprint1 debug_printf
+#define dprint1 debug_print
 #else // std C99
 #define dprint0(...) ((void)0)
-#define dprint1(...) debug_printf(__VA_ARGS__)
+#define dprint1(...) debug_print(__VA_ARGS__)
 #endif
 
-#ifndef DPRINTF
+#ifndef DPRINT
 #define dprint dprint0
 #else
 #define dprint dprint1
@@ -115,8 +115,52 @@ int debug_printf(const char* fmt, ...) __attribute__((format(printf, 1, 2)));
  * in error_handler() to generate a stack trace for when the user causes
  * exlib to detect an error.
  */
-extern int(*ex_error_handler)(const wchar_t* msg);
-int exerror(const wchar_t* fmt, ...);
+extern int(*ex_error_handler)(const char* mbs);
+int exerror(const wchar* fmt, ...);
 int exerror(const char* fmt, ...);
+
+// classes
+//
+class wcs2mbs {
+public:
+    char* mbs;
+    //wchar* wcs;
+    ~wcs2mbs() {
+        if (mbs) free(mbs);
+        //if (wcs) free(wcs);
+    }
+    wcs2mbs(const wchar* wcs) : mbs(NULL)/*, wcs(NULL)*/ {
+        //this->wcs = _wcsdup(wcs);
+        int len = (int)wcslen(wcs);
+        if ((mbs = (char*)malloc(len * 2 + 1)) == NULL) {
+            mbs = _strdup("(emem)");
+            return;
+        }
+        len = WideCharToMultiByte(dprint_charset, 0, wcs, len, mbs, len * 2, NULL, NULL);
+        mbs[len] = 0;
+    }
+    operator char* () { return mbs; }
+};
+
+class mbs2wcs {
+public:
+    //char* mbs;
+    wchar* wcs;
+    ~mbs2wcs() {
+        //if (mbs) free(mbs);
+        if (wcs) free(wcs);
+    }
+    mbs2wcs(const char* mbs) : /*mbs(NULL), */wcs(NULL) {
+        //this->mbs = _strdup(mbs);
+        int len = (int)strlen(mbs);
+        if ((wcs = (wchar*)malloc(len * 2 + 2)) == NULL) {
+            wcs = _wcsdup(L"(emem)");
+            return;
+        }
+        len = MultiByteToWideChar(dprint_charset, 0, mbs, len, wcs, len * 2);
+        wcs[len] = 0;
+    }
+    operator wchar* () { return wcs; }
+};
 
 #endif//__exdebug_h__

@@ -139,7 +139,7 @@ void* ExModalBlock(ExModalCtrl* ctrl, long flags) {
     ctrl->next = NULL;
     while (exWatchDisp->getHalt() == 0 && (ctrl->flags & 0x80000000)) {
         waittick = ExTimerListInvoke(exTickCount);
-        dprint0(L"waittick=%d\n", waittick);
+        dprint0("waittick=%d\n", waittick);
         if (exWatchDisp->getHalt()) // is halt ?
             break; // stop event loop
         if (ExApp::mainWnd != NULL)
@@ -152,7 +152,7 @@ void* ExModalBlock(ExModalCtrl* ctrl, long flags) {
             if (event.msg.message == WM_ExEvWake)
                 break;
             if (event.msg.message == WM_QUIT) { // WM_DESTROY => PostQuitMessage
-                dprint(L"message == WM_QUIT tick=%d\n", exTickCount);
+                dprint("message == WM_QUIT tick=%d\n", exTickCount);
                 ExApp::retCode = (int)event.msg.wParam; // cause DestroyWindow
                 exWatchDisp->setHalt(Ex_Halt); // stop event loop
                 break;
@@ -183,7 +183,7 @@ void ExMainLoop() {
         if (event.msg.message == WM_ExEvWake)
             continue;
         if (event.msg.message == WM_QUIT) { // WM_DESTROY => PostQuitMessage
-            dprint(L"message == WM_QUIT tick=%d\n", exTickCount);
+            dprint("message == WM_QUIT tick=%d\n", exTickCount);
             ExApp::retCode = (int)event.msg.wParam; // cause DestroyWindow
             exWatchDisp->setHalt(Ex_Halt); // stop event loop
             break;
@@ -229,9 +229,9 @@ void ExApp::collect() {
 }
 
 void ExApp::exit(int retCode) {
-    dprint(L"%s(%d)\n", __funcw__, retCode);
+    dprint("%s(%d)\n", __func__, retCode);
     if (!ExIsMainThread()) {
-        dprint(L"pause main thread\n");
+        dprint("pause main thread\n");
     }
     // When the system window manager closed the app, mainWnd was destroyed.
 #if 1 // It's not essential, but it's better to keep it clean.
@@ -272,7 +272,7 @@ int ExApp::init(HINSTANCE hInstance,
         smSize.h = GetDeviceCaps(hdc, VERTRES);
     }
 #endif
-    dprint(L"%s() width=%d height=%d\n", __funcw__, smSize.w, smSize.h);
+    dprint("%s() width=%d height=%d\n", __func__, smSize.w, smSize.h);
 
     if (ExWindow::classInit(hInstance) != Ex_Continue)
         return retCode;

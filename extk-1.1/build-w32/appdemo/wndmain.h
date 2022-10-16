@@ -47,7 +47,7 @@ public:
 public:
     int start();
     int initIomux();
-    int initBtn(ExWidget* parent, ExWidget* btn, const wchar* name);
+    int initBtn(ExWidget* parent, ExWidget* btn, const char* name);
     void STDCALL onExFlush(WndMain* w, const ExRegion* updateRgn) { ExWindow::onExFlush(w, updateRgn); } // apitest
     void STDCALL onWmPaint(WndMain* w, const ExRegion* updateRgn) { ExWindow::onWmPaint(w, updateRgn); } // apitest
     int STDCALL onDestroyed(WndMain* w, ExCbInfo* cbinfo);

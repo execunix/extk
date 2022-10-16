@@ -27,7 +27,7 @@ int ExImage::init(int width, int height, int type) {
     setInfo(width, height, type);
     this->flags |= Ex_ImageAlloc;
     if ((this->bits = (uchar*)malloc(getBitsSize())) == NULL) {
-        exerror(L"%s(%d,%d,%p) - malloc fail.\n", __funcw__, width, height, type);
+        exerror("%s(%d,%d,%08x) - malloc fail.\n", __func__, width, height, type);
         this->clear();
         return -1;
     }
@@ -38,7 +38,7 @@ int ExImage::setInfo(int width, int height, int type) {
     assert(this->bits == NULL);
     int bpp = getBitsPerPixel(type);
     if (bpp == 0 || width <= 0 || height <= 0) {
-        exerror(L"%s(%d,%d,%p) - invalid param.\n", __funcw__, width, height, type);
+        exerror("%s(%d,%d,%08x) - invalid param.\n", __func__, width, height, type);
         return -1;
     }
     this->flags |= Ex_ImageQuery;
@@ -52,25 +52,25 @@ int ExImage::setInfo(int width, int height, int type) {
 
 int ExImage::load(const wchar* fname, bool query) {
     if (crs != NULL || bits != NULL) {
-        exerror(L"%s - loaded\n", __funcw__);
+        exerror("%s - loaded\n", __func__);
         clear();
     }
  
     if (!(fname && *fname)) {
-        exerror(L"%s - invalid filename.\n", __funcw__);
+        exerror("%s - invalid filename.\n", __func__);
         return -1;
     }
     const wchar* ext = NULL;
     for (const wchar* p = fname; *p; p++)
         if (*p == '.') ext = p + 1;
     if (ext == NULL) {
-        exerror(L"%s(%s) - invalid extension.\n", __funcw__, fname);
+        exerror("%s(%s) - invalid extension.\n", __func__, fname);
         return NULL;
     }
     HANDLE hFile = CreateFile(fname, GENERIC_READ, 0, NULL,
                               OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
     if (hFile == INVALID_HANDLE_VALUE) {
-        exerror(L"%s(%s) - CreateFile fail.\n", __funcw__, fname);
+        exerror("%s(%s) - CreateFile fail.\n", __func__, fname);
         return NULL;
     }
     int r = -1;
@@ -99,7 +99,7 @@ int ExImage::load(const wchar* fname, bool query) {
         goto done;
     }
 #endif
-    exerror(L"%s(%s) - unknown image format.\n", __funcw__, fname);
+    exerror("%s(%s) - unknown image format.\n", __func__, fname);
 clean:
     CloseHandle(hFile);
 done:

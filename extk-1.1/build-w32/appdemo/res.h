@@ -54,7 +54,7 @@ struct Res {
     } i;
 
     struct String {
-        const wchar_t* title;
+        const wchar* title;
     } s;
 
 };

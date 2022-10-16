@@ -30,7 +30,7 @@ int ExImage::loadJpg(HANDLE hFile, const wchar* fname, bool query)
     int r = -1;
 
     if ((infile = _wfopen(fname, L"rb")) == NULL) {
-        exerror(L"%s(%s) - open fail.\n", __funcw__, fname);
+        exerror("%s(%s) - open fail.\n", __func__, fname);
         return -1;
     }
     cinfo.err = jpeg_std_error(&jerr);
@@ -53,7 +53,7 @@ int ExImage::loadJpg(HANDLE hFile, const wchar* fname, bool query)
     cinfo.scale_denom = 2;
     jpeg_calc_output_dimensions(&cinfo);
     if (cinfo.progressive_mode) {
-        exerror(L"%s(%s) - progressive_mode.\n", __funcw__, fname);
+        exerror("%s(%s) - progressive_mode.\n", __func__, fname);
         goto jpg_cleanup;
     }
     if (query) {

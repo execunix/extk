@@ -20,7 +20,7 @@ void collectWidget() {
         ExWidget* w = deleteWidgetList.front();
         deleteWidgetList.pop_front();
 
-        dprint1(L"collectWidget %s\n", w->getName());
+        dprint1("collectWidget %s\n", w->getName());
         delete w;
         //
         // After destroy, can't access callback list...
@@ -86,21 +86,22 @@ ExWidget::ExWidget()
     , name(NULL)
     , extent(0)
     , select(0)
-    //, deploy(0)
+    , deploy(0)
     , origin(0)
     , damageRgn()
     , exposeRgn()
     , opaqueRgn()
     , flags(Ex_Destroyed)
     , data(NULL)
+    , drawFunc()
     , area(0)
     , id(0)
     , value(0)
     , shape(0)
     , state(0)
     , style(NULL)
-    , userdata(NULL)
-    , drawFunc()
+    //, userdata(NULL)
+    , u64 { 0ull, 0ull }
     , listenerList() {
 #ifdef DEBUG // test
     drawFunc = ExDrawFunc(&s_fill, (void*)NULL); // tbd
@@ -112,7 +113,7 @@ ExWidget::ExWidget()
 void ExWidget::detachAll() {
     vanish(getWindow());
     for (ExWidget* w = last(); w; w = last()) {
-        dprint1(L"detach: %s\n", w->name);
+        dprint1("detach: %s\n", w->name);
         w->detachParent();
         if (w == this)
             break;
@@ -212,25 +213,25 @@ ExWidget* ExWidget::seekLast(ExWidget* seek) { // top-most
 
 void ExWidget::dumpBackToFront(ExWidget* end) {
     for (ExWidget* w = this; w && w != end; w = w->next()) {
-        dprint1(L"seek name: %s\n", w->name);
+        dprint1("seek name: %s\n", w->name);
     }
 }
 
 void ExWidget::dumpFrontToBack(ExWidget* end) {
     for (ExWidget* w = this; w && w != end; w = w->prev()) {
-        dprint1(L"seek name: %s\n", w->name);
+        dprint1("seek name: %s\n", w->name);
     }
 }
 
-void ExWidget::setName(const wchar* text) {
-    wchar buf[20];
+void ExWidget::setName(const char* text) {
+    char buf[20];
     if (name != NULL)
         free(name);
     if (text == NULL) {
-        swprintf(buf, L"%p", this);
+        sprintf(buf, "%p", this);
         text = buf;
     }
-    name = exwcsdup(text);
+    name = strdup(text);
 }
 
 ExBox& ExWidget::getBox(ExBox& bx) const {
@@ -275,7 +276,7 @@ ExRect& ExWidget::calcRect(ExRect& rc) const {
     return rc;
 }
 
-int ExWidget::init(ExWidget* parent, const wchar* name, const ExRect* area) {
+int ExWidget::init(ExWidget* parent, const char* name, const ExRect* area) {
     this->setName(name);
     if (parent) parent->attachTail(this);
     if (area) this->area = *area;
@@ -286,7 +287,7 @@ int ExWidget::init(ExWidget* parent, const wchar* name, const ExRect* area) {
 }
 
 ExWidget* // static
-ExWidget::create(ExWidget* parent, const wchar* name, const ExRect* area) {
+ExWidget::create(ExWidget* parent, const char* name, const ExRect* area) {
     ExWidget* widget = new ExWidget();
     assert(widget != NULL);
     widget->flags |= Ex_FreeMemory;
@@ -301,7 +302,7 @@ int ExWidget::destroy() {
     ExWidgetList destroyed;
     vanish(window);
     for (ExWidget* w = last(); w; w = last()) {
-        dprint1(L"destroy: %s\n", w->name);
+        dprint1("destroy: %s\n", w->name);
         w->flags |= Ex_Destroyed;
         w->detachParent();
         if (window->wgtCapture == w)
@@ -332,7 +333,7 @@ int ExWidget::realize() {
     ExWidget* end = last();
     for (ExWidget* w = this; w; w = next()) {
         if (!w->getFlags(Ex_Realized) && w->isVisible()) {
-            dprint1(L"realize: %s\n", w->name);
+            dprint1("realize: %s\n", w->name);
             w->flags |= Ex_Realized;
             w->invokeListener(Ex_CbRealized);
         }
@@ -348,7 +349,7 @@ int ExWidget::unrealize() {
     ExWidget* end = this;
     for (ExWidget* w = last(); w; w = prev()) {
         if (w->getFlags(Ex_Realized)) {
-            dprint1(L"unrealize: %s\n", w->name);
+            dprint1("unrealize: %s\n", w->name);
             w->flags &= ~Ex_Realized;
             w->invokeListener(Ex_CbUnrealized);
         }
@@ -502,7 +503,7 @@ bool ExWidget::calcExtent() {
     if (parent && !getFlags(Ex_HasOwnGC) &&
         !extent.intersect(parent->extent))
         return false;
-    logdraw(L"extent: %s [%d,%d-%dx%d]\n", getName(),
+    logdraw("extent: %s [%d,%d-%dx%d]\n", getName(),
             extent.l, extent.t, extent.width(), extent.height());
     return true;
 }
@@ -537,7 +538,7 @@ ExWidget::calcOpaque(ExRegion& opaqueAcc) {
         clipRgn.move(origin);
         opaqueAcc.combine(clipRgn);
     }
-    logdraw(L"opaque: %s [%d,%d-%dx%d] visible:%d blind:%d\n", getName(),
+    logdraw("opaque: %s [%d,%d-%dx%d] visible:%d blind:%d\n", getName(),
             exposeRgn.extent.l, exposeRgn.extent.t,
             exposeRgn.extent.width(), exposeRgn.extent.height(),
             exposeRgn.n_boxes, opaqueAcc.n_boxes);
@@ -589,7 +590,7 @@ void ExWidget::dumpImage(ExCanvas* canvas) {
 #if 0 // deprecated...
 int ExWidget::dumpImage(ExCanvas* canvas, const ExRegion& updateRgn) { // tbd
     int call_cnt = 0;
-    logdraw(L"%s(%s) enter update:%d\n", __funcw__, getName(), updateRgn.n_boxes);
+    logdraw("%s(%s) enter update:%d\n", __func__, getName(), updateRgn.n_boxes);
     ExWidget* w = this;
     ExWidget* c;
     do { // back to front iterator
@@ -604,7 +605,7 @@ proc_enter:
                 w->damageRgn.intersect(updateRgn);
             }
             if (!w->damageRgn.empty()) {
-                logdraw(L"render: %s visible:%d damage:%d\n", w->getName(),
+                logdraw("render: %s visible:%d damage:%d\n", w->getName(),
                         w->exposeRgn.n_boxes, w->damageRgn.n_boxes);
                 w->drawFunc(canvas, w, &w->damageRgn);
 #ifdef DEBUG
@@ -627,7 +628,7 @@ next_child:
             c = c != w->childHead->broPrev ? c->broNext : NULL;
         }
 proc_clear:
-        logdra0(L"render: %s clear damage\n", w->getName());
+        logdra0("render: %s clear damage\n", w->getName());
         w->flags &= ~Ex_Damaged;
         w->damageRgn.setEmpty();
 proc_leave:

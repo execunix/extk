@@ -123,8 +123,14 @@ void ExRegion::copy(const ExRegion& srcrgn) {
         }
         n_boxes = srcrgn.n_boxes;
         extent = srcrgn.extent;
-        if (boxes != &extent)
-            memcpy(boxes, srcrgn.boxes, srcrgn.n_boxes * sizeof(ExBox));
+        if (boxes != &extent) {
+            #if 1
+            for (int i = 0; i < n_boxes; i++)
+                boxes[i] = srcrgn.boxes[i];
+            #else // warning: non-trivially
+            memcpy(boxes, srcrgn.boxes, n_boxes * sizeof(ExBox));
+            #endif
+        }
     }
 }
 

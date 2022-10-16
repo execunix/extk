@@ -16,24 +16,25 @@ extern ExWatch* exWatchLast;
 //
 class ExTimer : public ExObject {
 protected:
-    ExWatch*        watch;
-    uint32          value;      // The time, in milliseconds, reference time
-    uint32          repeat;     // The time, in milliseconds, repeat period
-    ExCallback      callback;
+    ExWatch*    watch;
+    uint32      value;      // The time, in milliseconds, reference time
+    uint32      repeat;     // The time, in milliseconds, repeat period
+    ExCallback  callback;
 private: // Modify the flags only in the ExWatch::TimerSet class.
-    mutable int     fActived;   // is started and inserted ?
+    mutable int fActived;   // is started and inserted ?
+    int         _ra_1;      // reserved for align
 public:
-    ExObject*       object;     // Pass the object linked to the timer
-    union {
-        uint64      u64;        // Storing arbitrary user data
-        uint32      u32[2];
-        void*       ptr;
-    };
+    ExObject*   object;     // Pass the object linked to the timer
+    union {                 // Storing arbitrary user data
+        mutable uint64 u64[4];
+        mutable uint32 u32[8];
+        mutable void*  ptr[4];
+    } /*userdata*/;
 public:
     virtual ~ExTimer() { stop(); }
     explicit ExTimer()
         : ExObject(), watch(NULL), value(0), repeat(0), callback(), fActived(0)
-        , object(NULL), u64(0ull) {}
+        , object(NULL), u64 { 0ull, } {}
 protected:
     void setup(ExWatch* watch, const ExCallback& callback, ExObject* object = NULL) {
         this->watch = watch ? watch : exWatchLast;

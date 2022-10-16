@@ -62,15 +62,15 @@ void WndTest::onDrawBtns(ExCanvas* canvas, const ExWidget* widget, const ExRegio
     cairo_set_source_rgba(cr, lc.r, lc.g, lc.b, lc.a);
     cairo_stroke(cr);
 
-    const wchar* text = widget->getName();
+    const char* text = widget->getName();
     cr.set_font(res.f.gothic.crf, 12.f);
-    cr.show_text(text, ExCairo::Color(0.f), rc);
+    cr.show_text(mbs2wcs(text), ExCairo::Color(0.f), rc);
 
     cairo_pattern_destroy(crp);
 }
 
 int WndTest::onLayout(WndTest* widget, ExCbInfo* cbinfo) {
-    dprint(L"%s(%s) %d (%d,%d-%dx%d)\n", __funcw__, widget->getName(),
+    dprint("%s(%s) %d (%d,%d-%dx%d)\n", __func__, widget->getName(),
            cbinfo->subtype, widget->area.x, widget->area.y, widget->area.w, widget->area.h);
     ExRect ar(0, 0, widget->area.w, widget->area.h);
     if (widget == this) {
@@ -101,7 +101,7 @@ int WndTest::onActMain(WndTest* widget, ExCbInfo* cbinfo) {
 }
 
 int WndTest::onActBtns(ExWidget* widget, ExCbInfo* cbinfo) {
-    dprint0(L"WndTest::onActBtns %s %d %d\n",
+    dprint0("WndTest::onActBtns %s %d %d\n",
             widget->getName(), cbinfo->type, cbinfo->subtype);
     if (cbinfo->type == Ex_CbButPress) {
         giveFocus(widget);
@@ -137,12 +137,12 @@ int WndTest::onActBtns(ExWidget* widget, ExCbInfo* cbinfo) {
 
 int WndTest::onTimer(ExTimer* timer, ExCbInfo* cbinfo)
 {
-    dprint0(L"%s: %d\n", __funcw__, timer->userdata);
+    dprint0("%s: %d\n", __func__, timer->u32[0]);
 
     return Ex_Continue;
 }
 
-int WndTest::initBtn(ExWidget* parent, ExWidget* btn, const wchar* name) {
+int WndTest::initBtn(ExWidget* parent, ExWidget* btn, const char* name) {
     btn->init(parent, name, NULL);
     //btn->setFlags(Ex_Opaque); // test
     btn->setFlags(Ex_FocusRender);
@@ -153,18 +153,18 @@ int WndTest::initBtn(ExWidget* parent, ExWidget* btn, const wchar* name) {
 }
 
 int WndTest::onDestroyed(WndTest* w, ExCbInfo* cbinfo) {
-    dprint(L"%s()\n", __funcw__);
+    dprint("%s()\n", __func__);
     assert(w == this);
     timer.stop();
     return Ex_Continue;
 }
 
 int WndTest::onFilter(WndTest* w, ExCbInfo* cbinfo) {
-    dprint(L"filter WM_0x%04x\n", cbinfo->event->message);
+    dprint("filter WM_0x%04x\n", cbinfo->event->message);
     if (cbinfo->event->message == WM_KEYDOWN) {
         switch (cbinfo->event->wParam) {
             case VK_UP:
-                dprint(L"0x%04x %s\n", cbinfo->event->message, L"VK_UP");
+                dprint("0x%04x %s\n", cbinfo->event->message, L"VK_UP");
                 break;
         }
         return Ex_Continue;
@@ -204,7 +204,7 @@ void WndTest::initEdit(int x, int y, int w, int h)
 }
 
 int WndTest::start() {
-    this->init(L"WndTest", 1280, 720);
+    this->init("WndTest", 1280, 720);
 
     canvas = new ExCanvas;
     canvas->init(this, ExApp::smSize);
@@ -221,14 +221,14 @@ int WndTest::start() {
     addFilter(this, &WndTest::onFilter);
 
     addFilter([](void* data, ExWindow* window, ExCbInfo* cbinfo)->int {
-        dprint(L"[%s] WM_0x%04x\n", window->getName(), cbinfo->event->message);
+        dprint("[%s] WM_0x%04x\n", window->getName(), cbinfo->event->message);
         if (cbinfo->event->message == WM_CREATE) {
             cbinfo->event->lResult = 0;
             RECT r;
             // The right and bottom members contain the width and height of the window.
             GetClientRect(cbinfo->event->hwnd, &r);
             ExRect rc(r);
-            dprint(L"GetClientRect %d,%d-%dx%d\n",
+            dprint("GetClientRect %d,%d-%dx%d\n",
                    rc.x, rc.y, rc.w, rc.h);
             window->layout(rc);
             assert(data == window);
@@ -239,11 +239,11 @@ int WndTest::start() {
         }
         return Ex_Continue; }, this);
 
-    initBtn(this, &btns0[0], L"btns0-0");
-    initBtn(this, &btns0[1], L"btns0-1");
-    initBtn(this, &btns0[2], L"btns0-2");
-    initBtn(this, &btns0[3], L"btns0-3");
-    initBtn(this, &btns0[4], L"btns0-4");
+    initBtn(this, &btns0[0], "btns0-0");
+    initBtn(this, &btns0[1], "btns0-1");
+    initBtn(this, &btns0[2], "btns0-2");
+    initBtn(this, &btns0[3], "btns0-3");
+    initBtn(this, &btns0[4], "btns0-4");
 
     //showWindow(0, WS_POPUP | WS_VISIBLE);
     showWindow(0, WS_OVERLAPPEDWINDOW | WS_VISIBLE);

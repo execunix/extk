@@ -7,7 +7,7 @@
 #define __exregion_h__
 
 #include "exgeomet.h"
-#include "exmemory.h"
+//#include "exmemory.h"
 
 enum ExOverlap {
     Ex_OverlapIn,               // rectangle is in region
@@ -29,8 +29,8 @@ ExRegion* ExRegionPolygon(const ExPoint* pts, int n_pts, ExFillRule fillrule);
 // ExRegion
 //
 struct ExRegion {
-    short size;
-    short n_boxes;
+    int size;
+    int n_boxes;
     ExBox* boxes;
     ExBox extent;
 

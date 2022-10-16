@@ -11,7 +11,7 @@
 
 void WgtTitle::init(ExWindow* window) {
     ExRect rc;
-    ExWidget::init(window, L"WgtTitle", &rc.set(0, 0, 800, 36));
+    ExWidget::init(window, "WgtTitle", &rc.set(0, 0, 800, 36));
     setTitle(L"Welcome to Rectangles and Callbacks World.");
     setFlags(Ex_Selectable);
     addListener(this, &WgtTitle::onLayout, Ex_CbLayout);
@@ -46,20 +46,20 @@ void WgtTitle::onDrawTitle(ExCanvas* canvas, const ExWidget* widget, const ExReg
 
 static int STDCALL
 onUnrealized(void* data, ExWidget* w, ExCbInfo* cbinfo) {
-    dprint(L"onUnrealized()\n");
+    dprint("onUnrealized()\n");
     return Ex_Continue;
 }
 
 static int STDCALL
 onRealized(WndMain* data, ExWindow* w, ExCbInfo* cbinfo) {
-    dprint(L"onRealized()\n");
+    dprint("onRealized()\n");
     //GetLocalTime(&app.tm);
     return Ex_Continue;
 }
 
 static void STDCALL
 onDrawBkgd(void* data, ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage) {
-    dprint(L"onDrawBkgd()\n");
+    dprint("onDrawBkgd()\n");
 }
 
 void WndMain::onDrawBkgd(ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage) {
@@ -170,9 +170,9 @@ void WndMain::onDrawBtns(ExCanvas* canvas, const ExWidget* widget, const ExRegio
 #endif
     cairo_stroke(cr);
 
-    const wchar* text = widget->getName();
+    const char* text = widget->getName();
     cr.set_font(res.f.gothic.crf, 12.f);
-    cr.show_text(text, ExCairo::Color(0.f), rc);
+    cr.show_text(mbs2wcs(text), ExCairo::Color(0.f), rc);
 
 #if USE_PATTERN_BTN
     cairo_pattern_destroy(crp);
@@ -260,10 +260,10 @@ void WndMain::onDrawToy(ExCanvas* canvas, const WndMain* w, const ExRegion* dama
     cairo_matrix_init_scale(&font_matrix, fs, fs);
     cairo_font_options_t* options = cairo_font_options_create();
     cairo_glyph_t* glyphs = NULL;
-    int& textId = (int&)toy.userdata;
+    uint& textId = toy.u32[0];
     const wchar* str = strtbl[textId % 2];
     int num_glyphs = 0;
-    int len = wcslen(str);
+    int len = (int)wcslen(str);
     float delta = bx.height()/2 * .9f;
     cairo_scaled_font_t* scaled_font = cairo_scaled_font_create(res.f.gothic_B.crf,
         &font_matrix, &ctm, options);
@@ -275,7 +275,7 @@ void WndMain::onDrawToy(ExCanvas* canvas, const WndMain* w, const ExRegion* dama
             glyphs[i].x *= toy_scale;
         }
         ExPoint p = bx.center();
-        float w = glyphs[num_glyphs - 1].x + fs / 2.f;
+        floatt w = glyphs[num_glyphs - 1].x + fs / 2.f;
         ExCairo cr(canvas, damage);
         cairo_translate(cr, p.x - w / 2.f, p.y + fs / 2.f);
         cr.set_font(res.f.gothic_B.crf, fs);
@@ -288,8 +288,8 @@ void WndMain::onDrawToy(ExCanvas* canvas, const WndMain* w, const ExRegion* dama
 }
 
 int WndMain::onTimerToy(WndMain* wnd, ExCbInfo* cbinfo) {
-    int& cnt = (int&)timerToy.u64;
-    int& textId = (int&)toy.userdata;
+    uint& cnt = timerToy.u32[0];
+    uint& textId = toy.u32[0];
     cnt++; // 0 ~ 100
     if (cnt > 100) {
         cnt = 0;
@@ -302,7 +302,7 @@ int WndMain::onTimerToy(WndMain* wnd, ExCbInfo* cbinfo) {
         toy_scale = 1.f;
     } else if (n <= 40) {
         toy_alpha = .2f + .8f * n / 40.f;
-        toy_delta = (floatt)(cos(n * 2 / M_PI) * (40 - n) / 40.);
+        toy_delta = (float)(cos(n * 2 / M_PI) * (40 - n) / 40.);
     } else if (n <= 60) {
         return Ex_Continue;
     } else {
@@ -334,7 +334,7 @@ void WndMain::onDrawBackBuf(ExCanvas* canvas, const ExWidget* w, const ExRegion*
 }
 
 int WndMain::onLayout(WndMain* widget, ExCbInfo* cbinfo) {
-    dprint(L"%s(%s) %d (%d,%d-%dx%d)\n", __funcw__, widget->getName(),
+    dprint("%s(%s) %d (%d,%d-%dx%d)\n", __func__, widget->getName(),
            cbinfo->subtype, widget->area.x, widget->area.y, widget->area.w, widget->area.h);
     ExRect ar(0, 0, widget->area.w, widget->area.h);
     ExRect rc;
@@ -445,28 +445,28 @@ int WndMain::onActBkgd(WndMain* widget, ExCbInfo* cbinfo) {
 static int STDCALL
 onEnum(void* data, ExWidget* widget, ExCbInfo* cbinfo) {
     if (cbinfo->type == Ex_CbEnumEnter) {
-        dprint(L"enum: %s enter\n", widget->getName());
+        dprint("enum: %s enter\n", widget->getName());
         return (widget->getFlags(Ex_Visible)) ? Ex_Continue : Ex_Discard;
     }
     if (cbinfo->type == Ex_CbEnumLeave) {
-        dprint(L"enum: %s leave\n", widget->getName());
+        dprint("enum: %s leave\n", widget->getName());
         return (widget->getFlags(Ex_Visible)) ? Ex_Continue : Ex_Discard;
     }
-    dprint(L"enum: %s invalid *****************\n", widget->getName());
+    dprint("enum: %s invalid *****************\n", widget->getName());
     return Ex_Break;
 }
 
 int WndMain::onActBtns(ExWidget* widget, ExCbInfo* cbinfo) {
-    dprint0(L"WndMain::onActBtns %s %d %d\n",
+    dprint0("WndMain::onActBtns %s %d %d\n",
             widget->getName(), cbinfo->type, cbinfo->subtype);
     if (cbinfo->type == Ex_CbButPress) {
         giveFocus(widget);
     }
     if (widget == &btns0[0]) {
         if (cbinfo->type == Ex_CbActivate) {
-            dprint(L"*** enumBackToFront\n");
+            dprint("*** enumBackToFront\n");
             enumBackToFront(this, this, ExCallback(onEnum, (void*)NULL), NULL);
-            dprint(L"*** enumFrontToBack\n");
+            dprint("*** enumFrontToBack\n");
             enumFrontToBack(this, this, ExCallback(onEnum, (void*)NULL), NULL);
             return Ex_Continue;
         }
@@ -482,7 +482,7 @@ int WndMain::onActBtns(ExWidget* widget, ExCbInfo* cbinfo) {
             cbinfo->type == Ex_CbButRepeat) {
             panes[2].area.x -= 10;
             panes[2].setPos(panes[2].area.u.pt);
-            dprint(L"repeat left %d\n", cbinfo->subtype);
+            dprint("repeat left %d\n", cbinfo->subtype);
             return Ex_Continue;
         }
     }
@@ -491,20 +491,20 @@ int WndMain::onActBtns(ExWidget* widget, ExCbInfo* cbinfo) {
             cbinfo->type == Ex_CbButRepeat) {
             panes[2].area.x += 10;
             panes[2].setPos(panes[2].area.u.pt);
-            dprint(L"repeat right %d\n", cbinfo->subtype);
+            dprint("repeat right %d\n", cbinfo->subtype);
             return Ex_Continue;
         }
     }
     if (widget == &btns0[4]) {
         if (cbinfo->type == Ex_CbActivate) {
-            dprint(L"Ex_Halt\n");
+            dprint("Ex_Halt\n");
             return Ex_Halt;
         }
     }
     if (widget == &btns1[0]) {
         if (cbinfo->type == Ex_CbActivate) {
-            (int&)timer.u64 = !(int&)timer.u64;
-            if (timer.u64)
+            timer.u32[0] = !timer.u32[0];
+            if (timer.u32[0])
                 timer.start(100, 25);
             else
                 timer.stop();
@@ -529,7 +529,7 @@ int WndMain::onActBtns(ExWidget* widget, ExCbInfo* cbinfo) {
     }
     if (widget == &btns1[4]) {
         if (cbinfo->type == Ex_CbButRepeat) {
-            dprint(L"Ex_CbButRepeat %d\n", cbinfo->subtype);
+            dprint("Ex_CbButRepeat %d\n", cbinfo->subtype);
             return Ex_Continue;
         }
     }
@@ -553,7 +553,7 @@ int WndMain::onTimer(ExTimer* timer, ExCbInfo* cbinfo)
     int dy = state ? -1 : 1;
     panes[1].area.x += dx;
     panes[1].area.y += dy;
-    dprint0(L"%s: %d,%d\n", __funcw__, panes[1].area.x, panes[1].area.y);
+    dprint0("%s: %d,%d\n", __func__, panes[1].area.x, panes[1].area.y);
     if (state == 0 && panes[1].area.y > 480 ||
         state != 0 && panes[1].area.y < 0)
         state = !state;
@@ -567,24 +567,24 @@ static HANDLE hStorageNoti;
 int WndMain::initIomux() {
     static ExTimer launchInputTimer;
     launchInputTimer.init(NULL, [](void* d, ExTimer* t, ExCbInfo*)->int {
-        dprint(L"launchInputTimer: %d\n", exTickCount);
+        dprint("launchInputTimer: %d\n", exTickCount);
 
         hWakeupNoti = CreateEvent(NULL, FALSE, FALSE, L"AppDemo"); // tbd
         exWatchLast->ioAdd([](void* d, HANDLE handle)->int {
-            dprint(L"hWakeupNoti signaled...\n");
+            dprint("hWakeupNoti signaled...\n");
             return 0; }, (void*)NULL, hWakeupNoti, NULL);
 
         hStorageNoti = FindFirstChangeNotification(L"\\", TRUE, FILE_NOTIFY_CHANGE_DIR_NAME);
         exWatchLast->ioAdd([](void* d, HANDLE handle)->int {
-            dprint(L"hStorageNoti root fs changed...\n");
+            dprint("hStorageNoti root fs changed...\n");
             FindNextChangeNotification(hStorageNoti);
             return 0; }, (void*)NULL, hStorageNoti, NULL);
 
         static ExTimer signalInputTimer;
         signalInputTimer.init(NULL, [](void* d, ExTimer* t, ExCbInfo*)->int {
-            ((int&)t->u64)++;
+            (t->u32[0])++;
             // emulate initial state.
-            if (!(((int&)t->u64) % 5))
+            if (!((t->u32[0]) % 5))
                 SetEvent(hWakeupNoti);
             return Ex_Continue; }, NULL);
         signalInputTimer.start(1, 1000);
@@ -593,7 +593,7 @@ int WndMain::initIomux() {
     return 0;
 }
 
-int WndMain::initBtn(ExWidget* parent, ExWidget* btn, const wchar* name) {
+int WndMain::initBtn(ExWidget* parent, ExWidget* btn, const char* name) {
     btn->init(parent, name, NULL);
     //btn->setFlags(Ex_Opaque); // test
     btn->setFlags(Ex_FocusRender);
@@ -604,7 +604,7 @@ int WndMain::initBtn(ExWidget* parent, ExWidget* btn, const wchar* name) {
 }
 
 int WndMain::onDestroyed(WndMain* w, ExCbInfo* cbinfo) {
-    dprint(L"%s()\n", __funcw__);
+    dprint("%s()\n", __func__);
     assert(w == this);
     timerToy.stop();
     timer.stop();
@@ -628,12 +628,12 @@ int WndMain::onRbtnDown(WndMain* w, ExCbInfo* cbinfo) {
 }
 
 int WndMain::onHandler(WndMain* w, ExCbInfo* cbinfo) {
-    dprint(L"handler WM_0x%04x:0x%04x\n", cbinfo->event->message, cbinfo->event->msg.message);
+    dprint("handler WM_0x%04x:0x%04x\n", cbinfo->event->message, cbinfo->event->msg.message);
     return Ex_Continue;
 }
 
 int WndMain::onFilter(WndMain* w, ExCbInfo* cbinfo) {
-    dprint(L"filter WM_0x%04x\n", cbinfo->event->message);
+    dprint("filter WM_0x%04x\n", cbinfo->event->message);
 #if 1 // test
     // filter and handler can be installed intersection each other
     static int i = 0;
@@ -677,7 +677,7 @@ int WndMain::onFilter(WndMain* w, ExCbInfo* cbinfo) {
         margins.cyTopHeight = 20;
         HRESULT hr = DwmExtendFrameIntoClientArea(hwnd, &margins);
         if (!SUCCEEDED(hr)) {
-            dprint(L"%s: %s fail.\n", __funcw__, L"DwmExtendFrameIntoClientArea");
+            dprint("%s: %s fail.\n", __func__, L"DwmExtendFrameIntoClientArea");
         }
         //cbinfo->event->lResult = 0;
         return Ex_Continue;
@@ -687,39 +687,39 @@ int WndMain::onFilter(WndMain* w, ExCbInfo* cbinfo) {
         ExCbInfo cbinfo2(0);
         switch (cbinfo->event->wParam) {
             case VK_UP:
-                dprint(L"0x%04x %s\n", cbinfo->event->message, L"VK_UP");
+                dprint("0x%04x %s\n", cbinfo->event->message, L"VK_UP");
                 moveFocus(Ex_DirUp);
                 break;
             case VK_DOWN:
-                dprint(L"0x%04x %s\n", cbinfo->event->message, L"VK_DOWN");
+                dprint("0x%04x %s\n", cbinfo->event->message, L"VK_DOWN");
                 moveFocus(Ex_DirDown);
                 break;
             case VK_LEFT:
-                dprint(L"0x%04x %s\n", cbinfo->event->message, L"VK_LEFT");
+                dprint("0x%04x %s\n", cbinfo->event->message, L"VK_LEFT");
                 moveFocus(Ex_DirLeft);
                 break;
             case VK_RIGHT:
-                dprint(L"0x%04x %s\n", cbinfo->event->message, L"VK_RIGHT");
+                dprint("0x%04x %s\n", cbinfo->event->message, L"VK_RIGHT");
                 moveFocus(Ex_DirRight);
                 break;
             case VK_SPACE:
             case VK_RETURN:
-                dprint(L"0x%04x %s\n", cbinfo->event->message, L"VK_RETURN");
+                dprint("0x%04x %s\n", cbinfo->event->message, L"VK_RETURN");
                 wgtFocused->invokeListener(Ex_CbActivate, &cbinfo2(Ex_CbActivate, 0, event));
                 break;
             case VK_ESCAPE:
-                dprint(L"0x%04x %s\n", cbinfo->event->message, L"VK_ESCAPE");
+                dprint("0x%04x %s\n", cbinfo->event->message, L"VK_ESCAPE");
                 return Ex_Halt;
             case VK_HOME:
-                dprint(L"0x%04x %s\n", cbinfo->event->message, L"VK_HOME");
+                dprint("0x%04x %s\n", cbinfo->event->message, L"VK_HOME");
                 moveFocus(Ex_DirHome);
                 break;
             case VK_BACK:
-                dprint(L"0x%04x %s\n", cbinfo->event->message, L"VK_BACK");
+                dprint("0x%04x %s\n", cbinfo->event->message, L"VK_BACK");
                 moveFocus(Ex_DirBack);
                 break;
             case VK_TAB: {
-                dprint(L"0x%04x %s\n", cbinfo->event->message, L"VK_TAB");
+                dprint("0x%04x %s\n", cbinfo->event->message, L"VK_TAB");
                 SHORT ks = GetKeyState(VK_SHIFT);
                 moveFocus(ks & 0x100 ? Ex_DirTabPrev : Ex_DirTabNext);
                 break;
@@ -766,7 +766,7 @@ ExWidget* WndMain::moveFocus(int dir) {
     int i = 0;
     while (focusmap[i][0] && focusmap[i][0] != wgtFocused) i++;
     if (!focusmap[i][0]) {
-        dprint(L"Where did the focus go?\n");
+        dprint("Where did the focus go?\n");
         return giveFocus(&btns1[0]);
     }
 
@@ -882,7 +882,7 @@ int WndMain::start() {
     ExRect rc;
     initEnv();
     initRes();
-    this->init(L"AppDemoWndMain", env.wnd.w, env.wnd.h);
+    this->init("AppDemoWndMain", env.wnd.w, env.wnd.h);
 
     // init canvas
     canvas = new ExCanvas;
@@ -912,7 +912,7 @@ int WndMain::start() {
 #endif
     setFlags(Ex_Selectable);
 
-    wgtBkgd.init(this, L"res.i.bg1", &rc.set(300, 300, res.i.bg1.width, res.i.bg1.height));
+    wgtBkgd.init(this, "res.i.bg1", &rc.set(300, 300, res.i.bg1.width, res.i.bg1.height));
     wgtBkgd.addListener(this, &WndMain::onActBkgd, Ex_CbActivate);
     wgtBkgd.drawFunc = ExDrawFunc(this, &WndMain::onDrawBkgd);
     wgtBkgd.setFlags(Ex_Selectable);
@@ -927,12 +927,12 @@ int WndMain::start() {
     addListener(this, &WndMain::onFocused, Ex_CbGotFocus);
     addListener(this, &WndMain::onActMain, Ex_CbActivate);
     addListener([](void* data, ExWidget* widget, ExCbInfo* cbinfo)->int {
-        dprint(L"%s Activate %d,%d\n", widget->getName(), cbinfo->type, cbinfo->subtype);
+        dprint("%s Activate %d,%d\n", widget->getName(), cbinfo->type, cbinfo->subtype);
         return Ex_Continue; }, this, Ex_CbActivate);
 
-    panes[0].init(this, L"pan0", &rc.set(20, 400, 760, 60));
-    panes[1].init(this, L"pan1", &rc.set(20, 20, 120, 360));
-    panes[2].init(this, L"pan2", &rc.set(660, 20, 120, 360));
+    panes[0].init(this, "pan0", &rc.set(20, 400, 760, 60));
+    panes[1].init(this, "pan1", &rc.set(20, 20, 120, 360));
+    panes[2].init(this, "pan2", &rc.set(660, 20, 120, 360));
     panes[0].drawFunc = ExDrawFunc(this, &WndMain::onDrawPane);
     panes[1].drawFunc = ExDrawFunc(this, &WndMain::onDrawPane);
     panes[2].drawFunc = ExDrawFunc(this, &WndMain::onDrawPane);
@@ -954,25 +954,25 @@ int WndMain::start() {
     panes[2].setFlags(Ex_Visible, Ex_BitFalse);
     FLUSH_TEST();
 
-    initBtn(&panes[0], &btns0[0], L"btns0-0");
-    initBtn(&panes[0], &btns0[1], L"btns0-1");
-    initBtn(&panes[0], &btns0[2], L"btns0-2");
-    initBtn(&panes[0], &btns0[3], L"btns0-3");
-    initBtn(&panes[0], &btns0[4], L"btns0-4");
+    initBtn(&panes[0], &btns0[0], "btns0-0");
+    initBtn(&panes[0], &btns0[1], "btns0-1");
+    initBtn(&panes[0], &btns0[2], "btns0-2");
+    initBtn(&panes[0], &btns0[3], "btns0-3");
+    initBtn(&panes[0], &btns0[4], "btns0-4");
 
-    initBtn(&panes[1], &btns1[0], L"btns1-0");
-    initBtn(&panes[1], &btns1[1], L"btns1-1");
-    initBtn(&panes[1], &btns1[2], L"btns1-2");
-    initBtn(&panes[1], &btns1[3], L"btns1-3");
-    initBtn(&panes[1], &btns1[4], L"btns1-4");
-    initBtn(&panes[1], &btns1[5], L"btns1-5");
+    initBtn(&panes[1], &btns1[0], "btns1-0");
+    initBtn(&panes[1], &btns1[1], "btns1-1");
+    initBtn(&panes[1], &btns1[2], "btns1-2");
+    initBtn(&panes[1], &btns1[3], "btns1-3");
+    initBtn(&panes[1], &btns1[4], "btns1-4");
+    initBtn(&panes[1], &btns1[5], "btns1-5");
 
-    initBtn(&panes[2], &btns2[0], L"btns2-0");
-    initBtn(&panes[2], &btns2[1], L"btns2-1");
-    initBtn(&panes[2], &btns2[2], L"btns2-2");
-    initBtn(&panes[2], &btns2[3], L"btns2-3");
-    initBtn(&panes[2], &btns2[4], L"btns2-4");
-    initBtn(&panes[2], &btns2[5], L"btns2-5");
+    initBtn(&panes[2], &btns2[0], "btns2-0");
+    initBtn(&panes[2], &btns2[1], "btns2-1");
+    initBtn(&panes[2], &btns2[2], "btns2-2");
+    initBtn(&panes[2], &btns2[3], "btns2-3");
+    initBtn(&panes[2], &btns2[4], "btns2-4");
+    initBtn(&panes[2], &btns2[5], "btns2-5");
 
     FLUSH_TEST();
 
@@ -980,21 +980,21 @@ int WndMain::start() {
 
     static ExTimer timerTest;
     timerTest.init(NULL, [](void* d, ExWidget* w, ExCbInfo*)->int {
-        dprint(L"timerTest: %s\n", w->getName());
+        dprint("timerTest: %s\n", w->getName());
         return Ex_Continue; }, (void*)0, this); // test
     timerTest.init(NULL, [](void* d, ExTimer* t, ExCbInfo*)->int {
-        dprint(L"timerTest: %d %u %u\n", ((int&)t->u64)++, (ulong)*t, exTickCount);
+        dprint("timerTest: %d %u %u\n", (t->u32[0])++, (ulong)*t, exTickCount);
         return Ex_Continue; }, (void*)0);
     timerTest.start(1, 1000);
 
     toy_alpha = .2f;
     toy_delta = 1.f;
     toy_scale = 1.f;
-    (int&)toy.userdata = 0;
+    toy.u32[0] = 0;
     toy.drawFunc = ExDrawFunc(this, &WndMain::onDrawToy);
-    toy.init(this, L"toy", &rc.set(360, 300, 600, 80));
+    toy.init(this, "toy", &rc.set(360, 300, 600, 80));
 
-    (int&)timerToy.u64 = 0;
+    timerToy.u32[0] = 0;
     timerToy.init(NULL, this, &WndMain::onTimerToy, this);
     timerToy.start(1, 50); // 20Hz
 
@@ -1002,16 +1002,16 @@ int WndMain::start() {
     addHandler(this, &WndMain::onHandler);
     addHandler(this, &WndMain::onRbtnDown);
 
-    wndBackBuf.init(L"wndBackBuf", 360, 240);
+    wndBackBuf.init("wndBackBuf", 360, 240);
     wndBackBuf.canvas = new ExCanvas;
     wndBackBuf.canvas->init(&wndBackBuf);
     wndBackBuf.flushFunc = ExFlushFunc(this, &WndMain::onFlushBackBuf);
-    wgtBackBtn.init(&wndBackBuf, L"wgtBackBtn", &rc.set(20, 20, 120, 40));
+    wgtBackBtn.init(&wndBackBuf, "wgtBackBtn", &rc.set(20, 20, 120, 40));
     wndBackBuf.drawFunc = ExDrawFunc(this, &WndMain::onDrawBackBuf);
     wgtBackBtn.drawFunc = ExDrawFunc(this, &WndMain::onDrawBtns);
     wndBackBuf.flush();
 
-    wgtBackViewer.init(this, L"wgtBackViewer", &rc.set(80, 40, 360, 240));
+    wgtBackViewer.init(this, "wgtBackViewer", &rc.set(80, 40, 360, 240));
     wgtBackViewer.addListener(this, &WndMain::onBackViewMove, Ex_CbActivate);
     wgtBackViewer.drawFunc = ExDrawFunc(this, &WndMain::onDrawBackBuf);
     wgtBackViewer.setFlags(Ex_Selectable);
@@ -1026,14 +1026,14 @@ int WndMain::start() {
 
 #if DISP_AT_ONCE
     addFilter([](void* data, ExWindow* window, ExCbInfo* cbinfo)->int {
-        dprint(L"[%s] WM_0x%04x\n", window->getName(), cbinfo->event->message);
+        dprint("[%s] WM_0x%04x\n", window->getName(), cbinfo->event->message);
         if (cbinfo->event->message == WM_CREATE) {
             cbinfo->event->lResult = 0;
             RECT r;
             // The right and bottom members contain the width and height of the window.
             GetClientRect(cbinfo->event->hwnd, &r);
             ExRect rc(r);
-            dprint(L"GetClientRect %d,%d-%dx%d\n",
+            dprint("GetClientRect %d,%d-%dx%d\n",
                    rc.x, rc.y, rc.w, rc.h);
             window->layout(rc);
             // To remove an anonymous callback, simply return Ex_Remove.
@@ -1043,7 +1043,7 @@ int WndMain::start() {
         if (cbinfo->event->message == WM_NCCALCSIZE) {
             RECT* r = (RECT*)cbinfo->event->lParam;
             //NCCALCSIZE_PARAMS* rc = (NCCALCSIZE_PARAMS*)lParam;
-            dprint(L"[0x%p] WM_NCCALCSIZE wParam=%d %d,%d-%d,%d\n",
+            dprint("[0x%p] WM_NCCALCSIZE wParam=%d %d,%d-%d,%d\n",
                    cbinfo->event->hwnd, cbinfo->event->wParam,
                    r->left, r->top, r->right, r->bottom);
             //r->top += 31;
@@ -1057,7 +1057,8 @@ int WndMain::start() {
         return Ex_Continue; }, this);
     //showWindow(0, WS_POPUP | WS_VISIBLE);
     showWindow(0, WS_OVERLAPPEDWINDOW | WS_VISIBLE, env.wnd.x, env.wnd.y);
-    SetWindowText(hwnd, res.s.title);
+    //SetWindowTextA(hwnd, "AppDemo-extk-1.1");
+    SetWindowTextW(hwnd, res.s.title);
     if (env.wnd.show == SW_SHOWMAXIMIZED) {
         ShowWindow(hwnd, SW_SHOWMAXIMIZED);
     }
@@ -1067,4 +1068,3 @@ int WndMain::start() {
     return damage();
 #endif
 }
-

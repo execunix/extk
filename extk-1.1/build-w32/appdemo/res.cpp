@@ -50,7 +50,7 @@ static int load(ExImage* img, const wchar* name)
     wchar pathname[256];
     swprintf_s(pathname, 256, L"%s/%s", res.path, name);
     if (img->load(pathname) != 0) {
-        dprint(L"%s: load %s fail.\n", __funcw__, pathname);
+        dprint("%s: load %s fail.\n", __func__, pathname);
         return -1;
     }
     return 0;
@@ -63,7 +63,7 @@ int initRes()
     if (_wstat(res.path, &statbuf))
         swprintf_s(res.path, 256, L"%s/../../res", exModulePath);
     if (_wstat(res.path, &statbuf)) {
-        dprint(L"%s: cant open res path\n", __funcw__);
+        dprint("%s: cant open res path\n", __func__);
         return -1;
     }
 

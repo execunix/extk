@@ -59,7 +59,7 @@ int ExCanvas::init(ExWindow* window, ExSize sz) {
     wnd->canvas = this;
     //if (ftLib == NULL &&
     //    FT_Init_FreeType(&ftLib))
-    //    dprint1(L"FT_Init_FreeType fail.");
+    //    dprint1("FT_Init_FreeType fail.");
     return createMemGC(sz.w, sz.h);
 }
 
@@ -72,17 +72,17 @@ int ExCanvas::resize(int w, int h) {
 // create cairo font
 int ExCanvas::newFace(uint fontId, const char* faceName) {
     if (!(fontId < 8 && crf[fontId] == NULL)) {
-        dprint1(L"%s(%d) invalid fontId", __funcw__, fontId);
+        dprint1("%s(%d) invalid fontId", __func__, fontId);
         return -1;
     }
     if (ftLib != NULL &&
         FT_New_Face(ftLib, faceName, 0, &ftFace[fontId]) != FT_Err_Ok) {
-        dprint1(L"%s(%d) FT_New_Face fail", __funcw__, fontId);
+        dprint1("%s(%d) FT_New_Face fail", __func__, fontId);
         return -1;
     }
     crf[fontId] = cairo_ft_font_face_create_for_ft_face(ftFace[fontId], FT_LOAD_DEFAULT | FT_LOAD_NO_BITMAP);
     if (crf[fontId] == NULL) {
-        dprint1(L"%s(%d) FT_New_Face fail", __funcw__, fontId);
+        dprint1("%s(%d) FT_New_Face fail", __func__, fontId);
         return -1;
     }
     return 0;

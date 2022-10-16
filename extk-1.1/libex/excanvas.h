@@ -78,6 +78,8 @@ public:
     // tbd
 };
 
+#ifdef WIN32
 HRGN ExRegionToGdi(HDC hdc, const ExRegion* srcrgn);
+#endif
 
 #endif//__excanvas_h__

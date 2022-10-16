@@ -5,6 +5,8 @@
 
 #pragma once
 
+#include <extypes.h>
+
 struct Env {
     int sm_w;
     int sm_h;

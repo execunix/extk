@@ -6,7 +6,6 @@
 #ifndef __excallback_h__
 #define __excallback_h__
 
-#include "exconfig.h"
 #include "extypes.h"
 
 #include <list>

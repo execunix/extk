@@ -49,10 +49,10 @@ exstrdup(const char* str) {
     return (char*)exmemdup(str, strlen(str) + 1);
 }
 
-inline wchar_t*
-exwcsdup(const wchar_t* wcs) {
+inline wchar*
+exwcsdup(const wchar* wcs) {
     if (wcs == NULL) return NULL;
-    return (wchar_t*)exmemdup(wcs, (wcslen(wcs) + 1) * sizeof(wchar_t));
+    return (wchar*)exmemdup(wcs, (wcslen(wcs) + 1) * sizeof(wchar));
 }
 
 inline void*

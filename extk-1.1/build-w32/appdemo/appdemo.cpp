@@ -10,19 +10,19 @@
 class TestClass {
 public:
     int STDCALL onCb1(ExObject* object, ExCbInfo* cbinfo) {
-        dprint(L"onCb1\n");
+        dprint("onCb1\n");
         return 0;
     }
     virtual int STDCALL onCb2(ExObject* object, ExCbInfo* cbinfo) {
-        dprint(L"onCb2\n");
+        dprint("onCb2\n");
         return 0;
     }
     static int STDCALL onCb3(void* data, ExObject* object, ExCbInfo* cbinfo) {
-        dprint(L"onCb3\n");
+        dprint("onCb3\n");
         return 0;
     }
     static int STDCALL onCb4(TestClass* data, ExObject* object, ExCbInfo* cbinfo) {
-        dprint(L"onCb4\n");
+        dprint("onCb4\n");
         return 0;
     }
 };
@@ -30,14 +30,14 @@ public:
 class TestClass2 : public TestClass {
 public:
     int STDCALL onCb5(ExObject* object, TestClass* cbinfo) {
-        dprint(L"onCb5\n");
+        dprint("onCb5\n");
         return 0;
     }
 };
 
 static int STDCALL
 func(void* data, ExWidget* widget, ExCbInfo* cbinfo) {
-    dprint(L"func: data=%d type=%d\n", (int)data, cbinfo ? cbinfo->type : -1);
+    dprint("func: data=%d type=%d\n", (int)data, cbinfo ? cbinfo->type : -1);
     return 0;
 }
 
@@ -85,27 +85,27 @@ void cb_test() {
 #endif
     ExCallback cb0(func, (void*)NULL);
     r = cb0(NULL, NULL);
-    dprint(L"r = %d\n", r);
+    dprint("r = %d\n", r);
 
     ExCallback cb5(&test_class2, &TestClass2::onCb5);
     r = cb5(NULL, cbinfo.set(0));
-    dprint(L"r = %d\n", r);
+    dprint("r = %d\n", r);
 
     ExCallback cb4(&TestClass::onCb3, (void*)&test_class2);
     r = cb4(NULL, NULL);
-    dprint(L"r = %d\n", r);
+    dprint("r = %d\n", r);
 
     ExCallback cb3(&TestClass::onCb4, &test_class);
     r = cb3(NULL, NULL);
-    dprint(L"r = %d\n", r);
+    dprint("r = %d\n", r);
 
     ExCallback cb2(&test_class, &TestClass::onCb2);
     r = cb2(NULL, NULL);
-    dprint(L"r = %d\n", r);
+    dprint("r = %d\n", r);
 
     ExCallback cb1(&test_class, &TestClass::onCb1);
     r = cb1(NULL, NULL);
-    dprint(L"r = %d\n", r);
+    dprint("r = %d\n", r);
 
     ExCallback cb6(cb0);
     r = cb6(NULL, NULL);
@@ -130,18 +130,18 @@ void cb_test() {
 #ifdef DEBUG
 void exwindow_apitest() {
     ExRect rc(0);
-    ExWindow* wnd0 = ExWindow::create(L"TopWindow", 800, 480);
-    ExWidget* wgt1 = ExWidget::create(wnd0, L"Child1", &rc.set(100, 100, 100, 40));
-    ExWidget* wgt2 = ExWidget::create(wnd0, L"Child2", &rc.set(200, 200, 100, 40));
+    ExWindow* wnd0 = ExWindow::create("TopWindow", 800, 480);
+    ExWidget* wgt1 = ExWidget::create(wnd0, "Child1", &rc.set(100, 100, 100, 40));
+    ExWidget* wgt2 = ExWidget::create(wnd0, "Child2", &rc.set(200, 200, 100, 40));
     wnd0->realize();
     wnd0->destroy();
 
     ExWindow* top = new ExWindow;
     ExWidget* ch1 = new ExWidget;
     ExWidget* ch2 = new ExWidget;
-    top->init(L"Top", 800, 480);
-    ch1->init(top, L"Ch1", &rc.set(100, 100, 100, 40));
-    ch2->init(top, L"Ch2", &rc.set(200, 200, 100, 40));
+    top->init("Top", 800, 480);
+    ch1->init(top, "Ch1", &rc.set(100, 100, 100, 40));
+    ch2->init(top, "Ch2", &rc.set(200, 200, 100, 40));
     ExWidget* backWgt = top->getChildHead();
     top->destroy();
     delete ch2;
@@ -231,49 +231,49 @@ int flt_test() {
         val = 0;
     }
     tick2 = GetTickCount();
-    dprint1(L"val=0 loop test %d\n", tick2 - tick1);
+    dprint1("val=0 loop test %d\n", tick2 - tick1);
 
     tick1 = GetTickCount();
     for (volatile int i = 0; i < TESTCNT; i++) {
         val = _fixed_from_float(i * 1.f);
     }
     tick2 = GetTickCount();
-    dprint1(L"_fixed_from_float %d\n", tick2 - tick1);
+    dprint1("_fixed_from_float %d\n", tick2 - tick1);
 
     tick1 = GetTickCount();
     for (volatile int i = 0; i < TESTCNT; i++) {
         val = _fixed_from_double(i * 1.);
     }
     tick2 = GetTickCount();
-    dprint1(L"_fixed_from_double %d\n", tick2 - tick1);
+    dprint1("_fixed_from_double %d\n", tick2 - tick1);
 
     tick1 = GetTickCount();
     for (volatile int i = 0; i < TESTCNT; i++) {
         val = _fixed_from_doublem(i * 1.);
     }
     tick2 = GetTickCount();
-    dprint1(L"_fixed_from_doublem %d\n", tick2 - tick1);
+    dprint1("_fixed_from_doublem %d\n", tick2 - tick1);
 
     tick1 = GetTickCount();
     for (volatile int i = 0; i < TESTCNT; i++) {
         val = _fixed_16_16_from_float(i * 1.f);
     }
     tick2 = GetTickCount();
-    dprint1(L"_fixed_16_16_from_float %d\n", tick2 - tick1);
+    dprint1("_fixed_16_16_from_float %d\n", tick2 - tick1);
 
     tick1 = GetTickCount();
     for (volatile int i = 0; i < TESTCNT; i++) {
         val = _fixed_16_16_from_double(i * 1.);
     }
     tick2 = GetTickCount();
-    dprint1(L"_fixed_16_16_from_double %d\n", tick2 - tick1);
+    dprint1("_fixed_16_16_from_double %d\n", tick2 - tick1);
 
     tick1 = GetTickCount();
     for (volatile int i = 0; i < TESTCNT; i++) {
         val = _fixed_16_16_from_doublem(i * 1.);
     }
     tick2 = GetTickCount();
-    dprint1(L"_fixed_16_16_from_doublem %d\n", tick2 - tick1);
+    dprint1("_fixed_16_16_from_doublem %d\n", tick2 - tick1);
 
     return 0;
 }
@@ -284,15 +284,15 @@ int app_test() {
     //char aaa2[sizeof(ExCallback) == 8 ? 1 : -1];
     //char aaa2[sizeof(ExCallback) == 16 ? 1 : -1];
 #endif
-    dprint1(L"sizeof(ExCbInfo)=%d\n", sizeof(ExCbInfo));
-    dprint1(L"sizeof(ExCallback)=%d\n", sizeof(ExCallback));
-    //dprint1(L"sizeof(ExWidget::Callback)=%d\n", sizeof(ExWidget::Callback)); // 16
-    //dprint1(L"sizeof(ExWindow::Callback)=%d\n", sizeof(ExWindow::Callback)); // 12
-    dprint1(L"sizeof(ExObject)=%d\n", sizeof(ExObject));
-    dprint1(L"sizeof(ExWidget)=%d\n", sizeof(ExWidget));
-    dprint1(L"sizeof(ExWindow)=%d\n", sizeof(ExWindow));
-    dprint1(L"sizeof(ExTimer)=%d\n", sizeof(ExTimer));
-    dprint1(L"sizeof(ExApp)=%d\n", sizeof(ExApp));
+    dprint1("sizeof(ExCbInfo)=%d\n", sizeof(ExCbInfo));
+    dprint1("sizeof(ExCallback)=%d\n", sizeof(ExCallback));
+    //dprint1("sizeof(ExWidget::Callback)=%d\n", sizeof(ExWidget::Callback)); // 16
+    //dprint1("sizeof(ExWindow::Callback)=%d\n", sizeof(ExWindow::Callback)); // 12
+    dprint1("sizeof(ExObject)=%d\n", sizeof(ExObject));
+    dprint1("sizeof(ExWidget)=%d\n", sizeof(ExWidget));
+    dprint1("sizeof(ExWindow)=%d\n", sizeof(ExWindow));
+    dprint1("sizeof(ExTimer)=%d\n", sizeof(ExTimer));
+    dprint1("sizeof(ExApp)=%d\n", sizeof(ExApp));
 
     ExWindow top;
     ExWidget w1;
@@ -309,20 +309,20 @@ int app_test() {
     ExWidget w23111;
     ExWidget detached;
 
-    top.setName(L"top");
-    w1.setName(L"w1");
-    w2.setName(L"w2");
-    w3.setName(L"w3");
-    w11.setName(L"w11");
-    w12.setName(L"w12");
-    w21.setName(L"w21");
-    w22.setName(L"w22");
-    w221.setName(L"w221");
-    w23.setName(L"w23");
-    w231.setName(L"w231");
-    w2311.setName(L"w2311");
-    w23111.setName(L"w23111");
-    detached.setName(L"detached");
+    top.setName("top");
+    w1.setName("w1");
+    w2.setName("w2");
+    w3.setName("w3");
+    w11.setName("w11");
+    w12.setName("w12");
+    w21.setName("w21");
+    w22.setName("w22");
+    w221.setName("w221");
+    w23.setName("w23");
+    w231.setName("w231");
+    w2311.setName("w2311");
+    w23111.setName("w23111");
+    detached.setName("detached");
 
     top.attachTail(&w1);
     top.attachTail(&w2);
@@ -337,44 +337,44 @@ int app_test() {
     w231.attachTail(&w2311);
     w2311.attachTail(&w23111);
 
-    dprint1(L"\n*** top.dumpBackToFront()\n");
+    dprint1("\n*** top.dumpBackToFront()\n");
     top.dumpBackToFront();
-    dprint1(L"\n*** w221.dumpBackToFront()\n");
+    dprint1("\n*** w221.dumpBackToFront()\n");
     w221.dumpBackToFront();
-    dprint1(L"\n*** w3.dumpBackToFront()\n");
+    dprint1("\n*** w3.dumpBackToFront()\n");
     w3.dumpBackToFront();
 
-    dprint1(L"\n*** top.dumpFrontToBack()\n");
+    dprint1("\n*** top.dumpFrontToBack()\n");
     top.dumpFrontToBack();
-    dprint1(L"\n*** w2311.dumpFrontToBack()\n");
+    dprint1("\n*** w2311.dumpFrontToBack()\n");
     w2311.dumpFrontToBack();
-    dprint1(L"\n*** w2.dumpFrontToBack()\n");
+    dprint1("\n*** w2.dumpFrontToBack()\n");
     w21.dumpFrontToBack();
 
-    dprint1(L"top last = %s\n", top.last()->getName());
-    dprint1(L"w1 last = %s\n", w1.last()->getName());
-    dprint1(L"w2 last = %s\n", w2.last()->getName());
-    dprint1(L"w3 last = %s\n", w3.last()->getName());
+    dprint1("top last = %s\n", top.last()->getName());
+    dprint1("w1 last = %s\n", w1.last()->getName());
+    dprint1("w2 last = %s\n", w2.last()->getName());
+    dprint1("w3 last = %s\n", w3.last()->getName());
 
     top.giveFocus(&w1);
     top.giveFocus(&w2311);
 
-    dprint1(L"detached.dumpBackToFront()\n");
+    dprint1("detached.dumpBackToFront()\n");
     detached.dumpBackToFront();
-    dprint1(L"detached.dumpFrontToBack()\n");
+    dprint1("detached.dumpFrontToBack()\n");
     detached.dumpFrontToBack();
-    dprint1(L"detached last = %s\n\n", detached.last()->getName());
+    dprint1("detached last = %s\n\n", detached.last()->getName());
 
     w2.detachParent();
-    dprint1(L"\n*** w2.detachParent()\n");
+    dprint1("\n*** w2.detachParent()\n");
     top.dumpBackToFront();
 
     w1.attachHead(&w2);
-    dprint1(L"\n*** w1.attachHead(&w2)\n");
+    dprint1("\n*** w1.attachHead(&w2)\n");
     top.dumpBackToFront();
 
     w2.detachAll();
-    dprint1(L"\n*** w2.detachAll()\n");
+    dprint1("\n*** w2.detachAll()\n");
     top.dumpBackToFront();
 
     top.giveFocus(&w1);
@@ -382,7 +382,7 @@ int app_test() {
     top.giveFocus(NULL);
 
     top.addListener([](void* data, ExWidget* widget, ExCbInfo* cbinfo)->int {
-        dprint1(L"\n*** anonymous func data=%p name=%s type=%d\n",
+        dprint1("\n*** anonymous func data=%p name=%s type=%d\n",
                 data, widget->getName(), cbinfo->type);
         return 0; }, &top, 1);
     top.invokeListener(1);
