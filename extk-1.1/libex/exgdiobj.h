@@ -6,7 +6,7 @@
 #ifndef __exgdiobj_h__
 #define __exgdiobj_h__
 
-#ifndef __linux__
+#ifdef WIN32
 
 #include "exobject.h"
 #include "exgeomet.h"
@@ -241,6 +241,6 @@ public:
     Ex_DECLARE_TYPEINFO(ExMemDC, ExGdiDC);
 };
 
-#endif // __linux__
+#endif // WIN32
 
 #endif//__exgdiobj_h__

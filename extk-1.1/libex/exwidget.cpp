@@ -100,8 +100,7 @@ ExWidget::ExWidget()
     , shape(0)
     , state(0)
     , style(NULL)
-    //, userdata(NULL)
-    , u64 { 0ull, 0ull }
+    , u64 { 0ull, }
     , listenerList() {
 #ifdef DEBUG // test
     drawFunc = ExDrawFunc(&s_fill, (void*)NULL); // tbd

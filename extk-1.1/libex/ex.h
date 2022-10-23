@@ -12,6 +12,7 @@
 #include "exdebug.h"
 #include "exevent.h"
 #include "exgeomet.h"
+#include "exiconv.h"
 #include "eximage.h"
 #include "exinput.h"
 #include "exlabel.h"

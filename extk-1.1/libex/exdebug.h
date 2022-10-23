@@ -119,48 +119,4 @@ extern int(*ex_error_handler)(const char* mbs);
 int exerror(const wchar* fmt, ...);
 int exerror(const char* fmt, ...);
 
-// classes
-//
-class wcs2mbs {
-public:
-    char* mbs;
-    //wchar* wcs;
-    ~wcs2mbs() {
-        if (mbs) free(mbs);
-        //if (wcs) free(wcs);
-    }
-    wcs2mbs(const wchar* wcs) : mbs(NULL)/*, wcs(NULL)*/ {
-        //this->wcs = _wcsdup(wcs);
-        int len = (int)wcslen(wcs);
-        if ((mbs = (char*)malloc(len * 2 + 1)) == NULL) {
-            mbs = _strdup("(emem)");
-            return;
-        }
-        len = WideCharToMultiByte(dprint_charset, 0, wcs, len, mbs, len * 2, NULL, NULL);
-        mbs[len] = 0;
-    }
-    operator char* () { return mbs; }
-};
-
-class mbs2wcs {
-public:
-    //char* mbs;
-    wchar* wcs;
-    ~mbs2wcs() {
-        //if (mbs) free(mbs);
-        if (wcs) free(wcs);
-    }
-    mbs2wcs(const char* mbs) : /*mbs(NULL), */wcs(NULL) {
-        //this->mbs = _strdup(mbs);
-        int len = (int)strlen(mbs);
-        if ((wcs = (wchar*)malloc(len * 2 + 2)) == NULL) {
-            wcs = _wcsdup(L"(emem)");
-            return;
-        }
-        len = MultiByteToWideChar(dprint_charset, 0, mbs, len, wcs, len * 2);
-        wcs[len] = 0;
-    }
-    operator wchar* () { return wcs; }
-};
-
 #endif//__exdebug_h__

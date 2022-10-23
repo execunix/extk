@@ -188,8 +188,8 @@ void ExRender::renderOwnGC(ExCanvas* canvas, ExWidget* w) { // tbd
     }
 }
 
-#if 1 // sample pseudo code
-static void STDCALL onDrawOwnGC(void* data, ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage) {
+#if defined(EXAPITEST) // sample pseudo code
+void STDCALL onDrawOwnGC(void* data, ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage) {
     if (canvas == NULL/*my_canvas*/) {
         // draw self & child to my canvas
         ExCanvas my_canvas;
@@ -206,7 +206,8 @@ static void STDCALL onDrawOwnGC(void* data, ExCanvas* canvas, const ExWidget* wi
 }
 #endif
 
-static int test1(void*, ExWidget* w, ExCbInfo* cbinfo) {
+#if defined(EXAPITEST)
+int exrender_test1(void*, ExWidget* w, ExCbInfo* cbinfo) {
     if (cbinfo->type != Ex_CbEnumEnter)
         return Ex_Continue;
     if (!w->getFlags(Ex_Visible)) {
@@ -218,3 +219,4 @@ static int test1(void*, ExWidget* w, ExCbInfo* cbinfo) {
            w->area.x, w->area.y, w->area.w, w->area.h);
     return Ex_Continue;
 }
+#endif

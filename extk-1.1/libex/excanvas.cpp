@@ -3,11 +3,11 @@
  * SPDX-License-Identifier:     GPL-2.0+
  */
 
-#include "exapp.h"
 #include "excanvas.h"
 #include "exwindow.h"
 #include <ft2build.h>
 #include <cairo-ft.h>
+#include "exapp.h"
 #include FT_FREETYPE_H
 #include <assert.h>
 
@@ -148,6 +148,7 @@ ExTripleCanvas::ExTripleCanvas()
     crBuf[0] = crBuf[1] = crBuf[2] = NULL;
 }
 
+#ifdef WIN32
 HRGN
 ExRegionToGdi(HDC hdc, const ExRegion* srcrgn)
 {
@@ -180,4 +181,4 @@ ExRegionToGdi(HDC hdc, const ExRegion* srcrgn)
     SelectClipRgn(hdc, hrgn);
     return hrgn;
 }
-
+#endif // WIN32

@@ -5,6 +5,7 @@
 
 #include "exrender.h"
 #include "exwatch.h"
+#include "exiconv.h"
 #include "exapp.h"
 #include <map>
 #include <assert.h>
@@ -463,7 +464,7 @@ int ExWindow::basicWndProc(ExCbInfo* cbinfo) {
                 } else {
                     widget = NULL; // cancel event
                 }
-                //	ExApp::butRepeatCnt() = 0; // tbd
+                //ExApp::butRepeatCnt() = 0; // tbd
             }
             if (widget != NULL) {
                 widget->invokeListener(Ex_CbActivate, cbinfo->set(Ex_CbPtrMove, 0));

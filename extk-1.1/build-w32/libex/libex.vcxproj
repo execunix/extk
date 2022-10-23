@@ -176,6 +176,7 @@ xcopy "$(OutDir)$(TargetFileName)" "..\extk\$(OutDir)" /d /y
     <ClInclude Include="..\..\libex\exevent.h" />
     <ClInclude Include="..\..\libex\exgdiobj.h" />
     <ClInclude Include="..\..\libex\exgeomet.h" />
+    <ClInclude Include="..\..\libex\exiconv.h" />
     <ClInclude Include="..\..\libex\eximage.h" />
     <ClInclude Include="..\..\libex\exinput.h" />
     <ClInclude Include="..\..\libex\exlabel.h" />
@@ -209,6 +210,7 @@ xcopy "$(OutDir)$(TargetFileName)" "..\extk\$(OutDir)" /d /y
     <ClCompile Include="..\..\libex\exevent.cpp" />
     <ClCompile Include="..\..\libex\exgdiobj.cpp" />
     <ClCompile Include="..\..\libex\exgeomet.cpp" />
+    <ClCompile Include="..\..\libex\exiconv.cpp" />
     <ClCompile Include="..\..\libex\exim-draw.cpp" />
     <ClCompile Include="..\..\libex\exim-io-bmp.cpp" />
     <ClCompile Include="..\..\libex\exim-io-gif.cpp" />

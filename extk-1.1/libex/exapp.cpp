@@ -38,7 +38,7 @@ ulong ex_key_timer_instant_repeat = 0;
 
 // class ExApp
 //
-const wchar* ExApp::appName = L"ExApp";
+const char*  ExApp::appName = "ExApp";
 ExWindow*    ExApp::mainWnd = NULL;
 HINSTANCE    ExApp::hInstance = 0;
 HINSTANCE    ExApp::hPrevInstance = 0;

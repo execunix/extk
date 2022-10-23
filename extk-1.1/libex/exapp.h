@@ -27,7 +27,7 @@ extern ulong ex_key_timer_instant_repeat;
 //
 class ExApp {
 public:
-    static const wchar* appName;
+    static const char*  appName;
     static ExWindow*    mainWnd;
     static HINSTANCE    hInstance;
     static HINSTANCE    hPrevInstance;
@@ -57,8 +57,8 @@ public:
     static void exit(int retCode);
     static int init(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCmdLine, int nCmdShow);
 public:
-    static long& butRepeatCnt() { return (long&)but_timer.u64[0]; };
-    static long& keyRepeatCnt() { return (long&)key_timer.u64[0]; };
+    static int& butRepeatCnt() { return (int&)but_timer.u32[0]; };
+    static int& keyRepeatCnt() { return (int&)key_timer.u32[0]; };
 public:
     friend class ExWindow;
     friend class ExWidget;

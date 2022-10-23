@@ -125,7 +125,9 @@ void ExCairo::set_font(cairo_font_face_t* font, floatt size) {
     cairo_set_font_size(cr, size);
 }
 
+#if defined(EXAPITEST)
 void
 excairo_apitest()
 {
 }
+#endif

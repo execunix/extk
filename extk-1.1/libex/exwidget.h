@@ -134,9 +134,9 @@ public:
     int         state;      // flags for the widget state
     void*       style;      // Storing style struct
     union {                 // Storing arbitrary user data
-        mutable uint64 u64[4];
-        mutable uint32 u32[8];
-        mutable  void* ptr[4];
+        mutable uint64 u64[32];
+        mutable uint32 u32[64];
+        mutable  void* ptr[32];
     } /*userdata*/;
 public:
     virtual ~ExWidget();
