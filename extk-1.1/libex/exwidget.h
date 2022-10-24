@@ -136,7 +136,7 @@ public:
     union {                 // Storing arbitrary user data
         mutable uint64 u64[32];
         mutable uint32 u32[64];
-        mutable  void* ptr[32];
+        mutable void*  ptr[32];
     } /*userdata*/;
 public:
     virtual ~ExWidget();

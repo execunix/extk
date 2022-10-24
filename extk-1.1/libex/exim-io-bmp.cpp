@@ -3,17 +3,21 @@
  * SPDX-License-Identifier:     GPL-2.0+
  */
 
+#ifdef __linux__
+#include <fcntl.h>
+#endif
 #include "eximage.h"
 
-#define BMP_BPL(w,bpp)	((((w)*(bpp)+7)/8 + (sizeof(UINT)-1)) & ~(sizeof(UINT)-1))
+#define BMP_BPL(w,bpp)	((((w)*(bpp)+7)/8 + (sizeof(uint32)-1)) & ~(sizeof(uint32)-1))
 
+#ifdef WIN32
 int ExImage::loadBmp(HANDLE hFile, const wchar* fname, bool query)
 {
     BITMAPFILEHEADER bf;
     BITMAPINFOHEADER bi;
     //RGBQUAD* cm; // colormap
     DWORD dwRead;
-    uchar* src_buf = NULL;
+    uint8* src_buf = NULL;
 
     memset(&bf, 0, sizeof(bf));
     memset(&bi, 0, sizeof(bi));
@@ -45,11 +49,11 @@ int ExImage::loadBmp(HANDLE hFile, const wchar* fname, bool query)
     int src_bpl = BMP_BPL(bi.biWidth, bi.biBitCount);
     int src_width = bi.biWidth;
     int src_height = bi.biHeight;
-    int src_offbpl = src_bpl;
-    src_buf = new uchar[src_bpl];
+    //int src_offbpl = src_bpl;
+    src_buf = new uint8[src_bpl];
     if (src_buf == NULL)
         goto bmp_cleanup;
-    uchar* dst_ptr = this->bits;
+    uint8* dst_ptr = this->bits;
     int dst_offbpl = this->bpl;
     // If biHeight is positive, the bitmap is a bottom-up DIB and its origin is the lower left corner.
     // If biHeight is negative, the bitmap is a top-down DIB and its origin is the upper left corner.
@@ -113,9 +117,123 @@ int ExImage::loadBmp(HANDLE hFile, const wchar* fname, bool query)
     return 0;
 
 bmp_cleanup:
+    exerror(L"%s(%s) - error.\n", __funcw__, fname);
+    if (src_buf)
+        delete[] src_buf;
+    this->clear();
+    return -1;
+}
+#else // compat linux
+int ExImage::loadBmp(int fd, const char* fname, bool query)
+{
+    BITMAPFILEHEADER bf;
+    BITMAPINFOHEADER bi;
+    //RGBQUAD* cm; // colormap
+    uint8* src_buf = NULL;
+
+    do {
+        memset(&bf, 0, sizeof(bf));
+        memset(&bi, 0, sizeof(bi));
+        if (read(fd, &bf, sizeof(bf)) != sizeof(bf)) {
+            goto bmp_cleanup;
+        }
+        if (read(fd, &bi, sizeof(bi)) != sizeof(bi)) {
+            goto bmp_cleanup;
+        }
+        if (bi.biBitCount != 32 &&
+            bi.biBitCount != 24 &&
+            bi.biBitCount != 16) {
+            goto bmp_cleanup;
+        }
+        if (bi.biCompression != BI_RGB) {
+            goto bmp_cleanup;
+        }
+        if (query) {
+            return this->setInfo(bi.biWidth, bi.biHeight, Ex_IMAGE_DIRECT_8888);
+        }
+        if (this->init(bi.biWidth, bi.biHeight, Ex_IMAGE_DIRECT_8888)) {
+            goto bmp_cleanup;
+        }
+
+        if (lseek(fd, bf.bfOffBits, SEEK_SET))
+            exerror("%s(%s) - %s fail. %s\n", __func__, fname, "seek", strerror(errno));
+
+        int src_bpl = BMP_BPL(bi.biWidth, bi.biBitCount);
+        int src_width = bi.biWidth;
+        int src_height = bi.biHeight;
+        //int src_offbpl = src_bpl;
+        src_buf = new uint8[src_bpl];
+        if (src_buf == NULL)
+            goto bmp_cleanup;
+        uint8* dst_ptr = this->bits;
+        int dst_offbpl = this->bpl;
+        // If biHeight is positive, the bitmap is a bottom-up DIB and its origin is the lower left corner.
+        // If biHeight is negative, the bitmap is a top-down DIB and its origin is the upper left corner.
+        if (src_height > 0) {
+            dst_ptr += this->bpl * (this->height - 1);
+            dst_offbpl = -dst_offbpl;
+        } else {
+            src_height = -src_height;
+        }
+        int x_delta = src_width * this->bpp / 8;
+        int y_count = src_height;
+
+        if (bi.biBitCount == 16) {
+            for (; y_count > 0; y_count--) {
+                if (read(fd, src_buf, src_bpl) != src_bpl)
+                    goto bmp_cleanup;
+                register void* dp_end = dst_ptr + x_delta;
+                register uint32* dp = (uint32*)dst_ptr;
+                register uint16* sp = (uint16*)src_buf;
+                while ((void*)dp < dp_end) {
+                    register uint32 c = *sp++;
+                    c = Ex555to8888(c);
+                    c |= 0xff000000;
+                    *dp++ = c;
+                }
+                dst_ptr += dst_offbpl;
+            }
+        } else if (bi.biBitCount == 24) {
+            for (; y_count > 0; y_count--) {
+                if (read(fd, src_buf, src_bpl) != src_bpl)
+                    goto bmp_cleanup;
+                register void* dp_end = dst_ptr + x_delta;
+                register uint32* dp = (uint32*)dst_ptr;
+                register uint8* sp = src_buf;
+                while ((void*)dp < dp_end) {
+                    register uint32 b = *sp++;
+                    register uint32 g = *sp++;
+                    register uint32 r = *sp++;
+                    *dp++ = (0xff000000 | (r << 16) | (g << 8) | b);
+                    //*dp++ = ExARGB(0xff, sp[2], sp[1], sp[0]);
+                    //sp += 3;
+                }
+                dst_ptr += dst_offbpl;
+            }
+        } else if (bi.biBitCount == 32) {
+            for (; y_count > 0; y_count--) {
+                if (read(fd, src_buf, src_bpl) != src_bpl)
+                    goto bmp_cleanup;
+                register void* dp_end = dst_ptr + x_delta;
+                register uint32* dp = (uint32*)dst_ptr;
+                register uint32* sp = (uint32*)src_buf;
+                while ((void*)dp < dp_end) {
+                    register uint32 c = *sp++;
+                    c |= 0xff000000;
+                    *dp++ = c;
+                }
+                dst_ptr += dst_offbpl;
+            }
+        }
+        delete[] src_buf;
+        return 0;
+    } while (0);
+
+bmp_cleanup:
     exerror("%s(%s) - error.\n", __func__, fname);
     if (src_buf)
         delete[] src_buf;
     this->clear();
     return -1;
 }
+#endif

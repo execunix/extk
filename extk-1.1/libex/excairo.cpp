@@ -64,12 +64,21 @@ void ExCairo::fill_rect_rgba(floatt x, floatt y, floatt w, floatt h, const Color
     cairo_fill(cr);
 }
 
-void ExCairo::text_extent(cairo_font_face_t* crf, floatt size, const wchar* ucs2, cairo_text_extents_t* ext) {
-    cairo_t* cr = canvas->cr;
+#ifdef WIN32
+void ExCairo::text_extent(cairo_t* cr, cairo_font_face_t* crf, floatt size, const wchar* ucs2, cairo_text_extents_t* ext) {
     cairo_set_font_face(cr, crf);
     cairo_set_font_size(cr, size);
     cairo_text_extents(cr, ucs2, ext);
 }
+#endif
+
+#ifdef __linux__
+void ExCairo::text_extent(cairo_t* cr, cairo_font_face_t* crf, floatt size, const char* utf8, cairo_text_extents_t* ext) {
+    cairo_set_font_face(cr, crf);
+    cairo_set_font_size(cr, size);
+    cairo_text_extents(cr, utf8, ext);
+}
+#endif
 
 ExCairo::Point
 ExCairo::text_align(const cairo_text_extents_t& ext, const Rect& r, int align) {
@@ -89,6 +98,7 @@ ExCairo::text_align(const cairo_text_extents_t& ext, const Rect& r, int align) {
     return p;
 }
 
+#ifdef WIN32
 ExCairo::Point
 ExCairo::text_align(const wchar* ucs2, const Rect& r, int align) {
     cairo_t* cr = canvas->cr;
@@ -96,7 +106,18 @@ ExCairo::text_align(const wchar* ucs2, const Rect& r, int align) {
     cairo_text_extents(cr, ucs2, &extents);
     return text_align(extents, r, align);
 }
+#endif
+#ifdef __linux__
+ExCairo::Point
+ExCairo::text_align(const char* utf8, const Rect& r, int align) {
+    cairo_t* cr = canvas->cr;
+    cairo_text_extents_t extents;
+    cairo_text_extents(cr, utf8, &extents);
+    return text_align(extents, r, align);
+}
+#endif
 
+#ifdef WIN32
 void ExCairo::show_text(const wchar* ucs2, const Color& c, const Rect& r, int align) {
     cairo_t* cr = canvas->cr;
     ExCairo::Point p(text_align(ucs2, r, align));
@@ -104,20 +125,50 @@ void ExCairo::show_text(const wchar* ucs2, const Color& c, const Rect& r, int al
     cairo_move_to(cr, p.x, p.y);
     cairo_show_text(cr, ucs2);
 }
+#endif
+#ifdef __linux__
+void ExCairo::show_text(const char* utf8, const Color& c, const Rect& r, int align) {
+    cairo_t* cr = canvas->cr;
+    ExCairo::Point p(text_align(utf8, r, align));
+    cairo_set_source_rgb(cr, c.r, c.g, c.b);
+    cairo_move_to(cr, p.x, p.y);
+    cairo_show_text(cr, utf8);
+}
+#endif
 
+#ifdef WIN32
 void ExCairo::show_text(const wchar* ucs2, const Color& c, const Point& p) {
     cairo_t* cr = canvas->cr;
     cairo_set_source_rgb(cr, c.r, c.g, c.b);
     cairo_move_to(cr, p.x, p.y);
     cairo_show_text(cr, ucs2);
 }
+#endif
+#ifdef __linux__
+void ExCairo::show_text(const char* utf8, const Color& c, const Point& p) {
+    cairo_t* cr = canvas->cr;
+    cairo_set_source_rgb(cr, c.r, c.g, c.b);
+    cairo_move_to(cr, p.x, p.y);
+    cairo_show_text(cr, utf8);
+}
+#endif
 
+#ifdef WIN32
 void ExCairo::show_text(const wchar* ucs2, floatt r, floatt g, floatt b, floatt x, floatt y) {
     cairo_t* cr = canvas->cr;
     cairo_set_source_rgb(cr, r, g, b);
     cairo_move_to(cr, x, y);
     cairo_show_text(cr, ucs2);
 }
+#endif
+#ifdef __linux__
+void ExCairo::show_text(const char* utf8, floatt r, floatt g, floatt b, floatt x, floatt y) {
+    cairo_t* cr = canvas->cr;
+    cairo_set_source_rgb(cr, r, g, b);
+    cairo_move_to(cr, x, y);
+    cairo_show_text(cr, utf8);
+}
+#endif
 
 void ExCairo::set_font(cairo_font_face_t* font, floatt size) {
     cairo_t* cr = canvas->cr;

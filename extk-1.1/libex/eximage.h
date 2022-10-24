@@ -162,6 +162,44 @@
 #define Ex_UseTransparency      0x01000000
 #define Ex_ImageFreeMemory      0x80000000	// RO
 
+#ifndef WIN32 // from windgi.h
+
+#pragma pack(push, 1)
+
+typedef struct tagBITMAPFILEHEADER {
+    uint16/*WORD */ bfType;
+    uint32/*DWORD*/ bfSize;
+    uint16/*WORD */ bfReserved1;
+    uint16/*WORD */ bfReserved2;
+    uint32/*DWORD*/ bfOffBits;
+} BITMAPFILEHEADER, *LPBITMAPFILEHEADER, *PBITMAPFILEHEADER;
+
+typedef struct tagBITMAPINFOHEADER{
+    uint32/*DWORD*/ biSize;
+    int32 /*LONG */ biWidth;
+    int32 /*LONG */ biHeight;
+    uint16/*WORD */ biPlanes;
+    uint16/*WORD */ biBitCount;
+    uint32/*DWORD*/ biCompression;
+    uint32/*DWORD*/ biSizeImage;
+    int32 /*LONG */ biXPelsPerMeter;
+    int32 /*LONG */ biYPelsPerMeter;
+    uint32/*DWORD*/ biClrUsed;
+    uint32/*DWORD*/ biClrImportant;
+} BITMAPINFOHEADER, *LPBITMAPINFOHEADER, *PBITMAPINFOHEADER;
+
+#pragma pack(pop)
+
+/* constants for the biCompression field */
+#define BI_RGB        0L
+#define BI_RLE8       1L
+#define BI_RLE4       2L
+#define BI_BITFIELDS  3L
+#define BI_JPEG       4L
+#define BI_PNG        5L
+
+#endif
+
 // class ExImage
 //
 class ExImage : public ExObject {
@@ -185,7 +223,11 @@ public:
 public:
     static ExImage* create(int width, int height, int type);
     int init(int width, int height, int type);
+#ifdef WIN32
     int load(const wchar* fname, bool query = false);
+#else // compat linux
+    int load(const char* fname, bool query = false);
+#endif
     int getBitsSize() { return bpl * height; }
     int makeTrans(uint32 transColor) { return 0; } // tbd
     int makeGhost() { return 0; } // tbd
@@ -221,11 +263,19 @@ public:
     static void BlitAlphaOver(ExImage* dstimg, int dx, int dy, int w, int h, const ExImage* srcimg, int sx, int sy);
 protected:
     int setInfo(int width, int height, int type);
+#ifdef WIN32
     int loadBmp(HANDLE hFile, const wchar* fname, bool query);
     int loadGif(HANDLE hFile, const wchar* fname, bool query);
     int loadJpg(HANDLE hFile, const wchar* fname, bool query);
     int loadPng(HANDLE hFile, const wchar* fname, bool query);
     int savePng(HANDLE hFile);
+#else // compat linux
+    int loadBmp(int fd, const char* fname, bool query);
+    int loadGif(int fd, const char* fname, bool query);
+    int loadJpg(int fd, const char* fname, bool query);
+    int loadPng(int fd, const char* fname, bool query);
+    int savePng(int fd);
+#endif
     void preMultiply();
 public:
     static int getBitsPerPixel(int type) {

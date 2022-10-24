@@ -8,7 +8,32 @@
 
 #include "exwidget.h"
 #include "excanvas.h"
+#ifdef WIN32
 #include "exthread.h"
+#endif
+
+#if 0//def __linux__
+typedef void* ATOM;
+typedef void* HWND;
+typedef void* HRGN;
+typedef void* HDC;
+typedef uint UINT;
+typedef uint DWORD;
+typedef uint WPARAM;
+typedef uint LPARAM;
+typedef long LRESULT;
+typedef void* HINSTANCE;
+typedef char* LPSTR;
+typedef wchar* LPTSTR;
+typedef const char* LPCSTR;
+typedef const wchar* LPCTSTR;
+#define CALLBACK
+#define CW_USEDEFAULT -1
+#define DestroyWindow(...) ((void)0)
+#define CreateWindowEx(...) NULL
+#define ShowWindow(...) 1
+#define UpdateWindow(...) 1
+#endif
 
 // Window constants definition
 //
@@ -21,9 +46,11 @@ enum ExRenderFlags {
 //
 class ExWindow : public ExWidget {
 protected:
+#ifdef WIN32
     HWND        hwnd;
     DWORD       dwStyle;
     DWORD       dwExStyle;
+#endif
     int         notifyFlags;    // tbd - remove
     int         renderFlags;    // tbd - remove
     //ExRegion    exposeAcc;  // tbd - replace Ex_RenderRebuild
@@ -54,9 +81,11 @@ public:
     int init(const char* name, int w, int h);
     static ExWindow* create(const char* name, int w, int h);
     virtual int destroy();
+#ifdef WIN32
     int showWindow(DWORD dwExStyle, DWORD dwStyle, int x = CW_USEDEFAULT, int y = CW_USEDEFAULT);
     int showWindow(); // ShowWindow(hwnd, SW_SHOWNORMAL); flush();
     int hideWindow(); // ShowWindow(hwnd, SW_HIDE);
+#endif
 protected:
     virtual int getClassFlags(int masks = Ex_BitTrue) const {
         return (masks & (Ex_RECTANGULAR | Ex_CONTAINER | Ex_DISJOINT));
@@ -69,7 +98,9 @@ protected:
 public:
     //void enter() { mutex.lock(); }
     //void leave() { mutex.unlock(); }
+#ifdef WIN32
     HWND getHwnd() const { return this ? hwnd : NULL; }
+#endif
     ExWidget* giveFocus(ExWidget* newFocus);
     ExWidget* moveFocus(int dir); // sample
 public:
@@ -146,9 +177,11 @@ public:
     int STDCALL onRepeatKey(ExTimer* timer, ExCbInfo* cbinfo);
 protected:
     virtual int basicWndProc(ExCbInfo* cbinfo);
+#ifdef WIN32
     static LRESULT CALLBACK sysWndProc(HWND, UINT, WPARAM, LPARAM);
     static LPCTSTR getClassName() { return L"ExWindow"; }
     static ATOM classInit(HINSTANCE hInstance);
+#endif
 public:
     friend class ExWidget;
     friend class ExApp;

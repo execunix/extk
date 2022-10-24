@@ -17,7 +17,9 @@ class ExCanvas : public ExObject {
 public:
     ExWindow*   wnd;
     ExImage*    gc;
+#ifdef WIN32
     ExMemDC*    dc; // tbd
+#endif
     cairo_t*    cr;
     // tbd - protect with window->mutex
     //static cairo_font_face_t* crf[8];
@@ -31,7 +33,6 @@ public:
     //int newFace(uint fontId, const char* faceName);
     virtual int deleteMemGC();
     virtual int createMemGC(int width, int height); // sample
-    void text_extent(cairo_font_face_t* crf, floatt size, const wchar* ucs2, cairo_text_extents_t* ext);
 public:
     Ex_DECLARE_TYPEINFO(ExCanvas, ExObject);
 };

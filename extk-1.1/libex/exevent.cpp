@@ -11,6 +11,7 @@
 // ExEmit APIs - deprecated
 //
 
+#ifdef WIN32
 bool ExEmitMessage(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
     BOOL r = PostMessage(hwnd, message, wParam, lParam);
     return r ? true : false;
@@ -47,4 +48,10 @@ bool ExEmitButPress(ExWidget* widget, int x, int y) {
 bool ExEmitButRelease(ExWidget* widget, int x, int y) {
     return ExEmitPtrEvent(widget, WM_LBUTTONUP, 0, x, y);
 }
+#endif
 
+#ifdef __linux__
+bool ExEmitMessage(int type, int message, int wParam, int lParam) {
+    return false;
+}
+#endif

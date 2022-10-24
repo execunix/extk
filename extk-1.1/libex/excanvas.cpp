@@ -5,10 +5,16 @@
 
 #include "excanvas.h"
 #include "exwindow.h"
+#ifdef WIN32
 #include <ft2build.h>
 #include <cairo-ft.h>
-#include "exapp.h"
 #include FT_FREETYPE_H
+#endif
+#ifdef __linux__
+//#include <freetype2/ft2build.h>
+#include <cairo/cairo-ft.h>
+#endif
+#include "exapp.h"
 #include <assert.h>
 
 //static FT_Library ftLib;
@@ -38,7 +44,9 @@ ExCanvas::ExCanvas()
     : ExObject()
     , wnd(NULL)
     , gc(NULL)
+#ifdef WIN32
     , dc(NULL)
+#endif
     , cr(NULL) {
     //if (refcnt == 0) {
     //    for (int i = 0; i < 8; i++) {
@@ -131,12 +139,6 @@ int ExCanvas::createMemGC(int width, int height) {
     dprint1("%s(%d,%d) %s\n", __func__, width, height, cairo_status_to_string(status));
     deleteMemGC();
     return -1;
-}
-
-void ExCanvas::text_extent(cairo_font_face_t* crf, floatt size, const wchar* ucs2, cairo_text_extents_t* ext) {
-    cairo_set_font_face(cr, crf);
-    cairo_set_font_size(cr, size);
-    cairo_text_extents(cr, ucs2, ext);
 }
 
 ExTripleCanvas::~ExTripleCanvas() {

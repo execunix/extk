@@ -179,7 +179,7 @@ void WgtMenu::onDrawMenuBar(ExCanvas* canvas, const ExWidget* widget, const ExRe
 int WgtMenu::onLayoutHorz(ExWidget* widget, ExCbInfo* cbinfo) {
     ExRect* horz = (ExRect*)cbinfo->data;
     Menu* menu = (Menu*)widget->getData();
-    window->canvas->text_extent(res.f.gothic.crf, fontSize, menu->text, &menu->extents);
+    ExCairo::text_extent(window->canvas->cr, res.f.gothic.crf, fontSize, menu->text, &menu->extents);
     int menu_width = (int)menu->extents.width + 36;
     widget->area.set(horz->x, horz->y, menu_width, horz->h);
     horz->x += menu_width + 1;
@@ -190,7 +190,7 @@ int WgtMenu::onLayoutHorz(ExWidget* widget, ExCbInfo* cbinfo) {
 int WgtMenu::onLayoutVert(ExWidget* widget, ExCbInfo* cbinfo) {
     ExRect* vert = (ExRect*)cbinfo->data;
     Menu* menu = (Menu*)widget->getData();
-    window->canvas->text_extent(res.f.gothic.crf, fontSize, menu->text, &menu->extents);
+    ExCairo::text_extent(window->canvas->cr, res.f.gothic.crf, fontSize, menu->text, &menu->extents);
     int menu_width = (int)menu->extents.width + 120;
     int separator = menu->flag & Menu::Separator ? 3 : 0;
     if (vert->w < menu_width) vert->w = menu_width; // save max width

@@ -21,10 +21,9 @@
 
 ExWatch* exWatchDisp = NULL;
 
-typedef std::list<ExWindow*> ExWindowList;
+#ifdef WIN32
 typedef std::map<HWND, ExWindow*> ExWindowMap;
 
-static ExWindowList detachWindowList;
 static ExWindowMap attachWindowMap;
 
 static int detachWindow(HWND hwnd) {
@@ -40,6 +39,11 @@ static int attachWindow(HWND hwnd, ExWindow* window) {
     attachWindowMap[hwnd] = window;
     return 0;
 }
+#endif
+
+typedef std::list<ExWindow*> ExWindowList;
+
+static ExWindowList detachWindowList;
 
 void collectWindow() {
     while (!detachWindowList.empty()) {
@@ -62,9 +66,11 @@ ExWindow::~ExWindow() {
 
 ExWindow::ExWindow()
     : ExWidget()
+#ifdef WIN32
     , hwnd(NULL)
     , dwStyle(0)
     , dwExStyle(0)
+#endif
     , notifyFlags(0)
     , renderFlags(0)
     , wgtCapture(NULL)
@@ -102,17 +108,22 @@ int ExWindow::destroy() {
     if (getFlags(Ex_Destroyed))
         return 1;
 
+#ifdef WIN32
     HWND hwnd = this->hwnd;
+#endif
     ExWidget::destroy();
 
     // Now, member variables are not accessible.
+#ifdef WIN32
     if (hwnd != NULL) { // is not detached ?
         detachWindow(hwnd);
         DestroyWindow(hwnd); // send WM_DESTROY
     }
+#endif
     return 0;
 }
 
+#ifdef WIN32
 int ExWindow::showWindow(DWORD dwExStyle, DWORD dwStyle, int x, int y) {
     renderFlags |= Ex_RenderRebuild;
     this->dwExStyle = dwExStyle;
@@ -120,7 +131,7 @@ int ExWindow::showWindow(DWORD dwExStyle, DWORD dwStyle, int x, int y) {
 
     HWND hwnd = NULL;
     HWND hwndParent = NULL;
-    LPCTSTR lpWindowName = mbs2wcs(name);
+    LPCTSTR lpWindowName = wcsconv(name);
     HINSTANCE hInstance = ExApp::hInstance;
     //if (parent) hwndParent = parent->getWindow()->getHwnd(); // tbd
     hwnd = CreateWindowEx(dwExStyle, getClassName(), lpWindowName, dwStyle,
@@ -148,6 +159,7 @@ int ExWindow::hideWindow() {
     }
     return r;
 }
+#endif
 
 ExWidget* ExWindow::giveFocus(ExWidget* newFocus) {
     if (newFocus == wgtFocused)
@@ -486,7 +498,7 @@ int ExWindow::basicWndProc(ExCbInfo* cbinfo) {
             ExApp::button_y[0] = ExApp::button_y[1];
             ExApp::button_y[1] = yPos;
             ExApp::button_click_time[0] = ExApp::button_click_time[1];
-            ExApp::button_click_time[1] = exTickCount;
+            ExApp::button_click_time[1] = exWatchDisp->getTick();
             ExApp::button_widget[0] = ExApp::button_widget[1];
             ExApp::button_widget[1] = widget;
             ExApp::button_window[0] = ExApp::button_window[1];
@@ -597,7 +609,7 @@ int ExWindow::basicWndProc(ExCbInfo* cbinfo) {
                 wgttmp->invokeListener(Ex_CbActivate, cbinfo->set(Ex_CbActivate, ExApp::butRepeatCnt()));
                 // tbd: proc double_click_event callback
                 //if (ExApp::butRepeatCnt() == 0)
-                //  ExApp::button_click_time[1] = GetTickCount();//exTickCount;
+                //  ExApp::button_click_time[1] = exWatchDisp->getTick();
             }
             // An application should return zero if it processes this message.
             //cbinfo->event->lResult = 0;
@@ -621,12 +633,12 @@ int ExWindow::basicWndProc(ExCbInfo* cbinfo) {
             return Ex_Continue;
         }
         case WM_KEYDOWN: {
-            if (ExApp::key_state == (int)wParam &&
+            if (ExApp::key_state == (uint32)wParam &&
                 (lParam & 0xC0000000) == 0x40000000) {
                 lParam = ((lParam & 0xFFFF0000) | (++ExApp::keyRepeatCnt() & 0xFFFF));
             } else {
                 ExApp::keyRepeatCnt() = 1;
-                ExApp::key_state = (int)wParam;
+                ExApp::key_state = (uint32)wParam;
             }
             return Ex_Continue;
         }
@@ -792,6 +804,7 @@ ExDrawFunc exDrawFuncTrap;
 
 // test
 //
+#ifdef WIN32
 #if 0
 extern ExWindowMap attachWindowMap;
 
@@ -803,8 +816,8 @@ void
 ExWindowMapInsert(HWND hwnd, ExWindow* window) {
     assert(hwnd && window);
     assert(attachWindowMap.find(hwnd) == attachWindowMap.end());
-    //	attachWindowMap[hwnd] = window;
-    //	attachWindowMap.insert(ExWindowMap::value_type(hwnd, window));
+    //attachWindowMap[hwnd] = window;
+    //attachWindowMap.insert(ExWindowMap::value_type(hwnd, window));
     std::pair<ExWindowMap::iterator, bool> pr;
     pr = attachWindowMap.insert(ExWindowMap::value_type(hwnd, window));
     assert(pr.second == false && pr.first->second == window);
@@ -814,7 +827,7 @@ ExWindowMapInsert(HWND hwnd, ExWindow* window) {
 void
 ExWindowMapRemove(HWND hwnd) {
     assert(hwnd);
-    //	attachWindowMap.erase(hwnd);
+    //attachWindowMap.erase(hwnd);
     ExWindowMap::iterator i = attachWindowMap.find(hwnd);
     assert(attachWindowMap.end() != i);
     if (attachWindowMap.end() != i)
@@ -827,4 +840,5 @@ ExWindowMapSearch(HWND hwnd) {
     ExWindowMap::iterator i = attachWindowMap.find(hwnd);
     return attachWindowMap.end() != i ? i->second : NULL;
 }
+#endif
 #endif

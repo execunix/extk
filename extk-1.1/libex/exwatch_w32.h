@@ -6,7 +6,7 @@
 #ifndef __exwatch_w32_h__
 #define __exwatch_w32_h__
 
-#ifndef __linux__
+#ifdef WIN32
 
 #include "excallback.h"
 #include "exthread.h"
@@ -128,6 +128,6 @@ protected:
     friend class ExTimer;
 };
 
-#endif // __linux__
+#endif // WIN32
 
 #endif//__exwatch_w32_h__

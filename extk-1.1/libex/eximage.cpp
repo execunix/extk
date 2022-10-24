@@ -3,6 +3,10 @@
  * SPDX-License-Identifier:     GPL-2.0+
  */
 
+#ifdef __linux__
+#include <strings.h>
+#include <fcntl.h>
+#endif
 #include "eximage.h"
 #include <assert.h>
 
@@ -26,7 +30,7 @@ ExImage::create(int width, int height, int type) {
 int ExImage::init(int width, int height, int type) {
     setInfo(width, height, type);
     this->flags |= Ex_ImageAlloc;
-    if ((this->bits = (uchar*)malloc(getBitsSize())) == NULL) {
+    if ((this->bits = (uint8*)malloc(getBitsSize())) == NULL) {
         exerror("%s(%d,%d,%08x) - malloc fail.\n", __func__, width, height, type);
         this->clear();
         return -1;
@@ -50,12 +54,12 @@ int ExImage::setInfo(int width, int height, int type) {
     return 0;
 }
 
+#ifdef WIN32
 int ExImage::load(const wchar* fname, bool query) {
     if (crs != NULL || bits != NULL) {
         exerror("%s - loaded\n", __func__);
         clear();
     }
- 
     if (!(fname && *fname)) {
         exerror("%s - invalid filename.\n", __func__);
         return -1;
@@ -64,13 +68,13 @@ int ExImage::load(const wchar* fname, bool query) {
     for (const wchar* p = fname; *p; p++)
         if (*p == '.') ext = p + 1;
     if (ext == NULL) {
-        exerror("%s(%s) - invalid extension.\n", __func__, fname);
+        exerror(L"%s(%s) - invalid extension.\n", __funcw__, fname);
         return NULL;
     }
     HANDLE hFile = CreateFile(fname, GENERIC_READ, 0, NULL,
                               OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
     if (hFile == INVALID_HANDLE_VALUE) {
-        exerror("%s(%s) - CreateFile fail.\n", __func__, fname);
+        exerror(L"%s(%s) - CreateFile fail.\n", __funcw__, fname);
         return NULL;
     }
     int r = -1;
@@ -99,7 +103,7 @@ int ExImage::load(const wchar* fname, bool query) {
         goto done;
     }
 #endif
-    exerror("%s(%s) - unknown image format.\n", __func__, fname);
+    exerror(L"%s(%s) - unknown image format.\n", __funcw__, fname);
 clean:
     CloseHandle(hFile);
 done:
@@ -124,11 +128,86 @@ done:
     }
     return r;
 }
+#else // compat linux
+int ExImage::load(const char* fname, bool query) {
+    if (crs != NULL || bits != NULL) {
+        exerror("%s - loaded\n", __func__);
+        clear();
+    }
+    if (!(fname && *fname)) {
+        exerror("%s - invalid filename.\n", __func__);
+        return -1;
+    }
+    const char* ext = NULL;
+    for (const char* p = fname; *p; p++)
+        if (*p == '.') ext = p + 1;
+    if (ext == NULL) {
+        exerror("%s(%s) - invalid extension.\n", __func__, fname);
+        return -1;
+    }
+    int fd = open(fname, O_RDONLY);
+    if (fd < 0) {
+        exerror("%s(%s) - %s fail. %s\n", __func__, fname, "open", strerror(errno));
+        return -1;
+    }
+    int r = -1;
+    unsigned char hdr[8];
+    if (read(fd, hdr, 8) < 4)
+        exerror("%s(%s) - %s fail. %s\n", __func__, fname, "read", strerror(errno));
+    if (lseek(fd, 0, SEEK_SET) != 0)
+        exerror("%s(%s) - %s fail. %s\n", __func__, fname, "seek", strerror(errno));
+    if (strncasecmp(ext, "png", 3) == 0) {
+        assert(hdr[0] == 0x89 && hdr[1] == 'P' && hdr[2] == 'N' && hdr[3] == 'G');
+        this->format = Ex_IMM_PNG;
+        r = this->loadPng(fd, fname, query);
+        goto clean;
+    }
+#if 1
+    if (strncasecmp(ext, "bmp", 3) == 0) {
+        assert(hdr[0] == 'B' && hdr[1] == 'M');
+        this->format = Ex_IMM_BMP;
+        r = this->loadBmp(fd, fname, query);
+        goto clean;
+    }
+    if (strncasecmp(ext, "jp", 2) == 0) {
+        close(fd);
+        assert(hdr[0] == 0xff && hdr[1] == 0xd8);
+        this->format = Ex_IMM_JPG;
+        r = this->loadJpg(0, fname, query);
+        goto done;
+    }
+#endif
+    exerror("%s(%s) - unknown image format.\n", __func__, fname);
+clean:
+    close(fd);
+done:
+    if (r == 0 && bpp == 32 &&
+        type == Ex_IMAGE_DIRECT_8888 &&
+        format == Ex_IMM_PNG) {
+        preMultiply();
+    }
+    if (r == 0) {
+        cairo_status_t status;
+        cairo_format_t format = CAIRO_FORMAT_ARGB32;
+        int stride = cairo_format_stride_for_width(format, width);
+        crs = cairo_image_surface_create_for_data(bits, format, width, height, stride);
+        assert(stride == bpl);
+        status = cairo_surface_status(crs);
+        if (status != CAIRO_STATUS_SUCCESS) {
+            exerror("%s: %s\n", __func__, cairo_status_to_string(status));
+            //cairo_surface_destroy(crs);
+            clear();
+            return -1;
+        }
+    }
+    return r;
+}
+#endif
 
 void ExImage::preMultiply() {
     // color_type == PNG_COLOR_TYPE_RGB_ALPHA
     for (int h = 0; h < height; h++) {
-        uchar* dp = bits + bpl * h;
+        uint8* dp = bits + bpl * h;
         for (int w = 0; w < width; w++) {
             /* Premultiplies data and converts RGBA bytes => native endian */
             register uint32 color = *(uint32*)dp;

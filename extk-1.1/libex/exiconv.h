@@ -17,6 +17,41 @@ extern int iconv_charset; // default 949
 
 // classes
 //
+class wcsconv {
+public:
+    union {
+        wchar* wcs;
+        char* mbs;
+    };
+    ~wcsconv() {
+        if (wcs) free(wcs);
+    }
+    wcsconv(const wchar* src) {
+        int len = (int)wcslen(src);
+        if ((mbs = (char*)malloc((len + 1) * 2)) == NULL)
+            return;
+#ifdef WIN32
+        len = WideCharToMultiByte(dprint_charset, 0, src, len, mbs, len * 2, NULL, NULL);
+#else
+        len = wcstombs(mbs, src, len * 2); if (len < 0) len = 0;
+#endif // WIN32
+        mbs[len] = 0;
+    }
+    wcsconv(const char* src) {
+        int len = (int)strlen(src);
+        if ((wcs = (wchar*)malloc((len + 1) * 2)) == NULL)
+            return;
+#ifdef WIN32
+        len = MultiByteToWideChar(dprint_charset, 0, src, len, wcs, len * 2);
+#else
+        len = mbstowcs(wcs, src, len * 2); if (len < 0) len = 0;
+#endif // WIN32
+        wcs[len] = 0;
+    }
+    operator wchar* () { return wcs; }
+    operator char* () { return mbs; }
+};
+
 class wcs2mbs {
 public:
     char* mbs;

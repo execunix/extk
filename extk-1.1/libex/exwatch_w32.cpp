@@ -3,7 +3,7 @@
  * SPDX-License-Identifier:     GPL-2.0+
  */
 
-#ifndef __linux__
+#ifdef WIN32
 
 #include "exwatch.h"
 #include "extimer.h"
@@ -338,5 +338,4 @@ int ExWatch::onEvent(HANDLE handle) {
     return 0;
 }
 
-#endif // __linux__
-
+#endif // WIN32
