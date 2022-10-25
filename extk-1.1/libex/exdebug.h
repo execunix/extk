@@ -86,7 +86,7 @@ const wchar* _wcserror(int errval);
 extern int         dprint_verbose; // default 999
 extern int         dprint_charset; // default 949
 extern const char* dprint_appname; // default "[*] "
-extern int(*ex_dprint_handler)(int lvl, const char* mbs);
+extern int (*ex_dprint_handler)(int lvl, const char* mbs);
 
 int debug_vprintf(int lvl, const wchar* fmt, va_list arg);
 int debug_vprintf(int lvl, const char* fmt, va_list arg);
@@ -115,7 +115,7 @@ int debug_print(const char* fmt, ...);
  * in error_handler() to generate a stack trace for when the user causes
  * exlib to detect an error.
  */
-extern int(*ex_error_handler)(const char* mbs);
+extern int (*ex_error_handler)(const char* mbs);
 int exerror(const wchar* fmt, ...);
 int exerror(const char* fmt, ...);
 

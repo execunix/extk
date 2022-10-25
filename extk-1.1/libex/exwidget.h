@@ -133,11 +133,11 @@ public:
     int         shape;      // flags for the widget shape
     int         state;      // flags for the widget state
     void*       style;      // Storing style struct
-    union {                 // Storing arbitrary user data
+    union {                 // Storing arbitrary user data : 256 bytes
         mutable uint64 u64[32];
         mutable uint32 u32[64];
         mutable void*  ptr[32];
-    } /*userdata*/;
+    } userdata;
 public:
     virtual ~ExWidget();
     explicit ExWidget();

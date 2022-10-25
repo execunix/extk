@@ -24,7 +24,7 @@ dprint_handler(int lvl, const char* mbs) {
 int         dprint_verbose = 999;
 int         dprint_charset = 949;
 const char* dprint_appname = "[*] ";
-int(*ex_dprint_handler)(int lvl, const char* mbs) = &dprint_handler;
+int (*ex_dprint_handler)(int lvl, const char* mbs) = &dprint_handler;
 
 int
 debug_vprintf(int lvl, const wchar* fmt, va_list arg)
@@ -151,7 +151,7 @@ error_handler(const char* mbs) {
     return -1;
 }
 
-int(*ex_error_handler)(const char* mbs) = &error_handler;
+int (*ex_error_handler)(const char* mbs) = &error_handler;
 
 int
 exerror(const wchar* fmt, ...)

@@ -30,13 +30,13 @@ public:
     int init(ExWindow* window);
     int init(ExWindow* window, ExSize sz);
     int resize(int w, int h);
-    //int newFace(uint fontId, const char* faceName);
     virtual int deleteMemGC();
     virtual int createMemGC(int width, int height); // sample
 public:
     Ex_DECLARE_TYPEINFO(ExCanvas, ExObject);
 };
 
+#ifdef WIN32
 class ExCairoCanvas : public ExCanvas {
 protected:
     // tbd
@@ -79,7 +79,6 @@ public:
     // tbd
 };
 
-#ifdef WIN32
 HRGN ExRegionToGdi(HDC hdc, const ExRegion* srcrgn);
 #endif
 

@@ -37,8 +37,8 @@ uint32 ex_key_timer_instant_repeat = 0;
 // class ExApp
 //
 const char*  ExApp::appName = "ExApp";
-#ifdef WIN32
 ExWindow*    ExApp::mainWnd = NULL;
+#ifdef WIN32
 HINSTANCE    ExApp::hInstance = 0;
 HINSTANCE    ExApp::hPrevInstance = 0;
 LPTSTR       ExApp::lpCmdLine = NULL;
@@ -65,7 +65,8 @@ ExWindow*    ExApp::button_window[2];        /* The last 2 windows to receive bu
 UINT         ExApp::regAppMsgIndex = WM_APP;
 #endif
 
-int ExEventPeek(ExEvent& event) {
+int ExEventPeek(ExEvent& event)
+{
 #ifdef WIN32
     BOOL bRet;
 
@@ -113,7 +114,8 @@ Returns:
     0	Success.
     -1	An error occurred.
 */
-int ExModalUnblock(ExModalCtrl* ctrl, void* result) {
+int ExModalUnblock(ExModalCtrl* ctrl, void* result)
+{
     assert(ctrl->flags & 0x80000000);
     ctrl->flags = 0;
     ctrl->result = result;
@@ -134,9 +136,10 @@ Returns:
     NULL on error, or the value passed as the second argument to ExModalUnblock()
     (don't use NULL or you won't be able to recognize a failure).
 */
-void* ExModalBlock(ExModalCtrl* ctrl, long flags) {
+void* ExModalBlock(ExModalCtrl* ctrl, long flags)
+{
 #if 0 // tbd
-    ulong waittick;
+    uint32 waittick;
     ExEvent& event = ExApp::event;
     ctrl->flags = flags | 0x80000000;
     ctrl->result = NULL;
@@ -182,7 +185,8 @@ Description:
     This is a convenience function that implements an application main loop using
     ExEventNext() and ExEventHandler().
 */
-void ExMainLoop() {
+void ExMainLoop()
+{
     ExEvent& event = ExApp::event;
 
     while (exWatchDisp->getHalt() == 0 &&
@@ -213,25 +217,33 @@ Returns:
     0	Success.
     -1	The thread has already called ExQuitMainLoop().
 */
-void ExQuitMainLoop() {
+void ExQuitMainLoop()
+{
 #ifdef WIN32
     PostQuitMessage(0);
 #endif
 }
 
 #ifdef WIN32
-void ExApp::dispatch(MSG& msg) {
+void ExApp::dispatch(MSG& msg)
+{
     exWatchDisp->leave();
     TranslateMessage(&msg);
     DispatchMessage(&msg);
     exWatchDisp->enter();
 }
 #endif
+#ifdef __linux__
+void ExApp::dispatch(ExEvent& ev)
+{
+}
+#endif
 
 void collectWindow();
 void collectWidget();
 
-void ExApp::collect() {
+void ExApp::collect()
+{
     // If some objects are deleted inside the dispatch function,
     // we will have a problem, so clean up here.
 
@@ -241,9 +253,10 @@ void ExApp::collect() {
     // tbd etc...
 }
 
-#ifdef WIN32
-void ExApp::exit(int retCode) {
+void ExApp::exit(int retCode)
+{
     dprint("%s(%d)\n", __func__, retCode);
+#ifdef WIN32
     if (!ExIsMainThread()) {
         dprint("pause main thread\n");
     }
@@ -256,15 +269,18 @@ void ExApp::exit(int retCode) {
 #endif
     ExFiniProcess();
     ExitProcess(retCode);
-}
 #endif
+#ifdef __linux__
+    exit(retCode);
+#endif
+}
 
 #ifdef WIN32
 int ExApp::init(HINSTANCE hInstance,
     HINSTANCE hPrevInstance,
     LPTSTR lpCmdLine,
-    int nCmdShow) {
-
+    int nCmdShow)
+{
     // init lib
     ExInitProcess();
 

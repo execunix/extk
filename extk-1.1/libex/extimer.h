@@ -25,7 +25,7 @@ private: // Modify the flags only in the ExWatch::TimerSet class.
     int         _ra_1;      // reserved for align
 public:
     ExObject*   object;     // Pass the object linked to the timer
-    union {                 // Storing arbitrary user data
+    union {                 // Storing arbitrary user data : 32 bytes
         mutable uint64 u64[4];
         mutable uint32 u32[8];
         mutable void*  ptr[4];

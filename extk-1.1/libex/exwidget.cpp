@@ -92,6 +92,7 @@ ExWidget::ExWidget()
     , exposeRgn()
     , opaqueRgn()
     , flags(Ex_Destroyed)
+    , _ra_1(0)
     , data(NULL)
     , drawFunc()
     , area(0)
@@ -100,7 +101,11 @@ ExWidget::ExWidget()
     , shape(0)
     , state(0)
     , style(NULL)
-    , u64 { 0ull, }
+#if defined(_MSC_VER)
+    , userdata { 0ull, }
+#else
+    , userdata { .u64 = { 0ull, } }
+#endif
     , listenerList() {
 #ifdef DEBUG // test
     drawFunc = ExDrawFunc(&s_fill, (void*)NULL); // tbd

@@ -26,8 +26,8 @@ extern uint32 ex_key_timer_instant_repeat;
 class ExApp {
 public:
     static const char*  appName;
-#ifdef WIN32
     static ExWindow*    mainWnd;
+#ifdef WIN32
     static HINSTANCE    hInstance;
     static HINSTANCE    hPrevInstance;
     static LPTSTR       lpCmdLine;
@@ -57,7 +57,7 @@ public:
     static void dispatch(MSG& msg);
 #endif
 #ifdef __linux__
-    static void dispatch(long& msg);
+    static void dispatch(ExEvent& ev);
 #endif
     static void collect();
     static void exit(int retCode);
@@ -84,7 +84,7 @@ Returns:
 */
 int ExEventPeek(ExEvent& event);
 
-typedef int(*ExEventFunc)(ExEvent& event);
+typedef int (*ExEventFunc)(ExEvent& event);
 extern ExEventFunc exEventFunc;
 
 void ExMainLoop();

@@ -11,33 +11,16 @@
 #include FT_FREETYPE_H
 #endif
 #ifdef __linux__
-//#include <freetype2/ft2build.h>
+#include <freetype2/ft2build.h>
 #include <cairo/cairo-ft.h>
 #endif
 #include "exapp.h"
 #include <assert.h>
 
-//static FT_Library ftLib;
-//static FT_Face ftFace[8];
-//
-//static int refcnt = 0; // tbd
-//cairo_font_face_t* ExCanvas::crf[8];
-
 // class ExCanvas
 //
 ExCanvas::~ExCanvas() {
     deleteMemGC();
-    //refcnt--;
-    //if (refcnt == 0) {
-    //    for (int i = 0; i < 8; i++) {
-    //        if (ftFace[i])
-    //            FT_Done_Face(ftFace[i]);
-    //        if (crf[i])
-    //            cairo_font_face_destroy(crf[i]);
-    //        ftFace[i] = NULL;
-    //        crf[i] = NULL;
-    //    }
-    //}
 }
 
 ExCanvas::ExCanvas()
@@ -48,13 +31,6 @@ ExCanvas::ExCanvas()
     , dc(NULL)
 #endif
     , cr(NULL) {
-    //if (refcnt == 0) {
-    //    for (int i = 0; i < 8; i++) {
-    //        ftFace[i] = NULL;
-    //        crf[i] = NULL;
-    //    }
-    //}
-    //refcnt++;
 }
 
 int ExCanvas::init(ExWindow* window) {
@@ -75,27 +51,6 @@ int ExCanvas::resize(int w, int h) {
     deleteMemGC();
     return createMemGC(w, h);
 }
-
-#if 0
-// create cairo font
-int ExCanvas::newFace(uint fontId, const char* faceName) {
-    if (!(fontId < 8 && crf[fontId] == NULL)) {
-        dprint1("%s(%d) invalid fontId", __func__, fontId);
-        return -1;
-    }
-    if (ftLib != NULL &&
-        FT_New_Face(ftLib, faceName, 0, &ftFace[fontId]) != FT_Err_Ok) {
-        dprint1("%s(%d) FT_New_Face fail", __func__, fontId);
-        return -1;
-    }
-    crf[fontId] = cairo_ft_font_face_create_for_ft_face(ftFace[fontId], FT_LOAD_DEFAULT | FT_LOAD_NO_BITMAP);
-    if (crf[fontId] == NULL) {
-        dprint1("%s(%d) FT_New_Face fail", __func__, fontId);
-        return -1;
-    }
-    return 0;
-}
-#endif
 
 int ExCanvas::deleteMemGC() {
     if (cr) {
@@ -131,7 +86,9 @@ int ExCanvas::createMemGC(int width, int height) {
         cr = cairo_create(gc->crs);
         status = cairo_status(cr);
     }
+#ifdef WIN32x
     cairo_surface_destroy(gc->crs); // unref
+#endif
     if (status == CAIRO_STATUS_SUCCESS) {
         wnd->damage(); // tbd
         return 0;
@@ -141,6 +98,7 @@ int ExCanvas::createMemGC(int width, int height) {
     return -1;
 }
 
+#ifdef WIN32
 ExTripleCanvas::~ExTripleCanvas() {
 }
 
@@ -150,7 +108,6 @@ ExTripleCanvas::ExTripleCanvas()
     crBuf[0] = crBuf[1] = crBuf[2] = NULL;
 }
 
-#ifdef WIN32
 HRGN
 ExRegionToGdi(HDC hdc, const ExRegion* srcrgn)
 {

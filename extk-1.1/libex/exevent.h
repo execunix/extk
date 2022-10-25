@@ -7,6 +7,7 @@
 #define __exevent_h__
 
 #include "excallback.h"
+#include "exgeomet.h"
 
 // ExEvent
 //
@@ -33,9 +34,16 @@ struct ExEvent {
     void*       collector;
     int         status;
     int         result;
+    union { // 32 bytes
+        uint64 data[4];
+        ExPoint pt;
+    } msg;
 
-    ExEvent() : type(0), message(0), wparam(0), lparam(0),
-                data(0), emitter(0), collector(0), status(0), result(0) {}
+    ExEvent() : type(0), message(0), wparam(0), lparam(0)
+              , data(0), emitter(0), collector(0), status(0), result(0)
+              , msg { .data = { 0ull, } } {
+        //memset(msg.data, 0, sizeof(msg));
+    }
 };
 #endif
 

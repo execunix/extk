@@ -93,8 +93,8 @@ static VOID CALLBACK cbTimer(PVOID lpParameter, BOOLEAN timeout) {
     assert(lpParameter == &exTimerList);
     assert(timeout);
     exWatchMain->enter();
-    exTickCount = GetTickCount(); // update tick
-    exTimerList.invoke(exTickCount);
+    uint32 waittick = GetTickCount(); // update tick
+    exTimerList.invoke(waittick);
     if (ExApp::mainWnd != NULL) {
         ExApp::mainWnd->flush();
     }

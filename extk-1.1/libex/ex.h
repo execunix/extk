@@ -29,9 +29,7 @@
 #include "exwidget.h"
 #include "exwindow.h"
 
-namespace ex {
-static const char* libName = "exlib";
-static const int libVer = 0x20050101;
-}
+#define EXTK2LIBNAME    "libextk2"
+#define EXTK2LIBVER     0x20050101
 
 #endif//__ex_h__

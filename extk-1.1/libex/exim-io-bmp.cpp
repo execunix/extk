@@ -155,7 +155,7 @@ int ExImage::loadBmp(int fd, const char* fname, bool query)
             goto bmp_cleanup;
         }
 
-        if (lseek(fd, bf.bfOffBits, SEEK_SET))
+        if (lseek(fd, bf.bfOffBits, SEEK_SET) < 0)
             exerror("%s(%s) - %s fail. %s\n", __func__, fname, "seek", strerror(errno));
 
         int src_bpl = BMP_BPL(bi.biWidth, bi.biBitCount);

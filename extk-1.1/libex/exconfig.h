@@ -36,6 +36,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <unistd.h>
+#include <limits.h>
 #endif
 #include <string.h>
 #include <wchar.h>
@@ -45,6 +46,7 @@
 #include <pixman.h>
 #else // linux
 #include <cairo/cairo.h>
+#include <math.h>
 #endif
 
 #ifndef STDCALL

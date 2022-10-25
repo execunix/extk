@@ -260,7 +260,7 @@ void WndMain::onDrawToy(ExCanvas* canvas, const WndMain* w, const ExRegion* dama
     cairo_matrix_init_scale(&font_matrix, fs, fs);
     cairo_font_options_t* options = cairo_font_options_create();
     cairo_glyph_t* glyphs = NULL;
-    uint& textId = toy.u32[0];
+    uint& textId = toy.userdata.u32[0];
     const wchar* str = strtbl[textId % 2];
     int num_glyphs = 0;
     int len = (int)wcslen(str);
@@ -289,7 +289,7 @@ void WndMain::onDrawToy(ExCanvas* canvas, const WndMain* w, const ExRegion* dama
 
 int WndMain::onTimerToy(WndMain* wnd, ExCbInfo* cbinfo) {
     uint& cnt = timerToy.u32[0];
-    uint& textId = toy.u32[0];
+    uint& textId = toy.userdata.u32[0];
     cnt++; // 0 ~ 100
     if (cnt > 100) {
         cnt = 0;
@@ -567,7 +567,7 @@ static HANDLE hStorageNoti;
 int WndMain::initIomux() {
     static ExTimer launchInputTimer;
     launchInputTimer.init(NULL, [](void* d, ExTimer* t, ExCbInfo*)->int {
-        dprint("launchInputTimer: %d\n", exTickCount);
+        dprint("launchInputTimer: %d\n", exWatchDisp->getTick());
 
         hWakeupNoti = CreateEvent(NULL, FALSE, FALSE, L"AppDemo"); // tbd
         exWatchLast->ioAdd([](void* d, HANDLE handle)->int {
@@ -983,14 +983,14 @@ int WndMain::start() {
         dprint("timerTest: %s\n", w->getName());
         return Ex_Continue; }, (void*)0, this); // test
     timerTest.init(NULL, [](void* d, ExTimer* t, ExCbInfo*)->int {
-        dprint("timerTest: %d %u %u\n", (t->u32[0])++, (ulong)*t, exTickCount);
+        dprint("timerTest: %d %u %u\n", (t->u32[0])++, (ulong)*t, exWatchDisp->getTick());
         return Ex_Continue; }, (void*)0);
     timerTest.start(1, 1000);
 
     toy_alpha = .2f;
     toy_delta = 1.f;
     toy_scale = 1.f;
-    toy.u32[0] = 0;
+    toy.userdata.u32[0] = 0;
     toy.drawFunc = ExDrawFunc(this, &WndMain::onDrawToy);
     toy.init(this, "toy", &rc.set(360, 300, 600, 80));
 
