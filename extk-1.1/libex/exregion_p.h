@@ -61,7 +61,7 @@ SOFTWARE.
  *  0 if two BOXs do not overlap.
  *  Remember, x2 and y2 are not in the region
  */
-#define EXTENT_CHECK(r1, r2) \
+#define EXTENT_CHECK(r1, r2)    \
         ((r1)->x2 > (r2)->x1 && \
          (r1)->x1 < (r2)->x2 && \
          (r1)->y2 > (r2)->y1 && \
@@ -70,7 +70,7 @@ SOFTWARE.
 /*
  *  update region extents
  */
-#define EXTENTS(r, id_rgn) { \
+#define EXTENTS(r, id_rgn) {               \
         if ((r)->x1 < (id_rgn)->extent.x1) \
             (id_rgn)->extent.x1 = (r)->x1; \
         if ((r)->y1 < (id_rgn)->extent.y1) \
@@ -81,83 +81,83 @@ SOFTWARE.
             (id_rgn)->extent.y2 = (r)->y2; \
     }
 
-#define GROW_REGION(rgn, nbxes) { \
-        if ((nbxes) == 0) { \
-            if ((rgn)->boxes != &(rgn)->extent) { \
-                free((rgn)->boxes); \
-                (rgn)->boxes = &(rgn)->extent; \
-            } \
-        } else \
-        if ((rgn)->boxes == &(rgn)->extent) { \
-            (rgn)->boxes = (ExBox*)malloc(sizeof(ExBox) * nbxes); \
-            (rgn)->boxes[0] = (rgn)->extent; \
-        } else { \
-            ExBox* tmpboxes = (ExBox*)malloc(sizeof(ExBox) * nbxes); \
-            for (int i = 0; i < (rgn)->n_boxes; i++) \
-                tmpboxes[i] = (rgn)->boxes[i]; \
-            free((rgn)->boxes); \
-            (rgn)->boxes = tmpboxes; \
-            /* warning: non-trivially */ \
+#define GROW_REGION(rgn, nbxes) {                                                      \
+        if ((nbxes) == 0) {                                                            \
+            if ((rgn)->boxes != &(rgn)->extent) {                                      \
+                free((rgn)->boxes);                                                    \
+                (rgn)->boxes = &(rgn)->extent;                                         \
+            }                                                                          \
+        } else                                                                         \
+        if ((rgn)->boxes == &(rgn)->extent) {                                          \
+            (rgn)->boxes = (ExBox*)malloc(sizeof(ExBox) * nbxes);                      \
+            (rgn)->boxes[0] = (rgn)->extent;                                           \
+        } else {                                                                       \
+            ExBox* tmpboxes = (ExBox*)malloc(sizeof(ExBox) * nbxes);                   \
+            for (int i = 0; i < (rgn)->n_boxes; i++)                                   \
+                tmpboxes[i] = (rgn)->boxes[i];                                         \
+            free((rgn)->boxes);                                                        \
+            (rgn)->boxes = tmpboxes;                                                   \
+            /* warning: non-trivially */                                               \
             /* (rgn)->boxes = (ExBox*)realloc((rgn)->boxes, sizeof(ExBox) * nbxes); */ \
-        } \
-        (rgn)->size = (nbxes); \
+        }                                                                              \
+        (rgn)->size = (nbxes);                                                         \
     }
 
 /*
  *   Check to see if there is enough memory in the present region.
  */
-#define MEM_CHECK(rgn, box, firstrect) { \
+#define MEM_CHECK(rgn, box, firstrect) {           \
         if ((rgn)->n_boxes >= ((rgn)->size - 1)) { \
-            GROW_REGION(rgn, 4*(rgn)->size); \
-            (box) = &(firstrect)[(rgn)->n_boxes]; \
-        } \
+            GROW_REGION(rgn, 4 * (rgn)->size);     \
+            (box) = &(firstrect)[(rgn)->n_boxes];  \
+        }                                          \
     }
 
 /*  this routine checks to see if the previous rectangle is the same
  *  or subsumes the new rectangle to add.
  */
 #define CHECK_PREV(rgn, r, rx1, ry1, rx2, ry2) \
-        (!(((rgn)->n_boxes > 0) && \
-           ((r-1)->y1 == (ry1)) && \
-           ((r-1)->y2 == (ry2)) && \
-           ((r-1)->x1 <= (rx1)) && \
-           ((r-1)->x2 >= (rx2)) ))
+        (!(((rgn)->n_boxes > 0) &&             \
+           ((r-1)->y1 == (ry1)) &&             \
+           ((r-1)->y2 == (ry2)) &&             \
+           ((r-1)->x1 <= (rx1)) &&             \
+           ((r-1)->x2 >= (rx2))))
 
 /*  add a rectangle to the given region */
-#define ADD_RECT(rgn, r, rx1, ry1, rx2, ry2) { \
-        if (((rx1) < (rx2)) && ((ry1) < (ry2)) && \
+#define ADD_RECT(rgn, r, rx1, ry1, rx2, ry2) {                    \
+        if (((rx1) < (rx2)) && ((ry1) < (ry2)) &&                 \
             CHECK_PREV((rgn), (r), (rx1), (ry1), (rx2), (ry2))) { \
-            (r)->x1 = (rx1); \
-            (r)->y1 = (ry1); \
-            (r)->x2 = (rx2); \
-            (r)->y2 = (ry2); \
-            EXTENTS((r), (rgn)); \
-            (rgn)->n_boxes++; \
-            (r)++; \
-        } \
+            (r)->x1 = (rx1);                                      \
+            (r)->y1 = (ry1);                                      \
+            (r)->x2 = (rx2);                                      \
+            (r)->y2 = (ry2);                                      \
+            EXTENTS((r), (rgn));                                  \
+            (rgn)->n_boxes++;                                     \
+            (r)++;                                                \
+        }                                                         \
     }
 
 /*  add a rectangle to the given region */
-#define ADD_RECT_NOX(rgn, r, rx1, ry1, rx2, ry2) { \
-        if ((rx1 < rx2) && (ry1 < ry2) && \
+#define ADD_RECT_NOX(rgn, r, rx1, ry1, rx2, ry2) {                \
+        if ((rx1 < rx2) && (ry1 < ry2) &&                         \
             CHECK_PREV((rgn), (r), (rx1), (ry1), (rx2), (ry2))) { \
-            (r)->x1 = (rx1); \
-            (r)->y1 = (ry1); \
-            (r)->x2 = (rx2); \
-            (r)->y2 = (ry2); \
-            (rgn)->n_boxes++; \
-            (r)++; \
-        } \
+            (r)->x1 = (rx1);                                      \
+            (r)->y1 = (ry1);                                      \
+            (r)->x2 = (rx2);                                      \
+            (r)->y2 = (ry2);                                      \
+            (rgn)->n_boxes++;                                     \
+            (r)++;                                                \
+        }                                                         \
     }
 
 #define EMPTY_REGION(rgn) rgn->n_boxes = 0
 
 #define REGION_NOT_EMPTY(rgn) rgn->n_boxes
 
-#define IN_BOX(r, x, y) \
-        ((((r).x2 > x)) && \
+#define IN_BOX(r, x, y)     \
+        ((((r).x2 > x)) &&  \
          (((r).x1 <= x)) && \
-         (((r).y2 > y)) && \
+         (((r).y2 > y)) &&  \
          (((r).y1 <= y)))
 
 /*

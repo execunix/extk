@@ -10,13 +10,17 @@
 #include "eximage.h"
 #include <assert.h>
 
-ExImage::~ExImage() {
-    if (crs) cairo_surface_destroy(crs);
-    if (bits) free(bits);
+ExImage::~ExImage()
+{
+    if (crs)
+        cairo_surface_destroy(crs);
+    if (bits)
+        free(bits);
 }
 
 ExImage* // static
-ExImage::create(int width, int height, int type) {
+ExImage::create(int width, int height, int type)
+{
     ExImage* image = new ExImage;
     assert(image != NULL);
     image->flags |= Ex_ImageFreeMemory;
@@ -27,7 +31,8 @@ ExImage::create(int width, int height, int type) {
     return image;
 }
 
-int ExImage::init(int width, int height, int type) {
+int ExImage::init(int width, int height, int type)
+{
     setInfo(width, height, type);
     this->flags |= Ex_ImageAlloc;
     if ((this->bits = (uint8*)malloc(getBitsSize())) == NULL) {
@@ -38,7 +43,8 @@ int ExImage::init(int width, int height, int type) {
     return 0;
 }
 
-int ExImage::setInfo(int width, int height, int type) {
+int ExImage::setInfo(int width, int height, int type)
+{
     assert(this->bits == NULL);
     int bpp = getBitsPerPixel(type);
     if (bpp == 0 || width <= 0 || height <= 0) {
@@ -55,7 +61,8 @@ int ExImage::setInfo(int width, int height, int type) {
 }
 
 #ifdef WIN32
-int ExImage::load(const wchar* fname, bool query) {
+int ExImage::load(const wchar* fname, bool query)
+{
     if (crs != NULL || bits != NULL) {
         exerror("%s - loaded\n", __func__);
         clear();
@@ -129,7 +136,8 @@ done:
     return r;
 }
 #else // compat linux
-int ExImage::load(const char* fname, bool query) {
+int ExImage::load(const char* fname, bool query)
+{
     if (crs != NULL || bits != NULL) {
         exerror("%s - loaded\n", __func__);
         clear();
@@ -204,7 +212,8 @@ done:
 }
 #endif
 
-void ExImage::preMultiply() {
+void ExImage::preMultiply()
+{
     // color_type == PNG_COLOR_TYPE_RGB_ALPHA
     for (int h = 0; h < height; h++) {
         uint8* dp = bits + bpl * h;

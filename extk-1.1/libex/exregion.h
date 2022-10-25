@@ -15,7 +15,7 @@ enum ExOverlap {
     Ex_OverlapPart,             // rectangle in partially in region
 };
 
-typedef void(*ExSpanFunc)(ExSpan* span, void* data);
+typedef void (*ExSpanFunc)(ExSpan* span, void* data);
 
 #if 0 // tbd
 enum ExFillRule {
@@ -204,7 +204,7 @@ struct ExRegion {
                             void*         data);
 };
 
-inline void ExRegion:: x_or(const ExRegion& srcrgn) {
+inline void ExRegion::x_or(const ExRegion& srcrgn) {
     ExRegion tmprgn(srcrgn);
     tmprgn.subtract(*this);
     this->subtract(srcrgn);

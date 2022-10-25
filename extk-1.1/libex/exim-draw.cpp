@@ -8,12 +8,13 @@
 
 // impl. no clip, no mask, support 32bpp only but fast
 
-void ExImage::fillBoxAlphaEx(const ExBox* box, uint8 alpha, uint8 a_out) {
+void ExImage::fillBoxAlphaEx(const ExBox* box, uint8 alpha, uint8 a_out)
+{
     dprint("%s\n", __func__);
     if (!(this->bits && this->bpp == 32))
         return;
     ExBox bx;
-    if (box  && box->valid()) {
+    if (box && box->valid()) {
         bx = *box;
         if (bx.l < 0)
             bx.l = 0;
@@ -53,7 +54,8 @@ void ExImage::fillBoxAlphaEx(const ExBox* box, uint8 alpha, uint8 a_out) {
     }
 }
 
-void ExImage::fillBoxAlpha(const ExBox* box, uint8 alpha) {
+void ExImage::fillBoxAlpha(const ExBox* box, uint8 alpha)
+{
     if (!(this->bits && this->bpp == 32))
         return;
     ExBox bx;
@@ -132,7 +134,8 @@ void ExImage::fillBoxRgbEx(const ExBox* box, uint32 rgb, uint32 rgb_out)
     }
 }
 
-void ExImage::fillBoxRgb(const ExBox* box, uint32 rgb) {
+void ExImage::fillBoxRgb(const ExBox* box, uint32 rgb)
+{
     if (!(this->bits && this->bpp == 32))
         return;
     ExBox bx;
@@ -165,7 +168,8 @@ void ExImage::fillBoxRgb(const ExBox* box, uint32 rgb) {
     }
 }
 
-void ExImage::fillBoxEx(const ExBox* box, uint32 color, uint32 c_out) {
+void ExImage::fillBoxEx(const ExBox* box, uint32 color, uint32 c_out)
+{
     dprint("%s\n", __func__);
     if (!(this->bits && this->bpp == 32))
         return;
@@ -210,7 +214,8 @@ void ExImage::fillBoxEx(const ExBox* box, uint32 color, uint32 c_out) {
     }
 }
 
-void ExImage::fillBox(const ExBox* box, uint32 color) {
+void ExImage::fillBox(const ExBox* box, uint32 color)
+{
     if (!(this->bits && this->bpp == 32))
         return;
     ExBox bx;
@@ -243,7 +248,8 @@ void ExImage::fillBox(const ExBox* box, uint32 color) {
     }
 }
 
-void ExImage::drawBox(const ExBox* box, uint32 color) {
+void ExImage::drawBox(const ExBox* box, uint32 color)
+{
     if (!(this->bits && this->bpp == 32))
         return;
     ExBox bx;
@@ -267,7 +273,7 @@ void ExImage::drawBox(const ExBox* box, uint32 color) {
     register uint8* p_y = this->bits + this->bpl * y;
     int rc_lx4 = (int)bx.l * 4;
     int rc_rx4 = (int)bx.r * 4;
-    for (; y < bx.t+1; y++) {
+    for (; y < bx.t + 1; y++) {
         register uint8* p = p_y + rc_lx4;
         register uint8* q = p_y + rc_rx4;
         for (; p < q; p += 4)
@@ -292,12 +298,15 @@ void ExImage::drawBox(const ExBox* box, uint32 color) {
 }
 
 void ExImage::Blit(ExImage* dstimg, int dx, int dy, int w, int h,
-                   const ExImage* srcimg, int sx, int sy) {
+    const ExImage* srcimg, int sx, int sy)
+{
     // tbd - clipping, masking, raster-op, bpp-mode-func-table...
     assert(dstimg != srcimg && dstimg->bpp == 32 && srcimg->bpp == 32); // 32bpp only
     ExBox bx(dx - sx, dy - sy, srcimg->width + dx - sx, srcimg->height + dy - sy);
-    if (!bx.intersect(0, 0, dstimg->width, dstimg->height)) return;
-    if (!bx.intersect(dx, dy, dx + w, dy + h)) return;
+    if (!bx.intersect(0, 0, dstimg->width, dstimg->height))
+        return;
+    if (!bx.intersect(dx, dy, dx + w, dy + h))
+        return;
     sx += bx.l - dx;
     sy += bx.t - dy;
     dx = bx.l;
@@ -307,8 +316,8 @@ void ExImage::Blit(ExImage* dstimg, int dx, int dy, int w, int h,
 
     size_t spnext = srcimg->bpl - w * 4;
     size_t dpnext = dstimg->bpl - w * 4;
-    uint8* sp = srcimg->bits + srcimg->bpl*sy + sx * 4;
-    uint8* dp = dstimg->bits + dstimg->bpl*dy + dx * 4;
+    uint8* sp = srcimg->bits + srcimg->bpl * sy + sx * 4;
+    uint8* dp = dstimg->bits + dstimg->bpl * dy + dx * 4;
     while (h--) {
         int width = w;
         while (width--) {
@@ -322,11 +331,14 @@ void ExImage::Blit(ExImage* dstimg, int dx, int dy, int w, int h,
 }
 
 void ExImage::BlitRgb(ExImage* dstimg, int dx, int dy, int w, int h,
-                      const ExImage* srcimg, int sx, int sy) {
+    const ExImage* srcimg, int sx, int sy)
+{
     assert(dstimg != srcimg && dstimg->bpp == 32 && srcimg->bpp == 32); // 32bpp only
     ExBox bx(dx - sx, dy - sy, srcimg->width + dx - sx, srcimg->height + dy - sy);
-    if (!bx.intersect(0, 0, dstimg->width, dstimg->height)) return;
-    if (!bx.intersect(dx, dy, dx + w, dy + h)) return;
+    if (!bx.intersect(0, 0, dstimg->width, dstimg->height))
+        return;
+    if (!bx.intersect(dx, dy, dx + w, dy + h))
+        return;
     sx += bx.l - dx;
     sy += bx.t - dy;
     dx = bx.l;
@@ -336,8 +348,8 @@ void ExImage::BlitRgb(ExImage* dstimg, int dx, int dy, int w, int h,
 
     size_t spnext = srcimg->bpl - w * 4;
     size_t dpnext = dstimg->bpl - w * 4;
-    uint8* sp = srcimg->bits + srcimg->bpl*sy + sx * 4;
-    uint8* dp = dstimg->bits + dstimg->bpl*dy + dx * 4;
+    uint8* sp = srcimg->bits + srcimg->bpl * sy + sx * 4;
+    uint8* dp = dstimg->bits + dstimg->bpl * dy + dx * 4;
     while (h--) {
         int width = w;
         while (width--) {
@@ -346,18 +358,21 @@ void ExImage::BlitRgb(ExImage* dstimg, int dx, int dy, int w, int h,
             *(uint32*)dp = src | dst;
             sp += 4;
             dp += 4;
-}
+        }
         sp += spnext;
         dp += dpnext;
     }
 }
 
 void ExImage::BlitAlpha(ExImage* dstimg, int dx, int dy, int w, int h,
-                        const ExImage* srcimg, int sx, int sy) {
+    const ExImage* srcimg, int sx, int sy)
+{
     assert(dstimg != srcimg && dstimg->bpp == 32 && srcimg->bpp == 32); // 32bpp only
     ExBox bx(dx - sx, dy - sy, srcimg->width + dx - sx, srcimg->height + dy - sy);
-    if (!bx.intersect(0, 0, dstimg->width, dstimg->height)) return;
-    if (!bx.intersect(dx, dy, dx + w, dy + h)) return;
+    if (!bx.intersect(0, 0, dstimg->width, dstimg->height))
+        return;
+    if (!bx.intersect(dx, dy, dx + w, dy + h))
+        return;
     sx += bx.l - dx;
     sy += bx.t - dy;
     dx = bx.l;
@@ -417,14 +432,14 @@ It's inconvenient to write ...
  */
 
 #define MUL_UN8(a, b, t) \
-    ((t) = (a) * (b) + ONE_HALF, ((((t) >> G_SHIFT ) + (t) ) >> G_SHIFT))
+    ((t) = (a) * (b) + ONE_HALF, ((((t) >> G_SHIFT) + (t)) >> G_SHIFT))
 
 #define DIV_UN8(a, b) \
-    (((uint16) (a) * MASK) / (b))
+    (((uint16)(a) * MASK) / (b))
 
 #define ADD_UN8(x, y, t) \
-    ((t) = x + y, \
-     (uint32) (uint8) ((t) | (0 - ((t) >> G_SHIFT))))
+    ((t) = x + y,        \
+        (uint32)(uint8)((t) | (0 - ((t) >> G_SHIFT))))
 
 #define DIV_ONE_UN8(x) \
     (((x) + ONE_HALF + (((x) + ONE_HALF) >> G_SHIFT)) >> G_SHIFT)
@@ -437,46 +452,46 @@ It's inconvenient to write ...
 /*
  * x_rb = (x_rb * a) / 255
  */
-#define UN8_rb_MUL_UN8(x, a, t) \
-    do { \
-        t  = ((x) & RB_MASK) * (a); \
-        t += RB_ONE_HALF; \
+#define UN8_rb_MUL_UN8(x, a, t)                          \
+    do {                                                 \
+        t = ((x)&RB_MASK) * (a);                         \
+        t += RB_ONE_HALF;                                \
         x = (t + ((t >> G_SHIFT) & RB_MASK)) >> G_SHIFT; \
-        x &= RB_MASK; \
+        x &= RB_MASK;                                    \
     } while (0)
 
 /*
  * x_rb = min (x_rb + y_rb, 255)
  */
-#define UN8_rb_ADD_UN8_rb(x, y, t) \
-    do { \
-        t = ((x) + (y)); \
+#define UN8_rb_ADD_UN8_rb(x, y, t)                          \
+    do {                                                    \
+        t = ((x) + (y));                                    \
         t |= RB_MASK_PLUS_ONE - ((t >> G_SHIFT) & RB_MASK); \
-        x = (t & RB_MASK); \
+        x = (t & RB_MASK);                                  \
     } while (0)
 
 /*
  * x_rb = (x_rb * a_rb) / 255
  */
-#define UN8_rb_MUL_UN8_rb(x, a, t) \
-    do { \
-        t  = (x & MASK) * (a & MASK); \
-        t |= (x & R_MASK) * ((a >> R_SHIFT) & MASK); \
-        t += RB_ONE_HALF; \
+#define UN8_rb_MUL_UN8_rb(x, a, t)                       \
+    do {                                                 \
+        t = (x & MASK) * (a & MASK);                     \
+        t |= (x & R_MASK) * ((a >> R_SHIFT) & MASK);     \
+        t += RB_ONE_HALF;                                \
         t = (t + ((t >> G_SHIFT) & RB_MASK)) >> G_SHIFT; \
-        x = t & RB_MASK; \
+        x = t & RB_MASK;                                 \
     } while (0)
 
 /*
  * x_c = (x_c * a) / 255
  */
-#define UN8x4_MUL_UN8(x, a) \
-    do { \
-        uint32 r1, r2, t; \
-        r1 = (x); \
-        UN8_rb_MUL_UN8 (r1, a, t); \
-        r2 = (x) >> G_SHIFT; \
-        UN8_rb_MUL_UN8 (r2, a, t); \
+#define UN8x4_MUL_UN8(x, a)       \
+    do {                          \
+        uint32 r1, r2, t;         \
+        r1 = (x);                 \
+        UN8_rb_MUL_UN8(r1, a, t); \
+        r2 = (x) >> G_SHIFT;      \
+        UN8_rb_MUL_UN8(r2, a, t); \
         x = r1 | (r2 << G_SHIFT); \
     } while (0)
 
@@ -484,109 +499,110 @@ It's inconvenient to write ...
  * x_c = (x_c * a) / 255 + y_c
  */
 #define UN8x4_MUL_UN8_ADD_UN8x4(x, a, y) \
-    do { \
-        uint32 r1, r2, r3, t; \
-        r1 = (x); \
-        r2 = (y) & RB_MASK; \
-        UN8_rb_MUL_UN8 (r1, a, t); \
-        UN8_rb_ADD_UN8_rb (r1, r2, t); \
-        r2 = (x) >> G_SHIFT; \
+    do {                                 \
+        uint32 r1, r2, r3, t;            \
+        r1 = (x);                        \
+        r2 = (y)&RB_MASK;                \
+        UN8_rb_MUL_UN8(r1, a, t);        \
+        UN8_rb_ADD_UN8_rb(r1, r2, t);    \
+        r2 = (x) >> G_SHIFT;             \
         r3 = ((y) >> G_SHIFT) & RB_MASK; \
-        UN8_rb_MUL_UN8 (r2, a, t); \
-        UN8_rb_ADD_UN8_rb (r2, r3, t); \
-        x = r1 | (r2 << G_SHIFT); \
+        UN8_rb_MUL_UN8(r2, a, t);        \
+        UN8_rb_ADD_UN8_rb(r2, r3, t);    \
+        x = r1 | (r2 << G_SHIFT);        \
     } while (0)
 
 /*
  * x_c = (x_c * a + y_c * b) / 255
  */
 #define UN8x4_MUL_UN8_ADD_UN8x4_MUL_UN8(x, a, y, b) \
-    do { \
-        uint32 r1, r2, r3, t; \
-        r1 = x; \
-        r2 = y; \
-        UN8_rb_MUL_UN8 (r1, a, t); \
-        UN8_rb_MUL_UN8 (r2, b, t); \
-        UN8_rb_ADD_UN8_rb (r1, r2, t); \
-        r2 = (x >> G_SHIFT); \
-        r3 = (y >> G_SHIFT); \
-        UN8_rb_MUL_UN8 (r2, a, t); \
-        UN8_rb_MUL_UN8 (r3, b, t); \
-        UN8_rb_ADD_UN8_rb (r2, r3, t); \
-        x = r1 | (r2 << G_SHIFT); \
+    do {                                            \
+        uint32 r1, r2, r3, t;                       \
+        r1 = x;                                     \
+        r2 = y;                                     \
+        UN8_rb_MUL_UN8(r1, a, t);                   \
+        UN8_rb_MUL_UN8(r2, b, t);                   \
+        UN8_rb_ADD_UN8_rb(r1, r2, t);               \
+        r2 = (x >> G_SHIFT);                        \
+        r3 = (y >> G_SHIFT);                        \
+        UN8_rb_MUL_UN8(r2, a, t);                   \
+        UN8_rb_MUL_UN8(r3, b, t);                   \
+        UN8_rb_ADD_UN8_rb(r2, r3, t);               \
+        x = r1 | (r2 << G_SHIFT);                   \
     } while (0)
 
 /*
  * x_c = (x_c * a_c) / 255
  */
-#define UN8x4_MUL_UN8x4(x, a) \
-    do { \
-        uint32 r1, r2, r3, t; \
-        r1 = x; \
-        r2 = a; \
-        UN8_rb_MUL_UN8_rb (r1, r2, t); \
-        r2 = x >> G_SHIFT; \
-        r3 = a >> G_SHIFT; \
-        UN8_rb_MUL_UN8_rb (r2, r3, t); \
-        x = r1 | (r2 << G_SHIFT); \
+#define UN8x4_MUL_UN8x4(x, a)         \
+    do {                              \
+        uint32 r1, r2, r3, t;         \
+        r1 = x;                       \
+        r2 = a;                       \
+        UN8_rb_MUL_UN8_rb(r1, r2, t); \
+        r2 = x >> G_SHIFT;            \
+        r3 = a >> G_SHIFT;            \
+        UN8_rb_MUL_UN8_rb(r2, r3, t); \
+        x = r1 | (r2 << G_SHIFT);     \
     } while (0)
 
 /*
  * x_c = (x_c * a_c) / 255 + y_c
  */
 #define UN8x4_MUL_UN8x4_ADD_UN8x4(x, a, y) \
-    do { \
-        uint32 r1, r2, r3, t; \
-        r1 = x; \
-        r2 = a; \
-        UN8_rb_MUL_UN8_rb (r1, r2, t); \
-        r2 = y & RB_MASK; \
-        UN8_rb_ADD_UN8_rb (r1, r2, t); \
-        r2 = (x >> G_SHIFT); \
-        r3 = (a >> G_SHIFT); \
-        UN8_rb_MUL_UN8_rb (r2, r3, t); \
-        r3 = (y >> G_SHIFT) & RB_MASK; \
-        UN8_rb_ADD_UN8_rb (r2, r3, t); \
-        x = r1 | (r2 << G_SHIFT); \
+    do {                                   \
+        uint32 r1, r2, r3, t;              \
+        r1 = x;                            \
+        r2 = a;                            \
+        UN8_rb_MUL_UN8_rb(r1, r2, t);      \
+        r2 = y & RB_MASK;                  \
+        UN8_rb_ADD_UN8_rb(r1, r2, t);      \
+        r2 = (x >> G_SHIFT);               \
+        r3 = (a >> G_SHIFT);               \
+        UN8_rb_MUL_UN8_rb(r2, r3, t);      \
+        r3 = (y >> G_SHIFT) & RB_MASK;     \
+        UN8_rb_ADD_UN8_rb(r2, r3, t);      \
+        x = r1 | (r2 << G_SHIFT);          \
     } while (0)
 
 /*
  * x_c = (x_c * a_c + y_c * b) / 255
  */
 #define UN8x4_MUL_UN8x4_ADD_UN8x4_MUL_UN8(x, a, y, b) \
-    do { \
-        uint32 r1, r2, r3, t; \
-        r1 = x; \
-        r2 = a; \
-        UN8_rb_MUL_UN8_rb (r1, r2, t); \
-        r2 = y; \
-        UN8_rb_MUL_UN8 (r2, b, t); \
-        UN8_rb_ADD_UN8_rb (r1, r2, t); \
-        r2 = x >> G_SHIFT; \
-        r3 = a >> G_SHIFT; \
-        UN8_rb_MUL_UN8_rb (r2, r3, t); \
-        r3 = y >> G_SHIFT; \
-        UN8_rb_MUL_UN8 (r3, b, t); \
-        UN8_rb_ADD_UN8_rb (r2, r3, t); \
-        x = r1 | (r2 << G_SHIFT); \
+    do {                                              \
+        uint32 r1, r2, r3, t;                         \
+        r1 = x;                                       \
+        r2 = a;                                       \
+        UN8_rb_MUL_UN8_rb(r1, r2, t);                 \
+        r2 = y;                                       \
+        UN8_rb_MUL_UN8(r2, b, t);                     \
+        UN8_rb_ADD_UN8_rb(r1, r2, t);                 \
+        r2 = x >> G_SHIFT;                            \
+        r3 = a >> G_SHIFT;                            \
+        UN8_rb_MUL_UN8_rb(r2, r3, t);                 \
+        r3 = y >> G_SHIFT;                            \
+        UN8_rb_MUL_UN8(r3, b, t);                     \
+        UN8_rb_ADD_UN8_rb(r2, r3, t);                 \
+        x = r1 | (r2 << G_SHIFT);                     \
     } while (0)
 
 /*
    x_c = min(x_c + y_c, 255)
  */
-#define UN8x4_ADD_UN8x4(x, y) \
-    do { \
-        uint32 r1, r2, r3, t; \
-        r1 = x & RB_MASK; \
-        r2 = y & RB_MASK; \
-        UN8_rb_ADD_UN8_rb (r1, r2, t); \
+#define UN8x4_ADD_UN8x4(x, y)          \
+    do {                               \
+        uint32 r1, r2, r3, t;          \
+        r1 = x & RB_MASK;              \
+        r2 = y & RB_MASK;              \
+        UN8_rb_ADD_UN8_rb(r1, r2, t);  \
         r2 = (x >> G_SHIFT) & RB_MASK; \
         r3 = (y >> G_SHIFT) & RB_MASK; \
-        UN8_rb_ADD_UN8_rb (r2, r3, t); \
-        x = r1 | (r2 << G_SHIFT); \
+        UN8_rb_ADD_UN8_rb(r2, r3, t);  \
+        x = r1 | (r2 << G_SHIFT);      \
     } while (0)
 
-static inline uint32 over(uint32 src, uint32 dest) {
+static inline uint32 over(uint32 src, uint32 dest)
+{
     uint32 a = ~src >> 24;
 
     UN8x4_MUL_UN8_ADD_UN8x4(dest, a, src);
@@ -595,11 +611,14 @@ static inline uint32 over(uint32 src, uint32 dest) {
 }
 
 void ExImage::BlitAlphaOver(ExImage* dstimg, int dx, int dy, int w, int h,
-                            const ExImage* srcimg, int sx, int sy) {
+    const ExImage* srcimg, int sx, int sy)
+{
     assert(dstimg != srcimg && dstimg->bpp == 32 && srcimg->bpp == 32); // 32bpp only
     ExBox bx(dx - sx, dy - sy, srcimg->width + dx - sx, srcimg->height + dy - sy);
-    if (!bx.intersect(0, 0, dstimg->width, dstimg->height)) return;
-    if (!bx.intersect(dx, dy, dx + w, dy + h)) return;
+    if (!bx.intersect(0, 0, dstimg->width, dstimg->height))
+        return;
+    if (!bx.intersect(dx, dy, dx + w, dy + h))
+        return;
     sx += bx.l - dx;
     sy += bx.t - dy;
     dx = bx.l;
@@ -609,8 +628,8 @@ void ExImage::BlitAlphaOver(ExImage* dstimg, int dx, int dy, int w, int h,
 
     size_t spnext = srcimg->bpl - w * 4;
     size_t dpnext = dstimg->bpl - w * 4;
-    uint8* sp = srcimg->bits + srcimg->bpl*sy + sx * 4;
-    uint8* dp = dstimg->bits + dstimg->bpl*dy + dx * 4;
+    uint8* sp = srcimg->bits + srcimg->bpl * sy + sx * 4;
+    uint8* dp = dstimg->bits + dstimg->bpl * dy + dx * 4;
     while (h--) {
         int width = w;
         while (width--) {
@@ -627,4 +646,3 @@ void ExImage::BlitAlphaOver(ExImage* dstimg, int dx, int dy, int w, int h,
         dp += dpnext;
     }
 }
-

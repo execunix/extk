@@ -49,6 +49,7 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ************************************************************************/
+
 /*
  * The functions in this file implement the ExRegion abstraction, similar to one
  * used in the X11 sample server. A ExRegion is simply an area, as the name
@@ -91,15 +92,16 @@ SOFTWARE.
 #undef  CLAMP
 #define CLAMP(x, low, high)     (((x) > (high)) ? (high) : (((x) < (low)) ? (low) : (x)))
 
-typedef void(*OverlapFunc)(ExRegion*, ExBox*, ExBox*, ExBox*, ExBox*, int16, int16);
-typedef void(*NonOverlapFunc)(ExRegion*, ExBox*, ExBox*, int16, int16);
+typedef void (*OverlapFunc)(ExRegion*, ExBox*, ExBox*, ExBox*, ExBox*, int16, int16);
+typedef void (*NonOverlapFunc)(ExRegion*, ExBox*, ExBox*, int16, int16);
 
 static void miRegionOp(ExRegion*, ExRegion*, const ExRegion*, OverlapFunc, NonOverlapFunc, NonOverlapFunc);
 
 // ExRegion
 //
 
-void ExRegion::clear() {
+void ExRegion::clear()
+{
     if (boxes != &extent)
         free(boxes);
     size = 1;
@@ -113,7 +115,8 @@ void ExRegion::clear() {
  * @region: a #ExRegion
  * Copies @region.
  */
-void ExRegion::copy(const ExRegion& srcrgn) {
+void ExRegion::copy(const ExRegion& srcrgn)
+{
     if (this != &srcrgn) { /* don't want to copy to itself */
         if (size < srcrgn.n_boxes) {
             if (boxes != &extent)
@@ -124,17 +127,18 @@ void ExRegion::copy(const ExRegion& srcrgn) {
         n_boxes = srcrgn.n_boxes;
         extent = srcrgn.extent;
         if (boxes != &extent) {
-            #if 1
+#if 1
             for (int i = 0; i < n_boxes; i++)
                 boxes[i] = srcrgn.boxes[i];
-            #else // warning: non-trivially
+#else // warning: non-trivially
             memcpy(boxes, srcrgn.boxes, n_boxes * sizeof(ExBox));
-            #endif
+#endif
         }
     }
 }
 
-void ExRegion::getRects(ExBox** boxes, int* n_boxes) const {
+void ExRegion::getRects(ExBox** boxes, int* n_boxes) const
+{
     *n_boxes = this->n_boxes;
     *boxes = (ExBox*)malloc(sizeof(ExBox) * this->n_boxes);
 
@@ -142,7 +146,8 @@ void ExRegion::getRects(ExBox** boxes, int* n_boxes) const {
         (*boxes)[i] = this->boxes[i];
 }
 
-void ExRegion::setRect(const ExBox& box) {
+void ExRegion::setRect(const ExBox& box)
+{
     if (box.empty()) {
         n_boxes = 0;
     } else {
@@ -204,7 +209,8 @@ miSetExtents(ExRegion* rgn)
     assert(extent->x1 < extent->x2);
 }
 
-void ExRegion::move(int16 dx, int16 dy) {
+void ExRegion::move(int16 dx, int16 dy)
+{
     if (!dx && !dy)
         return;
 
@@ -357,17 +363,17 @@ miIntersectOlap(ExRegion* rgn,
          */
         if (r1->x2 < r2->x2) {
             r1++;
-        } else
-            if (r2->x2 < r1->x2) {
-                r2++;
-            } else {
-                r1++;
-                r2++;
-            }
+        } else if (r2->x2 < r1->x2) {
+            r2++;
+        } else {
+            r1++;
+            r2++;
+        }
     }
 }
 
-void ExRegion::intersect(const ExRegion& srcrgn) {
+void ExRegion::intersect(const ExRegion& srcrgn)
+{
     /* check for trivial reject */
     if ((!(this->n_boxes)) || (!(srcrgn.n_boxes)) ||
         (!EXTENT_CHECK(&this->extent, &srcrgn.extent)))
@@ -422,7 +428,7 @@ miCoalesce(ExRegion* rgn,       /* Region to coalesce */
     curBox = &rgn->boxes[curStart];
     bandY1 = curBox->y1;
     for (curNumRects = 0;
-        (curBox != endBox) && (curBox->y1 == bandY1);
+         (curBox != endBox) && (curBox->y1 == bandY1);
          curNumRects++) {
         curBox++;
     }
@@ -631,23 +637,22 @@ miRegionOp(ExRegion*       newrgn,          /* New region */
                 (*nonOverlap1Func)(newrgn, r1, r1BandEnd, top, bot);
             }
             ytop = r2->y1;
-        } else
-            if (r2->y1 < r1->y1) {
-                top = MAX(r2->y1, ybot);
-                bot = MIN(r2->y2, r1->y1);
-                if ((top != bot) && (nonOverlap2Func != (NonOverlapFunc)NULL)) {
-                    (*nonOverlap2Func)(newrgn, r2, r2BandEnd, top, bot);
-                }
-                ytop = r1->y1;
-            } else {
-                ytop = r1->y1;
+        } else if (r2->y1 < r1->y1) {
+            top = MAX(r2->y1, ybot);
+            bot = MIN(r2->y2, r1->y1);
+            if ((top != bot) && (nonOverlap2Func != (NonOverlapFunc)NULL)) {
+                (*nonOverlap2Func)(newrgn, r2, r2BandEnd, top, bot);
             }
-            /*
-             * If any rectangles got added to the region, try and coalesce them
-             * with rectangles from the previous band. Note we could just do
-             * this test in miCoalesce, but some machines incur a not
-             * inconsiderable cost for function calls, so...
-             */
+            ytop = r1->y1;
+        } else {
+            ytop = r1->y1;
+        }
+        /*
+         * If any rectangles got added to the region, try and coalesce them
+         * with rectangles from the previous band. Note we could just do
+         * this test in miCoalesce, but some machines incur a not
+         * inconsiderable cost for function calls, so...
+         */
         if (newrgn->n_boxes != curBand) {
             prevBand = miCoalesce(newrgn, prevBand, curBand);
         }
@@ -690,17 +695,16 @@ miRegionOp(ExRegion*       newrgn,          /* New region */
                 r1 = r1BandEnd;
             } while (r1 != r1End);
         }
-    } else
-        if ((r2 != r2End) && (nonOverlap2Func != (NonOverlapFunc)NULL)) {
-            do {
-                r2BandEnd = r2;
-                while ((r2BandEnd < r2End) && (r2BandEnd->y1 == r2->y1)) {
-                    r2BandEnd++;
-                }
-                (*nonOverlap2Func)(newrgn, r2, r2BandEnd, MAX(r2->y1, ybot), r2->y2);
-                r2 = r2BandEnd;
-            } while (r2 != r2End);
-        }
+    } else if ((r2 != r2End) && (nonOverlap2Func != (NonOverlapFunc)NULL)) {
+        do {
+            r2BandEnd = r2;
+            while ((r2BandEnd < r2End) && (r2BandEnd->y1 == r2->y1)) {
+                r2BandEnd++;
+            }
+            (*nonOverlap2Func)(newrgn, r2, r2BandEnd, MAX(r2->y1, ybot), r2->y2);
+            r2 = r2BandEnd;
+        } while (r2 != r2End);
+    }
 
     if (newrgn->n_boxes != curBand) {
         (void)miCoalesce(newrgn, prevBand, curBand);
@@ -796,25 +800,25 @@ miUnionOlap(ExRegion* rgn,
 
     nextRect = &rgn->boxes[rgn->n_boxes];
 
-#define MERGE_RECT(r) \
-    if ((rgn->n_boxes != 0) && \
-        (nextRect[-1].y1 == y1) && \
-        (nextRect[-1].y2 == y2) && \
-        (nextRect[-1].x2 >= r->x1)) { \
-        if (nextRect[-1].x2 < r->x2) { \
-            nextRect[-1].x2 = r->x2; \
+#define MERGE_RECT(r)                                  \
+    if ((rgn->n_boxes != 0) &&                         \
+        (nextRect[-1].y1 == y1) &&                     \
+        (nextRect[-1].y2 == y2) &&                     \
+        (nextRect[-1].x2 >= r->x1)) {                  \
+        if (nextRect[-1].x2 < r->x2) {                 \
+            nextRect[-1].x2 = r->x2;                   \
             assert(nextRect[-1].x1 < nextRect[-1].x2); \
-        } \
-    } else { \
-        MEM_CHECK(rgn, nextRect, rgn->boxes); \
-        nextRect->y1 = y1; \
-        nextRect->y2 = y2; \
-        nextRect->x1 = r->x1; \
-        nextRect->x2 = r->x2; \
-        rgn->n_boxes += 1; \
-        nextRect += 1; \
-    } \
-    assert(rgn->n_boxes <= rgn->size); \
+        }                                              \
+    } else {                                           \
+        MEM_CHECK(rgn, nextRect, rgn->boxes);          \
+        nextRect->y1 = y1;                             \
+        nextRect->y2 = y2;                             \
+        nextRect->x1 = r->x1;                          \
+        nextRect->x2 = r->x2;                          \
+        rgn->n_boxes += 1;                             \
+        nextRect += 1;                                 \
+    }                                                  \
+    assert(rgn->n_boxes <= rgn->size);                 \
     r++;
 
     assert(y1 < y2);
@@ -836,7 +840,8 @@ miUnionOlap(ExRegion* rgn,
     }
 }
 
-void ExRegion::combine(const ExRegion& srcrgn) {
+void ExRegion::combine(const ExRegion& srcrgn)
+{
     /* checks all the simple cases */
 
     /*
@@ -947,73 +952,71 @@ miSubtractOlap(ExRegion* rgn,
              * Subtrahend missed the boat: go to next subtrahend.
              */
             r2++;
-        } else
-            if (r2->x1 <= x1) {
+        } else if (r2->x1 <= x1) {
+            /*
+             * Subtrahend preceeds minuend: nuke left edge of minuend.
+             */
+            x1 = r2->x2;
+            if (x1 >= r1->x2) {
                 /*
-                 * Subtrahend preceeds minuend: nuke left edge of minuend.
+                 * Minuend completely covered: advance to next minuend and
+                 * reset left fence to edge of new minuend.
                  */
-                x1 = r2->x2;
-                if (x1 >= r1->x2) {
-                    /*
-                     * Minuend completely covered: advance to next minuend and
-                     * reset left fence to edge of new minuend.
-                     */
-                    r1++;
-                    if (r1 != r1End)
-                        x1 = r1->x1;
-                } else {
-                    /*
-                     * Subtrahend now used up since it doesn't extend beyond minuend.
-                     */
-                    r2++;
-                }
-            } else
-                if (r2->x1 < r1->x2) {
-                    /*
-                     * Left part of subtrahend covers part of minuend: add uncovered
-                     * part of minuend to region and skip to next subtrahend.
-                     */
-                    assert(x1 < r2->x1);
-                    MEM_CHECK(rgn, nextRect, rgn->boxes);
-                    nextRect->x1 = x1;
-                    nextRect->y1 = y1;
-                    nextRect->x2 = r2->x1;
-                    nextRect->y2 = y2;
-                    rgn->n_boxes += 1;
-                    nextRect++;
-                    assert(rgn->n_boxes <= rgn->size);
-                    x1 = r2->x2;
-                    if (x1 >= r1->x2) {
-                        /*
-                         * Minuend used up: advance to new...
-                         */
-                        r1++;
-                        if (r1 != r1End)
-                            x1 = r1->x1;
-                    } else {
-                        /*
-                         * Subtrahend used up
-                         */
-                        r2++;
-                    }
-                } else {
-                    /*
-                     * Minuend used up: add any remaining piece before advancing.
-                     */
-                    if (r1->x2 > x1) {
-                        MEM_CHECK(rgn, nextRect, rgn->boxes);
-                        nextRect->x1 = x1;
-                        nextRect->y1 = y1;
-                        nextRect->x2 = r1->x2;
-                        nextRect->y2 = y2;
-                        rgn->n_boxes += 1;
-                        nextRect++;
-                        assert(rgn->n_boxes <= rgn->size);
-                    }
-                    r1++;
-                    if (r1 != r1End)
-                        x1 = r1->x1;
-                }
+                r1++;
+                if (r1 != r1End)
+                    x1 = r1->x1;
+            } else {
+                /*
+                 * Subtrahend now used up since it doesn't extend beyond minuend.
+                 */
+                r2++;
+            }
+        } else if (r2->x1 < r1->x2) {
+            /*
+             * Left part of subtrahend covers part of minuend: add uncovered
+             * part of minuend to region and skip to next subtrahend.
+             */
+            assert(x1 < r2->x1);
+            MEM_CHECK(rgn, nextRect, rgn->boxes);
+            nextRect->x1 = x1;
+            nextRect->y1 = y1;
+            nextRect->x2 = r2->x1;
+            nextRect->y2 = y2;
+            rgn->n_boxes += 1;
+            nextRect++;
+            assert(rgn->n_boxes <= rgn->size);
+            x1 = r2->x2;
+            if (x1 >= r1->x2) {
+                /*
+                 * Minuend used up: advance to new...
+                 */
+                r1++;
+                if (r1 != r1End)
+                    x1 = r1->x1;
+            } else {
+                /*
+                 * Subtrahend used up
+                 */
+                r2++;
+            }
+        } else {
+            /*
+             * Minuend used up: add any remaining piece before advancing.
+             */
+            if (r1->x2 > x1) {
+                MEM_CHECK(rgn, nextRect, rgn->boxes);
+                nextRect->x1 = x1;
+                nextRect->y1 = y1;
+                nextRect->x2 = r1->x2;
+                nextRect->y2 = y2;
+                rgn->n_boxes += 1;
+                nextRect++;
+                assert(rgn->n_boxes <= rgn->size);
+            }
+            r1++;
+            if (r1 != r1End)
+                x1 = r1->x1;
+        }
     }
 
     /*
@@ -1036,7 +1039,8 @@ miSubtractOlap(ExRegion* rgn,
     }
 }
 
-void ExRegion::subtract(const ExRegion& srcrgn) {
+void ExRegion::subtract(const ExRegion& srcrgn)
+{
     /* check for trivial reject */
     if ((!(this->n_boxes)) || (!(srcrgn.n_boxes)) ||
         (!EXTENT_CHECK(&this->extent, &srcrgn.extent)))
@@ -1052,23 +1056,35 @@ void ExRegion::subtract(const ExRegion& srcrgn) {
     miSetExtents(this);
 }
 
-bool ExRegion::equal(const ExRegion& rgn) const {
-    if (n_boxes != rgn.n_boxes) return false;
-    if (n_boxes == 0) return true;
-    if (extent.x1 != rgn.extent.x1) return false;
-    if (extent.x2 != rgn.extent.x2) return false;
-    if (extent.y1 != rgn.extent.y1) return false;
-    if (extent.y2 != rgn.extent.y2) return false;
+bool ExRegion::equal(const ExRegion& rgn) const
+{
+    if (n_boxes != rgn.n_boxes)
+        return false;
+    if (n_boxes == 0)
+        return true;
+    if (extent.x1 != rgn.extent.x1)
+        return false;
+    if (extent.x2 != rgn.extent.x2)
+        return false;
+    if (extent.y1 != rgn.extent.y1)
+        return false;
+    if (extent.y2 != rgn.extent.y2)
+        return false;
     for (int i = 0; i < n_boxes; i++) {
-        if (boxes[i].x1 != rgn.boxes[i].x1) return false;
-        if (boxes[i].x2 != rgn.boxes[i].x2) return false;
-        if (boxes[i].y1 != rgn.boxes[i].y1) return false;
-        if (boxes[i].y2 != rgn.boxes[i].y2) return false;
+        if (boxes[i].x1 != rgn.boxes[i].x1)
+            return false;
+        if (boxes[i].x2 != rgn.boxes[i].x2)
+            return false;
+        if (boxes[i].y1 != rgn.boxes[i].y1)
+            return false;
+        if (boxes[i].y2 != rgn.boxes[i].y2)
+            return false;
     }
     return true;
 }
 
-bool ExRegion::contain(int16 x, int16 y) const {
+bool ExRegion::contain(int16 x, int16 y) const
+{
     int i;
 
     if (n_boxes == 0)
@@ -1082,7 +1098,8 @@ bool ExRegion::contain(int16 x, int16 y) const {
     return false;
 }
 
-ExOverlap ExRegion::contain(const ExBox& box) const {
+ExOverlap ExRegion::contain(const ExBox& box) const
+{
     ExBox* bx;
     ExBox* bxEnd;
     bool partIn, partOut;
@@ -1100,33 +1117,32 @@ ExOverlap ExRegion::contain(const ExBox& box) const {
 
     /* can stop when both partOut and partIn are TRUE, or we reach box.y2 */
     for (bx = boxes, bxEnd = bx + n_boxes;
-         bx < bxEnd; bx++)
-    {
+         bx < bxEnd; bx++) {
         if (bx->y2 <= ry)
-            continue;           /* getting up to speed or skipping remainder of band */
+            continue; /* getting up to speed or skipping remainder of band */
         if (bx->y1 > ry) {
-            partOut = true;     /* missed part of rectangle above */
+            partOut = true; /* missed part of rectangle above */
             if (partIn || (bx->y1 >= box.y2))
                 break;
-            ry = bx->y1;       /* x guaranteed to be == box.x1 */
+            ry = bx->y1; /* x guaranteed to be == box.x1 */
         }
         if (bx->x2 <= rx)
-            continue;           /* not far enough over yet */
+            continue; /* not far enough over yet */
         if (bx->x1 > rx) {
-            partOut = true;     /* missed part of rectangle to left */
+            partOut = true; /* missed part of rectangle to left */
             if (partIn)
                 break;
         }
         if (bx->x1 < box.x2) {
-            partIn = true;      /* definitely overlap */
+            partIn = true; /* definitely overlap */
             if (partOut)
                 break;
         }
         if (bx->x2 >= box.x2) {
-            ry = bx->y2;       /* finished with this band */
+            ry = bx->y2; /* finished with this band */
             if (ry >= box.y2)
                 break;
-            rx = box.x1;       /* reset x out to left again */
+            rx = box.x1; /* reset x out to left again */
         } else {
             /*
              * Because boxes in a band are maximal width, if the first box
@@ -1139,10 +1155,7 @@ ExOverlap ExRegion::contain(const ExBox& box) const {
         }
     }
 
-    return (partIn ?
-        ((ry < box.y2) ?
-         Ex_OverlapPart : Ex_OverlapIn) :
-            Ex_OverlapOut);
+    return (partIn ? ((ry < box.y2) ? Ex_OverlapPart : Ex_OverlapIn) : Ex_OverlapOut);
 }
 
 static void
@@ -1161,26 +1174,24 @@ enumUnsortedSpansIntersect(ExRegion*     region,
     if (!region->n_boxes)
         return;
 
-    for (i = 0; i < n_spans; i++)
-    {
+    for (i = 0; i < n_spans; i++) {
         y = spans[i].y;
         left = spans[i].x;
         right = left + spans[i].w; /* right is not in the span! */
 
         if (!((region->extent.y1 <= y) &&
-            (region->extent.y2 > y) &&
+              (region->extent.y2 > y) &&
               (region->extent.x1 < right) &&
               (region->extent.x2 > left)))
             continue;
 
         /* can stop when we passed y */
         for (bx = region->boxes, bxEnd = bx + region->n_boxes;
-             bx < bxEnd; bx++)
-        {
+             bx < bxEnd; bx++) {
             if (bx->y2 <= y)
-                continue;       /* Not quite there yet */
+                continue; /* Not quite there yet */
             if (bx->y1 > y)
-                break;          /* passed the spanline */
+                break; /* passed the spanline */
             if ((right > bx->x1) && (left < bx->x2)) {
                 ExSpan out_span;
                 clipped_left = MAX(left, bx->x1);
@@ -1198,7 +1209,8 @@ void ExRegion::enumSpansintersect(const ExSpan* spans,
                                   int           n_spans,
                                   bool          sorted,
                                   ExSpanFunc    spanfunc,
-                                  void*         data) {
+                                  void*         data)
+{
     int16 left, right, y;
     int16 clipped_left, clipped_right;
     ExBox* bx;
@@ -1263,4 +1275,3 @@ void ExRegion::enumSpansintersect(const ExSpan* spans,
         bx++;
     }
 }
-

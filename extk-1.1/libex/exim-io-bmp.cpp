@@ -8,7 +8,7 @@
 #endif
 #include "eximage.h"
 
-#define BMP_BPL(w,bpp)	((((w)*(bpp)+7)/8 + (sizeof(uint32)-1)) & ~(sizeof(uint32)-1))
+#define BMP_BPL(w,bpp)  ((((w)*(bpp)+7)/8 + (sizeof(uint32)-1)) & ~(sizeof(uint32)-1))
 
 #ifdef WIN32
 int ExImage::loadBmp(HANDLE hFile, const wchar* fname, bool query)
