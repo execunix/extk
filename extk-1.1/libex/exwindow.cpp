@@ -17,7 +17,7 @@
 #define logpro0 dprint0
 
 #undef  ABS
-#define ABS(a)                  (((a) < 0) ? -(a) : (a))
+#define ABS(a)                  (uint)(((a) < 0) ? -(a) : (a))
 
 ExWatch* exWatchDisp = NULL;
 

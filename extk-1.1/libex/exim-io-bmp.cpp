@@ -8,6 +8,8 @@
 #endif
 #include "eximage.h"
 
+#define BMP24_CHROMA
+
 #define BMP_BPL(w,bpp)  ((((w)*(bpp)+7)/8 + (sizeof(uint32)-1)) & ~(sizeof(uint32)-1))
 
 #ifdef WIN32
@@ -129,6 +131,7 @@ int ExImage::loadBmp(int fd, const char* fname, bool query)
     BITMAPFILEHEADER bf;
     BITMAPINFOHEADER bi;
     //RGBQUAD* cm; // colormap
+    uint32 cmap[256]; // colormap
     uint8* src_buf = NULL;
 
     do {
@@ -140,12 +143,27 @@ int ExImage::loadBmp(int fd, const char* fname, bool query)
         if (read(fd, &bi, sizeof(bi)) != sizeof(bi)) {
             goto bmp_cleanup;
         }
-        if (bi.biBitCount != 32 &&
-            bi.biBitCount != 24 &&
-            bi.biBitCount != 16) {
+        if (bi.biBitCount < 8) {
+            exerror("%s(%s) %d-bpp not support\n", __func__, fname, bi.biBitCount);
             goto bmp_cleanup;
+        } else if (bi.biBitCount == 8) {
+            if (read(fd, cmap, sizeof(cmap)) != sizeof(cmap)) {
+                exerror("%s(%s) invalid colormap\n", __func__, fname);
+                goto bmp_cleanup;
+            }
+            chroma &= 0xfefefe; // tolerant 1-bit
+            for (int i = 0; i < 256; i++) {
+                bool cc = (chroma && ((cmap[i] & 0xfefefe) == chroma));
+                bool ac = ((cmap[i] & 0xfc000000) == 0xfc000000);
+                // tbd - check endian
+                if (!(cc || ac))
+                    cmap[i] |= 0xff000000;
+                else
+                    cmap[i] = 0;
+            }
         }
         if (bi.biCompression != BI_RGB) {
+            exerror("%s(%s) not rgb bitmap\n", __func__, fname);
             goto bmp_cleanup;
         }
         if (query) {
@@ -178,7 +196,20 @@ int ExImage::loadBmp(int fd, const char* fname, bool query)
         int x_delta = src_width * this->bpp / 8;
         int y_count = src_height;
 
-        if (bi.biBitCount == 16) {
+        if (bi.biBitCount == 8) {
+            for (; y_count > 0; y_count--) {
+                if (read(fd, src_buf, src_bpl) != src_bpl)
+                    goto bmp_cleanup;
+                register void* dp_end = dst_ptr + x_delta;
+                register uint32* dp = (uint32*)dst_ptr;
+                register uint8* sp = (uint8*)src_buf;
+                while ((void*)dp < dp_end) {
+                    register uint8 c = *sp++;
+                    *dp++ = cmap[c];
+                }
+                dst_ptr += dst_offbpl;
+            }
+        } else if (bi.biBitCount == 16) {
             for (; y_count > 0; y_count--) {
                 if (read(fd, src_buf, src_bpl) != src_bpl)
                     goto bmp_cleanup;
@@ -204,9 +235,18 @@ int ExImage::loadBmp(int fd, const char* fname, bool query)
                     register uint32 b = *sp++;
                     register uint32 g = *sp++;
                     register uint32 r = *sp++;
+#ifdef BMP24_CHROMA
+                    register uint32 rgb = (r << 16) | (g << 8) | b;
+                    if (!(chroma && chroma == rgb))
+                        rgb |= 0xff000000;
+                    else
+                        rgb = 0;
+                    *dp++ = rgb;
+#else
                     *dp++ = (0xff000000 | (r << 16) | (g << 8) | b);
                     //*dp++ = ExARGB(0xff, sp[2], sp[1], sp[0]);
                     //sp += 3;
+#endif
                 }
                 dst_ptr += dst_offbpl;
             }
@@ -218,9 +258,16 @@ int ExImage::loadBmp(int fd, const char* fname, bool query)
                 register uint32* dp = (uint32*)dst_ptr;
                 register uint32* sp = (uint32*)src_buf;
                 while ((void*)dp < dp_end) {
-                    register uint32 c = *sp++;
-                    c |= 0xff000000;
-                    *dp++ = c;
+                    register uint32 rgb = *sp++;
+#ifdef BMP32_CHROMA
+                    if (!(chroma && chroma == rgb))
+                        rgb |= 0xff000000;
+                    else
+                        rgb = 0;
+#else
+                    rgb |= 0xff000000;
+#endif
+                    *dp++ = rgb;
                 }
                 dst_ptr += dst_offbpl;
             }

@@ -146,7 +146,7 @@ void WgtMenu::onDrawMenuPop(ExCanvas* canvas, const ExWidget* widget, const ExRe
     else
         tc.set(1.f, 1.f, 1.f);
     cr.set_font(res.f.gothic.crf, fontSize);
-    cr.show_text(menu->text, tc, cr.text_align(menu->extents, rc, ExCairo::Left));
+    cr.show_text(menu->text, tc, cr.text_align(canvas->fe, menu->extents, rc, ExCairo::Left));
 }
 
 void WgtMenu::onDrawMenuBarBkgd(ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage) {
@@ -173,7 +173,7 @@ void WgtMenu::onDrawMenuBar(ExCanvas* canvas, const ExWidget* widget, const ExRe
         cr.fill_rect_rgba(rc, fc);
     }
     cr.set_font(res.f.gothic.crf, fontSize);
-    cr.show_text(menu->text, ExCairo::Color(1.f), cr.text_align(menu->extents, rc));
+    cr.show_text(menu->text, ExCairo::Color(1.f), cr.text_align(canvas->fe, menu->extents, rc));
 }
 
 int WgtMenu::onLayoutHorz(ExWidget* widget, ExCbInfo* cbinfo) {

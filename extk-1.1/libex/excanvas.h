@@ -21,6 +21,7 @@ public:
     ExMemDC*    dc; // tbd
 #endif
     cairo_t*    cr;
+    mutable cairo_font_extents_t fe;
     // tbd - protect with window->mutex
     //static cairo_font_face_t* crf[8];
 public:

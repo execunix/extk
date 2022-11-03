@@ -25,24 +25,53 @@ struct ExEvent {
 #endif
 #ifdef __linux__
 struct ExEvent {
-    int         type;
+    void*       hwnd;
     int         message;
-    int         wparam;
-    int         lparam;
-    void*       data;
+    int         wParam;
+    void*       lParam;
+    int         lResult;
+    uint32      tick;
+    union { // 8 bytes
+        void*   data;
+        uint64  u64;
+        ExPoint pt;
+        ExSize  sz;
+    } msg;
     void*       emitter;
     void*       collector;
-    int         status;
-    int         result;
-    union { // 32 bytes
-        uint64 data[4];
-        ExPoint pt;
-    } msg;
 
-    ExEvent() : type(0), message(0), wparam(0), lparam(0)
-              , data(0), emitter(0), collector(0), status(0), result(0)
-              , msg { .data = { 0ull, } } {
-        //memset(msg.data, 0, sizeof(msg));
+    ExEvent()
+        : hwnd(0), message(0), wParam(0), lParam(0)
+        , lResult(0), tick(0), msg { .data = 0 }
+        , emitter(0), collector(0) {}
+
+    // move constructor
+    ExEvent(ExEvent&& ev)
+        : hwnd(ev.hwnd), message(ev.message), wParam(ev.wParam), lParam(ev.lParam)
+        , lResult(ev.lResult), tick(ev.tick), msg { .data = ev.msg.data }
+        , emitter(ev.emitter), collector(ev.collector) { /*tbd*/ }
+    ExEvent& operator = (ExEvent&& ev) {
+        hwnd = ev.hwnd; message = ev.message; wParam = ev.wParam; lParam = ev.lParam;
+        lResult = ev.lResult; tick = ev.tick; msg.data = ev.msg.data;
+        emitter = ev.emitter; collector = ev.collector;  /*tbd*/
+        return *this;
+    }
+
+    // copy constructor
+    ExEvent(const ExEvent& ev)
+        : hwnd(ev.hwnd), message(ev.message), wParam(ev.wParam), lParam(ev.lParam)
+        , lResult(ev.lResult), tick(ev.tick), msg { .data = ev.msg.data }
+        , emitter(ev.emitter), collector(ev.collector) {}
+    ExEvent& operator = (const ExEvent& ev) {
+        hwnd = ev.hwnd; message = ev.message; wParam = ev.wParam; lParam = ev.lParam;
+        lResult = ev.lResult; tick = ev.tick; msg.data = ev.msg.data;
+        emitter = ev.emitter; collector = ev.collector;
+        return *this;
+    }
+
+    ExEvent& set(int msg, int wpa, void* lpa) {
+        message = msg; wParam = wpa; lParam = lpa;
+        return *this;
     }
 };
 #endif
@@ -57,7 +86,7 @@ bool ExEmitButPress(ExWidget* widget, int x, int y);
 bool ExEmitButRelease(ExWidget* widget, int x, int y);
 #endif
 #ifdef __linux__
-bool ExEmitMessage(int type, int message, int wParam, int lParam);
+bool ExEmitMessage(int type, int message, int wParam, void* lParam);
 #endif
 
 #endif//__exevent_h__

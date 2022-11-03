@@ -65,36 +65,40 @@ void ExCairo::fill_rect_rgba(floatt x, floatt y, floatt w, floatt h, const Color
 }
 
 #ifdef WIN32
-void ExCairo::text_extent(cairo_t* cr, cairo_font_face_t* crf, floatt size, const wchar* ucs2, cairo_text_extents_t* ext) {
+void // static
+ExCairo::text_extent(cairo_t* cr, cairo_font_face_t* crf, floatt size,
+                     const wchar* ucs2, cairo_text_extents_t* te) {
     cairo_set_font_face(cr, crf);
     cairo_set_font_size(cr, size);
-    cairo_text_extents(cr, ucs2, ext);
+    cairo_text_extents(cr, ucs2, te);
 }
 #endif
 
 #ifdef __linux__
-void ExCairo::text_extent(cairo_t* cr, cairo_font_face_t* crf, floatt size, const char* utf8, cairo_text_extents_t* ext) {
+void // static
+ExCairo::text_extent(cairo_t* cr, cairo_font_face_t* crf, floatt size,
+                     const char* utf8, cairo_text_extents_t* te) {
     cairo_set_font_face(cr, crf);
     cairo_set_font_size(cr, size);
-    cairo_text_extents(cr, utf8, ext);
+    cairo_text_extents(cr, utf8, te);
 }
 #endif
 
-ExCairo::Point
-ExCairo::text_align(const cairo_text_extents_t& ext, const Rect& r, int align) {
+ExCairo::Point // static
+ExCairo::text_align(const cairo_font_extents_t& fe, const cairo_text_extents_t& te, const Rect& r, int align) {
     Point p;
     switch (align & 0x3) {
-        case Center: p.x = r.x + (r.w - ext.width) / 2.f; break;
-        case Right: p.x = r.x + r.w - ext.width; break;
+        case Center: p.x = r.x + (r.w - te.width) / 2.f; break;
+        case Right: p.x = r.x + r.w - te.width; break;
         default: p.x = r.x;
     }
     switch (align & (0x3 << 2)) {
-        case VCenter: p.y = r.y + (r.h - ext.height) / 2.f; break;
-        case Bottom: p.y = r.y + r.h - ext.height; break;
-        default: p.y = r.y;
+        case VCenter: p.y = r.y + (r.h + fe.height) / 2.f; break;
+        case Bottom: p.y = r.y + r.h; break;
+        default: p.y = r.y + fe.height;
     }
-    p.x -= ext.x_bearing;
-    p.y -= ext.y_bearing;
+    p.x -= te.x_bearing;
+    p.y -= fe.descent;
     return p;
 }
 
@@ -102,18 +106,18 @@ ExCairo::text_align(const cairo_text_extents_t& ext, const Rect& r, int align) {
 ExCairo::Point
 ExCairo::text_align(const wchar* ucs2, const Rect& r, int align) {
     cairo_t* cr = canvas->cr;
-    cairo_text_extents_t extents;
-    cairo_text_extents(cr, ucs2, &extents);
-    return text_align(extents, r, align);
+    cairo_text_extents_t te;
+    cairo_text_extents(cr, ucs2, &te);
+    return text_align(canvas->fe, te, r, align);
 }
 #endif
 #ifdef __linux__
 ExCairo::Point
 ExCairo::text_align(const char* utf8, const Rect& r, int align) {
     cairo_t* cr = canvas->cr;
-    cairo_text_extents_t extents;
-    cairo_text_extents(cr, utf8, &extents);
-    return text_align(extents, r, align);
+    cairo_text_extents_t te;
+    cairo_text_extents(cr, utf8, &te);
+    return text_align(canvas->fe, te, r, align);
 }
 #endif
 
@@ -174,6 +178,7 @@ void ExCairo::set_font(cairo_font_face_t* font, floatt size) {
     cairo_t* cr = canvas->cr;
     cairo_set_font_face(cr, font);
     cairo_set_font_size(cr, size);
+    cairo_font_extents(cr, &canvas->fe);
 }
 
 #if defined(EXAPITEST)

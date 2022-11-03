@@ -16,7 +16,7 @@ dprint_handler(int lvl, const char* mbs) {
 #ifdef WIN32
     OutputDebugStringA(mbs);
 #else
-    puts(mbs);
+    dprintf(0/*stdout*/, "%s", mbs); // tbd
 #endif
     return lvl;
 }

@@ -26,7 +26,7 @@ public:
 
         Color() {}
         Color(floatt f) : a(f), r(f), g(f), b(f) {}
-        Color(floatt r, floatt g, floatt b) : a(0.f), r(r), g(g), b(b) {}
+        Color(floatt r, floatt g, floatt b) : a(0.), r(r), g(g), b(b) {}
         Color(floatt r, floatt g, floatt b, floatt a) : a(a), r(r), g(g), b(b) {}
 
         void set(floatt r, floatt g, floatt b) {
@@ -40,6 +40,9 @@ public:
         }
         void setv(uint8 r, uint8 g, uint8 b, uint8 a) {
             this->r = FD8V(r); this->g = FD8V(g); this->b = FD8V(b); this->a = FD8V(a);
+        }
+        void setv(uint32 rgb) {
+            setv(rgb >> 16, rgb >> 8, rgb);
         }
     };
 
@@ -127,10 +130,12 @@ public:
     void fill_rect_rgba(floatt x, floatt y, floatt w, floatt h, const Color& c);
 
 #ifdef WIN32
-    static void text_extent(cairo_t* cr, cairo_font_face_t* crf, floatt size, const wchar* ucs2, cairo_text_extents_t* ext);
+    static void text_extent(cairo_t* cr, cairo_font_face_t* crf, floatt size,
+                            const wchar* ucs2, cairo_text_extents_t* te);
 #endif
 #ifdef __linux__
-    static void text_extent(cairo_t* cr, cairo_font_face_t* crf, floatt size, const char* utf8, cairo_text_extents_t* ext);
+    static void text_extent(cairo_t* cr, cairo_font_face_t* crf, floatt size,
+                            const char* utf8, cairo_text_extents_t* te);
 #endif
 
     enum {
@@ -141,7 +146,8 @@ public:
         Bottom  = 2 << 2,
         VCenter = 0 << 2,
     };
-    static Point text_align(const cairo_text_extents_t& ext, const Rect& r, int align = 0);
+    static Point text_align(const cairo_font_extents_t& fe, const cairo_text_extents_t& te,
+                            const Rect& r, int align = 0);
 
 #ifdef WIN32
     Point text_align(const wchar* ucs2, const Rect& r, int align = 0);

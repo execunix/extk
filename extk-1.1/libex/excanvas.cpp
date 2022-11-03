@@ -31,6 +31,7 @@ ExCanvas::ExCanvas()
     , dc(NULL)
 #endif
     , cr(NULL) {
+    memset(&fe, 0, sizeof(fe));
 }
 
 int ExCanvas::init(ExWindow* window) {
