@@ -28,7 +28,7 @@ struct ExEvent {
     void*       hwnd;
     int         message;
     int         wParam;
-    void*       lParam;
+    int64       lParam;
     int         lResult;
     uint32      tick;
     union { // 8 bytes
@@ -69,7 +69,7 @@ struct ExEvent {
         return *this;
     }
 
-    ExEvent& set(int msg, int wpa, void* lpa) {
+    ExEvent& set(int msg, int wpa, int64 lpa) {
         message = msg; wParam = wpa; lParam = lpa;
         return *this;
     }
@@ -86,7 +86,7 @@ bool ExEmitButPress(ExWidget* widget, int x, int y);
 bool ExEmitButRelease(ExWidget* widget, int x, int y);
 #endif
 #ifdef __linux__
-bool ExEmitMessage(int type, int message, int wParam, void* lParam);
+bool ExEmitMessage(int type, int message, int wParam, int64 lParam);
 #endif
 
 #endif//__exevent_h__

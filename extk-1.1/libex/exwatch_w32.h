@@ -122,7 +122,7 @@ public:
         return iomuxmap.add(handle, ExNotify(d, f));
     }
     int ioDel(HANDLE handle) {
-        return iomuxmap.del(handle);
+        return getHalt() ? 0 : iomuxmap.del(handle);
     }
 protected:
     friend class ExTimer;

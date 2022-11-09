@@ -30,13 +30,13 @@ public:
         Color(floatt r, floatt g, floatt b, floatt a) : a(a), r(r), g(g), b(b) {}
 
         void set(floatt r, floatt g, floatt b) {
-            this->r = r; this->g = g; this->b = b;
+            this->r = r; this->g = g; this->b = b; this->a = 1.;
         }
         void set(floatt r, floatt g, floatt b, floatt a) {
             this->r = r; this->g = g; this->b = b; this->a = a;
         }
         void setv(uint8 r, uint8 g, uint8 b) {
-            this->r = FD8V(r); this->g = FD8V(g); this->b = FD8V(b);
+            this->r = FD8V(r); this->g = FD8V(g); this->b = FD8V(b); this->a = 1.;
         }
         void setv(uint8 r, uint8 g, uint8 b, uint8 a) {
             this->r = FD8V(r); this->g = FD8V(g); this->b = FD8V(b); this->a = FD8V(a);

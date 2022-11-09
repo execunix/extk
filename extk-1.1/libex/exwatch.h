@@ -139,7 +139,7 @@ public:
         return iomuxmap.mod(fd, events, ExNotify(d, f));
     }
     int ioDel(int fd) {
-        return iomuxmap.del(fd);
+        return getHalt() ? 0 : iomuxmap.del(fd);
     }
 #if 0
 protected:
