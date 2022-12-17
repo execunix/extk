@@ -30,8 +30,8 @@ public:
         mutable uint32 u32[8];
         mutable void*  ptr[4];
     } /*userdata*/;
-    // usage: Type& t = timer->of<Type>();
-    template <typename T> T& of() { return (T&)u64; }
+    // usage: Type* t = timer->userdata_of<Type>();
+    template <typename T> T& userdata_of() const { T* t = (T*)u64; return *t; }
 public:
     virtual ~ExTimer() { stop(); }
     explicit ExTimer()

@@ -63,11 +63,12 @@ protected:
         int del(HANDLE handle);
         int invoke(int waittick = INFINITE);
     };
-protected:
+public:
+    const char* name; // for debug
     static uint32 getTickCount();
     static uint32 tickAppLaunch;
-    static DWORD WINAPI start(_In_ LPVOID arg);
 protected:
+    static DWORD WINAPI start(_In_ LPVOID arg);
     IomuxMap        iomuxmap;
     TimerSet        timerset;
     DWORD           idThread;
@@ -88,8 +89,8 @@ public:
         fini();
         CloseHandle(mutex);
     }
-    explicit ExWatch() : iomuxmap(this)
-        , timerset(), idThread(0), hThread(NULL), hev(NULL), halt(0)
+    explicit ExWatch(const char* name) : name(name)
+        , iomuxmap(this), timerset(), idThread(0), hThread(NULL), hev(NULL), halt(0)
         , tickCount(0), hookStart(), hookTimer(), hookIomux(), hookClean() {
         mutex = CreateMutex(NULL, FALSE, NULL);
         tickCount = tickAppLaunch;

@@ -263,7 +263,7 @@ int ExWatch::enter() const {
         if (dwWaitRet == WAIT_OBJECT_0)
             break;
         exerror("ExWatch::enter(TID=%p) %s %d\n", GetCurrentThreadId(),
-                dwWaitRet == WAIT_TIMEOUT ? L"WAIT_TIMEOUT" : L"WAIT_FAILED", i);
+                dwWaitRet == WAIT_TIMEOUT ? "WAIT_TIMEOUT" : "WAIT_FAILED", i);
     }
 #else
     dwWaitRet = WaitForSingleObject(mutex, INFINITE);

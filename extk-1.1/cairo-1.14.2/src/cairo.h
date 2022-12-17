@@ -1460,15 +1460,15 @@ cairo_public cairo_scaled_font_t *
 cairo_get_scaled_font (cairo_t *cr);
 
 cairo_public void
-cairo_show_text (cairo_t *cr, const wchar_t *ucs2); // extk
+cairo_show_text (cairo_t *cr, const wchar_t *wcs); // extk
 
 cairo_public void
 cairo_show_glyphs (cairo_t *cr, const cairo_glyph_t *glyphs, int num_glyphs);
 
 cairo_public void
 cairo_show_text_glyphs (cairo_t			   *cr,
-			const wchar_t		   *ucs2, // extk
-			int			    ucs2_len,
+			const wchar_t		   *wcs, // extk
+			int			    wcs_len,
 			const cairo_glyph_t	   *glyphs,
 			int			    num_glyphs,
 			const cairo_text_cluster_t *clusters,
@@ -1476,14 +1476,14 @@ cairo_show_text_glyphs (cairo_t			   *cr,
 			cairo_text_cluster_flags_t  cluster_flags);
 
 cairo_public void
-cairo_text_path  (cairo_t *cr, const wchar_t *ucs2); // extk
+cairo_text_path  (cairo_t *cr, const wchar_t *wcs); // extk
 
 cairo_public void
 cairo_glyph_path (cairo_t *cr, const cairo_glyph_t *glyphs, int num_glyphs);
 
 cairo_public void
 cairo_text_extents (cairo_t              *cr,
-		    const wchar_t    	 *ucs2, // extk
+		    const wchar_t    	 *wcs, // extk
 		    cairo_text_extents_t *extents);
 
 cairo_public void
@@ -1610,7 +1610,7 @@ cairo_scaled_font_extents (cairo_scaled_font_t  *scaled_font,
 
 cairo_public void
 cairo_scaled_font_text_extents (cairo_scaled_font_t  *scaled_font,
-				const wchar_t  	     *ucs2, // extk
+				const wchar_t  	     *wcs, // extk
 				cairo_text_extents_t *extents);
 
 cairo_public void
@@ -1623,8 +1623,8 @@ cairo_public cairo_status_t
 cairo_scaled_font_text_to_glyphs (cairo_scaled_font_t        *scaled_font,
 				  floatt		      x,
 				  floatt		      y,
-				  const wchar_t	             *ucs2, // extk
-				  int		              ucs2_len,
+				  const wchar_t	             *wcs, // extk
+				  int		              wcs_len,
 				  cairo_glyph_t	            **glyphs,
 				  int		             *num_glyphs,
 				  cairo_text_cluster_t      **clusters,
@@ -1825,8 +1825,8 @@ typedef cairo_status_t (*cairo_user_scaled_font_render_glyph_func_t) (cairo_scal
  * Since: 1.8
  **/
 typedef cairo_status_t (*cairo_user_scaled_font_text_to_glyphs_func_t) (cairo_scaled_font_t        *scaled_font,
-									const wchar_t	           *ucs2, // extk
-									int		            ucs2_len,
+									const wchar_t	           *wcs, // extk
+									int		            wcs_len,
 									cairo_glyph_t	          **glyphs,
 									int		           *num_glyphs,
 									cairo_text_cluster_t      **clusters,

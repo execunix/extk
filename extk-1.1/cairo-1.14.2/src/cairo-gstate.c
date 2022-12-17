@@ -2012,7 +2012,7 @@ _cairo_gstate_show_text_glyphs (cairo_gstate_t		   *gstate,
     {
 	if (info != NULL) {
 	    status = _cairo_surface_show_text_glyphs (gstate->target, op, pattern,
-						      info->ucs2, info->ucs2_len,
+						      info->wcs, info->wcs_len,
 						      transformed_glyphs, num_glyphs,
 						      transformed_clusters, info->num_clusters,
 						      info->cluster_flags,

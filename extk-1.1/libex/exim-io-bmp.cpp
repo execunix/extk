@@ -3,10 +3,10 @@
  * SPDX-License-Identifier:     GPL-2.0+
  */
 
+#include "eximage.h"
 #ifdef __linux__
 #include <fcntl.h>
 #endif
-#include "eximage.h"
 
 #define BMP24_CHROMA
 

@@ -67,10 +67,10 @@ void ExCairo::fill_rect_rgba(floatt x, floatt y, floatt w, floatt h, const Color
 #ifdef WIN32
 void // static
 ExCairo::text_extent(cairo_t* cr, cairo_font_face_t* crf, floatt size,
-                     const wchar* ucs2, cairo_text_extents_t* te) {
+                     const wchar* wcs, cairo_text_extents_t* te) {
     cairo_set_font_face(cr, crf);
     cairo_set_font_size(cr, size);
-    cairo_text_extents(cr, ucs2, te);
+    cairo_text_extents(cr, wcs, te);
 }
 #endif
 
@@ -104,10 +104,10 @@ ExCairo::text_align(const cairo_font_extents_t& fe, const cairo_text_extents_t& 
 
 #ifdef WIN32
 ExCairo::Point
-ExCairo::text_align(const wchar* ucs2, const Rect& r, int align) {
+ExCairo::text_align(const wchar* wcs, const Rect& r, int align) {
     cairo_t* cr = canvas->cr;
     cairo_text_extents_t te;
-    cairo_text_extents(cr, ucs2, &te);
+    cairo_text_extents(cr, wcs, &te);
     return text_align(canvas->fe, te, r, align);
 }
 #endif
@@ -122,12 +122,12 @@ ExCairo::text_align(const char* utf8, const Rect& r, int align) {
 #endif
 
 #ifdef WIN32
-void ExCairo::show_text(const wchar* ucs2, const Color& c, const Rect& r, int align) {
+void ExCairo::show_text(const wchar* wcs, const Color& c, const Rect& r, int align) {
     cairo_t* cr = canvas->cr;
-    ExCairo::Point p(text_align(ucs2, r, align));
+    ExCairo::Point p(text_align(wcs, r, align));
     cairo_set_source_rgb(cr, c.r, c.g, c.b);
     cairo_move_to(cr, p.x, p.y);
-    cairo_show_text(cr, ucs2);
+    cairo_show_text(cr, wcs);
 }
 #endif
 #ifdef __linux__
@@ -141,11 +141,11 @@ void ExCairo::show_text(const char* utf8, const Color& c, const Rect& r, int ali
 #endif
 
 #ifdef WIN32
-void ExCairo::show_text(const wchar* ucs2, const Color& c, const Point& p) {
+void ExCairo::show_text(const wchar* wcs, const Color& c, const Point& p) {
     cairo_t* cr = canvas->cr;
     cairo_set_source_rgb(cr, c.r, c.g, c.b);
     cairo_move_to(cr, p.x, p.y);
-    cairo_show_text(cr, ucs2);
+    cairo_show_text(cr, wcs);
 }
 #endif
 #ifdef __linux__
@@ -158,11 +158,11 @@ void ExCairo::show_text(const char* utf8, const Color& c, const Point& p) {
 #endif
 
 #ifdef WIN32
-void ExCairo::show_text(const wchar* ucs2, floatt r, floatt g, floatt b, floatt x, floatt y) {
+void ExCairo::show_text(const wchar* wcs, floatt r, floatt g, floatt b, floatt x, floatt y) {
     cairo_t* cr = canvas->cr;
     cairo_set_source_rgb(cr, r, g, b);
     cairo_move_to(cr, x, y);
-    cairo_show_text(cr, ucs2);
+    cairo_show_text(cr, wcs);
 }
 #endif
 #ifdef __linux__

@@ -83,11 +83,12 @@ protected:
         int del(int fd);
         int invoke(int waittick = 60000);
     };
-protected:
+public:
+    const char* name; // for debug
     static uint32 getTickCount();
     static uint32 tickAppLaunch;
-    static void* start(void* arg);
 protected:
+    static void* start(void* arg);
     IomuxMap        iomuxmap;
     TimerSet        timerset;
     pthread_t       tid;
@@ -109,8 +110,8 @@ public:
         pthread_cond_destroy(&cond);
         pthread_mutex_destroy(&mutex);
     }
-    explicit ExWatch() : iomuxmap(this)
-        , timerset(), tid(0), efd(-1), halt(0)
+    explicit ExWatch(const char* name) : name(name)
+        , iomuxmap(this), timerset(), tid(0), efd(-1), halt(0)
         , tickCount(0), hookStart(), hookTimer(), hookIomux(), hookClean() {
         pthread_mutex_init(&mutex, NULL);
         pthread_cond_init(&cond, NULL);

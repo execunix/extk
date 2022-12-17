@@ -338,7 +338,7 @@ int ExWatch::onEvent(epoll_event* ev) {
 
 #endif // __linux__
 
-static ExWatch exWatchDflt;
+static ExWatch exWatchDflt("exWatchDflt");
 ExWatch* exWatchMain = &exWatchDflt;
 ExWatch* exWatchLast = &exWatchDflt;
 

@@ -117,6 +117,7 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard_C>stdc17</LanguageStandard_C>
     </ClCompile>
     <Link>
       <AdditionalDependencies>dwmapi.lib;libex.lib;libpng.lib;libz.lib;libcairo.lib;libpixman.lib;libft.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -160,9 +161,9 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
-      <SDLCheck>false</SDLCheck>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard_C>stdc17</LanguageStandard_C>
     </ClCompile>
     <Link>
       <AdditionalDependencies>dwmapi.lib;libex.lib;libpng.lib;libz.lib;libcairo.lib;libpixman.lib;libft.lib;%(AdditionalDependencies)</AdditionalDependencies>

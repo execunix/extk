@@ -131,7 +131,7 @@ public:
 
 #ifdef WIN32
     static void text_extent(cairo_t* cr, cairo_font_face_t* crf, floatt size,
-                            const wchar* ucs2, cairo_text_extents_t* te);
+                            const wchar* wcs, cairo_text_extents_t* te);
 #endif
 #ifdef __linux__
     static void text_extent(cairo_t* cr, cairo_font_face_t* crf, floatt size,
@@ -150,28 +150,28 @@ public:
                             const Rect& r, int align = 0);
 
 #ifdef WIN32
-    Point text_align(const wchar* ucs2, const Rect& r, int align = 0);
+    Point text_align(const wchar* wcs, const Rect& r, int align = 0);
 #endif
 #ifdef __linux__
     Point text_align(const char* utf8, const Rect& r, int align = 0);
 #endif
 
 #ifdef WIN32
-    void show_text(const wchar* ucs2, const Color& c, const Rect& r, int align = 0);
+    void show_text(const wchar* wcs, const Color& c, const Rect& r, int align = 0);
 #endif
 #ifdef __linux__
     void show_text(const char* utf8, const Color& c, const Rect& r, int align = 0);
 #endif
 
 #ifdef WIN32
-    void show_text(const wchar* ucs2, const Color& c, const Point& p);
+    void show_text(const wchar* wcs, const Color& c, const Point& p);
 #endif
 #ifdef __linux__
     void show_text(const char* utf8, const Color& c, const Point& p);
 #endif
 
 #ifdef WIN32
-    void show_text(const wchar* ucs2, floatt r, floatt g, floatt b, floatt x, floatt y);
+    void show_text(const wchar* wcs, floatt r, floatt g, floatt b, floatt x, floatt y);
 #endif
 #ifdef __linux__
     void show_text(const char* utf8, floatt r, floatt g, floatt b, floatt x, floatt y);

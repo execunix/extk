@@ -307,8 +307,8 @@ static cairo_int_status_t
 _cairo_user_text_to_glyphs (void		      *abstract_font,
 			    floatt		       x,
 			    floatt		       y,
-			    const wchar_t	      *ucs2, // extk
-			    int			       ucs2_len,
+			    const wchar_t	      *wcs, // extk
+			    int			       wcs_len,
 			    cairo_glyph_t	     **glyphs,
 			    int			       *num_glyphs,
 			    cairo_text_cluster_t      **clusters,
@@ -327,7 +327,7 @@ _cairo_user_text_to_glyphs (void		      *abstract_font,
 	int orig_num_glyphs = *num_glyphs;
 
 	status = face->scaled_font_methods.text_to_glyphs (&scaled_font->base,
-							   ucs2, ucs2_len,
+							   wcs, wcs_len,
 							   glyphs, num_glyphs,
 							   clusters, num_clusters, cluster_flags);
 

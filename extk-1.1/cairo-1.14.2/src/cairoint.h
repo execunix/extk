@@ -486,7 +486,7 @@ typedef struct _cairo_scaled_font_subset {
      * Value of glyphs array is scaled_font_glyph_index.
      */
     unsigned long *glyphs;
-    wchar_t       *ucs2; // extk
+    wchar_t       *wcs; // extk
     char         **glyph_names;
     int           *to_latin_char;
     unsigned long *latin_to_subset_glyph_index;
@@ -515,8 +515,8 @@ struct _cairo_scaled_font_backend {
     (*text_to_glyphs) (void                       *scaled_font,
 		       floatt		           x,
 		       floatt		           y,
-		       const wchar_t	          *ucs2, // extk
-		       int		           ucs2_len,
+		       const wchar_t	          *wcs, // extk
+		       int		           wcs_len,
 		       cairo_glyph_t	         **glyphs,
 		       int		          *num_glyphs,
 		       cairo_text_cluster_t      **clusters,
@@ -886,8 +886,8 @@ _cairo_lzw_compress (unsigned char *data, unsigned long *size_in_out);
 
 /* cairo-misc.c */
 cairo_private cairo_status_t
-_cairo_validate_text_clusters (const wchar_t		   *ucs2, // extk
-			       int			    ucs2_len,
+_cairo_validate_text_clusters (const wchar_t		   *wcs, // extk
+			       int			    wcs_len,
 			       const cairo_glyph_t	   *glyphs,
 			       int			    num_glyphs,
 			       const cairo_text_cluster_t  *clusters,
@@ -1407,8 +1407,8 @@ cairo_private cairo_status_t
 _cairo_surface_show_text_glyphs (cairo_surface_t	    *surface,
 				 cairo_operator_t	     op,
 				 const cairo_pattern_t	    *source,
-				 const wchar_t		    *ucs2, // extk
-				 int			     ucs2_len,
+				 const wchar_t		    *wcs, // extk
+				 int			     wcs_len,
 				 cairo_glyph_t		    *glyphs,
 				 int			     num_glyphs,
 				 const cairo_text_cluster_t *clusters,
@@ -1862,8 +1862,8 @@ _cairo_ucs4_to_utf8 (uint32_t    unicode,
 		     char       *utf8);
 
 static __inline int // extk
-_cairo_ucs4_to_ucs2 (uint32_t unicode, wchar_t *ucs2) {
-    if (ucs2) *ucs2 = unicode;
+_cairo_ucs4_to_ucs2 (uint32_t unicode, wchar_t *wcs) {
+    if (wcs) *wcs = unicode;
     return 1/*ucs2len*/;
 }
 

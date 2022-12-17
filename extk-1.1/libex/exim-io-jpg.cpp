@@ -3,13 +3,13 @@
  * SPDX-License-Identifier:     GPL-2.0+
  */
 
+#include "eximage.h"
+#include <jpeglib.h>
+#include <setjmp.h>
+#include <stdio.h>
 #ifdef __linux__
 #include <fcntl.h>
 #endif
-#include <stdio.h>
-#include <setjmp.h>
-#include <jpeglib.h>
-#include "eximage.h"
 
 #if defined(_MSC_VER)
 #pragma comment(lib, "libjpeg.lib")

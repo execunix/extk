@@ -407,8 +407,8 @@ It's inconvenient to write ...
    Please edit one of those files rather than this one. */
 
 #define COMPONENT_SIZE      8
-#define MASK 0xff
-#define ONE_HALF 0x80
+#define MASK                0xff
+#define ONE_HALF            0x80
 
 #define A_SHIFT             8 * 3
 #define R_SHIFT             8 * 2

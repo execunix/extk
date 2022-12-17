@@ -197,8 +197,8 @@ struct _cairo_font_options {
 };
 
 struct _cairo_glyph_text_info {
-    const wchar_t *ucs2; // extk
-    int ucs2_len;
+    const wchar_t *wcs; // extk
+    int wcs_len;
 
     const cairo_text_cluster_t *clusters;
     int num_clusters;

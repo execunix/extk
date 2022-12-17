@@ -31,41 +31,39 @@ struct ExEvent {
     int64       lParam;
     int         lResult;
     uint32      tick;
-    union { // 8 bytes
-        void*   data;
-        uint64  u64;
-        ExPoint pt;
-        ExSize  sz;
-    } msg;
     void*       emitter;
     void*       collector;
+    union MSG { // 32 bytes
+        void*   data[4];
+        uint64  u64[4];
+        ExPoint pt;
+        ExSize  sz;
+        MSG() { memset(u64, 0, sizeof(u64)); }
+        MSG(const MSG& m) { memcpy(u64, m.u64, sizeof(u64)); }
+        MSG& operator = (const MSG& m) { memcpy(u64, m.u64, sizeof(u64)); return *this; }
+    } msg;
 
     ExEvent()
         : hwnd(0), message(0), wParam(0), lParam(0)
-        , lResult(0), tick(0), msg { .data = 0 }
-        , emitter(0), collector(0) {}
-
+        , lResult(0), tick(0), emitter(0), collector(0), msg() {}
+#if 0
     // move constructor
     ExEvent(ExEvent&& ev)
         : hwnd(ev.hwnd), message(ev.message), wParam(ev.wParam), lParam(ev.lParam)
-        , lResult(ev.lResult), tick(ev.tick), msg { .data = ev.msg.data }
-        , emitter(ev.emitter), collector(ev.collector) { /*tbd*/ }
+        , lResult(ev.lResult), tick(ev.tick), emitter(ev.emitter), collector(ev.collector), msg(ev.msg) {}
     ExEvent& operator = (ExEvent&& ev) {
         hwnd = ev.hwnd; message = ev.message; wParam = ev.wParam; lParam = ev.lParam;
-        lResult = ev.lResult; tick = ev.tick; msg.data = ev.msg.data;
-        emitter = ev.emitter; collector = ev.collector;  /*tbd*/
+        lResult = ev.lResult; tick = ev.tick; emitter = ev.emitter; collector = ev.collector; msg = ev.msg;
         return *this;
     }
-
+#endif
     // copy constructor
     ExEvent(const ExEvent& ev)
         : hwnd(ev.hwnd), message(ev.message), wParam(ev.wParam), lParam(ev.lParam)
-        , lResult(ev.lResult), tick(ev.tick), msg { .data = ev.msg.data }
-        , emitter(ev.emitter), collector(ev.collector) {}
+        , lResult(ev.lResult), tick(ev.tick), emitter(ev.emitter), collector(ev.collector), msg(ev.msg) {}
     ExEvent& operator = (const ExEvent& ev) {
         hwnd = ev.hwnd; message = ev.message; wParam = ev.wParam; lParam = ev.lParam;
-        lResult = ev.lResult; tick = ev.tick; msg.data = ev.msg.data;
-        emitter = ev.emitter; collector = ev.collector;
+        lResult = ev.lResult; tick = ev.tick; emitter = ev.emitter; collector = ev.collector; msg = ev.msg;
         return *this;
     }
 

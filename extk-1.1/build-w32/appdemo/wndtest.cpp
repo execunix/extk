@@ -164,7 +164,7 @@ int WndTest::onFilter(WndTest* w, ExCbInfo* cbinfo) {
     if (cbinfo->event->message == WM_KEYDOWN) {
         switch (cbinfo->event->wParam) {
             case VK_UP:
-                dprint("0x%04x %s\n", cbinfo->event->message, L"VK_UP");
+                dprint("0x%04x %s\n", cbinfo->event->message, "VK_UP");
                 break;
         }
         return Ex_Continue;

@@ -104,7 +104,9 @@ typedef unsigned   short ushort;
 typedef unsigned    long ulong;
 typedef unsigned     int uint;
 
-typedef wchar_t         wchar;
+typedef unsigned   short ucs2;
+typedef unsigned     int ucs4;
+typedef wchar_t          wchar;
 
 #if defined(_MSC_VER)
 //typedef float floatt;
@@ -134,7 +136,7 @@ typedef double floatt;
 #define exassert(expr)
 #else
 #define exassert(expr) { if (!(expr)) dprint1(0, \
-        L"Assertion failed %s:%d (%s)\n", Ex_WCSTR(__FILE__), __LINE__, Ex_WCSTR_ARG(#expr)); }
+        "Assertion failed %s:%d (%s)\n", __FILE__, __LINE__, #expr); }
 #endif//DEBUG
 
 #define exassertstatic(expr) \

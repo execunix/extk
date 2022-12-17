@@ -149,8 +149,8 @@ cairo_private cairo_status_t
 _cairo_surface_wrapper_show_text_glyphs (cairo_surface_wrapper_t *wrapper,
 					 cairo_operator_t	     op,
 					 const cairo_pattern_t	    *source,
-					 const wchar_t		    *ucs2, // extk
-					 int			     ucs2_len,
+					 const wchar_t		    *wcs, // extk
+					 int			     wcs_len,
 					 const cairo_glyph_t	    *glyphs,
 					 int			     num_glyphs,
 					 const cairo_text_cluster_t *clusters,

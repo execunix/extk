@@ -287,8 +287,8 @@ slim_hidden_def (cairo_text_cluster_free);
  *               or bad cluster mapping.
  **/
 cairo_status_t
-_cairo_validate_text_clusters (const wchar_t		   *ucs2, // extk
-			       int			    ucs2_len,
+_cairo_validate_text_clusters (const wchar_t		   *wcs, // extk
+			       int			    wcs_len,
 			       const cairo_glyph_t	   *glyphs,
 			       int			    num_glyphs,
 			       const cairo_text_cluster_t  *clusters,
@@ -318,11 +318,11 @@ _cairo_validate_text_clusters (const wchar_t		   *ucs2, // extk
 
 	/* Since n_ucs2s and n_glyphs are unsigned, but the rest of
 	 * values involved are signed, we can detect overflow easily */
-	if (n_ucs2s+cluster_ucs2s > (unsigned int)ucs2_len || n_glyphs+cluster_glyphs > (unsigned int)num_glyphs)
+	if (n_ucs2s+cluster_ucs2s > (unsigned int)wcs_len || n_glyphs+cluster_glyphs > (unsigned int)num_glyphs)
 	    goto BAD;
 
 	/* Make sure we've got valid UTF-8 for the cluster */
-	status = _cairo_ucs2_to_ucs4 (ucs2+n_ucs2s, cluster_ucs2s, NULL, NULL);
+	status = _cairo_ucs2_to_ucs4 (wcs+n_ucs2s, cluster_ucs2s, NULL, NULL);
 	if (unlikely (status))
 	    return _cairo_error (CAIRO_STATUS_INVALID_CLUSTERS);
 
@@ -330,7 +330,7 @@ _cairo_validate_text_clusters (const wchar_t		   *ucs2, // extk
 	n_glyphs += cluster_glyphs;
     }
 
-    if (n_ucs2s != (unsigned int) ucs2_len || n_glyphs != (unsigned int) num_glyphs) {
+    if (n_ucs2s != (unsigned int) wcs_len || n_glyphs != (unsigned int) num_glyphs) {
       BAD:
 	return _cairo_error (CAIRO_STATUS_INVALID_CLUSTERS);
     }

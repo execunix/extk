@@ -37,7 +37,7 @@ public:
 
 static int STDCALL
 func(void* data, ExWidget* widget, ExCbInfo* cbinfo) {
-    dprint("func: data=%d type=%d\n", (int)data, cbinfo ? cbinfo->type : -1);
+    dprint("func: data=%p type=%d\n", data, cbinfo ? cbinfo->type : -1);
     return 0;
 }
 

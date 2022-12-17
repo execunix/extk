@@ -2534,8 +2534,8 @@ cairo_status_t
 _cairo_surface_show_text_glyphs (cairo_surface_t	    *surface,
 				 cairo_operator_t	     op,
 				 const cairo_pattern_t	    *source,
-				 const wchar_t		    *ucs2, // extk
-				 int			     ucs2_len,
+				 const wchar_t		    *wcs, // extk
+				 int			     wcs_len,
 				 cairo_glyph_t		    *glyphs,
 				 int			     num_glyphs,
 				 const cairo_text_cluster_t *clusters,
@@ -2552,7 +2552,7 @@ _cairo_surface_show_text_glyphs (cairo_surface_t	    *surface,
     if (unlikely (surface->finished))
 	return _cairo_surface_set_error (surface, _cairo_error (CAIRO_STATUS_SURFACE_FINISHED));
 
-    if (num_glyphs == 0 && ucs2_len == 0)
+    if (num_glyphs == 0 && wcs_len == 0)
 	return CAIRO_STATUS_SUCCESS;
 
     if (_cairo_clip_is_all_clipped (clip))
@@ -2579,7 +2579,7 @@ _cairo_surface_show_text_glyphs (cairo_surface_t	    *surface,
 	if (surface->backend->show_text_glyphs != NULL) {
 	    status = surface->backend->show_text_glyphs (surface, op,
 							 source,
-							 ucs2, ucs2_len,
+							 wcs, wcs_len,
 							 glyphs, num_glyphs,
 							 clusters, num_clusters, cluster_flags,
 							 scaled_font,
@@ -2613,7 +2613,7 @@ _cairo_surface_show_text_glyphs (cairo_surface_t	    *surface,
 	     */
 	    status = surface->backend->show_text_glyphs (surface, op,
 							 source,
-							 ucs2, ucs2_len,
+							 wcs, wcs_len,
 							 glyphs, num_glyphs,
 							 clusters, num_clusters, cluster_flags,
 							 scaled_font,

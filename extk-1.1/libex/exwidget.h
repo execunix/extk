@@ -138,8 +138,8 @@ public:
         mutable uint32 u32[64];
         mutable void*  ptr[32];
     } userdata;
-    // usage: Type& t = widget->of<Type>();
-    template <typename T> T& of() { return (T&)userdata.u64; }
+    // usage: Type* t = widget->userdata_of<Type>();
+    template <typename T> T& userdata_of() const { T* t = (T*)userdata.u64; return *t; }
 public:
     virtual ~ExWidget();
     explicit ExWidget();

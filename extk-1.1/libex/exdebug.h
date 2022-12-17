@@ -81,9 +81,9 @@ const wchar* _wcserror(int errval);
 }
 #endif
 
-#endif//_WIN32_WCE
+#endif // _WIN32_WCE
 
-extern int         dprint_verbose; // default 999
+extern int         dprint_verbose; // default 999 (0:quiet)
 extern int         dprint_charset; // default 949
 extern const char* dprint_appname; // default "[*] "
 extern int (*ex_dprint_handler)(int lvl, const char* mbs);

@@ -677,7 +677,7 @@ int WndMain::onFilter(WndMain* w, ExCbInfo* cbinfo) {
         margins.cyTopHeight = 20;
         HRESULT hr = DwmExtendFrameIntoClientArea(hwnd, &margins);
         if (!SUCCEEDED(hr)) {
-            dprint("%s: %s fail.\n", __func__, L"DwmExtendFrameIntoClientArea");
+            dprint("%s: %s fail.\n", __func__, "DwmExtendFrameIntoClientArea");
         }
         //cbinfo->event->lResult = 0;
         return Ex_Continue;
@@ -687,39 +687,39 @@ int WndMain::onFilter(WndMain* w, ExCbInfo* cbinfo) {
         ExCbInfo cbinfo2(0);
         switch (cbinfo->event->wParam) {
             case VK_UP:
-                dprint("0x%04x %s\n", cbinfo->event->message, L"VK_UP");
+                dprint("0x%04x %s\n", cbinfo->event->message, "VK_UP");
                 moveFocus(Ex_DirUp);
                 break;
             case VK_DOWN:
-                dprint("0x%04x %s\n", cbinfo->event->message, L"VK_DOWN");
+                dprint("0x%04x %s\n", cbinfo->event->message, "VK_DOWN");
                 moveFocus(Ex_DirDown);
                 break;
             case VK_LEFT:
-                dprint("0x%04x %s\n", cbinfo->event->message, L"VK_LEFT");
+                dprint("0x%04x %s\n", cbinfo->event->message, "VK_LEFT");
                 moveFocus(Ex_DirLeft);
                 break;
             case VK_RIGHT:
-                dprint("0x%04x %s\n", cbinfo->event->message, L"VK_RIGHT");
+                dprint("0x%04x %s\n", cbinfo->event->message, "VK_RIGHT");
                 moveFocus(Ex_DirRight);
                 break;
             case VK_SPACE:
             case VK_RETURN:
-                dprint("0x%04x %s\n", cbinfo->event->message, L"VK_RETURN");
+                dprint("0x%04x %s\n", cbinfo->event->message, "VK_RETURN");
                 wgtFocused->invokeListener(Ex_CbActivate, &cbinfo2(Ex_CbActivate, 0, event));
                 break;
             case VK_ESCAPE:
-                dprint("0x%04x %s\n", cbinfo->event->message, L"VK_ESCAPE");
+                dprint("0x%04x %s\n", cbinfo->event->message, "VK_ESCAPE");
                 return Ex_Halt;
             case VK_HOME:
-                dprint("0x%04x %s\n", cbinfo->event->message, L"VK_HOME");
+                dprint("0x%04x %s\n", cbinfo->event->message, "VK_HOME");
                 moveFocus(Ex_DirHome);
                 break;
             case VK_BACK:
-                dprint("0x%04x %s\n", cbinfo->event->message, L"VK_BACK");
+                dprint("0x%04x %s\n", cbinfo->event->message, "VK_BACK");
                 moveFocus(Ex_DirBack);
                 break;
             case VK_TAB: {
-                dprint("0x%04x %s\n", cbinfo->event->message, L"VK_TAB");
+                dprint("0x%04x %s\n", cbinfo->event->message, "VK_TAB");
                 SHORT ks = GetKeyState(VK_SHIFT);
                 moveFocus(ks & 0x100 ? Ex_DirTabPrev : Ex_DirTabNext);
                 break;

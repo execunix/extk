@@ -102,8 +102,8 @@ typedef struct _cairo_command_fill {
 typedef struct _cairo_command_show_text_glyphs {
     cairo_command_header_t       header;
     cairo_pattern_union_t	 source;
-    wchar_t			*ucs2; // extk
-    int				 ucs2_len;
+    wchar_t			*wcs; // extk
+    int				 wcs_len;
     cairo_glyph_t		*glyphs;
     unsigned int		 num_glyphs;
     cairo_text_cluster_t	*clusters;

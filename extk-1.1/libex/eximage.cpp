@@ -3,11 +3,11 @@
  * SPDX-License-Identifier:     GPL-2.0+
  */
 
+#include "eximage.h"
 #ifdef __linux__
 #include <strings.h>
 #include <fcntl.h>
 #endif
-#include "eximage.h"
 #include <assert.h>
 
 ExImage::~ExImage()

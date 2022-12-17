@@ -50,7 +50,7 @@ static int load(ExImage* img, const wchar* name)
     wchar pathname[256];
     swprintf_s(pathname, 256, L"%s/%s", res.path, name);
     if (img->load(pathname) != 0) {
-        dprint("%s: load %s fail.\n", __func__, pathname);
+        dprint("%s: load %S fail.\n", __func__, pathname);
         return -1;
     }
     return 0;

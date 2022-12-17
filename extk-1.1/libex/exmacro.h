@@ -9,8 +9,8 @@
 #define Ex_STRINGIFY_ARG(contents)      #contents
 #define Ex_STRINGIFY(macro_or_string)   Ex_STRINGIFY_ARG(macro_or_string)
 
-#define Ex_WCSTR_ARG(contents)          L##contents
-#define Ex_WCSTR(macro_or_string)       Ex_WCSTR_ARG(macro_or_string)
+#define Ex_WSTRINGIFY_ARG(contents)     L##contents
+#define Ex_WSTRINGIFY(macro_or_string)  Ex_WSTRINGIFY_ARG(macro_or_string)
 
 #define Ex_PASTE_ARGS(identifier1,identifier2)  identifier1 ## identifier2
 #define Ex_PASTE_DEFS(identifier1,identifier2)  Ex_PASTE_ARGS(identifier1, identifier2)
@@ -20,19 +20,19 @@
 # define __funcw__      ((const wchar*)(__PRETTY_FUNCTIONW__))
 #elif defined(__STDC_VERSION__) && __STDC_VERSION__ >= 19901L
 # define __func__       ((const char*)(__func__))
-# define __funcw__      ((const wchar*)Ex_WCSTR(__func__))
+# define __funcw__      ((const wchar*)Ex_WSTRINGIFY(__func__))
 #else
 # define __func__       ((const char*)(__FUNCTION__))
-# define __funcw__      ((const wchar*)Ex_WCSTR(__FUNCTION__))
+# define __funcw__      ((const wchar*)Ex_WSTRINGIFY(__FUNCTION__))
 #endif
 
 /* Provide a string identifying the current code position */
 #if defined(__GNUC__) && (__GNUC__ < 3) && !defined(__cplusplus)
 # define Ex_STRLOC      __FILE__ ":" Ex_STRINGIFY(__LINE__) ":" __PRETTY_FUNCTION__ "()"
-# define Ex_WCSLOC      Ex_WCSTR(__FILE__) L":" Ex_WCSTR(__LINE__) L":" __PRETTY_FUNCTIONW__ L"()"
+# define Ex_WCSLOC      Ex_WSTRINGIFY(__FILE__) L":" Ex_WSTRINGIFY(__LINE__) L":" __PRETTY_FUNCTIONW__ L"()"
 #else
 # define Ex_STRLOC      __FILE__ ":" Ex_STRINGIFY(__LINE__)
-# define Ex_WCSLOC      Ex_WCSTR(__FILE__) L":" Ex_WCSTR(__LINE__)
+# define Ex_WCSLOC      Ex_WSTRINGIFY(__FILE__) L":" Ex_WSTRINGIFY(__LINE__)
 #endif
 
 #ifndef NULL
