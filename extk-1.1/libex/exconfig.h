@@ -126,13 +126,6 @@ typedef           ucs4_t UCS4;
 #endif
 #endif
 
-#if 0//def __GNUC__
-#define dprint0(...)
-#define dprint1(...) printf("ExLib@" __VA_ARGS__)
-#define exerror dprint1
-#define dprint dprint1
-#endif
-
 // assertion
 #ifndef DEBUG
 #define exassert(expr)

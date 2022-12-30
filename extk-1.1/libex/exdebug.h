@@ -6,7 +6,7 @@
 #ifndef __exdebug_h__
 #define __exdebug_h__
 
-#include "extypes.h"
+#include "exconfig.h"
 #include <stdarg.h>
 
 #ifndef _WIN32_WCE
@@ -99,6 +99,9 @@ int debug_print(const char* fmt, ...);
 #if defined(_MSC_VER) && (_MSC_VER < 1400) // M$ eVC4
 #define dprint0 0 && (*(int(*)(...))0)
 #define dprint1 debug_print
+#elif defined(__GNUC__)
+#define dprint0(...)
+#define dprint1      debug_print
 #else // std C99
 #define dprint0(...) ((void)0)
 #define dprint1(...) debug_print(__VA_ARGS__)
@@ -111,6 +114,10 @@ int debug_print(const char* fmt, ...);
 #endif
 // WIN32 : dprint(7, L"%s %S", L"App", "Test");
 // LINUX : dprint(7, L"%ls %s", L"App", "Test");
+
+// customizing usage:
+//  #undef dprint1
+//  #define dprint1(...) printf("ExLib@" __VA_ARGS__)
 
 /*
  * The purpose of this function is to allow the user to set a breakpoint
