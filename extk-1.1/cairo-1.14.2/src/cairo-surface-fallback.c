@@ -73,7 +73,7 @@ _cairo_surface_fallback_stroke (void			*surface,
 				const cairo_stroke_style_t*style,
 				const cairo_matrix_t	*ctm,
 				const cairo_matrix_t	*ctm_inverse,
-				floatt			 tolerance,
+				double			 tolerance,
 				cairo_antialias_t	 antialias,
 				const cairo_clip_t	*clip)
 {
@@ -89,7 +89,7 @@ _cairo_surface_fallback_fill (void			*surface,
 			     const cairo_pattern_t	*source,
 			     const cairo_path_fixed_t	*path,
 			     cairo_fill_rule_t		 fill_rule,
-			     floatt			 tolerance,
+			     double			 tolerance,
 			     cairo_antialias_t		 antialias,
 			     const cairo_clip_t		*clip)
 {

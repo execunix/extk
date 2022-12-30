@@ -152,8 +152,8 @@ picture_set_matrix (cairo_xlib_display_t *display,
 		    Picture picture,
 		    const cairo_matrix_t *matrix,
 		    cairo_filter_t        filter,
-		    floatt                xc,
-		    floatt                yc,
+		    double                xc,
+		    double                yc,
 		    int                  *x_offset,
 		    int                  *y_offset)
 {

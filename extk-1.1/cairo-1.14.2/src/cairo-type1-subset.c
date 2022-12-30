@@ -59,7 +59,7 @@
 
 typedef struct {
     int subset_index;
-    floatt width;
+    double width;
     const char *encrypted_charstring;
     int encrypted_charstring_length;
 } glyph_data_t;
@@ -71,9 +71,9 @@ typedef struct _cairo_type1_font_subset {
 	unsigned int font_id;
 	char *base_font;
 	unsigned int num_glyphs;
-	floatt x_min, y_min, x_max, y_max;
-	floatt ascent, descent;
-	floatt units_per_em;
+	double x_min, y_min, x_max, y_max;
+	double ascent, descent;
+	double units_per_em;
 
 	const char    *data;
 	unsigned long  header_size;
@@ -136,7 +136,7 @@ typedef struct _cairo_type1_font_subset {
     int hex_column;
 
     struct {
-	floatt stack[TYPE1_STACKSIZE];
+	double stack[TYPE1_STACKSIZE];
 	int sp;
     } build_stack;
 
@@ -300,10 +300,10 @@ cairo_type1_font_erase_dict_key (cairo_type1_font_subset_t *font,
 static cairo_status_t
 cairo_type1_font_subset_get_matrix (cairo_type1_font_subset_t *font,
 				    const char                *name,
-				    floatt                    *a,
-				    floatt                    *b,
-				    floatt                    *c,
-				    floatt                    *d)
+				    double                    *a,
+				    double                    *b,
+				    double                    *c,
+				    double                    *d)
 {
     const char *start, *end, *segment_end;
     int ret, s_max, i, j;
@@ -366,8 +366,8 @@ static cairo_status_t
 cairo_type1_font_subset_get_bbox (cairo_type1_font_subset_t *font)
 {
     cairo_status_t status;
-    floatt x_min, y_min, x_max, y_max;
-    floatt xx, yx, xy, yy;
+    double x_min, y_min, x_max, y_max;
+    double xx, yx, xy, yy;
 
     status = cairo_type1_font_subset_get_matrix (font, "/FontBBox",
 						 &x_min,
@@ -819,7 +819,7 @@ cairo_type1_font_subset_parse_charstring (cairo_type1_font_subset_t *font,
 
 	    case TYPE1_CHARSTRING_COMMAND_CALLSUBR:
 		if (font->subset_subrs && font->build_stack.sp > 0) {
-		    floatt int_val;
+		    double int_val;
 		    if (modf(font->build_stack.stack[--font->build_stack.sp], &int_val) == 0.0) {
 			int subr_num = int_val;
 			if (subr_num >= 0 && subr_num < font->num_subrs) {
@@ -896,8 +896,8 @@ cairo_type1_font_subset_parse_charstring (cairo_type1_font_subset_t *font,
 			status = CAIRO_INT_STATUS_UNSUPPORTED;
 			goto cleanup;
 		    } else {
-			floatt num1 = font->build_stack.stack[font->build_stack.sp - 2];
-			floatt num2 = font->build_stack.stack[font->build_stack.sp - 1];
+			double num1 = font->build_stack.stack[font->build_stack.sp - 2];
+			double num2 = font->build_stack.stack[font->build_stack.sp - 1];
 			font->build_stack.sp--;
 			if (num2 == 0.0) {
 			    status = CAIRO_INT_STATUS_UNSUPPORTED;
@@ -1742,7 +1742,7 @@ _cairo_type1_subset_init (cairo_type1_subset_t		*type1_subset,
     if (unlikely (type1_subset->base_font == NULL))
 	goto fail1;
 
-    type1_subset->widths = calloc (sizeof (floatt), font.num_glyphs);
+    type1_subset->widths = calloc (sizeof (double), font.num_glyphs);
     if (unlikely (type1_subset->widths == NULL))
 	goto fail2;
     for (i = 0; i < font.base.num_glyphs; i++) {

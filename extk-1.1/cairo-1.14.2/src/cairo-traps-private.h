@@ -112,7 +112,7 @@ _cairo_traps_add_trap (cairo_traps_t *traps,
 
 cairo_private int
 _cairo_traps_contain (const cairo_traps_t *traps,
-		      floatt x, floatt y);
+		      double x, double y);
 
 cairo_private void
 _cairo_traps_extents (const cairo_traps_t *traps,

@@ -121,7 +121,7 @@ void WgtMenu::onDrawMenuPop(ExCanvas* canvas, const ExWidget* widget, const ExRe
         cairo_stroke(cr);
     }
     if (menu->child) {
-        floatt h2, x1, x2, yc;
+        double h2, x1, x2, yc;
         h2 = menuHeight / 4.5f;
         x1 = p2.x - menuHeight * .7f;
         x2 = x1 + h2;
@@ -134,7 +134,7 @@ void WgtMenu::onDrawMenuPop(ExCanvas* canvas, const ExWidget* widget, const ExRe
         cairo_set_line_width(cr, 1.f);
         cairo_stroke(cr);
     }
-    rc.h = (floatt)menuHeight;
+    rc.h = (double)menuHeight;
     if (!(menu->flag & Menu::Disabled) &&
         isFocused) {
         cr.fill_rect_rgba(rc, ExCairo::Color(.5f));
@@ -146,7 +146,7 @@ void WgtMenu::onDrawMenuPop(ExCanvas* canvas, const ExWidget* widget, const ExRe
     else
         tc.set(1.f, 1.f, 1.f);
     cr.set_font(res.f.gothic.crf, fontSize);
-    cr.show_text(menu->text, tc, cr.text_align(canvas->fe, menu->extents, rc, ExCairo::Left));
+    cr.show_ucs2(menu->text, tc, cr.text_align(canvas->fe, menu->extents, rc, ExCairo::Left));
 }
 
 void WgtMenu::onDrawMenuBarBkgd(ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage) {
@@ -173,13 +173,13 @@ void WgtMenu::onDrawMenuBar(ExCanvas* canvas, const ExWidget* widget, const ExRe
         cr.fill_rect_rgba(rc, fc);
     }
     cr.set_font(res.f.gothic.crf, fontSize);
-    cr.show_text(menu->text, ExCairo::Color(1.f), cr.text_align(canvas->fe, menu->extents, rc));
+    cr.show_ucs2(menu->text, ExCairo::Color(1.f), cr.text_align(canvas->fe, menu->extents, rc));
 }
 
 int WgtMenu::onLayoutHorz(ExWidget* widget, ExCbInfo* cbinfo) {
     ExRect* horz = (ExRect*)cbinfo->data;
     Menu* menu = (Menu*)widget->getData();
-    ExCairo::text_extent(window->canvas->cr, res.f.gothic.crf, fontSize, menu->text, &menu->extents);
+    ExCairo::ucs2_extent(window->canvas->cr, res.f.gothic.crf, fontSize, menu->text, &menu->extents);
     int menu_width = (int)menu->extents.width + 36;
     widget->area.set(horz->x, horz->y, menu_width, horz->h);
     horz->x += menu_width + 1;
@@ -190,7 +190,7 @@ int WgtMenu::onLayoutHorz(ExWidget* widget, ExCbInfo* cbinfo) {
 int WgtMenu::onLayoutVert(ExWidget* widget, ExCbInfo* cbinfo) {
     ExRect* vert = (ExRect*)cbinfo->data;
     Menu* menu = (Menu*)widget->getData();
-    ExCairo::text_extent(window->canvas->cr, res.f.gothic.crf, fontSize, menu->text, &menu->extents);
+    ExCairo::ucs2_extent(window->canvas->cr, res.f.gothic.crf, fontSize, menu->text, &menu->extents);
     int menu_width = (int)menu->extents.width + 120;
     int separator = menu->flag & Menu::Separator ? 3 : 0;
     if (vert->w < menu_width) vert->w = menu_width; // save max width

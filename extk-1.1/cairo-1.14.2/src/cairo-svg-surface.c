@@ -133,8 +133,8 @@ struct cairo_svg_document {
     cairo_surface_t *owner;
     cairo_bool_t finished;
 
-    floatt width;
-    floatt height;
+    double width;
+    double height;
 
     cairo_output_stream_t *xml_node_defs;
     cairo_output_stream_t *xml_node_glyphs;
@@ -155,8 +155,8 @@ struct cairo_svg_document {
 
 static cairo_status_t
 _cairo_svg_document_create (cairo_output_stream_t	 *stream,
-			    floatt			  width,
-			    floatt			  height,
+			    double			  width,
+			    double			  height,
 			    cairo_svg_version_t		  version,
 			    cairo_svg_document_t	**document_out);
 
@@ -175,12 +175,12 @@ _cairo_svg_document_allocate_mask_id (cairo_svg_document_t *document);
 static cairo_surface_t *
 _cairo_svg_surface_create_for_document (cairo_svg_document_t	*document,
 					cairo_content_t		 content,
-					floatt			 width,
-					floatt			 height);
+					double			 width,
+					double			 height);
 static cairo_surface_t *
 _cairo_svg_surface_create_for_stream_internal (cairo_output_stream_t	*stream,
-					       floatt			 width,
-					       floatt			 height,
+					       double			 width,
+					       double			 height,
 					       cairo_svg_version_t	 version);
 
 static const cairo_surface_backend_t cairo_svg_surface_backend;
@@ -212,8 +212,8 @@ static const cairo_paginated_surface_backend_t cairo_svg_surface_paginated_backe
 cairo_surface_t *
 cairo_svg_surface_create_for_stream (cairo_write_func_t		 write_func,
 				     void			*closure,
-				     floatt			 width,
-				     floatt			 height)
+				     double			 width,
+				     double			 height)
 {
     cairo_output_stream_t *stream;
 
@@ -264,8 +264,8 @@ cairo_svg_surface_create_for_stream (cairo_write_func_t		 write_func,
  **/
 cairo_surface_t *
 cairo_svg_surface_create (const char	*filename,
-			  floatt	 width,
-			  floatt	 height)
+			  double	 width,
+			  double	 height)
 {
     cairo_output_stream_t *stream;
 
@@ -422,7 +422,7 @@ static cairo_status_t
 _cairo_svg_surface_clipper_intersect_clip_path (cairo_surface_clipper_t *clipper,
 						cairo_path_fixed_t	*path,
 						cairo_fill_rule_t	 fill_rule,
-						floatt			 tolerance,
+						double			 tolerance,
 						cairo_antialias_t	 antialias)
 {
     cairo_svg_surface_t *surface = cairo_container_of (clipper,
@@ -469,8 +469,8 @@ _cairo_svg_surface_clipper_intersect_clip_path (cairo_surface_clipper_t *clipper
 static cairo_surface_t *
 _cairo_svg_surface_create_for_document (cairo_svg_document_t	*document,
 					cairo_content_t		 content,
-					floatt			 width,
-					floatt			 height)
+					double			 width,
+					double			 height)
 {
     cairo_svg_surface_t *surface;
     cairo_surface_t *paginated;
@@ -541,8 +541,8 @@ CLEANUP:
 
 static cairo_surface_t *
 _cairo_svg_surface_create_for_stream_internal (cairo_output_stream_t	*stream,
-					       floatt			 width,
-					       floatt			 height,
+					       double			 width,
+					       double			 height,
 					       cairo_svg_version_t	 version)
 {
     cairo_svg_document_t *document = NULL; /* silence compiler */
@@ -664,8 +664,8 @@ _cairo_svg_path_move_to (void *closure,
 			 const cairo_point_t *point)
 {
     svg_path_info_t *info = closure;
-    floatt x = _cairo_fixed_to_double (point->x);
-    floatt y = _cairo_fixed_to_double (point->y);
+    double x = _cairo_fixed_to_double (point->x);
+    double y = _cairo_fixed_to_double (point->y);
 
     if (info->ctm_inverse)
 	cairo_matrix_transform_point (info->ctm_inverse, &x, &y);
@@ -680,8 +680,8 @@ _cairo_svg_path_line_to (void *closure,
 			 const cairo_point_t *point)
 {
     svg_path_info_t *info = closure;
-    floatt x = _cairo_fixed_to_double (point->x);
-    floatt y = _cairo_fixed_to_double (point->y);
+    double x = _cairo_fixed_to_double (point->x);
+    double y = _cairo_fixed_to_double (point->y);
 
     if (info->ctm_inverse)
 	cairo_matrix_transform_point (info->ctm_inverse, &x, &y);
@@ -698,12 +698,12 @@ _cairo_svg_path_curve_to (void          *closure,
 			  const cairo_point_t *d)
 {
     svg_path_info_t *info = closure;
-    floatt bx = _cairo_fixed_to_double (b->x);
-    floatt by = _cairo_fixed_to_double (b->y);
-    floatt cx = _cairo_fixed_to_double (c->x);
-    floatt cy = _cairo_fixed_to_double (c->y);
-    floatt dx = _cairo_fixed_to_double (d->x);
-    floatt dy = _cairo_fixed_to_double (d->y);
+    double bx = _cairo_fixed_to_double (b->x);
+    double by = _cairo_fixed_to_double (b->y);
+    double cx = _cairo_fixed_to_double (c->x);
+    double cy = _cairo_fixed_to_double (c->y);
+    double dx = _cairo_fixed_to_double (d->x);
+    double dy = _cairo_fixed_to_double (d->y);
 
     if (info->ctm_inverse) {
 	cairo_matrix_transform_point (info->ctm_inverse, &bx, &by);
@@ -1629,12 +1629,12 @@ _cairo_svg_surface_emit_surface_pattern (cairo_svg_surface_t	 *surface,
 static cairo_status_t
 _cairo_svg_surface_emit_pattern_stops (cairo_output_stream_t          *output,
 				       cairo_gradient_pattern_t const *pattern,
-				       floatt			       start_offset,
+				       double			       start_offset,
 				       cairo_bool_t		       reverse_stops,
 				       cairo_bool_t		       emulate_reflect)
 {
     cairo_gradient_stop_t *stops;
-    floatt offset;
+    double offset;
     unsigned int n_stops;
     unsigned int i;
 
@@ -1708,7 +1708,7 @@ _cairo_svg_surface_emit_pattern_stops (cairo_output_stream_t          *output,
 	    if (stops[i].offset >= -start_offset) {
 		if (i > 0) {
 		    if (stops[i].offset != stops[i-1].offset) {
-			floatt x0, x1;
+			double x0, x1;
 			cairo_color_stop_t *color0, *color1;
 
 			x0 = stops[i-1].offset;
@@ -1863,8 +1863,8 @@ _cairo_svg_surface_emit_radial_pattern (cairo_svg_surface_t    *surface,
     cairo_svg_document_t *document = surface->document;
     cairo_matrix_t p2u;
     cairo_extend_t extend;
-    floatt x0, y0, x1, y1, r0, r1;
-    floatt fx, fy;
+    double x0, y0, x1, y1, r0, r1;
+    double fx, fy;
     cairo_bool_t reverse_stops;
     cairo_status_t status;
     cairo_circle_double_t *c0, *c1;
@@ -1935,7 +1935,7 @@ _cairo_svg_surface_emit_radial_pattern (cairo_svg_surface_t    *surface,
 	}
 
     } else {
-	floatt offset, r, x, y;
+	double offset, r, x, y;
 	cairo_bool_t emulate_reflect = FALSE;
 
 	fx = (r1 * x0 - r0 * x1) / (r1 - r0);
@@ -1955,7 +1955,7 @@ _cairo_svg_surface_emit_radial_pattern (cairo_svg_surface_t    *surface,
 	if ((extend == CAIRO_EXTEND_REFLECT
 	     || extend == CAIRO_EXTEND_REPEAT)
 	    && r0 > 0.0) {
-	    floatt r_org = r1;
+	    double r_org = r1;
 
 	    if (extend == CAIRO_EXTEND_REFLECT) {
 		r1 = 2 * r1 - r0;
@@ -2165,7 +2165,7 @@ _cairo_svg_surface_fill_stroke (void			*abstract_surface,
 				cairo_operator_t	 fill_op,
 				const cairo_pattern_t	*fill_source,
 				cairo_fill_rule_t	 fill_rule,
-				floatt			 fill_tolerance,
+				double			 fill_tolerance,
 				cairo_antialias_t	 fill_antialias,
 				const cairo_path_fixed_t*path,
 				cairo_operator_t	 stroke_op,
@@ -2173,7 +2173,7 @@ _cairo_svg_surface_fill_stroke (void			*abstract_surface,
 				const cairo_stroke_style_t	*stroke_style,
 				const cairo_matrix_t		*stroke_ctm,
 				const cairo_matrix_t		*stroke_ctm_inverse,
-				floatt			 stroke_tolerance,
+				double			 stroke_tolerance,
 				cairo_antialias_t	 stroke_antialias,
 				const cairo_clip_t	*clip)
 {
@@ -2211,7 +2211,7 @@ _cairo_svg_surface_fill (void			*abstract_surface,
 			 const cairo_pattern_t	*source,
 			 const cairo_path_fixed_t*path,
 			 cairo_fill_rule_t	 fill_rule,
-			 floatt			 tolerance,
+			 double			 tolerance,
 			 cairo_antialias_t	 antialias,
 			 const cairo_clip_t	*clip)
 {
@@ -2464,7 +2464,7 @@ _cairo_svg_surface_stroke (void			*abstract_dst,
 			   const cairo_stroke_style_t *stroke_style,
 			   const cairo_matrix_t	*ctm,
 			   const cairo_matrix_t	*ctm_inverse,
-			   floatt		 tolerance,
+			   double		 tolerance,
 			   cairo_antialias_t	 antialias,
 			   const cairo_clip_t	*clip)
 {
@@ -2647,8 +2647,8 @@ static const cairo_surface_backend_t cairo_svg_surface_backend = {
 
 static cairo_status_t
 _cairo_svg_document_create (cairo_output_stream_t	 *output_stream,
-			    floatt			  width,
-			    floatt			  height,
+			    double			  width,
+			    double			  height,
 			    cairo_svg_version_t		  version,
 			    cairo_svg_document_t	**document_out)
 {

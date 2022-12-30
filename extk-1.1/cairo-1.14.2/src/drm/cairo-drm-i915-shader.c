@@ -325,7 +325,7 @@ static void
 i915_shader_radial_init (struct i915_shader_radial *r,
 			 const cairo_radial_pattern_t *radial)
 {
-    floatt dx, dy, dr, r1;
+    double dx, dy, dr, r1;
 
     dx = radial->cd2.center.x - radial->cd1.center.x;
     dy = radial->cd2.center.y - radial->cd1.center.y;
@@ -1022,8 +1022,8 @@ static cairo_bool_t
 i915_shader_linear_init (struct i915_shader_linear *l,
 			 const cairo_linear_pattern_t *linear)
 {
-    floatt x0, y0, sf;
-    floatt dx, dy, offset;
+    double x0, y0, sf;
+    double dx, dy, offset;
 
     dx = linear->pd2.x - linear->pd1.x;
     dy = linear->pd2.y - linear->pd1.y;
@@ -1059,7 +1059,7 @@ static cairo_bool_t
 i915_shader_linear_contains_rectangle (struct i915_shader_linear *l,
 				       const cairo_rectangle_int_t *extents)
 {
-    floatt v;
+    double v;
 
     v = i915_shader_linear_texcoord (l,
 				     extents->x,
@@ -1851,7 +1851,7 @@ void
 i915_shader_init (i915_shader_t *shader,
 		  i915_surface_t *dst,
 		  cairo_operator_t op,
-		  floatt opacity)
+		  double opacity)
 {
     shader->committed = FALSE;
     shader->device = i915_device (dst);
@@ -2688,9 +2688,9 @@ i915_shader_combine_source (i915_shader_t *shader,
 static inline float *
 i915_composite_vertex (float *v,
 		       const i915_shader_t *shader,
-		       floatt x, floatt y)
+		       double x, double y)
 {
-    floatt s, t;
+    double s, t;
 
     /* Each vertex is:
      *   2 vertex coordinates

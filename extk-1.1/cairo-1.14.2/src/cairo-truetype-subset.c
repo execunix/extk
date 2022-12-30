@@ -1149,21 +1149,21 @@ cairo_truetype_subset_init_internal (cairo_truetype_subset_t     *truetype_subse
     /* The widths array returned must contain only widths for the
      * glyphs in font_subset. Any subglyphs appended after
      * font_subset->num_glyphs are omitted. */
-    truetype_subset->widths = calloc (sizeof (floatt),
+    truetype_subset->widths = calloc (sizeof (double),
                                       font->scaled_font_subset->num_glyphs);
     if (unlikely (truetype_subset->widths == NULL)) {
 	status = _cairo_error (CAIRO_STATUS_NO_MEMORY);
 	goto fail3;
     }
     for (i = 0; i < font->scaled_font_subset->num_glyphs; i++)
-	truetype_subset->widths[i] = (floatt)font->base.widths[i]/font->base.units_per_em;
+	truetype_subset->widths[i] = (double)font->base.widths[i]/font->base.units_per_em;
 
-    truetype_subset->x_min = (floatt)font->base.x_min/font->base.units_per_em;
-    truetype_subset->y_min = (floatt)font->base.y_min/font->base.units_per_em;
-    truetype_subset->x_max = (floatt)font->base.x_max/font->base.units_per_em;
-    truetype_subset->y_max = (floatt)font->base.y_max/font->base.units_per_em;
-    truetype_subset->ascent = (floatt)font->base.ascent/font->base.units_per_em;
-    truetype_subset->descent = (floatt)font->base.descent/font->base.units_per_em;
+    truetype_subset->x_min = (double)font->base.x_min/font->base.units_per_em;
+    truetype_subset->y_min = (double)font->base.y_min/font->base.units_per_em;
+    truetype_subset->x_max = (double)font->base.x_max/font->base.units_per_em;
+    truetype_subset->y_max = (double)font->base.y_max/font->base.units_per_em;
+    truetype_subset->ascent = (double)font->base.ascent/font->base.units_per_em;
+    truetype_subset->descent = (double)font->base.descent/font->base.units_per_em;
 
     if (length) {
 	truetype_subset->data = malloc (length);

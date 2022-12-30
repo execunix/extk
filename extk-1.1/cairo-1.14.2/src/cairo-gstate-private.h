@@ -41,8 +41,8 @@
 struct _cairo_gstate {
     cairo_operator_t op;
 
-    floatt opacity;
-    floatt tolerance;
+    double opacity;
+    double tolerance;
     cairo_antialias_t antialias;
 
     cairo_stroke_style_t stroke_style;
@@ -116,15 +116,15 @@ cairo_private cairo_operator_t
 _cairo_gstate_get_operator (cairo_gstate_t *gstate);
 
 cairo_private cairo_status_t
-_cairo_gstate_set_opacity (cairo_gstate_t *gstate, floatt opacity);
+_cairo_gstate_set_opacity (cairo_gstate_t *gstate, double opacity);
 
-cairo_private floatt
+cairo_private double
 _cairo_gstate_get_opacity (cairo_gstate_t *gstate);
 
 cairo_private cairo_status_t
-_cairo_gstate_set_tolerance (cairo_gstate_t *gstate, floatt tolerance);
+_cairo_gstate_set_tolerance (cairo_gstate_t *gstate, double tolerance);
 
-cairo_private floatt
+cairo_private double
 _cairo_gstate_get_tolerance (cairo_gstate_t *gstate);
 
 cairo_private cairo_status_t
@@ -134,9 +134,9 @@ cairo_private cairo_fill_rule_t
 _cairo_gstate_get_fill_rule (cairo_gstate_t *gstate);
 
 cairo_private cairo_status_t
-_cairo_gstate_set_line_width (cairo_gstate_t *gstate, floatt width);
+_cairo_gstate_set_line_width (cairo_gstate_t *gstate, double width);
 
-cairo_private floatt
+cairo_private double
 _cairo_gstate_get_line_width (cairo_gstate_t *gstate);
 
 cairo_private cairo_status_t
@@ -152,28 +152,28 @@ cairo_private cairo_line_join_t
 _cairo_gstate_get_line_join (cairo_gstate_t *gstate);
 
 cairo_private cairo_status_t
-_cairo_gstate_set_dash (cairo_gstate_t *gstate, const floatt *dash, int num_dashes, floatt offset);
+_cairo_gstate_set_dash (cairo_gstate_t *gstate, const double *dash, int num_dashes, double offset);
 
 cairo_private void
-_cairo_gstate_get_dash (cairo_gstate_t *gstate, floatt *dash, int *num_dashes, floatt *offset);
+_cairo_gstate_get_dash (cairo_gstate_t *gstate, double *dash, int *num_dashes, double *offset);
 
 cairo_private cairo_status_t
-_cairo_gstate_set_miter_limit (cairo_gstate_t *gstate, floatt limit);
+_cairo_gstate_set_miter_limit (cairo_gstate_t *gstate, double limit);
 
-cairo_private floatt
+cairo_private double
 _cairo_gstate_get_miter_limit (cairo_gstate_t *gstate);
 
 cairo_private void
 _cairo_gstate_get_matrix (cairo_gstate_t *gstate, cairo_matrix_t *matrix);
 
 cairo_private cairo_status_t
-_cairo_gstate_translate (cairo_gstate_t *gstate, floatt tx, floatt ty);
+_cairo_gstate_translate (cairo_gstate_t *gstate, double tx, double ty);
 
 cairo_private cairo_status_t
-_cairo_gstate_scale (cairo_gstate_t *gstate, floatt sx, floatt sy);
+_cairo_gstate_scale (cairo_gstate_t *gstate, double sx, double sy);
 
 cairo_private cairo_status_t
-_cairo_gstate_rotate (cairo_gstate_t *gstate, floatt angle);
+_cairo_gstate_rotate (cairo_gstate_t *gstate, double angle);
 
 cairo_private cairo_status_t
 _cairo_gstate_transform (cairo_gstate_t	      *gstate,
@@ -187,52 +187,52 @@ cairo_private void
 _cairo_gstate_identity_matrix (cairo_gstate_t *gstate);
 
 cairo_private void
-_cairo_gstate_user_to_device (cairo_gstate_t *gstate, floatt *x, floatt *y);
+_cairo_gstate_user_to_device (cairo_gstate_t *gstate, double *x, double *y);
 
 cairo_private void
-_cairo_gstate_user_to_device_distance (cairo_gstate_t *gstate, floatt *dx, floatt *dy);
+_cairo_gstate_user_to_device_distance (cairo_gstate_t *gstate, double *dx, double *dy);
 
 cairo_private void
-_cairo_gstate_device_to_user (cairo_gstate_t *gstate, floatt *x, floatt *y);
+_cairo_gstate_device_to_user (cairo_gstate_t *gstate, double *x, double *y);
 
 cairo_private void
-_cairo_gstate_device_to_user_distance (cairo_gstate_t *gstate, floatt *dx, floatt *dy);
+_cairo_gstate_device_to_user_distance (cairo_gstate_t *gstate, double *dx, double *dy);
 
 cairo_private void
-_do_cairo_gstate_user_to_backend (cairo_gstate_t *gstate, floatt *x, floatt *y);
+_do_cairo_gstate_user_to_backend (cairo_gstate_t *gstate, double *x, double *y);
 
 static inline void
-_cairo_gstate_user_to_backend (cairo_gstate_t *gstate, floatt *x, floatt *y)
+_cairo_gstate_user_to_backend (cairo_gstate_t *gstate, double *x, double *y)
 {
     if (! gstate->is_identity)
 	_do_cairo_gstate_user_to_backend (gstate, x, y);
 }
 
 cairo_private void
-_do_cairo_gstate_user_to_backend_distance (cairo_gstate_t *gstate, floatt *x, floatt *y);
+_do_cairo_gstate_user_to_backend_distance (cairo_gstate_t *gstate, double *x, double *y);
 
 static inline void
-_cairo_gstate_user_to_backend_distance (cairo_gstate_t *gstate, floatt *x, floatt *y)
+_cairo_gstate_user_to_backend_distance (cairo_gstate_t *gstate, double *x, double *y)
 {
     if (! gstate->is_identity)
 	_do_cairo_gstate_user_to_backend_distance (gstate, x, y);
 }
 
 cairo_private void
-_do_cairo_gstate_backend_to_user (cairo_gstate_t *gstate, floatt *x, floatt *y);
+_do_cairo_gstate_backend_to_user (cairo_gstate_t *gstate, double *x, double *y);
 
 static inline void
-_cairo_gstate_backend_to_user (cairo_gstate_t *gstate, floatt *x, floatt *y)
+_cairo_gstate_backend_to_user (cairo_gstate_t *gstate, double *x, double *y)
 {
     if (! gstate->is_identity)
 	_do_cairo_gstate_backend_to_user (gstate, x, y);
 }
 
 cairo_private void
-_do_cairo_gstate_backend_to_user_distance (cairo_gstate_t *gstate, floatt *x, floatt *y);
+_do_cairo_gstate_backend_to_user_distance (cairo_gstate_t *gstate, double *x, double *y);
 
 static inline void
-_cairo_gstate_backend_to_user_distance (cairo_gstate_t *gstate, floatt *x, floatt *y)
+_cairo_gstate_backend_to_user_distance (cairo_gstate_t *gstate, double *x, double *y)
 {
     if (! gstate->is_identity)
 	_do_cairo_gstate_backend_to_user_distance (gstate, x, y);
@@ -240,15 +240,15 @@ _cairo_gstate_backend_to_user_distance (cairo_gstate_t *gstate, floatt *x, float
 
 cairo_private void
 _cairo_gstate_backend_to_user_rectangle (cairo_gstate_t *gstate,
-                                         floatt *x1, floatt *y1,
-                                         floatt *x2, floatt *y2,
+                                         double *x1, double *y1,
+                                         double *x2, double *y2,
                                          cairo_bool_t *is_tight);
 
 cairo_private void
 _cairo_gstate_path_extents (cairo_gstate_t     *gstate,
 			    cairo_path_fixed_t *path,
-			    floatt *x1, floatt *y1,
-			    floatt *x2, floatt *y2);
+			    double *x1, double *y1,
+			    double *x2, double *y2);
 
 cairo_private cairo_status_t
 _cairo_gstate_paint (cairo_gstate_t *gstate);
@@ -272,32 +272,32 @@ _cairo_gstate_show_page (cairo_gstate_t *gstate);
 cairo_private cairo_status_t
 _cairo_gstate_stroke_extents (cairo_gstate_t	 *gstate,
 			      cairo_path_fixed_t *path,
-                              floatt *x1, floatt *y1,
-			      floatt *x2, floatt *y2);
+                              double *x1, double *y1,
+			      double *x2, double *y2);
 
 cairo_private cairo_status_t
 _cairo_gstate_fill_extents (cairo_gstate_t     *gstate,
 			    cairo_path_fixed_t *path,
-                            floatt *x1, floatt *y1,
-			    floatt *x2, floatt *y2);
+                            double *x1, double *y1,
+			    double *x2, double *y2);
 
 cairo_private cairo_status_t
 _cairo_gstate_in_stroke (cairo_gstate_t	    *gstate,
 			 cairo_path_fixed_t *path,
-			 floatt		     x,
-			 floatt		     y,
+			 double		     x,
+			 double		     y,
 			 cairo_bool_t	    *inside_ret);
 
 cairo_private cairo_bool_t
 _cairo_gstate_in_fill (cairo_gstate_t	  *gstate,
 		       cairo_path_fixed_t *path,
-		       floatt		   x,
-		       floatt		   y);
+		       double		   x,
+		       double		   y);
 
 cairo_private cairo_bool_t
 _cairo_gstate_in_clip (cairo_gstate_t	  *gstate,
-		       floatt		   x,
-		       floatt		   y);
+		       double		   x,
+		       double		   y);
 
 cairo_private cairo_status_t
 _cairo_gstate_clip (cairo_gstate_t *gstate, cairo_path_fixed_t *path);
@@ -307,10 +307,10 @@ _cairo_gstate_reset_clip (cairo_gstate_t *gstate);
 
 cairo_private cairo_bool_t
 _cairo_gstate_clip_extents (cairo_gstate_t *gstate,
-		            floatt         *x1,
-		            floatt         *y1,
-			    floatt         *x2,
-			    floatt         *y2);
+		            double         *x1,
+		            double         *y1,
+			    double         *x2,
+			    double         *y2);
 
 cairo_private cairo_rectangle_list_t*
 _cairo_gstate_copy_clip_rectangle_list (cairo_gstate_t *gstate);
@@ -318,14 +318,14 @@ _cairo_gstate_copy_clip_rectangle_list (cairo_gstate_t *gstate);
 cairo_private cairo_status_t
 _cairo_gstate_show_surface (cairo_gstate_t	*gstate,
 			    cairo_surface_t	*surface,
-			    floatt		 x,
-			    floatt		 y,
-			    floatt		width,
-			    floatt		height);
+			    double		 x,
+			    double		 y,
+			    double		width,
+			    double		height);
 
 cairo_private cairo_status_t
 _cairo_gstate_set_font_size (cairo_gstate_t *gstate,
-			     floatt          size);
+			     double          size);
 
 cairo_private void
 _cairo_gstate_get_font_matrix (cairo_gstate_t *gstate,

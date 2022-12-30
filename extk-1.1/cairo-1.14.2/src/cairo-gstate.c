@@ -432,28 +432,28 @@ _cairo_gstate_get_operator (cairo_gstate_t *gstate)
 }
 
 cairo_status_t
-_cairo_gstate_set_opacity (cairo_gstate_t *gstate, floatt op)
+_cairo_gstate_set_opacity (cairo_gstate_t *gstate, double op)
 {
     gstate->opacity = op;
 
     return CAIRO_STATUS_SUCCESS;
 }
 
-floatt
+double
 _cairo_gstate_get_opacity (cairo_gstate_t *gstate)
 {
     return gstate->opacity;
 }
 
 cairo_status_t
-_cairo_gstate_set_tolerance (cairo_gstate_t *gstate, floatt tolerance)
+_cairo_gstate_set_tolerance (cairo_gstate_t *gstate, double tolerance)
 {
     gstate->tolerance = tolerance;
 
     return CAIRO_STATUS_SUCCESS;
 }
 
-floatt
+double
 _cairo_gstate_get_tolerance (cairo_gstate_t *gstate)
 {
     return gstate->tolerance;
@@ -474,14 +474,14 @@ _cairo_gstate_get_fill_rule (cairo_gstate_t *gstate)
 }
 
 cairo_status_t
-_cairo_gstate_set_line_width (cairo_gstate_t *gstate, floatt width)
+_cairo_gstate_set_line_width (cairo_gstate_t *gstate, double width)
 {
     gstate->stroke_style.line_width = width;
 
     return CAIRO_STATUS_SUCCESS;
 }
 
-floatt
+double
 _cairo_gstate_get_line_width (cairo_gstate_t *gstate)
 {
     return gstate->stroke_style.line_width;
@@ -516,9 +516,9 @@ _cairo_gstate_get_line_join (cairo_gstate_t *gstate)
 }
 
 cairo_status_t
-_cairo_gstate_set_dash (cairo_gstate_t *gstate, const floatt *dash, int num_dashes, floatt offset)
+_cairo_gstate_set_dash (cairo_gstate_t *gstate, const double *dash, int num_dashes, double offset)
 {
-    floatt dash_total, on_total, off_total;
+    double dash_total, on_total, off_total;
     int i, j;
 
     free (gstate->stroke_style.dash);
@@ -531,7 +531,7 @@ _cairo_gstate_set_dash (cairo_gstate_t *gstate, const floatt *dash, int num_dash
 	return CAIRO_STATUS_SUCCESS;
     }
 
-    gstate->stroke_style.dash = _cairo_malloc_ab (gstate->stroke_style.num_dashes, sizeof (floatt));
+    gstate->stroke_style.dash = _cairo_malloc_ab (gstate->stroke_style.num_dashes, sizeof (double));
     if (unlikely (gstate->stroke_style.dash == NULL)) {
 	gstate->stroke_style.num_dashes = 0;
 	return _cairo_error (CAIRO_STATUS_NO_MEMORY);
@@ -594,14 +594,14 @@ _cairo_gstate_set_dash (cairo_gstate_t *gstate, const floatt *dash, int num_dash
 
 void
 _cairo_gstate_get_dash (cairo_gstate_t *gstate,
-			floatt         *dashes,
+			double         *dashes,
 			int            *num_dashes,
-			floatt         *offset)
+			double         *offset)
 {
     if (dashes) {
 	memcpy (dashes,
 		gstate->stroke_style.dash,
-		sizeof (floatt) * gstate->stroke_style.num_dashes);
+		sizeof (double) * gstate->stroke_style.num_dashes);
     }
 
     if (num_dashes)
@@ -612,14 +612,14 @@ _cairo_gstate_get_dash (cairo_gstate_t *gstate,
 }
 
 cairo_status_t
-_cairo_gstate_set_miter_limit (cairo_gstate_t *gstate, floatt limit)
+_cairo_gstate_set_miter_limit (cairo_gstate_t *gstate, double limit)
 {
     gstate->stroke_style.miter_limit = limit;
 
     return CAIRO_STATUS_SUCCESS;
 }
 
-floatt
+double
 _cairo_gstate_get_miter_limit (cairo_gstate_t *gstate)
 {
     return gstate->stroke_style.miter_limit;
@@ -632,7 +632,7 @@ _cairo_gstate_get_matrix (cairo_gstate_t *gstate, cairo_matrix_t *matrix)
 }
 
 cairo_status_t
-_cairo_gstate_translate (cairo_gstate_t *gstate, floatt tx, floatt ty)
+_cairo_gstate_translate (cairo_gstate_t *gstate, double tx, double ty)
 {
     cairo_matrix_t tmp;
 
@@ -656,7 +656,7 @@ _cairo_gstate_translate (cairo_gstate_t *gstate, floatt tx, floatt ty)
 }
 
 cairo_status_t
-_cairo_gstate_scale (cairo_gstate_t *gstate, floatt sx, floatt sy)
+_cairo_gstate_scale (cairo_gstate_t *gstate, double sx, double sy)
 {
     cairo_matrix_t tmp;
 
@@ -682,7 +682,7 @@ _cairo_gstate_scale (cairo_gstate_t *gstate, floatt sx, floatt sy)
 }
 
 cairo_status_t
-_cairo_gstate_rotate (cairo_gstate_t *gstate, floatt angle)
+_cairo_gstate_rotate (cairo_gstate_t *gstate, double angle)
 {
     cairo_matrix_t tmp;
 
@@ -781,54 +781,54 @@ _cairo_gstate_identity_matrix (cairo_gstate_t *gstate)
 }
 
 void
-_cairo_gstate_user_to_device (cairo_gstate_t *gstate, floatt *x, floatt *y)
+_cairo_gstate_user_to_device (cairo_gstate_t *gstate, double *x, double *y)
 {
     cairo_matrix_transform_point (&gstate->ctm, x, y);
 }
 
 void
 _cairo_gstate_user_to_device_distance (cairo_gstate_t *gstate,
-				       floatt *dx, floatt *dy)
+				       double *dx, double *dy)
 {
     cairo_matrix_transform_distance (&gstate->ctm, dx, dy);
 }
 
 void
-_cairo_gstate_device_to_user (cairo_gstate_t *gstate, floatt *x, floatt *y)
+_cairo_gstate_device_to_user (cairo_gstate_t *gstate, double *x, double *y)
 {
     cairo_matrix_transform_point (&gstate->ctm_inverse, x, y);
 }
 
 void
 _cairo_gstate_device_to_user_distance (cairo_gstate_t *gstate,
-				       floatt *dx, floatt *dy)
+				       double *dx, double *dy)
 {
     cairo_matrix_transform_distance (&gstate->ctm_inverse, dx, dy);
 }
 
 void
-_do_cairo_gstate_user_to_backend (cairo_gstate_t *gstate, floatt *x, floatt *y)
+_do_cairo_gstate_user_to_backend (cairo_gstate_t *gstate, double *x, double *y)
 {
     cairo_matrix_transform_point (&gstate->ctm, x, y);
     cairo_matrix_transform_point (&gstate->target->device_transform, x, y);
 }
 
 void
-_do_cairo_gstate_user_to_backend_distance (cairo_gstate_t *gstate, floatt *x, floatt *y)
+_do_cairo_gstate_user_to_backend_distance (cairo_gstate_t *gstate, double *x, double *y)
 {
     cairo_matrix_transform_distance (&gstate->ctm, x, y);
     cairo_matrix_transform_distance (&gstate->target->device_transform, x, y);
 }
 
 void
-_do_cairo_gstate_backend_to_user (cairo_gstate_t *gstate, floatt *x, floatt *y)
+_do_cairo_gstate_backend_to_user (cairo_gstate_t *gstate, double *x, double *y)
 {
     cairo_matrix_transform_point (&gstate->target->device_transform_inverse, x, y);
     cairo_matrix_transform_point (&gstate->ctm_inverse, x, y);
 }
 
 void
-_do_cairo_gstate_backend_to_user_distance (cairo_gstate_t *gstate, floatt *x, floatt *y)
+_do_cairo_gstate_backend_to_user_distance (cairo_gstate_t *gstate, double *x, double *y)
 {
     cairo_matrix_transform_distance (&gstate->target->device_transform_inverse, x, y);
     cairo_matrix_transform_distance (&gstate->ctm_inverse, x, y);
@@ -836,8 +836,8 @@ _do_cairo_gstate_backend_to_user_distance (cairo_gstate_t *gstate, floatt *x, fl
 
 void
 _cairo_gstate_backend_to_user_rectangle (cairo_gstate_t *gstate,
-                                         floatt *x1, floatt *y1,
-                                         floatt *x2, floatt *y2,
+                                         double *x1, double *y1,
+                                         double *x2, double *y2,
                                          cairo_bool_t *is_tight)
 {
     cairo_matrix_t matrix_inverse;
@@ -873,11 +873,11 @@ _cairo_gstate_stroke_to_path (cairo_gstate_t *gstate)
 void
 _cairo_gstate_path_extents (cairo_gstate_t     *gstate,
 			    cairo_path_fixed_t *path,
-			    floatt *x1, floatt *y1,
-			    floatt *x2, floatt *y2)
+			    double *x1, double *y1,
+			    double *x2, double *y2)
 {
     cairo_box_t box;
-    floatt px1, py1, px2, py2;
+    double px1, py1, px2, py2;
 
     if (_cairo_path_fixed_extents (path, &box)) {
 	px1 = _cairo_fixed_to_double (box.p1.x);
@@ -1153,7 +1153,7 @@ _cairo_gstate_stroke (cairo_gstate_t *gstate, cairo_path_fixed_t *path)
 {
     cairo_pattern_union_t source_pattern;
     cairo_stroke_style_t style;
-    floatt dash[2];
+    double dash[2];
     cairo_status_t status;
     cairo_matrix_t aggregate_transform;
     cairo_matrix_t aggregate_transform_inverse;
@@ -1206,8 +1206,8 @@ _cairo_gstate_stroke (cairo_gstate_t *gstate, cairo_path_fixed_t *path)
 cairo_status_t
 _cairo_gstate_in_stroke (cairo_gstate_t	    *gstate,
 			 cairo_path_fixed_t *path,
-			 floatt		     x,
-			 floatt		     y,
+			 double		     x,
+			 double		     y,
 			 cairo_bool_t	    *inside_ret)
 {
     cairo_status_t status;
@@ -1329,8 +1329,8 @@ _cairo_gstate_fill (cairo_gstate_t *gstate, cairo_path_fixed_t *path)
 cairo_bool_t
 _cairo_gstate_in_fill (cairo_gstate_t	  *gstate,
 		       cairo_path_fixed_t *path,
-		       floatt		   x,
-		       floatt		   y)
+		       double		   x,
+		       double		   y)
 {
     _cairo_gstate_user_to_backend (gstate, &x, &y);
 
@@ -1342,8 +1342,8 @@ _cairo_gstate_in_fill (cairo_gstate_t	  *gstate,
 
 cairo_bool_t
 _cairo_gstate_in_clip (cairo_gstate_t	  *gstate,
-		       floatt		   x,
-		       floatt		   y)
+		       double		   x,
+		       double		   y)
 {
     cairo_clip_t *clip = gstate->clip;
     int i;
@@ -1409,10 +1409,10 @@ _cairo_gstate_show_page (cairo_gstate_t *gstate)
 static void
 _cairo_gstate_extents_to_user_rectangle (cairo_gstate_t	  *gstate,
 					 const cairo_box_t *extents,
-					 floatt *x1, floatt *y1,
-					 floatt *x2, floatt *y2)
+					 double *x1, double *y1,
+					 double *x2, double *y2)
 {
-    floatt px1, py1, px2, py2;
+    double px1, py1, px2, py2;
 
     px1 = _cairo_fixed_to_double (extents->p1.x);
     py1 = _cairo_fixed_to_double (extents->p1.y);
@@ -1435,8 +1435,8 @@ _cairo_gstate_extents_to_user_rectangle (cairo_gstate_t	  *gstate,
 cairo_status_t
 _cairo_gstate_stroke_extents (cairo_gstate_t	 *gstate,
 			      cairo_path_fixed_t *path,
-                              floatt *x1, floatt *y1,
-			      floatt *x2, floatt *y2)
+                              double *x1, double *y1,
+			      double *x2, double *y2)
 {
     cairo_int_status_t status;
     cairo_box_t extents;
@@ -1496,8 +1496,8 @@ _cairo_gstate_stroke_extents (cairo_gstate_t	 *gstate,
 cairo_status_t
 _cairo_gstate_fill_extents (cairo_gstate_t     *gstate,
 			    cairo_path_fixed_t *path,
-                            floatt *x1, floatt *y1,
-			    floatt *x2, floatt *y2)
+                            double *x1, double *y1,
+			    double *x2, double *y2)
 {
     cairo_status_t status;
     cairo_box_t extents;
@@ -1593,13 +1593,13 @@ _cairo_gstate_int_clip_extents (cairo_gstate_t        *gstate,
 
 cairo_bool_t
 _cairo_gstate_clip_extents (cairo_gstate_t *gstate,
-		            floatt         *x1,
-		            floatt         *y1,
-			    floatt         *x2,
-			    floatt         *y2)
+		            double         *x1,
+		            double         *y1,
+			    double         *x2,
+			    double         *y2)
 {
     cairo_rectangle_int_t extents;
-    floatt px1, py1, px2, py2;
+    double px1, py1, px2, py2;
 
     if (! _cairo_gstate_int_clip_extents (gstate, &extents))
 	return FALSE;
@@ -1660,7 +1660,7 @@ _cairo_gstate_unset_scaled_font (cairo_gstate_t *gstate)
 
 cairo_status_t
 _cairo_gstate_set_font_size (cairo_gstate_t *gstate,
-			     floatt          size)
+			     double          size)
 {
     _cairo_gstate_unset_scaled_font (gstate);
 
@@ -2010,9 +2010,10 @@ _cairo_gstate_show_text_glyphs (cairo_gstate_t		   *gstate,
     if (cairo_surface_has_show_text_glyphs (gstate->target) ||
 	_cairo_scaled_font_get_max_scale (gstate->scaled_font) <= 10240)
     {
+
 	if (info != NULL) {
 	    status = _cairo_surface_show_text_glyphs (gstate->target, op, pattern,
-						      info->wcs, info->wcs_len,
+						      info->utf8, info->utf8_len,
 						      transformed_glyphs, num_glyphs,
 						      transformed_clusters, info->num_clusters,
 						      info->cluster_flags,
@@ -2054,6 +2055,142 @@ CLEANUP_GLYPHS:
       cairo_glyph_free (transformed_glyphs);
     if (transformed_clusters != stack_transformed_clusters)
       cairo_text_cluster_free (transformed_clusters);
+
+    return status;
+}
+
+cairo_status_t
+_cairo_gstate_show_ucs2_glyphs (cairo_gstate_t		   *gstate,
+				const cairo_glyph_t	   *glyphs,
+				int			    num_glyphs,
+				cairo_glyph_ucs2_info_t    *info)
+{
+    cairo_glyph_t stack_transformed_glyphs[CAIRO_STACK_ARRAY_LENGTH (cairo_glyph_t)];
+    cairo_ucs2_cluster_t stack_transformed_clusters[CAIRO_STACK_ARRAY_LENGTH (cairo_ucs2_cluster_t)];
+    cairo_pattern_union_t source_pattern;
+    cairo_glyph_t *transformed_glyphs;
+    const cairo_pattern_t *pattern;
+    cairo_ucs2_cluster_t *transformed_clusters;
+    cairo_operator_t op;
+    cairo_status_t status;
+
+    status = _cairo_gstate_get_pattern_status (gstate->source);
+    if (unlikely (status))
+	return status;
+
+    if (gstate->op == CAIRO_OPERATOR_DEST)
+	return CAIRO_STATUS_SUCCESS;
+
+    if (_cairo_clip_is_all_clipped (gstate->clip))
+	return CAIRO_STATUS_SUCCESS;
+
+    status = _cairo_gstate_ensure_scaled_font (gstate);
+    if (unlikely (status))
+	return status;
+
+    transformed_glyphs = stack_transformed_glyphs;
+    transformed_clusters = stack_transformed_clusters;
+
+    if (num_glyphs > ARRAY_LENGTH (stack_transformed_glyphs)) {
+	transformed_glyphs = cairo_glyph_allocate (num_glyphs);
+	if (unlikely (transformed_glyphs == NULL))
+	    return _cairo_error (CAIRO_STATUS_NO_MEMORY);
+    }
+
+    if (info != NULL) {
+	if (info->num_clusters > ARRAY_LENGTH (stack_transformed_clusters)) {
+	    transformed_clusters = cairo_ucs2_cluster_allocate (info->num_clusters);
+	    if (unlikely (transformed_clusters == NULL)) {
+		status = _cairo_error (CAIRO_STATUS_NO_MEMORY);
+		goto CLEANUP_GLYPHS;
+	    }
+	}
+
+	_cairo_gstate_transform_glyphs_to_backend (gstate,
+						   glyphs, num_glyphs,
+						   info->clusters,
+						   info->num_clusters,
+						   info->cluster_flags,
+						   transformed_glyphs,
+						   &num_glyphs,
+						   transformed_clusters);
+    } else {
+	_cairo_gstate_transform_glyphs_to_backend (gstate,
+						   glyphs, num_glyphs,
+						   NULL, 0, 0,
+						   transformed_glyphs,
+						   &num_glyphs,
+						   NULL);
+    }
+
+    if (num_glyphs == 0)
+	goto CLEANUP_GLYPHS;
+
+    op = _reduce_op (gstate);
+    if (op == CAIRO_OPERATOR_CLEAR) {
+	pattern = &_cairo_pattern_clear.base;
+    } else {
+	_cairo_gstate_copy_transformed_source (gstate, &source_pattern.base);
+	pattern = &source_pattern.base;
+    }
+
+    /* For really huge font sizes, we can just do path;fill instead of
+     * show_glyphs, as show_glyphs would put excess pressure on the cache,
+     * and moreover, not all components below us correctly handle huge font
+     * sizes.  I wanted to set the limit at 256.  But alas, seems like cairo's
+     * rasterizer is something like ten times slower than freetype's for huge
+     * sizes.  So, no win just yet.  For now, do it for insanely-huge sizes,
+     * just to make sure we don't make anyone unhappy.  When we get a really
+     * fast rasterizer in cairo, we may want to readjust this.
+     *
+     * Needless to say, do this only if show_text_glyphs is not available. */
+    if (cairo_surface_has_show_ucs2_glyphs (gstate->target) ||
+	_cairo_scaled_font_get_max_scale (gstate->scaled_font) <= 10240)
+    {
+	if (info != NULL) {
+	    status = _cairo_surface_show_ucs2_glyphs (gstate->target, op, pattern,
+						      info->ucs2, info->ucs2_len,
+						      transformed_glyphs, num_glyphs,
+						      transformed_clusters, info->num_clusters,
+						      info->cluster_flags,
+						      gstate->scaled_font,
+						      gstate->clip);
+	} else {
+	    status = _cairo_surface_show_ucs2_glyphs (gstate->target, op, pattern,
+						      NULL, 0,
+						      transformed_glyphs, num_glyphs,
+						      NULL, 0, 0,
+						      gstate->scaled_font,
+						      gstate->clip);
+	}
+    }
+    else
+    {
+	cairo_path_fixed_t path;
+
+	_cairo_path_fixed_init (&path);
+
+	status = _cairo_scaled_font_glyph_path (gstate->scaled_font,
+						transformed_glyphs, num_glyphs,
+						&path);
+
+	if (status == CAIRO_STATUS_SUCCESS) {
+	    status = _cairo_surface_fill (gstate->target, op, pattern,
+					  &path,
+					  CAIRO_FILL_RULE_WINDING,
+					  gstate->tolerance,
+					  gstate->scaled_font->options.antialias,
+					  gstate->clip);
+	}
+
+	_cairo_path_fixed_fini (&path);
+    }
+
+CLEANUP_GLYPHS:
+    if (transformed_glyphs != stack_transformed_glyphs)
+      cairo_glyph_free (transformed_glyphs);
+    if (transformed_clusters != stack_transformed_clusters)
+      cairo_ucs2_cluster_free (transformed_clusters);
 
     return status;
 }
@@ -2145,14 +2282,14 @@ _cairo_gstate_transform_glyphs_to_backend (cairo_gstate_t	*gstate,
     cairo_matrix_t *font_matrix = &gstate->font_matrix;
     cairo_matrix_t *device_transform = &gstate->target->device_transform;
     cairo_bool_t drop = FALSE;
-    floatt x1 = 0, x2 = 0, y1 = 0, y2 = 0;
+    double x1 = 0, x2 = 0, y1 = 0, y2 = 0;
     int i, j, k;
 
     drop = TRUE;
     if (! _cairo_gstate_int_clip_extents (gstate, &surface_extents)) {
 	drop = FALSE; /* unbounded surface */
     } else {
-	floatt scale10 = 10 * _cairo_scaled_font_get_max_scale (gstate->scaled_font);
+	double scale10 = 10 * _cairo_scaled_font_get_max_scale (gstate->scaled_font);
 	if (surface_extents.width == 0 || surface_extents.height == 0) {
 	  /* No visible area.  Don't draw anything */
 	  *num_transformed_glyphs = 0;
@@ -2231,8 +2368,8 @@ _cairo_gstate_transform_glyphs_to_backend (cairo_gstate_t	*gstate,
     else if (_cairo_matrix_is_translation (ctm) &&
              _cairo_matrix_is_translation (device_transform))
     {
-        floatt tx = font_matrix->x0 + ctm->x0 + device_transform->x0;
-        floatt ty = font_matrix->y0 + ctm->y0 + device_transform->y0;
+        double tx = font_matrix->x0 + ctm->x0 + device_transform->x0;
+        double ty = font_matrix->y0 + ctm->y0 + device_transform->y0;
 
 	if (! drop || num_clusters == 0) {
 	    for (i = 0; i < num_glyphs; i++) {

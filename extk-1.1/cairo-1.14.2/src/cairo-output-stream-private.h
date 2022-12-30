@@ -56,7 +56,7 @@ typedef cairo_status_t
 
 struct _cairo_output_stream {
     cairo_output_stream_write_func_t write_func;
-    cairo_output_stream_flush_func_t flushFunc;
+    cairo_output_stream_flush_func_t flush_func;
     cairo_output_stream_close_func_t close_func;
     unsigned long		     position;
     cairo_status_t		     status;
@@ -68,7 +68,7 @@ extern const cairo_private cairo_output_stream_t _cairo_output_stream_nil;
 cairo_private void
 _cairo_output_stream_init (cairo_output_stream_t            *stream,
 			   cairo_output_stream_write_func_t  write_func,
-			   cairo_output_stream_flush_func_t  flushFunc,
+			   cairo_output_stream_flush_func_t  flush_func,
 			   cairo_output_stream_close_func_t  close_func);
 
 cairo_private cairo_status_t

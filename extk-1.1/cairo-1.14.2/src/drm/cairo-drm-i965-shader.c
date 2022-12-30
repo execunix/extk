@@ -136,8 +136,8 @@ i965_shader_acquire_linear (i965_shader_t *shader,
 {
     intel_buffer_t buffer;
     cairo_status_t status;
-    floatt x0, y0, sf;
-    floatt dx, dy, offset;
+    double x0, y0, sf;
+    double dx, dy, offset;
 
     status = intel_gradient_render (&i965_device (shader->target)->intel,
 				    &linear->base, &buffer);
@@ -191,7 +191,7 @@ i965_shader_acquire_radial (i965_shader_t *shader,
 {
     intel_buffer_t buffer;
     cairo_status_t status;
-    floatt dx, dy, dr, r1;
+    double dx, dy, dr, r1;
 
     status = intel_gradient_render (&i965_device (shader->target)->intel,
 				    &radial->base, &buffer);

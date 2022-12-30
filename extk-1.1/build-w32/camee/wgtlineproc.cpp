@@ -2,7 +2,7 @@
 #include "wgtlineproc.h"
 #include "common.h"
 
-void layout_horz(ExRect r, int n, floatt* f, ExWidget* w)
+void layout_horz(ExRect r, int n, double* f, ExWidget* w)
 {
 }
 

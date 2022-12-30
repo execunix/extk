@@ -655,7 +655,7 @@ _cairo_ps_surface_emit_type3_font_subset (cairo_ps_surface_t		*surface,
     cairo_box_t font_bbox = {{0,0},{0,0}};
     cairo_box_t bbox = {{0,0},{0,0}};
     cairo_surface_t *type3_surface;
-    floatt width;
+    double width;
 
     if (font_subset->num_glyphs == 0)
 	return CAIRO_STATUS_SUCCESS;
@@ -897,7 +897,7 @@ static cairo_status_t
 _cairo_ps_surface_clipper_intersect_clip_path (cairo_surface_clipper_t *clipper,
 					       cairo_path_fixed_t *path,
 					       cairo_fill_rule_t   fill_rule,
-					       floatt		    tolerance,
+					       double		    tolerance,
 					       cairo_antialias_t   antialias)
 {
     cairo_ps_surface_t *surface = cairo_container_of (clipper,
@@ -1002,8 +1002,8 @@ _cairo_ps_surface_get_page_media (cairo_ps_surface_t     *surface)
 
 static cairo_surface_t *
 _cairo_ps_surface_create_for_stream_internal (cairo_output_stream_t *stream,
-					      floatt		     width,
-					      floatt		     height)
+					      double		     width,
+					      double		     height)
 {
     cairo_status_t status, status_ignored;
     cairo_ps_surface_t *surface;
@@ -1134,8 +1134,8 @@ _cairo_ps_surface_create_for_stream_internal (cairo_output_stream_t *stream,
  **/
 cairo_surface_t *
 cairo_ps_surface_create (const char		*filename,
-			 floatt			 width_in_points,
-			 floatt			 height_in_points)
+			 double			 width_in_points,
+			 double			 height_in_points)
 {
     cairo_output_stream_t *stream;
 
@@ -1179,8 +1179,8 @@ cairo_ps_surface_create (const char		*filename,
 cairo_surface_t *
 cairo_ps_surface_create_for_stream (cairo_write_func_t	write_func,
 				    void	       *closure,
-				    floatt		width_in_points,
-				    floatt		height_in_points)
+				    double		width_in_points,
+				    double		height_in_points)
 {
     cairo_output_stream_t *stream;
 
@@ -1389,8 +1389,8 @@ cairo_ps_surface_get_eps (cairo_surface_t	*surface)
  **/
 void
 cairo_ps_surface_set_size (cairo_surface_t	*surface,
-			   floatt		 width_in_points,
-			   floatt		 height_in_points)
+			   double		 width_in_points,
+			   double		 height_in_points)
 {
     cairo_ps_surface_t *ps_surface = NULL;
     cairo_status_t status;
@@ -1702,9 +1702,9 @@ _cairo_ps_surface_show_page (void *abstract_surface)
 }
 
 static cairo_bool_t
-color_is_gray (floatt red, floatt green, floatt blue)
+color_is_gray (double red, double green, double blue)
 {
-    const floatt epsilon = 0.00001;
+    const double epsilon = 0.00001;
 
     return (fabs (red - green) < epsilon &&
 	    fabs (red - blue) < epsilon);
@@ -1730,8 +1730,8 @@ _cairo_ps_surface_acquire_source_surface_from_pattern (cairo_ps_surface_t       
 						       const cairo_rectangle_int_t  *extents,
 						       int                          *width,
 						       int                          *height,
-						       floatt                       *x_offset,
-						       floatt                       *y_offset,
+						       double                       *x_offset,
+						       double                       *y_offset,
 						       cairo_surface_t             **source_surface,
 						       void                        **image_extra)
 {
@@ -1861,8 +1861,8 @@ _cairo_ps_surface_create_padded_image_from_image (cairo_ps_surface_t           *
 						  const cairo_rectangle_int_t  *extents,
 						  int                          *width,
 						  int                          *height,
-						  floatt                       *x_offset,
-						  floatt                       *y_offset,
+						  double                       *x_offset,
+						  double                       *y_offset,
 						  cairo_image_surface_t       **image)
 {
     cairo_box_t box;
@@ -1920,7 +1920,7 @@ _cairo_ps_surface_analyze_surface_pattern_transparency (cairo_ps_surface_t      
 							const cairo_rectangle_int_t   *extents)
 {
     int width, height;
-    floatt x_offset, y_offset;
+    double x_offset, y_offset;
     cairo_surface_t *source;
     cairo_image_surface_t *image;
     void *image_extra;
@@ -1996,7 +1996,7 @@ static cairo_bool_t
 _gradient_pattern_supported (cairo_ps_surface_t    *surface,
 			     const cairo_pattern_t *pattern)
 {
-    floatt min_alpha, max_alpha;
+    double min_alpha, max_alpha;
 
     if (surface->ps_level == CAIRO_PS_LEVEL_2)
 	return FALSE;
@@ -2065,7 +2065,7 @@ _cairo_ps_surface_analyze_operation (cairo_ps_surface_t    *surface,
 				     const cairo_pattern_t       *mask,
 				     const cairo_rectangle_int_t *extents)
 {
-    floatt min_alpha;
+    double min_alpha;
 
     if (surface->force_fallbacks &&
 	surface->paginated_mode == CAIRO_PAGINATED_MODE_ANALYZE)
@@ -2917,7 +2917,7 @@ static cairo_status_t
 _cairo_ps_surface_emit_recording_surface (cairo_ps_surface_t *surface,
 					  cairo_surface_t    *recording_surface)
 {
-    floatt old_width, old_height;
+    double old_width, old_height;
     cairo_matrix_t old_cairo_to_ps;
     cairo_content_t old_content;
     cairo_rectangle_int_t old_page_bbox;
@@ -3012,7 +3012,7 @@ _cairo_ps_surface_emit_recording_subsurface (cairo_ps_surface_t *surface,
 					     cairo_surface_t    *recording_surface,
 					     const cairo_rectangle_int_t *extents)
 {
-    floatt old_width, old_height;
+    double old_width, old_height;
     cairo_matrix_t old_cairo_to_ps;
     cairo_content_t old_content;
     cairo_rectangle_int_t old_page_bbox;
@@ -3095,9 +3095,9 @@ err:
 static void
 _cairo_ps_surface_flatten_transparency (cairo_ps_surface_t	*surface,
 					const cairo_color_t	*color,
-					floatt			*red,
-					floatt			*green,
-					floatt			*blue)
+					double			*red,
+					double			*green,
+					double			*blue)
 {
     *red   = color->red;
     *green = color->green;
@@ -3108,7 +3108,7 @@ _cairo_ps_surface_flatten_transparency (cairo_ps_surface_t	*surface,
 	*green *= color->alpha;
 	*blue  *= color->alpha;
 	if (surface->content == CAIRO_CONTENT_COLOR_ALPHA) {
-	    floatt one_minus_alpha = 1. - color->alpha;
+	    double one_minus_alpha = 1. - color->alpha;
 	    *red   += one_minus_alpha;
 	    *green += one_minus_alpha;
 	    *blue  += one_minus_alpha;
@@ -3120,7 +3120,7 @@ static void
 _cairo_ps_surface_emit_solid_pattern (cairo_ps_surface_t    *surface,
 				      cairo_solid_pattern_t *pattern)
 {
-    floatt red, green, blue;
+    double red, green, blue;
 
     _cairo_ps_surface_flatten_transparency (surface, &pattern->color, &red, &green, &blue);
 
@@ -3213,7 +3213,7 @@ _cairo_ps_surface_paint_surface (cairo_ps_surface_t     *surface,
     int width, height;
     cairo_matrix_t cairo_p2d, ps_p2d;
     cairo_path_fixed_t path;
-    floatt x_offset, y_offset;
+    double x_offset, y_offset;
     cairo_surface_t *source;
     cairo_image_surface_t *image = NULL;
     void *image_extra;
@@ -3260,8 +3260,8 @@ _cairo_ps_surface_paint_surface (cairo_ps_surface_t     *surface,
     cairo_p2d = pattern->matrix;
 
     if (surface->paginated_mode == CAIRO_PAGINATED_MODE_FALLBACK) {
-	floatt x_scale = cairo_p2d.xx;
-	floatt y_scale = cairo_p2d.yy;
+	double x_scale = cairo_p2d.xx;
+	double y_scale = cairo_p2d.yy;
 
 	_cairo_output_stream_printf (surface->stream,
 				     "%% Fallback Image: x=%f y=%f w=%d h=%d ",
@@ -3333,10 +3333,10 @@ _cairo_ps_surface_emit_surface_pattern (cairo_ps_surface_t      *surface,
     cairo_status_t status;
     int pattern_width = 0; /* squelch bogus compiler warning */
     int pattern_height = 0; /* squelch bogus compiler warning */
-    floatt xstep, ystep;
+    double xstep, ystep;
     cairo_matrix_t cairo_p2d, ps_p2d;
     cairo_bool_t old_use_string_datasource;
-    floatt x_offset, y_offset;
+    double x_offset, y_offset;
     cairo_surface_t *source;
     cairo_image_surface_t *image = NULL;
     void *image_extra;
@@ -3390,8 +3390,8 @@ _cairo_ps_surface_emit_surface_pattern (cairo_ps_surface_t      *surface,
 	 * and the surface as repeat size.  This guarantees to never
 	 * repeat visibly.
 	 */
-	floatt x1 = 0.0, y1 = 0.0;
-	floatt x2 = surface->width, y2 = surface->height;
+	double x1 = 0.0, y1 = 0.0;
+	double x2 = surface->width, y2 = surface->height;
 	_cairo_matrix_transform_bounding_box (&pattern->matrix,
 					      &x1, &y1, &x2, &y2,
 					      NULL);
@@ -3510,8 +3510,8 @@ _cairo_ps_surface_emit_surface_pattern (cairo_ps_surface_t      *surface,
 }
 
 typedef struct _cairo_ps_color_stop {
-    floatt offset;
-    floatt color[4];
+    double offset;
+    double color[4];
 } cairo_ps_color_stop_t;
 
 static void
@@ -3567,7 +3567,7 @@ calc_gradient_color (cairo_ps_color_stop_t *new_stop,
 		     cairo_ps_color_stop_t *stop2)
 {
     int i;
-    floatt offset = stop1->offset / (stop1->offset + 1.0 - stop2->offset);
+    double offset = stop1->offset / (stop1->offset + 1.0 - stop2->offset);
 
     for (i = 0; i < 4; i++)
 	new_stop->color[i] = stop1->color[i] + offset*(stop2->color[i] - stop1->color[i]);
@@ -3626,7 +3626,7 @@ _cairo_ps_surface_emit_pattern_stops (cairo_ps_surface_t       *surface,
     }
 
     for (i = 0; i < n_stops; i++) {
-	floatt red, green, blue;
+	double red, green, blue;
 	cairo_color_t color;
 
 	_cairo_color_init_rgba (&color,
@@ -3726,7 +3726,7 @@ _cairo_ps_surface_emit_gradient (cairo_ps_surface_t       *surface,
 {
     cairo_matrix_t pat_to_ps;
     cairo_circle_double_t start, end;
-    floatt domain[2];
+    double domain[2];
     cairo_status_t status;
 
     assert (pattern->n_stops != 0);
@@ -3744,8 +3744,8 @@ _cairo_ps_surface_emit_gradient (cairo_ps_surface_t       *surface,
     if (pattern->base.extend == CAIRO_EXTEND_REPEAT ||
 	pattern->base.extend == CAIRO_EXTEND_REFLECT)
     {
-	floatt bounds_x1, bounds_x2, bounds_y1, bounds_y2;
-	floatt x_scale, y_scale, tolerance;
+	double bounds_x1, bounds_x2, bounds_y1, bounds_y2;
+	double x_scale, y_scale, tolerance;
 
 	/* TODO: use tighter extents */
 	bounds_x1 = 0;
@@ -4298,7 +4298,7 @@ _cairo_ps_surface_stroke (void			*abstract_surface,
 			  const cairo_stroke_style_t	*style,
 			  const cairo_matrix_t	*ctm,
 			  const cairo_matrix_t	*ctm_inverse,
-			  floatt		 tolerance,
+			  double		 tolerance,
 			  cairo_antialias_t	 antialias,
 			  const cairo_clip_t		*clip)
 {
@@ -4369,7 +4369,7 @@ _cairo_ps_surface_fill (void		*abstract_surface,
 			const cairo_pattern_t	*source,
 			const cairo_path_fixed_t*path,
 			cairo_fill_rule_t	 fill_rule,
-			floatt			 tolerance,
+			double			 tolerance,
 			cairo_antialias_t	 antialias,
 			const cairo_clip_t		*clip)
 {

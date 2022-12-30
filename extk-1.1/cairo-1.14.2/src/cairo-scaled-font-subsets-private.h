@@ -48,8 +48,8 @@ typedef struct _cairo_scaled_font_subsets_glyph {
     cairo_bool_t is_scaled;
     cairo_bool_t is_composite;
     cairo_bool_t is_latin;
-    floatt       x_advance;
-    floatt       y_advance;
+    double       x_advance;
+    double       y_advance;
     cairo_bool_t utf8_is_mapped;
     uint32_t 	 unicode;
 } cairo_scaled_font_subsets_glyph_t;
@@ -347,9 +347,9 @@ _cairo_scaled_font_subset_create_glyph_names (cairo_scaled_font_subset_t *subset
 typedef struct _cairo_cff_subset {
     char *family_name_utf8;
     char *ps_name;
-    floatt *widths;
-    floatt x_min, y_min, x_max, y_max;
-    floatt ascent, descent;
+    double *widths;
+    double x_min, y_min, x_max, y_max;
+    double ascent, descent;
     char *data;
     unsigned long data_length;
 } cairo_cff_subset_t;
@@ -429,9 +429,9 @@ _cairo_cff_fallback_fini (cairo_cff_subset_t *cff_subset);
 typedef struct _cairo_truetype_subset {
     char *family_name_utf8;
     char *ps_name;
-    floatt *widths;
-    floatt x_min, y_min, x_max, y_max;
-    floatt ascent, descent;
+    double *widths;
+    double x_min, y_min, x_max, y_max;
+    double ascent, descent;
     unsigned char *data;
     unsigned long data_length;
     unsigned long *string_offsets;
@@ -502,9 +502,9 @@ _cairo_winansi_to_glyphname (int glyph);
 
 typedef struct _cairo_type1_subset {
     char *base_font;
-    floatt *widths;
-    floatt x_min, y_min, x_max, y_max;
-    floatt ascent, descent;
+    double *widths;
+    double x_min, y_min, x_max, y_max;
+    double ascent, descent;
     char *data;
     unsigned long header_length;
     unsigned long data_length;

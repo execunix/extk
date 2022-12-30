@@ -158,10 +158,10 @@ do {					\
 #define COMPILE_TIME_ASSERT0(condition, line)	COMPILE_TIME_ASSERT1(condition, line)
 #define COMPILE_TIME_ASSERT(condition)		COMPILE_TIME_ASSERT0(condition, __LINE__)
 
-#define CAIRO_ALPHA_IS_CLEAR(alpha) ((alpha) <= ((floatt)0x00ff / (floatt)0xffff))
+#define CAIRO_ALPHA_IS_CLEAR(alpha) ((alpha) <= ((double)0x00ff / (double)0xffff))
 #define CAIRO_ALPHA_SHORT_IS_CLEAR(alpha) ((alpha) <= 0x00ff)
 
-#define CAIRO_ALPHA_IS_OPAQUE(alpha) ((alpha) >= ((floatt)0xff00 / (floatt)0xffff))
+#define CAIRO_ALPHA_IS_OPAQUE(alpha) ((alpha) >= ((double)0xff00 / (double)0xffff))
 #define CAIRO_ALPHA_SHORT_IS_OPAQUE(alpha) ((alpha) >= 0xff00)
 #define CAIRO_ALPHA_IS_ZERO(alpha) ((alpha) <= 0.0)
 
@@ -293,13 +293,13 @@ _cairo_isdigit (int c)
 
 cairo_private void
 _cairo_box_from_doubles (cairo_box_t *box,
-			 floatt *x1, floatt *y1,
-			 floatt *x2, floatt *y2);
+			 double *x1, double *y1,
+			 double *x2, double *y2);
 
 cairo_private void
 _cairo_box_to_doubles (const cairo_box_t *box,
-		       floatt *x1, floatt *y1,
-		       floatt *x2, floatt *y2);
+		       double *x1, double *y1,
+		       double *x2, double *y2);
 
 cairo_private void
 _cairo_box_from_rectangle (cairo_box_t                 *box,
@@ -486,8 +486,15 @@ typedef struct _cairo_scaled_font_subset {
      * Value of glyphs array is scaled_font_glyph_index.
      */
     unsigned long *glyphs;
-    wchar_t       *wcs; // extk
-    char         **glyph_names;
+    #if 1 // extk
+    union {
+    char          **utf8;
+    UCS2          **ucs2; // extk
+    };
+    #else
+    char          **utf8;
+    #endif
+    char          **glyph_names;
     int           *to_latin_char;
     unsigned long *latin_to_subset_glyph_index;
     unsigned int num_glyphs;
@@ -513,13 +520,25 @@ struct _cairo_scaled_font_backend {
      */
     cairo_warn cairo_int_status_t
     (*text_to_glyphs) (void                       *scaled_font,
-		       floatt		           x,
-		       floatt		           y,
-		       const wchar_t	          *wcs, // extk
-		       int		           wcs_len,
+		       double		           x,
+		       double		           y,
+		       const char	          *utf8,
+		       int		           utf8_len,
 		       cairo_glyph_t	         **glyphs,
 		       int		          *num_glyphs,
 		       cairo_text_cluster_t      **clusters,
+		       int		          *num_clusters,
+		       cairo_text_cluster_flags_t *cluster_flags);
+
+    cairo_warn cairo_int_status_t
+    (*ucs2_to_glyphs) (void                       *scaled_font,
+		       double		           x,
+		       double		           y,
+		       const UCS2	          *ucs2, // extk
+		       int		           utf8_len,
+		       cairo_glyph_t	         **glyphs,
+		       int		          *num_glyphs,
+		       cairo_ucs2_cluster_t      **clusters,
 		       int		          *num_clusters,
 		       cairo_text_cluster_flags_t *cluster_flags);
 
@@ -717,13 +736,13 @@ typedef struct _cairo_stroke_face {
     cairo_slope_t dev_vector;
     cairo_point_double_t dev_slope;
     cairo_point_double_t usr_vector;
-    floatt length;
+    double length;
 } cairo_stroke_face_t;
 
 /* cairo.c */
 
-static inline floatt cairo_const
-_cairo_restrict_value (floatt value, floatt min, floatt max)
+static inline double cairo_const
+_cairo_restrict_value (double value, double min, double max)
 {
     if (value < min)
 	return min;
@@ -736,18 +755,18 @@ _cairo_restrict_value (floatt value, floatt min, floatt max)
 /* C99 round() rounds to the nearest integral value with halfway cases rounded
  * away from 0. _cairo_round rounds halfway cases toward positive infinity.
  * This matches the rounding behaviour of _cairo_lround. */
-static inline floatt cairo_const
-_cairo_round (floatt r)
+static inline double cairo_const
+_cairo_round (double r)
 {
     return floor (r + .5);
 }
 
 #if DISABLE_SOME_FLOATING_POINT
 cairo_private int
-_cairo_lround (floatt d) cairo_const;
+_cairo_lround (double d) cairo_const;
 #else
 static inline int cairo_const
-_cairo_lround (floatt r)
+_cairo_lround (double r)
 {
     return _cairo_round (r);
 }
@@ -778,30 +797,30 @@ _cairo_stock_color (cairo_stock_t stock) cairo_pure;
 #define CAIRO_COLOR_TRANSPARENT _cairo_stock_color (CAIRO_STOCK_TRANSPARENT)
 
 cairo_private uint16_t
-_cairo_color_double_to_short (floatt d) cairo_const;
+_cairo_color_double_to_short (double d) cairo_const;
 
 cairo_private void
 _cairo_color_init_rgba (cairo_color_t *color,
-			floatt red, floatt green, floatt blue,
-			floatt alpha);
+			double red, double green, double blue,
+			double alpha);
 
 cairo_private void
 _cairo_color_multiply_alpha (cairo_color_t *color,
-			     floatt	    alpha);
+			     double	    alpha);
 
 cairo_private void
 _cairo_color_get_rgba (cairo_color_t *color,
-		       floatt	     *red,
-		       floatt	     *green,
-		       floatt	     *blue,
-		       floatt	     *alpha);
+		       double	     *red,
+		       double	     *green,
+		       double	     *blue,
+		       double	     *alpha);
 
 cairo_private void
 _cairo_color_get_rgba_premultiplied (cairo_color_t *color,
-				     floatt	   *red,
-				     floatt	   *green,
-				     floatt	   *blue,
-				     floatt	   *alpha);
+				     double	   *red,
+				     double	   *green,
+				     double	   *blue,
+				     double	   *alpha);
 
 cairo_private cairo_bool_t
 _cairo_color_equal (const cairo_color_t *color_a,
@@ -886,11 +905,20 @@ _cairo_lzw_compress (unsigned char *data, unsigned long *size_in_out);
 
 /* cairo-misc.c */
 cairo_private cairo_status_t
-_cairo_validate_text_clusters (const wchar_t		   *wcs, // extk
-			       int			    wcs_len,
+_cairo_validate_text_clusters (const char		   *utf8,
+			       int			    utf8_len,
 			       const cairo_glyph_t	   *glyphs,
 			       int			    num_glyphs,
 			       const cairo_text_cluster_t  *clusters,
+			       int			    num_clusters,
+			       cairo_text_cluster_flags_t   cluster_flags);
+
+cairo_private cairo_status_t
+_cairo_validate_ucs2_clusters (const UCS2		   *ucs2, // extk
+			       int			    ucs2_len,
+			       const cairo_glyph_t	   *glyphs,
+			       int			    num_glyphs,
+			       const cairo_ucs2_cluster_t  *clusters,
 			       int			    num_clusters,
 			       cairo_text_cluster_flags_t   cluster_flags);
 
@@ -994,7 +1022,7 @@ _cairo_path_fixed_interpret_flat (const cairo_path_fixed_t *path,
 		       cairo_path_fixed_line_to_func_t	  *line_to,
 		       cairo_path_fixed_close_path_func_t *close_path,
 		       void				  *closure,
-		       floatt				  tolerance);
+		       double				  tolerance);
 
 
 cairo_private cairo_bool_t
@@ -1016,7 +1044,7 @@ _cairo_path_fixed_approximate_fill_extents (const cairo_path_fixed_t *path,
 cairo_private void
 _cairo_path_fixed_fill_extents (const cairo_path_fixed_t	*path,
 				cairo_fill_rule_t	 fill_rule,
-				floatt			 tolerance,
+				double			 tolerance,
 				cairo_rectangle_int_t	*extents);
 
 cairo_private void
@@ -1030,7 +1058,7 @@ _cairo_path_fixed_stroke_extents (const cairo_path_fixed_t *path,
 				  const cairo_stroke_style_t *style,
 				  const cairo_matrix_t *ctm,
 				  const cairo_matrix_t *ctm_inverse,
-				  floatt tolerance,
+				  double tolerance,
 				  cairo_rectangle_int_t *extents);
 
 cairo_private void
@@ -1049,14 +1077,14 @@ _cairo_path_fixed_is_rectangle (const cairo_path_fixed_t *path,
 cairo_private cairo_bool_t
 _cairo_path_fixed_in_fill (const cairo_path_fixed_t	*path,
 			   cairo_fill_rule_t	 fill_rule,
-			   floatt		 tolerance,
-			   floatt		 x,
-			   floatt		 y);
+			   double		 tolerance,
+			   double		 x,
+			   double		 y);
 
 /* cairo-path-fill.c */
 cairo_private cairo_status_t
 _cairo_path_fixed_fill_to_polygon (const cairo_path_fixed_t *path,
-				   floatt              tolerance,
+				   double              tolerance,
 				   cairo_polygon_t      *polygon);
 
 cairo_private cairo_status_t
@@ -1078,7 +1106,7 @@ _cairo_path_fixed_fill_rectilinear_to_region (const cairo_path_fixed_t	*path,
 cairo_private cairo_status_t
 _cairo_path_fixed_fill_to_traps (const cairo_path_fixed_t   *path,
 				 cairo_fill_rule_t	     fill_rule,
-				 floatt			     tolerance,
+				 double			     tolerance,
 				 cairo_traps_t		    *traps);
 
 /* cairo-path-stroke.c */
@@ -1087,7 +1115,7 @@ _cairo_path_fixed_stroke_to_polygon (const cairo_path_fixed_t	*path,
 				     const cairo_stroke_style_t	*stroke_style,
 				     const cairo_matrix_t	*ctm,
 				     const cairo_matrix_t	*ctm_inverse,
-				     floatt		 tolerance,
+				     double		 tolerance,
 				     cairo_polygon_t	*polygon);
 
 cairo_private cairo_int_status_t
@@ -1095,7 +1123,7 @@ _cairo_path_fixed_stroke_to_tristrip (const cairo_path_fixed_t	*path,
 				      const cairo_stroke_style_t*style,
 				      const cairo_matrix_t	*ctm,
 				      const cairo_matrix_t	*ctm_inverse,
-				      floatt			 tolerance,
+				      double			 tolerance,
 				      cairo_tristrip_t		 *strip);
 
 cairo_private cairo_status_t
@@ -1103,7 +1131,7 @@ _cairo_path_fixed_stroke_dashed_to_polygon (const cairo_path_fixed_t	*path,
 					    const cairo_stroke_style_t	*stroke_style,
 					    const cairo_matrix_t	*ctm,
 					    const cairo_matrix_t	*ctm_inverse,
-					    floatt		 tolerance,
+					    double		 tolerance,
 					    cairo_polygon_t	*polygon);
 
 cairo_private cairo_int_status_t
@@ -1118,7 +1146,7 @@ _cairo_path_fixed_stroke_to_traps (const cairo_path_fixed_t	*path,
 				   const cairo_stroke_style_t	*stroke_style,
 				   const cairo_matrix_t	*ctm,
 				   const cairo_matrix_t	*ctm_inverse,
-				   floatt		 tolerance,
+				   double		 tolerance,
 				   cairo_traps_t	*traps);
 
 cairo_private cairo_int_status_t
@@ -1126,7 +1154,7 @@ _cairo_path_fixed_stroke_polygon_to_traps (const cairo_path_fixed_t	*path,
 					   const cairo_stroke_style_t	*stroke_style,
 					   const cairo_matrix_t	*ctm,
 					   const cairo_matrix_t	*ctm_inverse,
-					   floatt		 tolerance,
+					   double		 tolerance,
 					   cairo_traps_t	*traps);
 
 cairo_private cairo_status_t
@@ -1134,7 +1162,7 @@ _cairo_path_fixed_stroke_to_shaper (cairo_path_fixed_t	*path,
 				   const cairo_stroke_style_t	*stroke_style,
 				   const cairo_matrix_t	*ctm,
 				   const cairo_matrix_t	*ctm_inverse,
-				   floatt		 tolerance,
+				   double		 tolerance,
 				   cairo_status_t (*add_triangle) (void *closure,
 								   const cairo_point_t triangle[3]),
 				   cairo_status_t (*add_triangle_fan) (void *closure,
@@ -1252,7 +1280,7 @@ _cairo_scaled_glyph_lookup (cairo_scaled_font_t *scaled_font,
 			    cairo_scaled_glyph_info_t info,
 			    cairo_scaled_glyph_t **scaled_glyph_ret);
 
-cairo_private floatt
+cairo_private double
 _cairo_scaled_font_get_max_scale (cairo_scaled_font_t *scaled_font);
 
 cairo_private void
@@ -1274,36 +1302,36 @@ cairo_private void
 _cairo_stroke_style_max_distance_from_path (const cairo_stroke_style_t *style,
 					    const cairo_path_fixed_t *path,
                                             const cairo_matrix_t *ctm,
-                                            floatt *dx, floatt *dy);
+                                            double *dx, double *dy);
 cairo_private void
 _cairo_stroke_style_max_line_distance_from_path (const cairo_stroke_style_t *style,
 						 const cairo_path_fixed_t *path,
 						 const cairo_matrix_t *ctm,
-						 floatt *dx, floatt *dy);
+						 double *dx, double *dy);
 
 cairo_private void
 _cairo_stroke_style_max_join_distance_from_path (const cairo_stroke_style_t *style,
 						 const cairo_path_fixed_t *path,
 						 const cairo_matrix_t *ctm,
-						 floatt *dx, floatt *dy);
+						 double *dx, double *dy);
 
-cairo_private floatt
+cairo_private double
 _cairo_stroke_style_dash_period (const cairo_stroke_style_t *style);
 
-cairo_private floatt
+cairo_private double
 _cairo_stroke_style_dash_stroked (const cairo_stroke_style_t *style);
 
 cairo_private cairo_bool_t
 _cairo_stroke_style_dash_can_approximate (const cairo_stroke_style_t *style,
 					  const cairo_matrix_t *ctm,
-					  floatt tolerance);
+					  double tolerance);
 
 cairo_private void
 _cairo_stroke_style_dash_approximate (const cairo_stroke_style_t *style,
 				      const cairo_matrix_t *ctm,
-				      floatt tolerance,
-				      floatt *dash_offset,
-				      floatt *dashes,
+				      double tolerance,
+				      double *dash_offset,
+				      double *dashes,
 				      unsigned int *num_dashes);
 
 
@@ -1319,8 +1347,8 @@ _cairo_surface_set_error (cairo_surface_t	*surface,
 
 cairo_private void
 _cairo_surface_set_resolution (cairo_surface_t *surface,
-                               floatt x_res,
-                               floatt y_res);
+                               double x_res,
+                               double y_res);
 
 cairo_private cairo_surface_t *
 _cairo_surface_create_for_rectangle_int (cairo_surface_t *target,
@@ -1369,7 +1397,7 @@ _cairo_surface_fill_stroke (cairo_surface_t	    *surface,
 			    cairo_operator_t	     fill_op,
 			    const cairo_pattern_t   *fill_source,
 			    cairo_fill_rule_t	     fill_rule,
-			    floatt		     fill_tolerance,
+			    double		     fill_tolerance,
 			    cairo_antialias_t	     fill_antialias,
 			    cairo_path_fixed_t	    *path,
 			    cairo_operator_t	     stroke_op,
@@ -1377,7 +1405,7 @@ _cairo_surface_fill_stroke (cairo_surface_t	    *surface,
 			    const cairo_stroke_style_t    *stroke_style,
 			    const cairo_matrix_t	    *stroke_ctm,
 			    const cairo_matrix_t	    *stroke_ctm_inverse,
-			    floatt		     stroke_tolerance,
+			    double		     stroke_tolerance,
 			    cairo_antialias_t	     stroke_antialias,
 			    const cairo_clip_t	    *clip);
 
@@ -1389,7 +1417,7 @@ _cairo_surface_stroke (cairo_surface_t		*surface,
 		       const cairo_stroke_style_t	*style,
 		       const cairo_matrix_t		*ctm,
 		       const cairo_matrix_t		*ctm_inverse,
-		       floatt			 tolerance,
+		       double			 tolerance,
 		       cairo_antialias_t	 antialias,
 		       const cairo_clip_t		*clip);
 
@@ -1399,7 +1427,7 @@ _cairo_surface_fill (cairo_surface_t	*surface,
 		     const cairo_pattern_t *source,
 		     const cairo_path_fixed_t	*path,
 		     cairo_fill_rule_t	 fill_rule,
-		     floatt		 tolerance,
+		     double		 tolerance,
 		     cairo_antialias_t	 antialias,
 		     const cairo_clip_t	*clip);
 
@@ -1407,8 +1435,22 @@ cairo_private cairo_status_t
 _cairo_surface_show_text_glyphs (cairo_surface_t	    *surface,
 				 cairo_operator_t	     op,
 				 const cairo_pattern_t	    *source,
-				 const wchar_t		    *wcs, // extk
-				 int			     wcs_len,
+				 const char		    *utf8,
+				 int			     utf8_len,
+				 cairo_glyph_t		    *glyphs,
+				 int			     num_glyphs,
+				 const cairo_text_cluster_t *clusters,
+				 int			     num_clusters,
+				 cairo_text_cluster_flags_t  cluster_flags,
+				 cairo_scaled_font_t	    *scaled_font,
+				 const cairo_clip_t		    *clip);
+
+cairo_private cairo_status_t
+_cairo_surface_show_ucs2_glyphs (cairo_surface_t	    *surface,
+				 cairo_operator_t	     op,
+				 const cairo_pattern_t	    *source,
+				 const UCS2		    *ucs2, // extk
+				 int			     ucs2_len,
 				 cairo_glyph_t		    *glyphs,
 				 int			     num_glyphs,
 				 const cairo_text_cluster_t *clusters,
@@ -1568,14 +1610,14 @@ _cairo_image_analyze_color (cairo_image_surface_t      *image);
 
 /* cairo-pen.c */
 cairo_private int
-_cairo_pen_vertices_needed (floatt	    tolerance,
-			    floatt	    radius,
+_cairo_pen_vertices_needed (double	    tolerance,
+			    double	    radius,
 			    const cairo_matrix_t  *matrix);
 
 cairo_private cairo_status_t
 _cairo_pen_init (cairo_pen_t	*pen,
-		 floatt		 radius,
-		 floatt		 tolerance,
+		 double		 radius,
+		 double		 tolerance,
 		 const cairo_matrix_t	*ctm);
 
 cairo_private void
@@ -1692,7 +1734,7 @@ _cairo_spline_init (cairo_spline_t *spline,
 		    const cairo_point_t *c, const cairo_point_t *d);
 
 cairo_private cairo_status_t
-_cairo_spline_decompose (cairo_spline_t *spline, floatt tolerance);
+_cairo_spline_decompose (cairo_spline_t *spline, double tolerance);
 
 cairo_private cairo_status_t
 _cairo_spline_bound (cairo_spline_add_point_func_t add_point_func,
@@ -1703,14 +1745,14 @@ _cairo_spline_bound (cairo_spline_add_point_func_t add_point_func,
 /* cairo-matrix.c */
 cairo_private void
 _cairo_matrix_get_affine (const cairo_matrix_t *matrix,
-			  floatt *xx, floatt *yx,
-			  floatt *xy, floatt *yy,
-			  floatt *x0, floatt *y0);
+			  double *xx, double *yx,
+			  double *xy, double *yy,
+			  double *x0, double *y0);
 
 cairo_private void
 _cairo_matrix_transform_bounding_box (const cairo_matrix_t *matrix,
-				      floatt *x1, floatt *y1,
-				      floatt *x2, floatt *y2,
+				      double *x1, double *y1,
+				      double *x2, double *y2,
 				      cairo_bool_t *is_tight);
 
 cairo_private void
@@ -1724,12 +1766,12 @@ _cairo_matrix_is_invertible (const cairo_matrix_t *matrix) cairo_pure;
 cairo_private cairo_bool_t
 _cairo_matrix_is_scale_0 (const cairo_matrix_t *matrix) cairo_pure;
 
-cairo_private floatt
+cairo_private double
 _cairo_matrix_compute_determinant (const cairo_matrix_t *matrix) cairo_pure;
 
 cairo_private cairo_status_t
 _cairo_matrix_compute_basis_scale_factors (const cairo_matrix_t *matrix,
-					   floatt *sx, floatt *sy, int x_major);
+					   double *sx, double *sy, int x_major);
 
 static inline cairo_bool_t
 _cairo_matrix_is_identity (const cairo_matrix_t *matrix)
@@ -1762,9 +1804,9 @@ _cairo_matrix_has_unity_scale (const cairo_matrix_t *matrix);
 cairo_private cairo_bool_t
 _cairo_matrix_is_pixel_exact (const cairo_matrix_t *matrix) cairo_pure;
 
-cairo_private floatt
+cairo_private double
 _cairo_matrix_transformed_circle_major_axis (const cairo_matrix_t *matrix,
-					     floatt radius) cairo_pure;
+					     double radius) cairo_pure;
 
 cairo_private cairo_bool_t
 _cairo_matrix_is_pixman_translation (const cairo_matrix_t     *matrix,
@@ -1775,8 +1817,8 @@ _cairo_matrix_is_pixman_translation (const cairo_matrix_t     *matrix,
 cairo_private cairo_status_t
 _cairo_matrix_to_pixman_matrix_offset (const cairo_matrix_t	*matrix,
 				       cairo_filter_t            filter,
-				       floatt                    xc,
-				       floatt                    yc,
+				       double                    xc,
+				       double                    yc,
 				       pixman_transform_t	*out_transform,
 				       int                      *out_x_offset,
 				       int                      *out_y_offset);
@@ -1817,8 +1859,8 @@ cairo_private void
 _cairo_trapezoid_array_translate_and_scale (cairo_trapezoid_t *offset_traps,
 					    cairo_trapezoid_t *src_traps,
 					    int num_traps,
-					    floatt tx, floatt ty,
-					    floatt sx, floatt sy);
+					    double tx, double ty,
+					    double sx, double sy);
 
 #if CAIRO_HAS_DRM_SURFACE
 
@@ -1840,7 +1882,7 @@ _cairo_utf8_get_char_validated (const char *p,
 				uint32_t   *unicode);
 
 static __inline int // extk
-_cairo_ucs2_get_char_validated (const wchar_t *p, uint32_t *unicode) {
+_cairo_ucs2_get_char_validated (const UCS2 *p, uint32_t *unicode) {
     if (unicode) *unicode = *p;
     return 1/*ucs2len*/;
 }
@@ -1852,7 +1894,7 @@ _cairo_utf8_to_ucs4 (const char *str,
 		     int	*items_written);
 
 cairo_private cairo_status_t
-_cairo_ucs2_to_ucs4 (const wchar_t *str, // extk
+_cairo_ucs2_to_ucs4 (const UCS2 *str, // extk
 		     int	 len,
 		     uint32_t  **result,
 		     int	*items_written);
@@ -1862,8 +1904,8 @@ _cairo_ucs4_to_utf8 (uint32_t    unicode,
 		     char       *utf8);
 
 static __inline int // extk
-_cairo_ucs4_to_ucs2 (uint32_t unicode, wchar_t *wcs) {
-    if (wcs) *wcs = unicode;
+_cairo_ucs4_to_ucs2 (uint32_t unicode, UCS2 *ucs2) {
+    if (ucs2) *ucs2 = unicode;
     return 1/*ucs2len*/;
 }
 

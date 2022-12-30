@@ -44,7 +44,7 @@
 
 typedef struct cairo_filler {
     cairo_polygon_t *polygon;
-    floatt tolerance;
+    double tolerance;
 
     cairo_box_t limit;
     cairo_bool_t has_limits;
@@ -124,7 +124,7 @@ _cairo_filler_curve_to (void		*closure,
 
 cairo_status_t
 _cairo_path_fixed_fill_to_polygon (const cairo_path_fixed_t *path,
-				   floatt tolerance,
+				   double tolerance,
 				   cairo_polygon_t *polygon)
 {
     cairo_filler_t filler;
@@ -246,7 +246,7 @@ _cairo_path_fixed_fill_rectilinear_to_polygon (const cairo_path_fixed_t *path,
 cairo_status_t
 _cairo_path_fixed_fill_to_traps (const cairo_path_fixed_t *path,
 				 cairo_fill_rule_t fill_rule,
-				 floatt tolerance,
+				 double tolerance,
 				 cairo_traps_t *traps)
 {
     cairo_polygon_t polygon;

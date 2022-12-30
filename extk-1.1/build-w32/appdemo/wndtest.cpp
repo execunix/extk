@@ -64,7 +64,7 @@ void WndTest::onDrawBtns(ExCanvas* canvas, const ExWidget* widget, const ExRegio
 
     const char* text = widget->getName();
     cr.set_font(res.f.gothic.crf, 12.f);
-    cr.show_text(mbs2wcs(text), ExCairo::Color(0.f), rc);
+    cr.show_ucs2(mbs2wcs(text), ExCairo::Color(0.f), rc);
 
     cairo_pattern_destroy(crp);
 }

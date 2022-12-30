@@ -343,7 +343,7 @@ _cairo_gl_solid_operand_init (cairo_gl_operand_t *operand,
 
 void
 _cairo_gl_operand_translate (cairo_gl_operand_t *operand,
-			     floatt tx, floatt ty)
+			     double tx, double ty)
 {
     switch (operand->type) {
     case CAIRO_GL_OPERAND_TEXTURE:
@@ -390,7 +390,7 @@ _cairo_gl_gradient_operand_init (cairo_gl_operand_t *operand,
 
     if (gradient->base.type == CAIRO_PATTERN_TYPE_LINEAR) {
 	cairo_linear_pattern_t *linear = (cairo_linear_pattern_t *) gradient;
-	floatt x0, y0, dx, dy, sf, offset;
+	double x0, y0, dx, dy, sf, offset;
 
 	dx = linear->pd2.x - linear->pd1.x;
 	dy = linear->pd2.y - linear->pd1.y;
@@ -413,7 +413,7 @@ _cairo_gl_gradient_operand_init (cairo_gl_operand_t *operand,
     } else {
 	cairo_matrix_t m;
 	cairo_circle_double_t circles[2];
-	floatt x0, y0, r0, dx, dy, dr;
+	double x0, y0, r0, dx, dy, dr;
 
 	/*
 	 * Some fragment shader implementations use half-floats to
@@ -764,8 +764,8 @@ _cairo_gl_operand_emit (cairo_gl_operand_t *operand,
     case CAIRO_GL_OPERAND_RADIAL_GRADIENT_NONE:
     case CAIRO_GL_OPERAND_RADIAL_GRADIENT_EXT:
 	if (! operand->gradient.texgen) {
-	    floatt s = x;
-	    floatt t = y;
+	    double s = x;
+	    double t = y;
 
 	    cairo_matrix_transform_point (&operand->gradient.m, &s, &t);
 
@@ -776,8 +776,8 @@ _cairo_gl_operand_emit (cairo_gl_operand_t *operand,
     case CAIRO_GL_OPERAND_TEXTURE:
 	if (! operand->texture.texgen) {
             cairo_surface_attributes_t *src_attributes = &operand->texture.attributes;
-            floatt s = x;
-            floatt t = y;
+            double s = x;
+            double t = y;
 
             cairo_matrix_transform_point (&src_attributes->matrix, &s, &t);
             *(*vb)++ = s;

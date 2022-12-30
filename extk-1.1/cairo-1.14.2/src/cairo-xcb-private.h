@@ -436,7 +436,7 @@ _cairo_xcb_render_compositor_stroke (const cairo_compositor_t     *compositor,
 				     const cairo_stroke_style_t   *style,
 				     const cairo_matrix_t         *ctm,
 				     const cairo_matrix_t         *ctm_inverse,
-				     floatt                        tolerance,
+				     double                        tolerance,
 				     cairo_antialias_t             antialias);
 
 cairo_private cairo_int_status_t
@@ -444,7 +444,7 @@ _cairo_xcb_render_compositor_fill (const cairo_compositor_t     *compositor,
 				   cairo_composite_rectangles_t *extents,
 				   const cairo_path_fixed_t     *path,
 				   cairo_fill_rule_t             fill_rule,
-				   floatt                        tolerance,
+				   double                        tolerance,
 				   cairo_antialias_t             antialias);
 
 cairo_private cairo_int_status_t

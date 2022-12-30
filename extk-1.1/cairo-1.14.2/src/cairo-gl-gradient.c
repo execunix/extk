@@ -54,8 +54,8 @@ _cairo_gl_gradient_sample_width (unsigned int                 n_stops,
 
     width = 8;
     for (n = 1; n < n_stops; n++) {
-	floatt dx = stops[n].offset - stops[n-1].offset;
-	floatt delta, max;
+	double dx = stops[n].offset - stops[n-1].offset;
+	double delta, max;
 	int ramp;
 
 	if (dx == 0)
@@ -83,7 +83,7 @@ _cairo_gl_gradient_sample_width (unsigned int                 n_stops,
     return (width + 7) & -8;
 }
 
-static uint8_t premultiply(floatt c, floatt a)
+static uint8_t premultiply(double c, double a)
 {
     int v = c * a * 256;
     return v - (v >> 8);

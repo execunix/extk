@@ -67,6 +67,7 @@ typedef struct _cairo_user_scaled_font_methods {
     cairo_user_scaled_font_render_glyph_func_t		render_glyph;
     cairo_user_scaled_font_unicode_to_glyph_func_t	unicode_to_glyph;
     cairo_user_scaled_font_text_to_glyphs_func_t	text_to_glyphs;
+    cairo_user_scaled_font_ucs2_to_glyphs_func_t	ucs2_to_glyphs;
 } cairo_user_scaled_font_methods_t;
 
 typedef struct _cairo_user_font_face {
@@ -86,12 +87,12 @@ typedef struct _cairo_user_scaled_font {
 
     /* space to compute extents in, and factors to convert back to user space */
     cairo_matrix_t extent_scale;
-    floatt extent_x_scale;
-    floatt extent_y_scale;
+    double extent_x_scale;
+    double extent_y_scale;
 
     /* multiplier for metrics hinting */
-    floatt snap_x_scale;
-    floatt snap_y_scale;
+    double snap_x_scale;
+    double snap_y_scale;
 
 } cairo_user_scaled_font_t;
 
@@ -178,8 +179,8 @@ _cairo_user_scaled_glyph_init (void			 *abstract_font,
 
 	if (extents.width == 0.) {
 	    cairo_box_t bbox;
-	    floatt x1, y1, x2, y2;
-	    floatt x_scale, y_scale;
+	    double x1, y1, x2, y2;
+	    double x_scale, y_scale;
 
 	    /* Compute extents.x/y/width/height from recording_surface,
 	     * in font space.
@@ -305,10 +306,10 @@ not_implemented:
 
 static cairo_int_status_t
 _cairo_user_text_to_glyphs (void		      *abstract_font,
-			    floatt		       x,
-			    floatt		       y,
-			    const wchar_t	      *wcs, // extk
-			    int			       wcs_len,
+			    double		       x,
+			    double		       y,
+			    const char		      *utf8,
+			    int			       utf8_len,
 			    cairo_glyph_t	     **glyphs,
 			    int			       *num_glyphs,
 			    cairo_text_cluster_t      **clusters,
@@ -327,7 +328,7 @@ _cairo_user_text_to_glyphs (void		      *abstract_font,
 	int orig_num_glyphs = *num_glyphs;
 
 	status = face->scaled_font_methods.text_to_glyphs (&scaled_font->base,
-							   wcs, wcs_len,
+							   utf8, utf8_len,
 							   glyphs, num_glyphs,
 							   clusters, num_clusters, cluster_flags);
 
@@ -347,8 +348,66 @@ _cairo_user_text_to_glyphs (void		      *abstract_font,
 
 	/* Convert from font space to user space and add x,y */
 	for (i = 0; i < *num_glyphs; i++) {
-	    floatt gx = (*glyphs)[i].x;
-	    floatt gy = (*glyphs)[i].y;
+	    double gx = (*glyphs)[i].x;
+	    double gy = (*glyphs)[i].y;
+
+	    cairo_matrix_transform_point (&scaled_font->base.font_matrix,
+					  &gx, &gy);
+
+	    (*glyphs)[i].x = gx + x;
+	    (*glyphs)[i].y = gy + y;
+	}
+    }
+
+    return status;
+}
+
+static cairo_int_status_t
+_cairo_user_ucs2_to_glyphs (void		      *abstract_font,
+			    double		       x,
+			    double		       y,
+			    const UCS2		      *ucs2, // extk
+			    int			       ucs2_len,
+			    cairo_glyph_t	     **glyphs,
+			    int			       *num_glyphs,
+			    cairo_ucs2_cluster_t      **clusters,
+			    int			       *num_clusters,
+			    cairo_text_cluster_flags_t *cluster_flags)
+{
+    cairo_int_status_t status = CAIRO_INT_STATUS_UNSUPPORTED;
+
+    cairo_user_scaled_font_t *scaled_font = abstract_font;
+    cairo_user_font_face_t *face =
+	(cairo_user_font_face_t *) scaled_font->base.font_face;
+
+    if (face->scaled_font_methods.ucs2_to_glyphs) {
+	int i;
+	cairo_glyph_t *orig_glyphs = *glyphs;
+	int orig_num_glyphs = *num_glyphs;
+
+	status = face->scaled_font_methods.ucs2_to_glyphs (&scaled_font->base,
+							   ucs2, ucs2_len,
+							   glyphs, num_glyphs,
+							   clusters, num_clusters, cluster_flags);
+
+	if (status != CAIRO_INT_STATUS_SUCCESS &&
+	    status != CAIRO_INT_STATUS_USER_FONT_NOT_IMPLEMENTED)
+	    return status;
+
+	if (status == CAIRO_INT_STATUS_USER_FONT_NOT_IMPLEMENTED ||
+	    *num_glyphs < 0) {
+	    if (orig_glyphs != *glyphs) {
+		cairo_glyph_free (*glyphs);
+		*glyphs = orig_glyphs;
+	    }
+	    *num_glyphs = orig_num_glyphs;
+	    return CAIRO_INT_STATUS_UNSUPPORTED;
+	}
+
+	/* Convert from font space to user space and add x,y */
+	for (i = 0; i < *num_glyphs; i++) {
+	    double gx = (*glyphs)[i].x;
+	    double gy = (*glyphs)[i].y;
 
 	    cairo_matrix_transform_point (&scaled_font->base.font_matrix,
 					  &gx, &gy);
@@ -380,6 +439,7 @@ static const cairo_scaled_font_backend_t _cairo_user_scaled_font_backend = {
     NULL,	/* scaled_font_fini */
     _cairo_user_scaled_glyph_init,
     _cairo_user_text_to_glyphs,
+    _cairo_user_ucs2_to_glyphs,
     _cairo_user_ucs4_to_index,
     NULL,	/* show_glyphs */
     NULL,	/* load_truetype_table */
@@ -422,7 +482,7 @@ _cairo_user_font_face_scaled_font_create (void                        *abstract_
      * extents in.  This is to minimize error caused by the cairo_fixed_t
      * representation. */
     {
-	floatt fixed_scale, x_scale, y_scale;
+	double fixed_scale, x_scale, y_scale;
 
 	user_scaled_font->extent_scale = user_scaled_font->base.scale_inverse;
 	status = _cairo_matrix_compute_basis_scale_factors (&user_scaled_font->extent_scale,
@@ -677,6 +737,28 @@ cairo_user_font_face_set_text_to_glyphs_func (cairo_font_face_t                 
 	    return;
     }
     user_font_face->scaled_font_methods.text_to_glyphs = text_to_glyphs_func;
+}
+
+void
+cairo_user_font_face_set_ucs2_to_glyphs_func (cairo_font_face_t                            *font_face,
+					      cairo_user_scaled_font_ucs2_to_glyphs_func_t  ucs2_to_glyphs_func)
+{
+    cairo_user_font_face_t *user_font_face;
+
+    if (font_face->status)
+	return;
+
+    if (! _cairo_font_face_is_user (font_face)) {
+	if (_cairo_font_face_set_error (font_face, CAIRO_STATUS_FONT_TYPE_MISMATCH))
+	    return;
+    }
+
+    user_font_face = (cairo_user_font_face_t *) font_face;
+    if (user_font_face->immutable) {
+	if (_cairo_font_face_set_error (font_face, CAIRO_STATUS_USER_FONT_IMMUTABLE))
+	    return;
+    }
+    user_font_face->scaled_font_methods.ucs2_to_glyphs = ucs2_to_glyphs_func;
 }
 
 /**

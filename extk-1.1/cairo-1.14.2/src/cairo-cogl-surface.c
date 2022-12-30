@@ -159,7 +159,7 @@ typedef struct _cairo_cogl_path_stroke_meta {
     cairo_path_fixed_t *user_path;
     cairo_matrix_t ctm_inverse;
     cairo_stroke_style_t style;
-    floatt tolerance;
+    double tolerance;
 
     /* TODO */
 #if 0
@@ -188,7 +188,7 @@ _cairo_cogl_surface_fill (void			    *abstract_surface,
                           const cairo_pattern_t	    *source,
                           const cairo_path_fixed_t  *path,
                           cairo_fill_rule_t	     fill_rule,
-                          floatt		     tolerance,
+                          double		     tolerance,
                           cairo_antialias_t	     antialias,
                           const cairo_clip_t	    *clip);
 
@@ -711,7 +711,7 @@ static cairo_int_status_t
 _cairo_cogl_fill_to_primitive (cairo_cogl_surface_t	*surface,
 			       const cairo_path_fixed_t	*path,
 			       cairo_fill_rule_t	 fill_rule,
-			       floatt			 tolerance,
+			       double			 tolerance,
 			       int			 n_layers,
 			       cairo_bool_t		 one_shot,
 			       CoglPrimitive	       **primitive,
@@ -752,7 +752,7 @@ _cairo_cogl_clip_push_box (const cairo_box_t *box)
 	cogl_clip_push_window_rectangle (rect.x, rect.y,
 					 rect.width, rect.height);
     } else {
-	floatt x1, y1, x2, y2;
+	double x1, y1, x2, y2;
 	_cairo_box_to_doubles (box, &x1, &y1, &x2, &y2);
 	cogl_clip_push_rectangle (x1, y1, x2, y2);
     }
@@ -1912,7 +1912,7 @@ _cairo_cogl_path_stroke_meta_lookup (cairo_cogl_device_t	*ctx,
 				     unsigned long		 hash,
 				     cairo_path_fixed_t		*user_path,
 				     const cairo_stroke_style_t *style,
-				     floatt			 tolerance)
+				     double			 tolerance)
 {
     cairo_cogl_path_stroke_meta_t *ret;
     cairo_cogl_path_stroke_meta_t lookup;
@@ -1962,14 +1962,14 @@ _cairo_cogl_stroke_style_hash (unsigned int hash,
     hash = _cairo_hash_bytes (hash, &style->num_dashes, sizeof (style->num_dashes));
     hash = _cairo_hash_bytes (hash, &style->dash_offset, sizeof (style->dash_offset));
     for (i = 0; i < style->num_dashes; i++)
-	hash = _cairo_hash_bytes (hash, &style->dash[i], sizeof (floatt));
+	hash = _cairo_hash_bytes (hash, &style->dash[i], sizeof (double));
     return hash;
 }
 
 static cairo_cogl_path_stroke_meta_t *
 _cairo_cogl_get_path_stroke_meta (cairo_cogl_surface_t *surface,
 				  const cairo_stroke_style_t *style,
-				  floatt tolerance)
+				  double tolerance)
 {
     unsigned long hash;
     cairo_cogl_path_stroke_meta_t *meta = NULL;
@@ -2026,7 +2026,7 @@ _cairo_cogl_stroke_to_primitive (cairo_cogl_surface_t	    *surface,
 				 const cairo_stroke_style_t *style,
 				 const cairo_matrix_t	    *ctm,
 				 const cairo_matrix_t	    *ctm_inverse,
-				 floatt			     tolerance,
+				 double			     tolerance,
 				 int			     n_layers,
 				 cairo_bool_t		     one_shot,
 				 CoglPrimitive		   **primitive,
@@ -2071,7 +2071,7 @@ _cairo_cogl_surface_stroke (void                       *abstract_surface,
 			    const cairo_stroke_style_t *style,
 			    const cairo_matrix_t       *ctm,
 			    const cairo_matrix_t       *ctm_inverse,
-			    floatt                      tolerance,
+			    double                      tolerance,
 			    cairo_antialias_t           antialias,
 			    const cairo_clip_t         *clip)
 {
@@ -2281,7 +2281,7 @@ _cairo_cogl_surface_fill (void			    *abstract_surface,
                           const cairo_pattern_t	    *source,
                           const cairo_path_fixed_t  *path,
                           cairo_fill_rule_t	     fill_rule,
-                          floatt		     tolerance,
+                          double		     tolerance,
                           cairo_antialias_t	     antialias,
                           const cairo_clip_t	    *clip)
 {
@@ -2376,10 +2376,10 @@ cairo_int_status_t
 _cairo_cogl_surface_fill_rectangle (void		     *abstract_surface,
 				    cairo_operator_t	      op,
 				    const cairo_pattern_t    *source,
-				    floatt		      x,
-				    floatt		      y,
-				    floatt		      width,
-				    floatt		      height,
+				    double		      x,
+				    double		      y,
+				    double		      width,
+				    double		      height,
 				    cairo_matrix_t	     *ctm,
 				    const cairo_clip_t	     *clip)
 {
@@ -2409,10 +2409,10 @@ _cairo_cogl_surface_fill_rectangle (void		     *abstract_surface,
 #endif
 
     if (source->type == CAIRO_PATTERN_TYPE_SOLID) {
-	floatt x1 = x;
-	floatt y1 = y;
-	floatt x2 = x1 + width;
-	floatt y2 = y1 + height;
+	double x1 = x;
+	double y1 = y;
+	double x2 = x1 + width;
+	double y2 = y1 + height;
 
 	pipeline = get_source_mask_operator_destination_pipeline (NULL, source,
 								  op, surface, NULL);

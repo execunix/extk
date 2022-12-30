@@ -298,14 +298,14 @@ _cairo_utf8_to_ucs4 (const char *str,
 }
 
 cairo_status_t
-_cairo_ucs2_to_ucs4 (const wchar_t *str, // extk
+_cairo_ucs2_to_ucs4 (const UCS2 *str, // extk
 		     int	 len,
 		     uint32_t  **result,
 		     int	*items_written)
 {
     uint32_t *str32 = NULL;
     int n_chars, i;
-    const wchar_t *in;
+    const UCS2 *in;
 
     in = str;
     n_chars = 0;

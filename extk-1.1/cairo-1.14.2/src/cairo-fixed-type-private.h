@@ -56,7 +56,7 @@ typedef cairo_int128_t	cairo_fixed_96_32_t;
 #define CAIRO_FIXED_BITS	32
 
 /* The number of fractional bits.  Changing this involves
- * making sure that you compute a floatt-to-fixed magic number.
+ * making sure that you compute a double-to-fixed magic number.
  * (see below).
  */
 #define CAIRO_FIXED_FRAC_BITS	8

@@ -442,7 +442,7 @@ static void
 _cairo_xcb_picture_set_matrix (cairo_xcb_picture_t *picture,
 			       const cairo_matrix_t *matrix,
 			       cairo_filter_t filter,
-			       floatt xc, floatt yc)
+			       double xc, double yc)
 {
     xcb_render_transform_t transform;
     pixman_transform_t *pixman_transform;
@@ -1071,7 +1071,7 @@ record_to_picture (cairo_surface_t *target,
     assert (_cairo_surface_is_recording (source));
 
     if (! _cairo_matrix_is_identity (&pattern->base.matrix)) {
-	floatt x1, y1, x2, y2;
+	double x1, y1, x2, y2;
 
 	matrix = pattern->base.matrix;
 	status = cairo_matrix_invert (&matrix);
@@ -1548,7 +1548,7 @@ _project_line_x_onto_16_16 (const cairo_line_t *line,
 			    xcb_render_linefix_t *out)
 {
     cairo_point_double_t p1, p2;
-    floatt m;
+    double m;
 
     p1.x = _cairo_fixed_to_double (line->p1.x);
     p1.y = _cairo_fixed_to_double (line->p1.y);
@@ -3411,7 +3411,7 @@ struct composite_opacity_info {
     uint8_t op;
     cairo_xcb_surface_t *dst;
     cairo_xcb_picture_t *src;
-    floatt opacity;
+    double opacity;
 };
 
 static void composite_opacity(void *closure,
@@ -3601,7 +3601,7 @@ _cairo_xcb_surface_render_stroke_as_polygon (cairo_xcb_surface_t	*dst,
 					     const cairo_stroke_style_t	*stroke_style,
 					     const cairo_matrix_t	*ctm,
 					     const cairo_matrix_t	*ctm_inverse,
-					     floatt			 tolerance,
+					     double			 tolerance,
 					     cairo_antialias_t		 antialias,
 					     cairo_composite_rectangles_t *extents)
 {
@@ -3633,7 +3633,7 @@ _cairo_xcb_surface_render_stroke_via_mask (cairo_xcb_surface_t		*dst,
 					   const cairo_stroke_style_t	*stroke_style,
 					   const cairo_matrix_t		*ctm,
 					   const cairo_matrix_t		*ctm_inverse,
-					   floatt			 tolerance,
+					   double			 tolerance,
 					   cairo_antialias_t		 antialias,
 					   cairo_composite_rectangles_t *extents)
 {
@@ -3685,7 +3685,7 @@ _cairo_xcb_render_compositor_stroke (const cairo_compositor_t     *compositor,
 				     const cairo_stroke_style_t   *style,
 				     const cairo_matrix_t         *ctm,
 				     const cairo_matrix_t         *ctm_inverse,
-				     floatt                        tolerance,
+				     double                        tolerance,
 				     cairo_antialias_t             antialias)
 {
     cairo_xcb_surface_t *surface = (cairo_xcb_surface_t *) composite->surface;
@@ -3746,7 +3746,7 @@ _cairo_xcb_surface_render_fill_as_polygon (cairo_xcb_surface_t	*dst,
 					   const cairo_pattern_t*source,
 					   const cairo_path_fixed_t	*path,
 					   cairo_fill_rule_t	 fill_rule,
-					   floatt		 tolerance,
+					   double		 tolerance,
 					   cairo_antialias_t	 antialias,
 					   cairo_composite_rectangles_t *extents)
 {
@@ -3773,7 +3773,7 @@ _cairo_xcb_surface_render_fill_via_mask (cairo_xcb_surface_t	*dst,
 					 const cairo_pattern_t	*source,
 					 const cairo_path_fixed_t	*path,
 					 cairo_fill_rule_t	 fill_rule,
-					 floatt			 tolerance,
+					 double			 tolerance,
 					 cairo_antialias_t	 antialias,
 					 cairo_composite_rectangles_t *extents)
 {
@@ -3822,7 +3822,7 @@ _cairo_xcb_render_compositor_fill (const cairo_compositor_t     *compositor,
 				   cairo_composite_rectangles_t *composite,
 				   const cairo_path_fixed_t     *path,
 				   cairo_fill_rule_t             fill_rule,
-				   floatt                        tolerance,
+				   double                        tolerance,
 				   cairo_antialias_t             antialias)
 {
     cairo_xcb_surface_t *surface = (cairo_xcb_surface_t *) composite->surface;
@@ -3930,7 +3930,7 @@ _cairo_xcb_surface_render_glyphs_via_mask (cairo_xcb_surface_t		*dst,
 }
 
 /* Build a struct of the same size of #cairo_glyph_t that can be used both as
- * an input glyph with floatt coordinates, and as "working" glyph with
+ * an input glyph with double coordinates, and as "working" glyph with
  * integer from-current-point offsets. */
 typedef union {
     cairo_glyph_t d;
@@ -3982,7 +3982,7 @@ _can_composite_glyphs (cairo_xcb_surface_t *dst,
      */
     valid_glyphs = glyphs;
     for (glyphs_end = glyphs + *num_glyphs; glyphs != glyphs_end; glyphs++) {
-	floatt x1, y1, x2, y2;
+	double x1, y1, x2, y2;
 	cairo_scaled_glyph_t *glyph;
 	cairo_box_t *bbox;
 	int width, height, len;

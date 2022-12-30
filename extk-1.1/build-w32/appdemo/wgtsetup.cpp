@@ -11,7 +11,7 @@ fillRect(void* data, ExCanvas* canvas, const ExWidget* widget, const ExRegion* d
     ExCairo cr(canvas, damage);
     ExCairo::Rect rc(widget->calcRect());
     ExCairo::Color fc; // fill color
-    floatt alpha = (uint64)data / 100.f;
+    double alpha = (uint64)data / 100.f;
     fc.set(.8f, .8f, .8f, alpha);
     cr.fill_rect_rgba(rc, fc);
 }
@@ -25,7 +25,7 @@ drawName(void* data, ExCanvas* canvas, const ExWidget* widget, const ExRegion* d
     cr.fill_rect_rgba(rc, fc);
     const char* text = widget->getName();
     cr.set_font(res.f.gothic.crf, 12.f);
-    cr.show_text(mbs2wcs(text), ExCairo::Color(1.f), rc);
+    cr.show_ucs2(mbs2wcs(text), ExCairo::Color(1.f), rc);
 }
 
 void WgtPage1::fini() {

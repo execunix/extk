@@ -212,7 +212,7 @@ radeon_surface_stroke (void			*abstract_surface,
 		      const cairo_stroke_style_t	*stroke_style,
 		      const cairo_matrix_t		*ctm,
 		      const cairo_matrix_t		*ctm_inverse,
-		      floatt			 tolerance,
+		      double			 tolerance,
 		      cairo_antialias_t		 antialias,
 		      cairo_clip_t		*clip)
 {
@@ -227,7 +227,7 @@ radeon_surface_fill (void			*abstract_surface,
 		    const cairo_pattern_t	*source,
 		    cairo_path_fixed_t		*path,
 		    cairo_fill_rule_t		 fill_rule,
-		    floatt			 tolerance,
+		    double			 tolerance,
 		    cairo_antialias_t		 antialias,
 		    cairo_clip_t		*clip)
 {

@@ -68,7 +68,7 @@ struct cairo_compositor {
 				 const cairo_stroke_style_t	*style,
 				 const cairo_matrix_t		*ctm,
 				 const cairo_matrix_t		*ctm_inverse,
-				 floatt				 tolerance,
+				 double				 tolerance,
 				 cairo_antialias_t		 antialias);
 
     cairo_warn cairo_int_status_t
@@ -76,7 +76,7 @@ struct cairo_compositor {
 				 cairo_composite_rectangles_t	*extents,
 				 const cairo_path_fixed_t	*path,
 				 cairo_fill_rule_t		 fill_rule,
-				 floatt				 tolerance,
+				 double				 tolerance,
 				 cairo_antialias_t		 antialias);
 
     cairo_warn cairo_int_status_t
@@ -335,7 +335,7 @@ _cairo_compositor_stroke (const cairo_compositor_t	*compositor,
 			  const cairo_stroke_style_t	*style,
 			  const cairo_matrix_t		*ctm,
 			  const cairo_matrix_t		*ctm_inverse,
-			  floatt			 tolerance,
+			  double			 tolerance,
 			  cairo_antialias_t		 antialias,
 			  const cairo_clip_t		*clip);
 
@@ -346,7 +346,7 @@ _cairo_compositor_fill (const cairo_compositor_t	*compositor,
 			const cairo_pattern_t		*source,
 			const cairo_path_fixed_t	*path,
 			cairo_fill_rule_t		 fill_rule,
-			floatt				 tolerance,
+			double				 tolerance,
 			cairo_antialias_t		 antialias,
 			const cairo_clip_t		*clip);
 

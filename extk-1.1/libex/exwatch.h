@@ -87,6 +87,8 @@ public:
     const char* name; // for debug
     static uint32 getTickCount();
     static uint32 tickAppLaunch;
+    static pthread_key_t tls_key;
+    static void tls_specific(const char* name); // tbd
 protected:
     static void* start(void* arg);
     IomuxMap        iomuxmap;

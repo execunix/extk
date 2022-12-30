@@ -49,13 +49,13 @@ dot (pixman_fixed_48_16_t x1,
     return x1 * x2 + y1 * y2 + z1 * z2;
 }
 
-static inline floatt
-fdot (floatt x1,
-      floatt y1,
-      floatt z1,
-      floatt x2,
-      floatt y2,
-      floatt z2)
+static inline double
+fdot (double x1,
+      double y1,
+      double z1,
+      double x2,
+      double y2,
+      double z2)
 {
     /*
      * Error can be unbound in some special cases.
@@ -67,12 +67,12 @@ fdot (floatt x1,
 }
 
 static uint32_t
-radial_compute_color (floatt                    a,
-		      floatt                    b,
-		      floatt                    c,
-		      floatt                    inva,
-		      floatt                    dr,
-		      floatt                    mindr,
+radial_compute_color (double                    a,
+		      double                    b,
+		      double                    c,
+		      double                    inva,
+		      double                    dr,
+		      double                    mindr,
 		      pixman_gradient_walker_t *walker,
 		      pixman_repeat_t           repeat)
 {
@@ -92,11 +92,11 @@ radial_compute_color (floatt                    a,
      *
      *  - the above problems are worse if a is small (as inva becomes bigger)
      */
-    floatt discr;
+    double discr;
 
     if (a == 0)
     {
-	floatt t;
+	double t;
 
 	if (b == 0)
 	    return 0;
@@ -119,7 +119,7 @@ radial_compute_color (floatt                    a,
     discr = fdot (b, a, 0, b, -c, 0);
     if (discr >= 0)
     {
-	floatt sqrtdiscr, t0, t1;
+	double sqrtdiscr, t0, t1;
 
 	sqrtdiscr = sqrt (discr);
 	t0 = (b + sqrtdiscr) * inva;
@@ -356,7 +356,7 @@ radial_get_scanline_narrow (pixman_iter_t *iter, const uint32_t *mask)
 	    {
 		if (v.vector[2] != 0)
 		{
-		    floatt pdx, pdy, invv2, b, c;
+		    double pdx, pdy, invv2, b, c;
 
 		    invv2 = 1. * pixman_fixed_1 / v.vector[2];
 
@@ -458,7 +458,7 @@ pixman_image_create_radial_gradient (const pixman_point_fixed_t *  inner,
     radial->delta.y = radial->c2.y - radial->c1.y;
     radial->delta.radius = radial->c2.radius - radial->c1.radius;
 
-    /* computed exactly, then cast to floatt -> every bit of the floatt
+    /* computed exactly, then cast to double -> every bit of the double
        representation is correct (53 bits) */
     radial->a = dot (radial->delta.x, radial->delta.y, -radial->delta.radius,
 		     radial->delta.x, radial->delta.y, radial->delta.radius);

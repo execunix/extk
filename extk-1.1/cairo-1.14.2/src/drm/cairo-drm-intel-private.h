@@ -417,7 +417,7 @@ MS3_tiling (uint32_t tiling)
 }
 
 static inline float cairo_const
-texcoord_2d_16 (floatt x, floatt y)
+texcoord_2d_16 (double x, double y)
 {
     union {
 	uint32_t ui;

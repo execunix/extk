@@ -329,8 +329,8 @@ cairo_private cairo_int_status_t
 _cairo_xlib_surface_set_attributes (cairo_xlib_display_t       *display,
                                     cairo_xlib_surface_t       *surface,
 				    cairo_surface_attributes_t *attributes,
-				    floatt			xc,
-				    floatt			yc);
+				    double			xc,
+				    double			yc);
 
 cairo_private cairo_status_t
 _cairo_xlib_surface_draw_image (cairo_xlib_surface_t   *surface,

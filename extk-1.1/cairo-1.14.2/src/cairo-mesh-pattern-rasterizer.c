@@ -157,7 +157,7 @@
 
 
 /* Utils */
-static inline floatt
+static inline double
 sqlen (cairo_point_double_t p0, cairo_point_double_t p1)
 {
     cairo_point_double_t delta;
@@ -189,7 +189,7 @@ _color_delta_to_shifted_short (int32_t from, int32_t to, int shift)
  * Output: the smallest integer x such that 2^x > steps
  */
 static inline int
-sqsteps2shift (floatt steps_sq)
+sqsteps2shift (double steps_sq)
 {
     int r;
     frexp (MAX (1.0, steps_sq), &r);
@@ -226,7 +226,7 @@ sqsteps2shift (floatt steps_sq)
  * f[0] be the value of the curve for t==n).
  */
 static inline void
-fd_init (floatt x, floatt y, floatt z, floatt w, floatt f[4])
+fd_init (double x, double y, double z, double w, double f[4])
 {
     f[0] = x;
     f[1] = w - x;
@@ -250,7 +250,7 @@ fd_init (floatt x, floatt y, floatt z, floatt w, floatt f[4])
  * the output f.
  */
 static inline void
-fd_down (floatt f[4])
+fd_down (double f[4])
 {
     f[3] *= 0.125;
     f[2] = f[2] * 0.25 - f[3];
@@ -265,7 +265,7 @@ fd_down (floatt f[4])
  * Output: f[i] is the i-th difference of the curve after one step
  */
 static inline void
-fd_fwd (floatt f[4])
+fd_fwd (double f[4])
 {
     f[0] += f[1];
     f[1] += f[2];
@@ -275,14 +275,14 @@ fd_fwd (floatt f[4])
 /*
  * Transform to integer forward differences.
  *
- * Input: d[n] is the n-th difference (in floatt precision)
+ * Input: d[n] is the n-th difference (in double precision)
  *
  * Output: i[n] is the n-th difference (in fixed point precision)
  *
  * i[0] is 9.23 fixed point, other differences are 4.28 fixed point.
  */
 static inline void
-fd_fixed (floatt d[4], int32_t i[4])
+fd_fixed (double d[4], int32_t i[4])
 {
     i[0] = _cairo_fixed_16_16_from_double (256 *  2 * d[0]);
     i[1] = _cairo_fixed_16_16_from_double (256 * 16 * d[1]);
@@ -337,10 +337,10 @@ fd_fixed_fwd (int32_t f[4])
  *
  *   3 max (|p1-p0|, |p2-p0|/2, |p3-p1|/2, |p3-p2|) sqrt(2) steps
  */
-static inline floatt
+static inline double
 bezier_steps_sq (cairo_point_double_t p[4])
 {
-    floatt tmp = sqlen (p[0], p[1]);
+    double tmp = sqlen (p[0], p[1]);
     tmp = MAX (tmp, sqlen (p[2], p[3]));
     tmp = MAX (tmp, sqlen (p[0], p[2]) * .25);
     tmp = MAX (tmp, sqlen (p[1], p[3]) * .25);
@@ -358,11 +358,11 @@ bezier_steps_sq (cairo_point_double_t p[4])
  * The output control nodes have to be distinct.
  */
 static inline void
-split_bezier_1D (floatt  x,  floatt  y,  floatt  z,  floatt  w,
-		 floatt *x0, floatt *y0, floatt *z0, floatt *w0,
-		 floatt *x1, floatt *y1, floatt *z1, floatt *w1)
+split_bezier_1D (double  x,  double  y,  double  z,  double  w,
+		 double *x0, double *y0, double *z0, double *w0,
+		 double *x1, double *y1, double *z1, double *w1)
 {
-    floatt tmp;
+    double tmp;
 
     *x0 = x;
     *w1 = w;
@@ -425,7 +425,7 @@ typedef enum _intersection {
  *       expected result for [a,b) x [A,B) intersection [c,d) x [C,D).
  */
 static inline int
-intersect_interval (floatt a, floatt b, floatt c, floatt d)
+intersect_interval (double a, double b, double c, double d)
 {
     if (c <= a && b <= d)
 	return INSIDE;
@@ -500,7 +500,7 @@ draw_pixel (unsigned char *data, int width, int height, int stride,
  */
 static inline void
 rasterize_bezier_curve (unsigned char *data, int width, int height, int stride,
-			int ushift, floatt dxu[4], floatt dyu[4],
+			int ushift, double dxu[4], double dyu[4],
 			uint16_t r0, uint16_t g0, uint16_t b0, uint16_t a0,
 			uint16_t r3, uint16_t g3, uint16_t b3, uint16_t a3)
 {
@@ -574,9 +574,9 @@ rasterize_bezier_curve (unsigned char *data, int width, int height, int stride,
  */
 static void
 draw_bezier_curve (unsigned char *data, int width, int height, int stride,
-		   cairo_point_double_t p[4], floatt c0[4], floatt c3[4])
+		   cairo_point_double_t p[4], double c0[4], double c3[4])
 {
-    floatt top, bottom, left, right, steps_sq;
+    double top, bottom, left, right, steps_sq;
     int i, v;
 
     top = bottom = p[0].y;
@@ -609,7 +609,7 @@ draw_bezier_curve (unsigned char *data, int width, int height, int stride,
 	 * time by splitting the curve and clipping part of it
 	 */
 	cairo_point_double_t first[4], second[4];
-	floatt midc[4];
+	double midc[4];
 	split_bezier (p, first, second);
 	midc[0] = (c0[0] + c3[0]) * 0.5;
 	midc[1] = (c0[1] + c3[1]) * 0.5;
@@ -618,7 +618,7 @@ draw_bezier_curve (unsigned char *data, int width, int height, int stride,
 	draw_bezier_curve (data, width, height, stride, first, c0, midc);
 	draw_bezier_curve (data, width, height, stride, second, midc, c3);
     } else {
-	floatt xu[4], yu[4];
+	double xu[4], yu[4];
 	int ushift = sqsteps2shift (steps_sq), k;
 
 	fd_init (p[0].x, p[1].x, p[2].x, p[3].x, xu);
@@ -694,9 +694,9 @@ draw_bezier_curve (unsigned char *data, int width, int height, int stride,
  */
 static inline void
 rasterize_bezier_patch (unsigned char *data, int width, int height, int stride, int vshift,
-			cairo_point_double_t p[4][4], floatt col[4][4])
+			cairo_point_double_t p[4][4], double col[4][4])
 {
-    floatt pv[4][2][4], cstart[4], cend[4], dcstart[4], dcend[4];
+    double pv[4][2][4], cstart[4], cend[4], dcstart[4], dcend[4];
     int v, i, k;
 
     v = 1 << vshift;
@@ -790,9 +790,9 @@ rasterize_bezier_patch (unsigned char *data, int width, int height, int stride, 
  */
 static void
 draw_bezier_patch (unsigned char *data, int width, int height, int stride,
-		     cairo_point_double_t p[4][4], floatt c[4][4])
+		     cairo_point_double_t p[4][4], double c[4][4])
 {
-    floatt top, bottom, left, right, steps_sq;
+    double top, bottom, left, right, steps_sq;
     int i, j, v;
 
     top = bottom = p[0][0].y;
@@ -833,7 +833,7 @@ draw_bezier_patch (unsigned char *data, int width, int height, int stride,
 	 * overlapping parts with higher v. */
 
 	cairo_point_double_t first[4][4], second[4][4];
-	floatt subc[4][4];
+	double subc[4][4];
 
 	for (i = 0; i < 4; ++i)
 	    split_bezier (p[i], first[i], second[i]);
@@ -881,11 +881,11 @@ _cairo_mesh_pattern_rasterize (const cairo_mesh_pattern_t *mesh,
 			       int                         width,
 			       int                         height,
 			       int                         stride,
-			       floatt                      x_offset,
-			       floatt                      y_offset)
+			       double                      x_offset,
+			       double                      y_offset)
 {
     cairo_point_double_t nodes[4][4];
-    floatt colors[4][4];
+    double colors[4][4];
     cairo_matrix_t p2u;
     unsigned int i, j, k, n;
     cairo_status_t status;

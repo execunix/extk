@@ -476,7 +476,7 @@ _cairo_recording_surface_finish (void *abstract_surface)
 
 	case CAIRO_COMMAND_SHOW_TEXT_GLYPHS:
 	    _cairo_pattern_fini (&command->show_text_glyphs.source.base);
-	    free (command->show_text_glyphs.wcs);
+	    free (command->show_text_glyphs.utf8);
 	    free (command->show_text_glyphs.glyphs);
 	    free (command->show_text_glyphs.clusters);
 	    cairo_scaled_font_destroy (command->show_text_glyphs.scaled_font);
@@ -842,7 +842,7 @@ _cairo_recording_surface_stroke (void			*abstract_surface,
 				 const cairo_stroke_style_t	*style,
 				 const cairo_matrix_t		*ctm,
 				 const cairo_matrix_t		*ctm_inverse,
-				 floatt			 tolerance,
+				 double			 tolerance,
 				 cairo_antialias_t	 antialias,
 				 const cairo_clip_t	*clip)
 {
@@ -919,7 +919,7 @@ _cairo_recording_surface_fill (void			*abstract_surface,
 			       const cairo_pattern_t	*source,
 			       const cairo_path_fixed_t	*path,
 			       cairo_fill_rule_t	 fill_rule,
-			       floatt			 tolerance,
+			       double			 tolerance,
 			       cairo_antialias_t	 antialias,
 			       const cairo_clip_t	*clip)
 {
@@ -992,8 +992,8 @@ static cairo_int_status_t
 _cairo_recording_surface_show_text_glyphs (void				*abstract_surface,
 					   cairo_operator_t		 op,
 					   const cairo_pattern_t	*source,
-					   const wchar_t		*wcs, // extk
-					   int				 wcs_len,
+					   const char			*utf8,
+					   int				 utf8_len,
 					   cairo_glyph_t		*glyphs,
 					   int				 num_glyphs,
 					   const cairo_text_cluster_t	*clusters,
@@ -1035,20 +1035,20 @@ _cairo_recording_surface_show_text_glyphs (void				*abstract_surface,
     if (unlikely (status))
 	goto CLEANUP_COMMAND;
 
-    command->wcs = NULL;
-    command->wcs_len = wcs_len;
+    command->utf8 = NULL;
+    command->utf8_len = utf8_len;
     command->glyphs = NULL;
     command->num_glyphs = num_glyphs;
     command->clusters = NULL;
     command->num_clusters = num_clusters;
 
-    if (wcs_len) {
-	command->wcs = malloc (wcs_len * sizeof(wchar_t));
-	if (unlikely (command->wcs == NULL)) {
+    if (utf8_len) {
+	command->utf8 = malloc (utf8_len);
+	if (unlikely (command->utf8 == NULL)) {
 	    status = _cairo_error (CAIRO_STATUS_NO_MEMORY);
 	    goto CLEANUP_ARRAYS;
 	}
-	memcpy (command->wcs, wcs, wcs_len * sizeof(wchar_t));
+	memcpy (command->utf8, utf8, utf8_len);
     }
     if (num_glyphs) {
 	command->glyphs = _cairo_malloc_ab (num_glyphs, sizeof (glyphs[0]));
@@ -1081,7 +1081,113 @@ _cairo_recording_surface_show_text_glyphs (void				*abstract_surface,
   CLEANUP_SCALED_FONT:
     cairo_scaled_font_destroy (command->scaled_font);
   CLEANUP_ARRAYS:
-    free (command->wcs);
+    free (command->utf8);
+    free (command->glyphs);
+    free (command->clusters);
+
+    _cairo_pattern_fini (&command->source.base);
+  CLEANUP_COMMAND:
+    _cairo_clip_destroy (command->header.clip);
+    free (command);
+CLEANUP_COMPOSITE:
+    _cairo_composite_rectangles_fini (&composite);
+    return status;
+}
+
+static cairo_int_status_t
+_cairo_recording_surface_show_ucs2_glyphs (void				*abstract_surface,
+					   cairo_operator_t		 op,
+					   const cairo_pattern_t	*source,
+					   const UCS2			*ucs2, // extk
+					   int				 ucs2_len,
+					   cairo_glyph_t		*glyphs,
+					   int				 num_glyphs,
+					   const cairo_ucs2_cluster_t	*clusters,
+					   int				 num_clusters,
+					   cairo_text_cluster_flags_t	 cluster_flags,
+					   cairo_scaled_font_t		*scaled_font,
+					   const cairo_clip_t		*clip)
+{
+    cairo_status_t status;
+    cairo_recording_surface_t *surface = abstract_surface;
+    cairo_command_show_ucs2_glyphs_t *command;
+    cairo_composite_rectangles_t composite;
+
+    TRACE ((stderr, "%s: surface=%d\n", __FUNCTION__, surface->base.unique_id));
+
+    status = _cairo_composite_rectangles_init_for_glyphs (&composite,
+							  &surface->base,
+							  op, source,
+							  scaled_font,
+							  glyphs, num_glyphs,
+							  clip,
+							  NULL);
+    if (unlikely (status))
+	return status;
+
+    command = malloc (sizeof (cairo_command_show_ucs2_glyphs_t));
+    if (unlikely (command == NULL)) {
+	status = _cairo_error (CAIRO_STATUS_NO_MEMORY);
+	goto CLEANUP_COMPOSITE;
+    }
+
+    status = _command_init (surface,
+			    &command->header, CAIRO_COMMAND_SHOW_TEXT_GLYPHS,
+			    op, &composite);
+    if (unlikely (status))
+	goto CLEANUP_COMMAND;
+
+    status = _cairo_pattern_init_snapshot (&command->source.base, source);
+    if (unlikely (status))
+	goto CLEANUP_COMMAND;
+
+    command->ucs2 = NULL;
+    command->ucs2_len = ucs2_len;
+    command->glyphs = NULL;
+    command->num_glyphs = num_glyphs;
+    command->clusters = NULL;
+    command->num_clusters = num_clusters;
+
+    if (ucs2_len) {
+	command->ucs2 = malloc (ucs2_len * sizeof(UCS2));
+	if (unlikely (command->ucs2 == NULL)) {
+	    status = _cairo_error (CAIRO_STATUS_NO_MEMORY);
+	    goto CLEANUP_ARRAYS;
+	}
+	memcpy (command->ucs2, ucs2, ucs2_len * sizeof(UCS2));
+    }
+    if (num_glyphs) {
+	command->glyphs = _cairo_malloc_ab (num_glyphs, sizeof (glyphs[0]));
+	if (unlikely (command->glyphs == NULL)) {
+	    status = _cairo_error (CAIRO_STATUS_NO_MEMORY);
+	    goto CLEANUP_ARRAYS;
+	}
+	memcpy (command->glyphs, glyphs, sizeof (glyphs[0]) * num_glyphs);
+    }
+    if (num_clusters) {
+	command->clusters = _cairo_malloc_ab (num_clusters, sizeof (clusters[0]));
+	if (unlikely (command->clusters == NULL)) {
+	    status = _cairo_error (CAIRO_STATUS_NO_MEMORY);
+	    goto CLEANUP_ARRAYS;
+	}
+	memcpy (command->clusters, clusters, sizeof (clusters[0]) * num_clusters);
+    }
+
+    command->cluster_flags = cluster_flags;
+
+    command->scaled_font = cairo_scaled_font_reference (scaled_font);
+
+    status = _cairo_recording_surface_commit (surface, &command->header);
+    if (unlikely (status))
+	goto CLEANUP_SCALED_FONT;
+
+    _cairo_composite_rectangles_fini (&composite);
+    return CAIRO_STATUS_SUCCESS;
+
+  CLEANUP_SCALED_FONT:
+    cairo_scaled_font_destroy (command->scaled_font);
+  CLEANUP_ARRAYS:
+    free (command->ucs2);
     free (command->glyphs);
     free (command->clusters);
 
@@ -1301,20 +1407,22 @@ _cairo_recording_surface_copy__glyphs (cairo_recording_surface_t *surface,
     if (unlikely (status))
 	goto err_command;
 
-    command->wcs = NULL;
-    command->wcs_len = src->show_text_glyphs.wcs_len;
+    command->utf8 = NULL;
+    command->utf8_len = src->show_text_glyphs.utf8_len;
     command->glyphs = NULL;
     command->num_glyphs = src->show_text_glyphs.num_glyphs;
     command->clusters = NULL;
     command->num_clusters = src->show_text_glyphs.num_clusters;
 
-    if (command->wcs_len) {
-	command->wcs = malloc (command->wcs_len * sizeof(wchar_t));
-	if (unlikely (command->wcs == NULL)) {
+    if (command->utf8_len) {
+	command->utf8 = malloc (command->utf8_len);
+	//command->ucs2 = malloc (command->ucs2_len * sizeof(UCS2));
+	if (unlikely (command->utf8 == NULL)) {
 	    status = _cairo_error (CAIRO_STATUS_NO_MEMORY);
 	    goto err_arrays;
 	}
-	memcpy (command->wcs, src->show_text_glyphs.wcs, command->wcs_len * sizeof(wchar_t));
+	memcpy (command->utf8, src->show_text_glyphs.utf8, command->utf8_len);
+	//memcpy (command->ucs2, src->show_text_glyphs.ucs2, command->ucs2_len * sizeof(UCS2));
     }
     if (command->num_glyphs) {
 	command->glyphs = _cairo_malloc_ab (command->num_glyphs,
@@ -1349,7 +1457,7 @@ _cairo_recording_surface_copy__glyphs (cairo_recording_surface_t *surface,
     return CAIRO_STATUS_SUCCESS;
 
 err_arrays:
-    free (command->wcs);
+    free (command->utf8);
     free (command->glyphs);
     free (command->clusters);
     _cairo_pattern_fini (&command->source.base);
@@ -1855,7 +1963,7 @@ _cairo_recording_surface_replay_internal (cairo_recording_surface_t	*surface,
 	    status = _cairo_surface_wrapper_show_text_glyphs (&wrapper,
 							      command->header.op,
 							      &command->show_text_glyphs.source.base,
-							      command->show_text_glyphs.wcs, command->show_text_glyphs.wcs_len,
+							      command->show_text_glyphs.utf8, command->show_text_glyphs.utf8_len,
 							      command->show_text_glyphs.glyphs, command->show_text_glyphs.num_glyphs,
 							      command->show_text_glyphs.clusters, command->show_text_glyphs.num_clusters,
 							      command->show_text_glyphs.cluster_flags,
@@ -1865,6 +1973,23 @@ _cairo_recording_surface_replay_internal (cairo_recording_surface_t	*surface,
 		_cairo_recording_surface_merge_source_attributes (surface,
 								  command->header.op,
 								  &command->show_text_glyphs.source.base);
+	    }
+	    break;
+
+	case CAIRO_COMMAND_SHOW_UCS2_GLYPHS:
+	    status = _cairo_surface_wrapper_show_ucs2_glyphs (&wrapper,
+							      command->header.op,
+							      &command->show_ucs2_glyphs.source.base,
+							      command->show_ucs2_glyphs.ucs2, command->show_ucs2_glyphs.ucs2_len,
+							      command->show_ucs2_glyphs.glyphs, command->show_ucs2_glyphs.num_glyphs,
+							      command->show_ucs2_glyphs.clusters, command->show_ucs2_glyphs.num_clusters,
+							      command->show_ucs2_glyphs.cluster_flags,
+							      command->show_ucs2_glyphs.scaled_font,
+							      command->header.clip);
+	    if (type == CAIRO_RECORDING_CREATE_REGIONS) {
+		_cairo_recording_surface_merge_source_attributes (surface,
+								  command->header.op,
+								  &command->show_ucs2_glyphs.source.base);
 	    }
 	    break;
 
@@ -1967,11 +2092,23 @@ _cairo_recording_surface_replay_one (cairo_recording_surface_t	*surface,
 	status = _cairo_surface_wrapper_show_text_glyphs (&wrapper,
 							  command->header.op,
 							  &command->show_text_glyphs.source.base,
-							  command->show_text_glyphs.wcs, command->show_text_glyphs.wcs_len,
+							  command->show_text_glyphs.utf8, command->show_text_glyphs.utf8_len,
 							  command->show_text_glyphs.glyphs, command->show_text_glyphs.num_glyphs,
 							  command->show_text_glyphs.clusters, command->show_text_glyphs.num_clusters,
 							  command->show_text_glyphs.cluster_flags,
 							  command->show_text_glyphs.scaled_font,
+							  command->header.clip);
+	break;
+
+    case CAIRO_COMMAND_SHOW_UCS2_GLYPHS:
+	status = _cairo_surface_wrapper_show_ucs2_glyphs (&wrapper,
+							  command->header.op,
+							  &command->show_ucs2_glyphs.source.base,
+							  command->show_ucs2_glyphs.ucs2, command->show_ucs2_glyphs.ucs2_len,
+							  command->show_ucs2_glyphs.glyphs, command->show_ucs2_glyphs.num_glyphs,
+							  command->show_ucs2_glyphs.clusters, command->show_ucs2_glyphs.num_clusters,
+							  command->show_ucs2_glyphs.cluster_flags,
+							  command->show_ucs2_glyphs.scaled_font,
 							  command->header.clip);
 	break;
 
@@ -2088,10 +2225,10 @@ _recording_surface_get_ink_bbox (cairo_recording_surface_t *surface,
  **/
 void
 cairo_recording_surface_ink_extents (cairo_surface_t *surface,
-				     floatt *x0,
-				     floatt *y0,
-				     floatt *width,
-				     floatt *height)
+				     double *x0,
+				     double *y0,
+				     double *width,
+				     double *height)
 {
     cairo_status_t status;
     cairo_box_t bbox;

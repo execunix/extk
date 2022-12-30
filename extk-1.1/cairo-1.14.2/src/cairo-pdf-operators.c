@@ -392,8 +392,8 @@ _cairo_pdf_path_move_to (void *closure,
 			 const cairo_point_t *point)
 {
     pdf_path_info_t *info = closure;
-    floatt x = _cairo_fixed_to_double (point->x);
-    floatt y = _cairo_fixed_to_double (point->y);
+    double x = _cairo_fixed_to_double (point->x);
+    double y = _cairo_fixed_to_double (point->y);
 
     info->last_move_to_point = *point;
     info->has_sub_path = FALSE;
@@ -409,8 +409,8 @@ _cairo_pdf_path_line_to (void *closure,
 			 const cairo_point_t *point)
 {
     pdf_path_info_t *info = closure;
-    floatt x = _cairo_fixed_to_double (point->x);
-    floatt y = _cairo_fixed_to_double (point->y);
+    double x = _cairo_fixed_to_double (point->x);
+    double y = _cairo_fixed_to_double (point->y);
 
     if (info->line_cap != CAIRO_LINE_CAP_ROUND &&
 	! info->has_sub_path &&
@@ -435,12 +435,12 @@ _cairo_pdf_path_curve_to (void          *closure,
 			  const cairo_point_t *d)
 {
     pdf_path_info_t *info = closure;
-    floatt bx = _cairo_fixed_to_double (b->x);
-    floatt by = _cairo_fixed_to_double (b->y);
-    floatt cx = _cairo_fixed_to_double (c->x);
-    floatt cy = _cairo_fixed_to_double (c->y);
-    floatt dx = _cairo_fixed_to_double (d->x);
-    floatt dy = _cairo_fixed_to_double (d->y);
+    double bx = _cairo_fixed_to_double (b->x);
+    double by = _cairo_fixed_to_double (b->y);
+    double cx = _cairo_fixed_to_double (c->x);
+    double cy = _cairo_fixed_to_double (c->y);
+    double dx = _cairo_fixed_to_double (d->x);
+    double dy = _cairo_fixed_to_double (d->y);
 
     info->has_sub_path = TRUE;
     cairo_matrix_transform_point (info->path_transform, &bx, &by);
@@ -472,10 +472,10 @@ _cairo_pdf_path_close_path (void *closure)
 static cairo_status_t
 _cairo_pdf_path_rectangle (pdf_path_info_t *info, cairo_box_t *box)
 {
-    floatt x1 = _cairo_fixed_to_double (box->p1.x);
-    floatt y1 = _cairo_fixed_to_double (box->p1.y);
-    floatt x2 = _cairo_fixed_to_double (box->p2.x);
-    floatt y2 = _cairo_fixed_to_double (box->p2.y);
+    double x1 = _cairo_fixed_to_double (box->p1.x);
+    double y1 = _cairo_fixed_to_double (box->p1.y);
+    double x2 = _cairo_fixed_to_double (box->p2.x);
+    double y2 = _cairo_fixed_to_double (box->p2.y);
 
     cairo_matrix_transform_point (info->path_transform, &x1, &y1);
     cairo_matrix_transform_point (info->path_transform, &x2, &y2);
@@ -613,12 +613,12 @@ _cairo_pdf_line_join (cairo_line_join_t join)
 cairo_int_status_t
 _cairo_pdf_operators_emit_stroke_style (cairo_pdf_operators_t		*pdf_operators,
 					const cairo_stroke_style_t	*style,
-					floatt				 scale)
+					double				 scale)
 {
-    floatt *dash = style->dash;
+    double *dash = style->dash;
     int num_dashes = style->num_dashes;
-    floatt dash_offset = style->dash_offset;
-    floatt line_width = style->line_width * scale;
+    double dash_offset = style->dash_offset;
+    double line_width = style->line_width * scale;
 
     /* PostScript has "special needs" when it comes to zero-length
      * dash segments with butt caps. It apparently (at least
@@ -636,12 +636,12 @@ _cairo_pdf_operators_emit_stroke_style (cairo_pdf_operators_t		*pdf_operators,
 	 * can modify some of the values.
 	 */
 	if (num_dashes % 2) {
-	    dash = _cairo_malloc_abc (num_dashes, 2, sizeof (floatt));
+	    dash = _cairo_malloc_abc (num_dashes, 2, sizeof (double));
 	    if (unlikely (dash == NULL))
 		return _cairo_error (CAIRO_STATUS_NO_MEMORY);
 
-	    memcpy (dash, style->dash, num_dashes * sizeof (floatt));
-	    memcpy (dash + num_dashes, style->dash, num_dashes * sizeof (floatt));
+	    memcpy (dash, style->dash, num_dashes * sizeof (double));
+	    memcpy (dash + num_dashes, style->dash, num_dashes * sizeof (double));
 
 	    num_dashes *= 2;
 	}
@@ -652,10 +652,10 @@ _cairo_pdf_operators_emit_stroke_style (cairo_pdf_operators_t		*pdf_operators,
 		 * replay this stroke to an image fallback.
 		 */
 		if (dash == style->dash) {
-		    dash = _cairo_malloc_ab (num_dashes, sizeof (floatt));
+		    dash = _cairo_malloc_ab (num_dashes, sizeof (double));
 		    if (unlikely (dash == NULL))
 			return _cairo_error (CAIRO_STATUS_NO_MEMORY);
-		    memcpy (dash, style->dash, num_dashes * sizeof (floatt));
+		    memcpy (dash, style->dash, num_dashes * sizeof (double));
 		}
 
 		/* If we're at the front of the list, we first rotate
@@ -665,7 +665,7 @@ _cairo_pdf_operators_emit_stroke_style (cairo_pdf_operators_t		*pdf_operators,
 		 * nothing at all to draw.
 		 */
 		if (i == 0) {
-		    floatt last_two[2];
+		    double last_two[2];
 
 		    if (num_dashes == 2) {
 			free (dash);
@@ -676,14 +676,14 @@ _cairo_pdf_operators_emit_stroke_style (cairo_pdf_operators_t		*pdf_operators,
 		     * cannot exist, so the rotation of 2 elements
 		     * will always be safe */
 		    memcpy (last_two, dash + num_dashes - 2, sizeof (last_two));
-		    memmove (dash + 2, dash, (num_dashes - 2) * sizeof (floatt));
+		    memmove (dash + 2, dash, (num_dashes - 2) * sizeof (double));
 		    memcpy (dash, last_two, sizeof (last_two));
 		    dash_offset += dash[0] + dash[1];
 		    i = 2;
 		}
 		dash[i-1] += dash[i+1];
 		num_dashes -= 2;
-		memmove (dash + i, dash + i + 2, (num_dashes - i) * sizeof (floatt));
+		memmove (dash + i, dash + i + 2, (num_dashes - i) * sizeof (double));
 		/* If we might have just rotated, it's possible that
 		 * we rotated a 0.0 value to the front of the list.
 		 * Set i to -2 so it will get incremented to 0. */
@@ -751,9 +751,9 @@ _cairo_pdf_operators_emit_stroke_style (cairo_pdf_operators_t		*pdf_operators,
  * and the scale returned is 100
  */
 static void
-_cairo_matrix_factor_out_scale (cairo_matrix_t *m, floatt *scale)
+_cairo_matrix_factor_out_scale (cairo_matrix_t *m, double *scale)
 {
-    floatt s;
+    double s;
 
     s = fabs (m->xx);
     if (fabs (m->xy) > s)
@@ -778,7 +778,7 @@ _cairo_pdf_operators_emit_stroke (cairo_pdf_operators_t		*pdf_operators,
     cairo_int_status_t status;
     cairo_matrix_t m, path_transform;
     cairo_bool_t has_ctm = TRUE;
-    floatt scale = 1.0;
+    double scale = 1.0;
 
     if (pdf_operators->in_text_object) {
 	status = _cairo_pdf_operators_end_text (pdf_operators);
@@ -1001,7 +1001,7 @@ _cairo_pdf_operators_emit_glyph_string_with_positioning (
     for (i = 0; i < pdf_operators->num_glyphs; i++) {
 	if (pdf_operators->glyphs[i].x_position != pdf_operators->cur_x)
 	{
-	    floatt delta = pdf_operators->glyphs[i].x_position - pdf_operators->cur_x;
+	    double delta = pdf_operators->glyphs[i].x_position - pdf_operators->cur_x;
 	    int rounded_delta;
 
 	    delta = -1000.0*delta;
@@ -1050,7 +1050,7 @@ _cairo_pdf_operators_flush_glyphs (cairo_pdf_operators_t    *pdf_operators)
     cairo_output_stream_t *word_wrap_stream;
     cairo_status_t status, status2;
     int i;
-    floatt x;
+    double x;
 
     if (pdf_operators->num_glyphs == 0)
 	return CAIRO_STATUS_SUCCESS;
@@ -1087,9 +1087,9 @@ _cairo_pdf_operators_flush_glyphs (cairo_pdf_operators_t    *pdf_operators)
 static cairo_status_t
 _cairo_pdf_operators_add_glyph (cairo_pdf_operators_t             *pdf_operators,
 				cairo_scaled_font_subsets_glyph_t *glyph,
-				floatt 			           x_position)
+				double 			           x_position)
 {
-    floatt x, y;
+    double x, y;
 
     x = glyph->x_advance;
     y = glyph->y_advance;
@@ -1145,8 +1145,8 @@ _cairo_pdf_operators_set_text_matrix (cairo_pdf_operators_t  *pdf_operators,
  */
 static cairo_status_t
 _cairo_pdf_operators_set_text_position (cairo_pdf_operators_t  *pdf_operators,
-					floatt 			x,
-					floatt 			y)
+					double 			x,
+					double 			y)
 {
     cairo_matrix_t translate, inverse;
     cairo_status_t status;
@@ -1297,7 +1297,7 @@ _cairo_pdf_operators_emit_glyph (cairo_pdf_operators_t             *pdf_operator
 				 cairo_glyph_t              	   *glyph,
 				 cairo_scaled_font_subsets_glyph_t *subset_glyph)
 {
-    floatt x, y;
+    double x, y;
     cairo_status_t status;
 
     if (pdf_operators->is_new_text_object ||
@@ -1468,7 +1468,7 @@ _cairo_pdf_operators_show_text_glyphs (cairo_pdf_operators_t	  *pdf_operators,
     cairo_status_t status;
     int i;
     cairo_matrix_t text_matrix, invert_y_axis;
-    floatt x, y;
+    double x, y;
     const char *cur_text;
     cairo_glyph_t *cur_glyph;
 

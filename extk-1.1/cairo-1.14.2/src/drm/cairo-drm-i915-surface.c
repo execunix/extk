@@ -1570,7 +1570,7 @@ _composite_boxes (i915_surface_t *dst,
 		  cairo_boxes_t *boxes,
 		  cairo_antialias_t antialias,
 		  cairo_clip_t *clip,
-		  floatt opacity,
+		  double opacity,
 		  const cairo_composite_rectangles_t *extents)
 {
     cairo_bool_t need_clip_surface = FALSE;
@@ -1769,7 +1769,7 @@ _clip_and_composite_boxes (i915_surface_t *dst,
 			   cairo_antialias_t antialias,
 			   const cairo_composite_rectangles_t *extents,
 			   cairo_clip_t *clip,
-			   floatt opacity)
+			   double opacity)
 {
     cairo_status_t status;
 
@@ -1872,10 +1872,10 @@ i915_surface_fill_with_alpha (void			*abstract_dst,
 			      const cairo_pattern_t	*source,
 			      cairo_path_fixed_t	*path,
 			      cairo_fill_rule_t		 fill_rule,
-			      floatt			 tolerance,
+			      double			 tolerance,
 			      cairo_antialias_t		 antialias,
 			      cairo_clip_t		*clip,
-			      floatt			 opacity)
+			      double			 opacity)
 {
     i915_surface_t *dst = abstract_dst;
     cairo_composite_rectangles_t extents;
@@ -1988,7 +1988,7 @@ i915_surface_paint_with_alpha (void			*abstract_dst,
 			       cairo_operator_t		 op,
 			       const cairo_pattern_t	*source,
 			       cairo_clip_t		*clip,
-			       floatt			 opacity)
+			       double			 opacity)
 {
     i915_surface_t *dst = abstract_dst;
     cairo_composite_rectangles_t extents;
@@ -2225,7 +2225,7 @@ i915_surface_stroke (void			*abstract_dst,
 		     const cairo_stroke_style_t	*stroke_style,
 		     const cairo_matrix_t	*ctm,
 		     const cairo_matrix_t	*ctm_inverse,
-		     floatt			 tolerance,
+		     double			 tolerance,
 		     cairo_antialias_t		 antialias,
 		     cairo_clip_t		*clip)
 {
@@ -2334,7 +2334,7 @@ i915_surface_fill (void			*abstract_dst,
 		   const cairo_pattern_t*source,
 		   cairo_path_fixed_t	*path,
 		   cairo_fill_rule_t	 fill_rule,
-		   floatt		 tolerance,
+		   double		 tolerance,
 		   cairo_antialias_t	 antialias,
 		   cairo_clip_t		*clip)
 {

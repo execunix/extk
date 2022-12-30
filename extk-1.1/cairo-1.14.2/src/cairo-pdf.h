@@ -60,14 +60,14 @@ typedef enum _cairo_pdf_version {
 
 cairo_public cairo_surface_t *
 cairo_pdf_surface_create (const char		*filename,
-			  floatt		 width_in_points,
-			  floatt		 height_in_points);
+			  double		 width_in_points,
+			  double		 height_in_points);
 
 cairo_public cairo_surface_t *
 cairo_pdf_surface_create_for_stream (cairo_write_func_t	write_func,
 				     void	       *closure,
-				     floatt		width_in_points,
-				     floatt		height_in_points);
+				     double		width_in_points,
+				     double		height_in_points);
 
 cairo_public void
 cairo_pdf_surface_restrict_to_version (cairo_surface_t 		*surface,
@@ -82,8 +82,8 @@ cairo_pdf_version_to_string (cairo_pdf_version_t version);
 
 cairo_public void
 cairo_pdf_surface_set_size (cairo_surface_t	*surface,
-			    floatt		 width_in_points,
-			    floatt		 height_in_points);
+			    double		 width_in_points,
+			    double		 height_in_points);
 
 CAIRO_END_DECLS
 

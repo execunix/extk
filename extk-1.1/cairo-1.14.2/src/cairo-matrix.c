@@ -70,7 +70,7 @@
  **/
 
 static void
-_cairo_matrix_scalar_multiply (cairo_matrix_t *matrix, floatt scalar);
+_cairo_matrix_scalar_multiply (cairo_matrix_t *matrix, double scalar);
 
 static void
 _cairo_matrix_compute_adjoint (cairo_matrix_t *matrix);
@@ -115,10 +115,10 @@ slim_hidden_def(cairo_matrix_init_identity);
  **/
 void
 cairo_matrix_init (cairo_matrix_t *matrix,
-		   floatt xx, floatt yx,
+		   double xx, double yx,
 
-		   floatt xy, floatt yy,
-		   floatt x0, floatt y0)
+		   double xy, double yy,
+		   double x0, double y0)
 {
     matrix->xx = xx; matrix->yx = yx;
     matrix->xy = xy; matrix->yy = yy;
@@ -148,9 +148,9 @@ slim_hidden_def(cairo_matrix_init);
  **/
 void
 _cairo_matrix_get_affine (const cairo_matrix_t *matrix,
-			  floatt *xx, floatt *yx,
-			  floatt *xy, floatt *yy,
-			  floatt *x0, floatt *y0)
+			  double *xx, double *yx,
+			  double *xy, double *yy,
+			  double *x0, double *y0)
 {
     *xx  = matrix->xx;
     *yx  = matrix->yx;
@@ -177,7 +177,7 @@ _cairo_matrix_get_affine (const cairo_matrix_t *matrix,
  **/
 void
 cairo_matrix_init_translate (cairo_matrix_t *matrix,
-			     floatt tx, floatt ty)
+			     double tx, double ty)
 {
     cairo_matrix_init (matrix,
 		       1, 0,
@@ -200,7 +200,7 @@ slim_hidden_def(cairo_matrix_init_translate);
  * Since: 1.0
  **/
 void
-cairo_matrix_translate (cairo_matrix_t *matrix, floatt tx, floatt ty)
+cairo_matrix_translate (cairo_matrix_t *matrix, double tx, double ty)
 {
     cairo_matrix_t tmp;
 
@@ -223,7 +223,7 @@ slim_hidden_def (cairo_matrix_translate);
  **/
 void
 cairo_matrix_init_scale (cairo_matrix_t *matrix,
-			 floatt sx, floatt sy)
+			 double sx, double sy)
 {
     cairo_matrix_init (matrix,
 		       sx,  0,
@@ -245,7 +245,7 @@ slim_hidden_def(cairo_matrix_init_scale);
  * Since: 1.0
  **/
 void
-cairo_matrix_scale (cairo_matrix_t *matrix, floatt sx, floatt sy)
+cairo_matrix_scale (cairo_matrix_t *matrix, double sx, double sy)
 {
     cairo_matrix_t tmp;
 
@@ -270,10 +270,10 @@ slim_hidden_def(cairo_matrix_scale);
  **/
 void
 cairo_matrix_init_rotate (cairo_matrix_t *matrix,
-			  floatt radians)
+			  double radians)
 {
-    floatt  s;
-    floatt  c;
+    double  s;
+    double  c;
 
     s = sin (radians);
     c = cos (radians);
@@ -302,7 +302,7 @@ slim_hidden_def(cairo_matrix_init_rotate);
  * Since: 1.0
  **/
 void
-cairo_matrix_rotate (cairo_matrix_t *matrix, floatt radians)
+cairo_matrix_rotate (cairo_matrix_t *matrix, double radians)
 {
     cairo_matrix_t tmp;
 
@@ -390,9 +390,9 @@ _cairo_matrix_multiply (cairo_matrix_t *r,
  * Since: 1.0
  **/
 void
-cairo_matrix_transform_distance (const cairo_matrix_t *matrix, floatt *dx, floatt *dy)
+cairo_matrix_transform_distance (const cairo_matrix_t *matrix, double *dx, double *dy)
 {
-    floatt new_x, new_y;
+    double new_x, new_y;
 
     new_x = (matrix->xx * *dx + matrix->xy * *dy);
     new_y = (matrix->yx * *dx + matrix->yy * *dy);
@@ -413,7 +413,7 @@ slim_hidden_def(cairo_matrix_transform_distance);
  * Since: 1.0
  **/
 void
-cairo_matrix_transform_point (const cairo_matrix_t *matrix, floatt *x, floatt *y)
+cairo_matrix_transform_point (const cairo_matrix_t *matrix, double *x, double *y)
 {
     cairo_matrix_transform_distance (matrix, x, y);
 
@@ -424,14 +424,14 @@ slim_hidden_def(cairo_matrix_transform_point);
 
 void
 _cairo_matrix_transform_bounding_box (const cairo_matrix_t *matrix,
-				      floatt *x1, floatt *y1,
-				      floatt *x2, floatt *y2,
+				      double *x1, double *y1,
+				      double *x2, double *y2,
 				      cairo_bool_t *is_tight)
 {
     int i;
-    floatt quad_x[4], quad_y[4];
-    floatt min_x, max_x;
-    floatt min_y, max_y;
+    double quad_x[4], quad_y[4];
+    double min_x, max_x;
+    double min_y, max_y;
 
     if (matrix->xy == 0. && matrix->yx == 0.) {
 	/* non-rotation/skew matrix, just map the two extreme points */
@@ -532,7 +532,7 @@ _cairo_matrix_transform_bounding_box_fixed (const cairo_matrix_t *matrix,
 					    cairo_box_t          *bbox,
 					    cairo_bool_t *is_tight)
 {
-    floatt x1, y1, x2, y2;
+    double x1, y1, x2, y2;
 
     _cairo_box_to_doubles (bbox, &x1, &y1, &x2, &y2);
     _cairo_matrix_transform_bounding_box (matrix, &x1, &y1, &x2, &y2, is_tight);
@@ -540,7 +540,7 @@ _cairo_matrix_transform_bounding_box_fixed (const cairo_matrix_t *matrix,
 }
 
 static void
-_cairo_matrix_scalar_multiply (cairo_matrix_t *matrix, floatt scalar)
+_cairo_matrix_scalar_multiply (cairo_matrix_t *matrix, double scalar)
 {
     matrix->xx *= scalar;
     matrix->yx *= scalar;
@@ -560,7 +560,7 @@ static void
 _cairo_matrix_compute_adjoint (cairo_matrix_t *matrix)
 {
     /* adj (A) = transpose (C:cofactor (A,i,j)) */
-    floatt a, b, c, d, tx, ty;
+    double a, b, c, d, tx, ty;
 
     _cairo_matrix_get_affine (matrix,
 			      &a,  &b,
@@ -591,7 +591,7 @@ _cairo_matrix_compute_adjoint (cairo_matrix_t *matrix)
 cairo_status_t
 cairo_matrix_invert (cairo_matrix_t *matrix)
 {
-    floatt det;
+    double det;
 
     /* Simple scaling|translation matrices are quite common... */
     if (matrix->xy == 0. && matrix->yx == 0.) {
@@ -636,7 +636,7 @@ slim_hidden_def(cairo_matrix_invert);
 cairo_bool_t
 _cairo_matrix_is_invertible (const cairo_matrix_t *matrix)
 {
-    floatt det;
+    double det;
 
     det = _cairo_matrix_compute_determinant (matrix);
 
@@ -652,10 +652,10 @@ _cairo_matrix_is_scale_0 (const cairo_matrix_t *matrix)
            matrix->yy == 0.;
 }
 
-floatt
+double
 _cairo_matrix_compute_determinant (const cairo_matrix_t *matrix)
 {
-    floatt a, b, c, d;
+    double a, b, c, d;
 
     a = matrix->xx; b = matrix->yx;
     c = matrix->xy; d = matrix->yy;
@@ -678,10 +678,10 @@ _cairo_matrix_compute_determinant (const cairo_matrix_t *matrix)
  **/
 cairo_status_t
 _cairo_matrix_compute_basis_scale_factors (const cairo_matrix_t *matrix,
-					   floatt *basis_scale, floatt *normal_scale,
+					   double *basis_scale, double *normal_scale,
 					   cairo_bool_t x_basis)
 {
-    floatt det;
+    double det;
 
     det = _cairo_matrix_compute_determinant (matrix);
 
@@ -694,9 +694,9 @@ _cairo_matrix_compute_basis_scale_factors (const cairo_matrix_t *matrix,
     }
     else
     {
-	floatt x = x_basis != 0;
-	floatt y = x == 0;
-	floatt major, minor;
+	double x = x_basis != 0;
+	double y = x == 0;
+	double major, minor;
 
 	cairo_matrix_transform_distance (matrix, &x, &y);
 	major = hypot (x, y);
@@ -760,7 +760,7 @@ cairo_bool_t
 _cairo_matrix_has_unity_scale (const cairo_matrix_t *matrix)
 {
     /* check that the determinant is near +/-1 */
-    floatt det = _cairo_matrix_compute_determinant (matrix);
+    double det = _cairo_matrix_compute_determinant (matrix);
     if (fabs (det * det - 1.0) < SCALING_EPSILON) {
 	/* check that one axis is close to zero */
 	if (fabs (matrix->xy) < SCALING_EPSILON  &&
@@ -824,7 +824,7 @@ _cairo_matrix_is_pixel_exact (const cairo_matrix_t *matrix)
 
   3.  Some useful formulae
 
-  (A) through (C) below are standard floatt-angle formulae.  (D) is a lesser
+  (A) through (C) below are standard double-angle formulae.  (D) is a lesser
   known result and is derived below:
 
   (A)  sin²(θ) = (1 - cos(2*θ))/2
@@ -878,7 +878,7 @@ _cairo_matrix_is_pixel_exact (const cairo_matrix_t *matrix)
              = (a² + b²)*cos²(θ) + (c² + d²)*sin²(θ)
                  + 2*(a*c + b*d)*cos(θ)*sin(θ)
 
-  Now apply the floatt angle formulae (A) to (C) from above:
+  Now apply the double angle formulae (A) to (C) from above:
 
        r²(θ) = (a² + b² + c² + d²)/2
 	     + (a² + b² - c² - d²)*cos(2*θ)/2
@@ -916,11 +916,11 @@ _cairo_matrix_is_pixel_exact (const cairo_matrix_t *matrix)
 
 /* determine the length of the major axis of a circle of the given radius
    after applying the transformation matrix. */
-floatt
+double
 _cairo_matrix_transformed_circle_major_axis (const cairo_matrix_t *matrix,
-					     floatt radius)
+					     double radius)
 {
-    floatt  a, b, c, d, f, g, h, i, j;
+    double  a, b, c, d, f, g, h, i, j;
 
     if (_cairo_matrix_has_unity_scale (matrix))
 	return radius;
@@ -941,7 +941,7 @@ _cairo_matrix_transformed_circle_major_axis (const cairo_matrix_t *matrix,
 
     /*
      * we don't need the minor axis length, which is
-     * floatt min = radius * sqrt (f - sqrt (g*g+h*h));
+     * double min = radius * sqrt (f - sqrt (g*g+h*h));
      */
 }
 
@@ -954,8 +954,8 @@ static const pixman_transform_t pixman_identity_transform = {{
 static cairo_status_t
 _cairo_matrix_to_pixman_matrix (const cairo_matrix_t	*matrix,
 				pixman_transform_t	*pixman_transform,
-				floatt xc,
-				floatt yc)
+				double xc,
+				double yc)
 {
     cairo_matrix_t inv;
     unsigned max_iterations;
@@ -1004,7 +1004,7 @@ _cairo_matrix_to_pixman_matrix (const cairo_matrix_t	*matrix,
     /* find the pattern space coordinate that maps to (xc, yc) */
     max_iterations = 5;
     do {
-	floatt x,y;
+	double x,y;
 	pixman_vector_t vector;
 	cairo_fixed_16_16_t dx, dy;
 
@@ -1040,8 +1040,8 @@ _cairo_matrix_to_pixman_matrix (const cairo_matrix_t	*matrix,
     return CAIRO_STATUS_SUCCESS;
 }
 
-static inline floatt
-_pixman_nearest_sample (floatt d)
+static inline double
+_pixman_nearest_sample (double d)
 {
     return ceil (d - .5);
 }
@@ -1074,7 +1074,7 @@ _cairo_matrix_is_pixman_translation (const cairo_matrix_t     *matrix,
 				     int                      *x_offset,
 				     int                      *y_offset)
 {
-    floatt tx, ty;
+    double tx, ty;
 
     if (!_cairo_matrix_is_translation (matrix))
 	return FALSE;
@@ -1135,8 +1135,8 @@ _cairo_matrix_is_pixman_translation (const cairo_matrix_t     *matrix,
 cairo_status_t
 _cairo_matrix_to_pixman_matrix_offset (const cairo_matrix_t	*matrix,
 				       cairo_filter_t            filter,
-				       floatt                    xc,
-				       floatt                    yc,
+				       double                    xc,
+				       double                    yc,
 				       pixman_transform_t	*out_transform,
 				       int                      *x_offset,
 				       int                      *y_offset)
@@ -1157,7 +1157,7 @@ _cairo_matrix_to_pixman_matrix_offset (const cairo_matrix_t	*matrix,
 	m = *matrix;
 	cairo_matrix_translate (&m, *x_offset, *y_offset);
 	if (m.x0 != 0.0 || m.y0 != 0.0) {
-	    floatt tx, ty, norm;
+	    double tx, ty, norm;
 	    int i, j;
 
 	    /* pixman also limits the [xy]_offset to 16 bits so evenly
@@ -1175,7 +1175,7 @@ _cairo_matrix_to_pixman_matrix_offset (const cairo_matrix_t	*matrix,
 
 	    for (i = -1; i < 2; i+=2) {
 		for (j = -1; j < 2; j+=2) {
-		    floatt x, y, den, new_norm;
+		    double x, y, den, new_norm;
 
 		    den = (m.xx + i) * (m.yy + j) - m.xy * m.yx;
 		    if (fabs (den) < DBL_EPSILON)

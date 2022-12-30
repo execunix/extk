@@ -495,10 +495,10 @@ _cairo_gl_composite_begin_component_alpha  (cairo_gl_context_t *ctx,
 
 static void
 _scissor_to_doubles (cairo_gl_surface_t	*surface,
-		     floatt x1, floatt y1,
-		     floatt x2, floatt y2)
+		     double x1, double y1,
+		     double x2, double y2)
 {
-    floatt height;
+    double height;
 
     height = y2 - y1;
     if (_cairo_gl_surface_is_texture (surface) == FALSE)
@@ -518,7 +518,7 @@ static void
 _scissor_to_box (cairo_gl_surface_t	*surface,
 		 const cairo_box_t	*box)
 {
-    floatt x1, y1, x2, y2;
+    double x1, y1, x2, y2;
     _cairo_box_to_doubles (box, &x1, &y1, &x2, &y2);
     _scissor_to_doubles (surface, x1, y1, x2, y2);
 }

@@ -266,10 +266,10 @@ _cairo_default_context_set_source (void *abstract_cr,
 
 static cairo_bool_t
 _current_source_matches_solid (const cairo_pattern_t *pattern,
-			       floatt red,
-			       floatt green,
-			       floatt blue,
-			       floatt alpha)
+			       double red,
+			       double green,
+			       double blue,
+			       double alpha)
 {
     cairo_color_t color;
 
@@ -287,7 +287,7 @@ _current_source_matches_solid (const cairo_pattern_t *pattern,
 }
 
 static cairo_status_t
-_cairo_default_context_set_source_rgba (void *abstract_cr, floatt red, floatt green, floatt blue, floatt alpha)
+_cairo_default_context_set_source_rgba (void *abstract_cr, double red, double green, double blue, double alpha)
 {
     cairo_default_context_t *cr = abstract_cr;
     cairo_pattern_t *pattern;
@@ -313,8 +313,8 @@ _cairo_default_context_set_source_rgba (void *abstract_cr, floatt red, floatt gr
 static cairo_status_t
 _cairo_default_context_set_source_surface (void *abstract_cr,
 					   cairo_surface_t *surface,
-					   floatt	   x,
-					   floatt	   y)
+					   double	   x,
+					   double	   y)
 {
     cairo_default_context_t *cr = abstract_cr;
     cairo_pattern_t *pattern;
@@ -347,7 +347,7 @@ _cairo_default_context_get_source (void *abstract_cr)
 
 static cairo_status_t
 _cairo_default_context_set_tolerance (void *abstract_cr,
-				      floatt tolerance)
+				      double tolerance)
 {
     cairo_default_context_t *cr = abstract_cr;
 
@@ -366,7 +366,7 @@ _cairo_default_context_set_operator (void *abstract_cr, cairo_operator_t op)
 }
 
 static cairo_status_t
-_cairo_default_context_set_opacity (void *abstract_cr, floatt opacity)
+_cairo_default_context_set_opacity (void *abstract_cr, double opacity)
 {
     cairo_default_context_t *cr = abstract_cr;
 
@@ -393,7 +393,7 @@ _cairo_default_context_set_fill_rule (void *abstract_cr,
 
 static cairo_status_t
 _cairo_default_context_set_line_width (void *abstract_cr,
-				       floatt line_width)
+				       double line_width)
 {
     cairo_default_context_t *cr = abstract_cr;
 
@@ -420,9 +420,9 @@ _cairo_default_context_set_line_join (void *abstract_cr,
 
 static cairo_status_t
 _cairo_default_context_set_dash (void *abstract_cr,
-				 const floatt *dashes,
+				 const double *dashes,
 				 int	      num_dashes,
-				 floatt	      offset)
+				 double	      offset)
 {
     cairo_default_context_t *cr = abstract_cr;
 
@@ -432,7 +432,7 @@ _cairo_default_context_set_dash (void *abstract_cr,
 
 static cairo_status_t
 _cairo_default_context_set_miter_limit (void *abstract_cr,
-					floatt limit)
+					double limit)
 {
     cairo_default_context_t *cr = abstract_cr;
 
@@ -449,9 +449,9 @@ _cairo_default_context_get_antialias (void *abstract_cr)
 
 static void
 _cairo_default_context_get_dash (void *abstract_cr,
-				 floatt *dashes,
+				 double *dashes,
 				 int *num_dashes,
-				 floatt *offset)
+				 double *offset)
 {
     cairo_default_context_t *cr = abstract_cr;
 
@@ -466,7 +466,7 @@ _cairo_default_context_get_fill_rule (void *abstract_cr)
     return _cairo_gstate_get_fill_rule (cr->gstate);
 }
 
-static floatt
+static double
 _cairo_default_context_get_line_width (void *abstract_cr)
 {
     cairo_default_context_t *cr = abstract_cr;
@@ -490,7 +490,7 @@ _cairo_default_context_get_line_join (void *abstract_cr)
     return _cairo_gstate_get_line_join (cr->gstate);
 }
 
-static floatt
+static double
 _cairo_default_context_get_miter_limit (void *abstract_cr)
 {
     cairo_default_context_t *cr = abstract_cr;
@@ -506,7 +506,7 @@ _cairo_default_context_get_operator (void *abstract_cr)
     return _cairo_gstate_get_operator (cr->gstate);
 }
 
-static floatt
+static double
 _cairo_default_context_get_opacity (void *abstract_cr)
 {
     cairo_default_context_t *cr = abstract_cr;
@@ -514,7 +514,7 @@ _cairo_default_context_get_opacity (void *abstract_cr)
     return _cairo_gstate_get_opacity (cr->gstate);
 }
 
-static floatt
+static double
 _cairo_default_context_get_tolerance (void *abstract_cr)
 {
     cairo_default_context_t *cr = abstract_cr;
@@ -527,8 +527,8 @@ _cairo_default_context_get_tolerance (void *abstract_cr)
 
 static cairo_status_t
 _cairo_default_context_translate (void *abstract_cr,
-				  floatt tx,
-				  floatt ty)
+				  double tx,
+				  double ty)
 {
     cairo_default_context_t *cr = abstract_cr;
 
@@ -537,8 +537,8 @@ _cairo_default_context_translate (void *abstract_cr,
 
 static cairo_status_t
 _cairo_default_context_scale (void *abstract_cr,
-			      floatt sx,
-			      floatt sy)
+			      double sx,
+			      double sy)
 {
     cairo_default_context_t *cr = abstract_cr;
 
@@ -547,7 +547,7 @@ _cairo_default_context_scale (void *abstract_cr,
 
 static cairo_status_t
 _cairo_default_context_rotate (void *abstract_cr,
-			       floatt theta)
+			       double theta)
 {
     cairo_default_context_t *cr = abstract_cr;
 
@@ -592,8 +592,8 @@ _cairo_default_context_get_matrix (void *abstract_cr,
 
 static void
 _cairo_default_context_user_to_device (void *abstract_cr,
-				       floatt *x,
-				       floatt *y)
+				       double *x,
+				       double *y)
 {
     cairo_default_context_t *cr = abstract_cr;
 
@@ -601,7 +601,7 @@ _cairo_default_context_user_to_device (void *abstract_cr,
 }
 
 static void
-_cairo_default_context_user_to_device_distance (void *abstract_cr, floatt *dx, floatt *dy)
+_cairo_default_context_user_to_device_distance (void *abstract_cr, double *dx, double *dy)
 {
     cairo_default_context_t *cr = abstract_cr;
 
@@ -610,8 +610,8 @@ _cairo_default_context_user_to_device_distance (void *abstract_cr, floatt *dx, f
 
 static void
 _cairo_default_context_device_to_user (void *abstract_cr,
-				       floatt *x,
-				       floatt *y)
+				       double *x,
+				       double *y)
 {
     cairo_default_context_t *cr = abstract_cr;
 
@@ -620,8 +620,8 @@ _cairo_default_context_device_to_user (void *abstract_cr,
 
 static void
 _cairo_default_context_device_to_user_distance (void *abstract_cr,
-						floatt *dx,
-						floatt *dy)
+						double *dx,
+						double *dy)
 {
     cairo_default_context_t *cr = abstract_cr;
 
@@ -630,8 +630,8 @@ _cairo_default_context_device_to_user_distance (void *abstract_cr,
 
 static void
 _cairo_default_context_backend_to_user (void *abstract_cr,
-					floatt *x,
-					floatt *y)
+					double *x,
+					double *y)
 {
     cairo_default_context_t *cr = abstract_cr;
 
@@ -639,7 +639,7 @@ _cairo_default_context_backend_to_user (void *abstract_cr,
 }
 
 static void
-_cairo_default_context_backend_to_user_distance (void *abstract_cr, floatt *dx, floatt *dy)
+_cairo_default_context_backend_to_user_distance (void *abstract_cr, double *dx, double *dy)
 {
     cairo_default_context_t *cr = abstract_cr;
 
@@ -648,8 +648,8 @@ _cairo_default_context_backend_to_user_distance (void *abstract_cr, floatt *dx, 
 
 static void
 _cairo_default_context_user_to_backend (void *abstract_cr,
-					floatt *x,
-					floatt *y)
+					double *x,
+					double *y)
 {
     cairo_default_context_t *cr = abstract_cr;
 
@@ -658,8 +658,8 @@ _cairo_default_context_user_to_backend (void *abstract_cr,
 
 static void
 _cairo_default_context_user_to_backend_distance (void *abstract_cr,
-						 floatt *dx,
-						 floatt *dy)
+						 double *dx,
+						 double *dy)
 {
     cairo_default_context_t *cr = abstract_cr;
 
@@ -690,7 +690,7 @@ _cairo_default_context_new_sub_path (void *abstract_cr)
 }
 
 static cairo_status_t
-_cairo_default_context_move_to (void *abstract_cr, floatt x, floatt y)
+_cairo_default_context_move_to (void *abstract_cr, double x, double y)
 {
     cairo_default_context_t *cr = abstract_cr;
     cairo_fixed_t x_fixed, y_fixed;
@@ -703,7 +703,7 @@ _cairo_default_context_move_to (void *abstract_cr, floatt x, floatt y)
 }
 
 static cairo_status_t
-_cairo_default_context_line_to (void *abstract_cr, floatt x, floatt y)
+_cairo_default_context_line_to (void *abstract_cr, double x, double y)
 {
     cairo_default_context_t *cr = abstract_cr;
     cairo_fixed_t x_fixed, y_fixed;
@@ -717,9 +717,9 @@ _cairo_default_context_line_to (void *abstract_cr, floatt x, floatt y)
 
 static cairo_status_t
 _cairo_default_context_curve_to (void *abstract_cr,
-				 floatt x1, floatt y1,
-				 floatt x2, floatt y2,
-				 floatt x3, floatt y3)
+				 double x1, double y1,
+				 double x2, double y2,
+				 double x3, double y3)
 {
     cairo_default_context_t *cr = abstract_cr;
     cairo_fixed_t x1_fixed, y1_fixed;
@@ -747,8 +747,8 @@ _cairo_default_context_curve_to (void *abstract_cr,
 
 static cairo_status_t
 _cairo_default_context_arc (void *abstract_cr,
-			    floatt xc, floatt yc, floatt radius,
-			    floatt angle1, floatt angle2,
+			    double xc, double yc, double radius,
+			    double angle1, double angle2,
 			    cairo_bool_t forward)
 {
     cairo_default_context_t *cr = abstract_cr;
@@ -788,7 +788,7 @@ _cairo_default_context_arc (void *abstract_cr,
 }
 
 static cairo_status_t
-_cairo_default_context_rel_move_to (void *abstract_cr, floatt dx, floatt dy)
+_cairo_default_context_rel_move_to (void *abstract_cr, double dx, double dy)
 {
     cairo_default_context_t *cr = abstract_cr;
     cairo_fixed_t dx_fixed, dy_fixed;
@@ -802,7 +802,7 @@ _cairo_default_context_rel_move_to (void *abstract_cr, floatt dx, floatt dy)
 }
 
 static cairo_status_t
-_cairo_default_context_rel_line_to (void *abstract_cr, floatt dx, floatt dy)
+_cairo_default_context_rel_line_to (void *abstract_cr, double dx, double dy)
 {
     cairo_default_context_t *cr = abstract_cr;
     cairo_fixed_t dx_fixed, dy_fixed;
@@ -818,9 +818,9 @@ _cairo_default_context_rel_line_to (void *abstract_cr, floatt dx, floatt dy)
 
 static cairo_status_t
 _cairo_default_context_rel_curve_to (void *abstract_cr,
-				     floatt dx1, floatt dy1,
-				     floatt dx2, floatt dy2,
-				     floatt dx3, floatt dy3)
+				     double dx1, double dy1,
+				     double dx2, double dy2,
+				     double dx3, double dy3)
 {
     cairo_default_context_t *cr = abstract_cr;
     cairo_fixed_t dx1_fixed, dy1_fixed;
@@ -856,8 +856,8 @@ _cairo_default_context_close_path (void *abstract_cr)
 
 static cairo_status_t
 _cairo_default_context_rectangle (void *abstract_cr,
-				  floatt x, floatt y,
-				  floatt width, floatt height)
+				  double x, double y,
+				  double width, double height)
 {
     cairo_default_context_t *cr = abstract_cr;
     cairo_status_t status;
@@ -883,10 +883,10 @@ _cairo_default_context_rectangle (void *abstract_cr,
 
 static void
 _cairo_default_context_path_extents (void *abstract_cr,
-				     floatt *x1,
-				     floatt *y1,
-				     floatt *x2,
-				     floatt *y2)
+				     double *x1,
+				     double *y1,
+				     double *x2,
+				     double *y2)
 {
     cairo_default_context_t *cr = abstract_cr;
 
@@ -905,8 +905,8 @@ _cairo_default_context_has_current_point (void *abstract_cr)
 
 static cairo_bool_t
 _cairo_default_context_get_current_point (void *abstract_cr,
-					  floatt *x,
-					  floatt *y)
+					  double *x,
+					  double *y)
 {
     cairo_default_context_t *cr = abstract_cr;
     cairo_fixed_t x_fixed, y_fixed;
@@ -960,7 +960,7 @@ _cairo_default_context_paint (void *abstract_cr)
 
 static cairo_status_t
 _cairo_default_context_paint_with_alpha (void *abstract_cr,
-					 floatt alpha)
+					 double alpha)
 {
     cairo_default_context_t *cr = abstract_cr;
     cairo_solid_pattern_t pattern;
@@ -1016,7 +1016,7 @@ _cairo_default_context_stroke (void *abstract_cr)
 
 static cairo_status_t
 _cairo_default_context_in_stroke (void *abstract_cr,
-				  floatt x, floatt y,
+				  double x, double y,
 				  cairo_bool_t *inside)
 {
     cairo_default_context_t *cr = abstract_cr;
@@ -1029,7 +1029,7 @@ _cairo_default_context_in_stroke (void *abstract_cr,
 
 static cairo_status_t
 _cairo_default_context_stroke_extents (void *abstract_cr,
-				       floatt *x1, floatt *y1, floatt *x2, floatt *y2)
+				       double *x1, double *y1, double *x2, double *y2)
 {
     cairo_default_context_t *cr = abstract_cr;
 
@@ -1061,7 +1061,7 @@ _cairo_default_context_fill (void *abstract_cr)
 
 static cairo_status_t
 _cairo_default_context_in_fill (void *abstract_cr,
-				floatt x, floatt y,
+				double x, double y,
 				cairo_bool_t *inside)
 {
     cairo_default_context_t *cr = abstract_cr;
@@ -1074,7 +1074,7 @@ _cairo_default_context_in_fill (void *abstract_cr,
 
 static cairo_status_t
 _cairo_default_context_fill_extents (void *abstract_cr,
-				     floatt *x1, floatt *y1, floatt *x2, floatt *y2)
+				     double *x1, double *y1, double *x2, double *y2)
 {
     cairo_default_context_t *cr = abstract_cr;
 
@@ -1106,7 +1106,7 @@ _cairo_default_context_clip (void *abstract_cr)
 
 static cairo_status_t
 _cairo_default_context_in_clip (void *abstract_cr,
-				floatt x, floatt y,
+				double x, double y,
 				cairo_bool_t *inside)
 {
     cairo_default_context_t *cr = abstract_cr;
@@ -1125,7 +1125,7 @@ _cairo_default_context_reset_clip (void *abstract_cr)
 
 static cairo_status_t
 _cairo_default_context_clip_extents (void *abstract_cr,
-				     floatt *x1, floatt *y1, floatt *x2, floatt *y2)
+				     double *x1, double *y1, double *x2, double *y2)
 {
     cairo_default_context_t *cr = abstract_cr;
 
@@ -1199,7 +1199,7 @@ _cairo_default_context_font_extents (void *abstract_cr,
 
 static cairo_status_t
 _cairo_default_context_set_font_size (void *abstract_cr,
-				      floatt size)
+				      double size)
 {
     cairo_default_context_t *cr = abstract_cr;
 

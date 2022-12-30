@@ -12,6 +12,12 @@
 #endif
 
 static int
+dprint_appinfo(char* mbs, int len)
+{
+    return snprintf(mbs, len, "%s", "[*] ");
+}
+
+static int
 dprint_handler(int lvl, const char* mbs)
 {
 #ifdef WIN32
@@ -22,9 +28,9 @@ dprint_handler(int lvl, const char* mbs)
     return 0;
 }
 
-int         dprint_verbose = 999;
-int         dprint_charset = 949;
-const char* dprint_appname = "[*] ";
+int dprint_charset = 949;
+int dprint_verbose = 999;
+int (*ex_dprint_appinfo)(char* mbs, int len) = &dprint_appinfo;
 int (*ex_dprint_handler)(int lvl, const char* mbs) = &dprint_handler;
 
 int debug_vprintf(int lvl, const wchar* fmt, va_list arg)
@@ -35,28 +41,24 @@ int debug_vprintf(int lvl, const wchar* fmt, va_list arg)
 
     if (dprint_verbose < (lvl < 0 ? -lvl : lvl))
         return r;
-    if (dprint_appname && lvl > 0) {
-#ifdef WIN32
-        r = swprintf(wcs, 1020, L"%S", dprint_appname);
-#else
-        r = swprintf(wcs, 1020, L"%s", dprint_appname);
-#endif
+
+    if (lvl > 0) {
+        r = ex_dprint_appinfo(mbs, 64);
         if (r < 0)
             r = 0;
     }
-    n = vswprintf(wcs + r, 1020 - r, fmt, arg);
+    n = vswprintf(wcs, 1020, fmt, arg);
     if (n < 0)
         n = 0;
-    n += r;
     wcs[n] = 0;
-
 #ifdef WIN32
-    n = WideCharToMultiByte(dprint_charset, 0, wcs, n, mbs, 1020, NULL, NULL);
+    n = WideCharToMultiByte(dprint_charset, 0, wcs, n, mbs + r, 1020 - r, NULL, NULL);
 #else
-    n = wcstombs(mbs, wcs, 1020);
+    n = wcstombs(mbs + r, wcs, 1020 - r);
 #endif
     if (n < 0)
         n = 0;
+    n += r;
     mbs[n] = 0;
 
     r = ex_dprint_handler(lvl, mbs);
@@ -72,8 +74,9 @@ int debug_vprintf(int lvl, const char* fmt, va_list arg)
 
     if (dprint_verbose < (lvl < 0 ? -lvl : lvl))
         return r;
-    if (dprint_appname && lvl > 0) {
-        r = snprintf(mbs, 1020, "%s", dprint_appname);
+
+    if (lvl > 0) {
+        r = ex_dprint_appinfo(mbs, 64);
         if (r < 0)
             r = 0;
     }

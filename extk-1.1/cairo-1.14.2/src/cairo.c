@@ -639,7 +639,7 @@ slim_hidden_def (cairo_set_operator);
  * Since: TBD
  **/
 void
-cairo_set_opacity (cairo_t *cr, floatt opacity)
+cairo_set_opacity (cairo_t *cr, double opacity)
 {
     cairo_status_t status;
 
@@ -673,7 +673,7 @@ cairo_set_opacity (cairo_t *cr, floatt opacity)
  * Since: 1.0
  **/
 void
-cairo_set_source_rgb (cairo_t *cr, floatt red, floatt green, floatt blue)
+cairo_set_source_rgb (cairo_t *cr, double red, double green, double blue)
 {
     cairo_status_t status;
 
@@ -709,8 +709,8 @@ slim_hidden_def (cairo_set_source_rgb);
  **/
 void
 cairo_set_source_rgba (cairo_t *cr,
-		       floatt red, floatt green, floatt blue,
-		       floatt alpha)
+		       double red, double green, double blue,
+		       double alpha)
 {
     cairo_status_t status;
 
@@ -750,8 +750,8 @@ cairo_set_source_rgba (cairo_t *cr,
 void
 cairo_set_source_surface (cairo_t	  *cr,
 			  cairo_surface_t *surface,
-			  floatt	   x,
-			  floatt	   y)
+			  double	   x,
+			  double	   y)
 {
     cairo_status_t status;
 
@@ -854,7 +854,7 @@ cairo_get_source (cairo_t *cr)
  * Since: 1.0
  **/
 void
-cairo_set_tolerance (cairo_t *cr, floatt tolerance)
+cairo_set_tolerance (cairo_t *cr, double tolerance)
 {
     cairo_status_t status;
 
@@ -952,7 +952,7 @@ cairo_set_fill_rule (cairo_t *cr, cairo_fill_rule_t fill_rule)
  * Since: 1.0
  **/
 void
-cairo_set_line_width (cairo_t *cr, floatt width)
+cairo_set_line_width (cairo_t *cr, double width)
 {
     cairo_status_t status;
 
@@ -1068,9 +1068,9 @@ slim_hidden_def (cairo_set_line_join);
  **/
 void
 cairo_set_dash (cairo_t	     *cr,
-		const floatt *dashes,
+		const double *dashes,
 		int	      num_dashes,
-		floatt	      offset)
+		double	      offset)
 {
     cairo_status_t status;
 
@@ -1122,8 +1122,8 @@ cairo_get_dash_count (cairo_t *cr)
  **/
 void
 cairo_get_dash (cairo_t *cr,
-		floatt  *dashes,
-		floatt  *offset)
+		double  *dashes,
+		double  *offset)
 {
     if (unlikely (cr->status))
 	return;
@@ -1162,7 +1162,7 @@ cairo_get_dash (cairo_t *cr,
  * Since: 1.0
  **/
 void
-cairo_set_miter_limit (cairo_t *cr, floatt limit)
+cairo_set_miter_limit (cairo_t *cr, double limit)
 {
     cairo_status_t status;
 
@@ -1189,7 +1189,7 @@ cairo_set_miter_limit (cairo_t *cr, floatt limit)
  * Since: 1.0
  **/
 void
-cairo_translate (cairo_t *cr, floatt tx, floatt ty)
+cairo_translate (cairo_t *cr, double tx, double ty)
 {
     cairo_status_t status;
 
@@ -1216,7 +1216,7 @@ slim_hidden_def (cairo_translate);
  * Since: 1.0
  **/
 void
-cairo_scale (cairo_t *cr, floatt sx, floatt sy)
+cairo_scale (cairo_t *cr, double sx, double sy)
 {
     cairo_status_t status;
 
@@ -1244,7 +1244,7 @@ slim_hidden_def (cairo_scale);
  * Since: 1.0
  **/
 void
-cairo_rotate (cairo_t *cr, floatt angle)
+cairo_rotate (cairo_t *cr, double angle)
 {
     cairo_status_t status;
 
@@ -1344,7 +1344,7 @@ cairo_identity_matrix (cairo_t *cr)
  * Since: 1.0
  **/
 void
-cairo_user_to_device (cairo_t *cr, floatt *x, floatt *y)
+cairo_user_to_device (cairo_t *cr, double *x, double *y)
 {
     if (unlikely (cr->status))
 	return;
@@ -1367,7 +1367,7 @@ slim_hidden_def (cairo_user_to_device);
  * Since: 1.0
  **/
 void
-cairo_user_to_device_distance (cairo_t *cr, floatt *dx, floatt *dy)
+cairo_user_to_device_distance (cairo_t *cr, double *dx, double *dy)
 {
     if (unlikely (cr->status))
 	return;
@@ -1389,7 +1389,7 @@ slim_hidden_def (cairo_user_to_device_distance);
  * Since: 1.0
  **/
 void
-cairo_device_to_user (cairo_t *cr, floatt *x, floatt *y)
+cairo_device_to_user (cairo_t *cr, double *x, double *y)
 {
     if (unlikely (cr->status))
 	return;
@@ -1412,7 +1412,7 @@ slim_hidden_def (cairo_device_to_user);
  * Since: 1.0
  **/
 void
-cairo_device_to_user_distance (cairo_t *cr, floatt *dx, floatt *dy)
+cairo_device_to_user_distance (cairo_t *cr, double *dx, double *dy)
 {
     if (unlikely (cr->status))
 	return;
@@ -1486,7 +1486,7 @@ cairo_new_sub_path (cairo_t *cr)
  * Since: 1.0
  **/
 void
-cairo_move_to (cairo_t *cr, floatt x, floatt y)
+cairo_move_to (cairo_t *cr, double x, double y)
 {
     cairo_status_t status;
 
@@ -1516,7 +1516,7 @@ slim_hidden_def(cairo_move_to);
  * Since: 1.0
  **/
 void
-cairo_line_to (cairo_t *cr, floatt x, floatt y)
+cairo_line_to (cairo_t *cr, double x, double y)
 {
     cairo_status_t status;
 
@@ -1552,9 +1552,9 @@ slim_hidden_def (cairo_line_to);
  **/
 void
 cairo_curve_to (cairo_t *cr,
-		floatt x1, floatt y1,
-		floatt x2, floatt y2,
-		floatt x3, floatt y3)
+		double x1, double y1,
+		double x2, double y2,
+		double x3, double y3)
 {
     cairo_status_t status;
 
@@ -1622,9 +1622,9 @@ slim_hidden_def (cairo_curve_to);
  **/
 void
 cairo_arc (cairo_t *cr,
-	   floatt xc, floatt yc,
-	   floatt radius,
-	   floatt angle1, floatt angle2)
+	   double xc, double yc,
+	   double radius,
+	   double angle1, double angle2)
 {
     cairo_status_t status;
 
@@ -1667,9 +1667,9 @@ cairo_arc (cairo_t *cr,
  **/
 void
 cairo_arc_negative (cairo_t *cr,
-		    floatt xc, floatt yc,
-		    floatt radius,
-		    floatt angle1, floatt angle2)
+		    double xc, double yc,
+		    double radius,
+		    double angle1, double angle2)
 {
     cairo_status_t status;
 
@@ -1693,9 +1693,9 @@ cairo_arc_negative (cairo_t *cr,
 /* XXX: NYI
 void
 cairo_arc_to (cairo_t *cr,
-	      floatt x1, floatt y1,
-	      floatt x2, floatt y2,
-	      floatt radius)
+	      double x1, double y1,
+	      double x2, double y2,
+	      double radius)
 {
     cairo_status_t status;
 
@@ -1709,9 +1709,9 @@ cairo_arc_to (cairo_t *cr,
 
 void
 cairo_rel_arc_to (cairo_t *cr,
-	      floatt dx1, floatt dy1,
-	      floatt dx2, floatt dy2,
-	      floatt radius)
+	      double dx1, double dy1,
+	      double dx2, double dy2,
+	      double radius)
 {
     cairo_status_t status;
 
@@ -1743,7 +1743,7 @@ cairo_rel_arc_to (cairo_t *cr,
  * Since: 1.0
  **/
 void
-cairo_rel_move_to (cairo_t *cr, floatt dx, floatt dy)
+cairo_rel_move_to (cairo_t *cr, double dx, double dy)
 {
     cairo_status_t status;
 
@@ -1776,7 +1776,7 @@ cairo_rel_move_to (cairo_t *cr, floatt dx, floatt dy)
  * Since: 1.0
  **/
 void
-cairo_rel_line_to (cairo_t *cr, floatt dx, floatt dy)
+cairo_rel_line_to (cairo_t *cr, double dx, double dy)
 {
     cairo_status_t status;
 
@@ -1818,9 +1818,9 @@ slim_hidden_def(cairo_rel_line_to);
  **/
 void
 cairo_rel_curve_to (cairo_t *cr,
-		    floatt dx1, floatt dy1,
-		    floatt dx2, floatt dy2,
-		    floatt dx3, floatt dy3)
+		    double dx1, double dy1,
+		    double dx2, double dy2,
+		    double dx3, double dy3)
 {
     cairo_status_t status;
 
@@ -1859,8 +1859,8 @@ cairo_rel_curve_to (cairo_t *cr,
  **/
 void
 cairo_rectangle (cairo_t *cr,
-		 floatt x, floatt y,
-		 floatt width, floatt height)
+		 double x, double y,
+		 double width, double height)
 {
     cairo_status_t status;
 
@@ -1965,7 +1965,7 @@ slim_hidden_def(cairo_close_path);
  **/
 void
 cairo_path_extents (cairo_t *cr,
-		    floatt *x1, floatt *y1, floatt *x2, floatt *y2)
+		    double *x1, double *y1, double *x2, double *y2)
 {
     if (unlikely (cr->status)) {
 	if (x1)
@@ -2020,7 +2020,7 @@ slim_hidden_def (cairo_paint);
  **/
 void
 cairo_paint_with_alpha (cairo_t *cr,
-			floatt   alpha)
+			double   alpha)
 {
     cairo_status_t status;
 
@@ -2086,8 +2086,8 @@ slim_hidden_def (cairo_mask);
 void
 cairo_mask_surface (cairo_t         *cr,
 		    cairo_surface_t *surface,
-		    floatt           surface_x,
-		    floatt           surface_y)
+		    double           surface_x,
+		    double           surface_y)
 {
     cairo_pattern_t *pattern;
     cairo_matrix_t matrix;
@@ -2307,7 +2307,7 @@ cairo_show_page (cairo_t *cr)
  * Since: 1.0
  **/
 cairo_bool_t
-cairo_in_stroke (cairo_t *cr, floatt x, floatt y)
+cairo_in_stroke (cairo_t *cr, double x, double y)
 {
     cairo_status_t status;
     cairo_bool_t inside = FALSE;
@@ -2341,7 +2341,7 @@ cairo_in_stroke (cairo_t *cr, floatt x, floatt y)
  * Since: 1.0
  **/
 cairo_bool_t
-cairo_in_fill (cairo_t *cr, floatt x, floatt y)
+cairo_in_fill (cairo_t *cr, double x, double y)
 {
     cairo_status_t status;
     cairo_bool_t inside = FALSE;
@@ -2388,7 +2388,7 @@ cairo_in_fill (cairo_t *cr, floatt x, floatt y)
  **/
 void
 cairo_stroke_extents (cairo_t *cr,
-                      floatt *x1, floatt *y1, floatt *x2, floatt *y2)
+                      double *x1, double *y1, double *x2, double *y2)
 {
     cairo_status_t status;
 
@@ -2439,7 +2439,7 @@ cairo_stroke_extents (cairo_t *cr,
  **/
 void
 cairo_fill_extents (cairo_t *cr,
-                    floatt *x1, floatt *y1, floatt *x2, floatt *y2)
+                    double *x1, double *y1, double *x2, double *y2)
 {
     cairo_status_t status;
 
@@ -2582,8 +2582,8 @@ cairo_reset_clip (cairo_t *cr)
  **/
 void
 cairo_clip_extents (cairo_t *cr,
-		    floatt *x1, floatt *y1,
-		    floatt *x2, floatt *y2)
+		    double *x1, double *y1,
+		    double *x2, double *y2)
 {
     cairo_status_t status;
 
@@ -2622,7 +2622,7 @@ cairo_clip_extents (cairo_t *cr,
  * Since: 1.10
  **/
 cairo_bool_t
-cairo_in_clip (cairo_t *cr, floatt x, floatt y)
+cairo_in_clip (cairo_t *cr, double x, double y)
 {
     cairo_status_t status;
     cairo_bool_t inside = FALSE;
@@ -2843,7 +2843,7 @@ cairo_get_font_face (cairo_t *cr)
  * Since: 1.0
  **/
 void
-cairo_set_font_size (cairo_t *cr, floatt size)
+cairo_set_font_size (cairo_t *cr, double size)
 {
     cairo_status_t status;
 
@@ -3062,14 +3062,14 @@ slim_hidden_def (cairo_get_scaled_font);
  **/
 void
 cairo_text_extents (cairo_t              *cr,
-		    const wchar_t	 *wcs, // extk
+		    const char		 *utf8,
 		    cairo_text_extents_t *extents)
 {
     cairo_status_t status;
     cairo_scaled_font_t *scaled_font;
     cairo_glyph_t *glyphs = NULL;
     int num_glyphs = 0;
-    floatt x, y;
+    double x, y;
 
     extents->x_bearing = 0.0;
     extents->y_bearing = 0.0;
@@ -3081,7 +3081,7 @@ cairo_text_extents (cairo_t              *cr,
     if (unlikely (cr->status))
 	return;
 
-    if (wcs == NULL)
+    if (utf8 == NULL)
 	return;
 
     scaled_font = cairo_get_scaled_font (cr);
@@ -3093,7 +3093,55 @@ cairo_text_extents (cairo_t              *cr,
     cairo_get_current_point (cr, &x, &y);
     status = cairo_scaled_font_text_to_glyphs (scaled_font,
 					       x, y,
-					       wcs, -1,
+					       utf8, -1,
+					       &glyphs, &num_glyphs,
+					       NULL, NULL, NULL);
+
+    if (likely (status == CAIRO_STATUS_SUCCESS)) {
+	status = cr->backend->glyph_extents (cr,
+					     glyphs, num_glyphs,
+					     extents);
+    }
+    cairo_glyph_free (glyphs);
+
+    if (unlikely (status))
+	_cairo_set_error (cr, status);
+}
+
+void
+cairo_ucs2_extents (cairo_t              *cr,
+		    const UCS2		 *ucs2, // extk
+		    cairo_text_extents_t *extents)
+{
+    cairo_status_t status;
+    cairo_scaled_font_t *scaled_font;
+    cairo_glyph_t *glyphs = NULL;
+    int num_glyphs = 0;
+    double x, y;
+
+    extents->x_bearing = 0.0;
+    extents->y_bearing = 0.0;
+    extents->width  = 0.0;
+    extents->height = 0.0;
+    extents->x_advance = 0.0;
+    extents->y_advance = 0.0;
+
+    if (unlikely (cr->status))
+	return;
+
+    if (ucs2 == NULL)
+	return;
+
+    scaled_font = cairo_get_scaled_font (cr);
+    if (unlikely (scaled_font->status)) {
+	_cairo_set_error (cr, scaled_font->status);
+	return;
+    }
+
+    cairo_get_current_point (cr, &x, &y);
+    status = cairo_scaled_font_ucs2_to_glyphs (scaled_font,
+					       x, y,
+					       ucs2, -1,
 					       &glyphs, &num_glyphs,
 					       NULL, NULL, NULL);
 
@@ -3194,15 +3242,15 @@ cairo_glyph_extents (cairo_t                *cr,
  * Since: 1.0
  **/
 void
-cairo_show_text (cairo_t *cr, const wchar_t *wcs) // extk
+cairo_show_text (cairo_t *cr, const char *utf8)
 {
     cairo_text_extents_t extents;
     cairo_status_t status;
     cairo_glyph_t *glyphs, *last_glyph;
     cairo_text_cluster_t *clusters;
-    int wcs_len, num_glyphs, num_clusters;
+    int utf8_len, num_glyphs, num_clusters;
     cairo_text_cluster_flags_t cluster_flags;
-    floatt x, y;
+    double x, y;
     cairo_bool_t has_show_text_glyphs;
     cairo_glyph_t stack_glyphs[CAIRO_STACK_ARRAY_LENGTH (cairo_glyph_t)];
     cairo_text_cluster_t stack_clusters[CAIRO_STACK_ARRAY_LENGTH (cairo_text_cluster_t)];
@@ -3212,7 +3260,7 @@ cairo_show_text (cairo_t *cr, const wchar_t *wcs) // extk
     if (unlikely (cr->status))
 	return;
 
-    if (wcs == NULL)
+    if (utf8 == NULL)
 	return;
 
     scaled_font = cairo_get_scaled_font (cr);
@@ -3221,7 +3269,7 @@ cairo_show_text (cairo_t *cr, const wchar_t *wcs) // extk
 	return;
     }
 
-    wcs_len = wcslen (wcs);
+    utf8_len = strlen (utf8);
 
     has_show_text_glyphs =
 	cairo_surface_has_show_text_glyphs (cairo_get_target (cr));
@@ -3240,7 +3288,7 @@ cairo_show_text (cairo_t *cr, const wchar_t *wcs) // extk
     cairo_get_current_point (cr, &x, &y);
     status = cairo_scaled_font_text_to_glyphs (scaled_font,
 					       x, y,
-					       wcs, wcs_len,
+					       utf8, utf8_len,
 					       &glyphs, &num_glyphs,
 					       has_show_text_glyphs ? &clusters : NULL, &num_clusters,
 					       &cluster_flags);
@@ -3252,8 +3300,8 @@ cairo_show_text (cairo_t *cr, const wchar_t *wcs) // extk
 
     i = NULL;
     if (has_show_text_glyphs) {
-	info.wcs = wcs;
-	info.wcs_len = wcs_len;
+	info.utf8 = utf8;
+	info.utf8_len = utf8_len;
 	info.clusters = clusters;
 	info.num_clusters = num_clusters;
 	info.cluster_flags = cluster_flags;
@@ -3278,6 +3326,96 @@ cairo_show_text (cairo_t *cr, const wchar_t *wcs) // extk
 	cairo_glyph_free (glyphs);
     if (clusters != stack_clusters)
 	cairo_text_cluster_free (clusters);
+
+    if (unlikely (status))
+	_cairo_set_error (cr, status);
+}
+
+void
+cairo_show_ucs2 (cairo_t *cr, const UCS2 *ucs2) // extk
+{
+    cairo_text_extents_t extents;
+    cairo_status_t status;
+    cairo_glyph_t *glyphs, *last_glyph;
+    cairo_ucs2_cluster_t *clusters;
+    int ucs2_len, num_glyphs, num_clusters;
+    cairo_text_cluster_flags_t cluster_flags;
+    double x, y;
+    cairo_bool_t has_show_ucs2_glyphs;
+    cairo_glyph_t stack_glyphs[CAIRO_STACK_ARRAY_LENGTH (cairo_glyph_t)];
+    cairo_ucs2_cluster_t stack_clusters[CAIRO_STACK_ARRAY_LENGTH (cairo_ucs2_cluster_t)];
+    cairo_scaled_font_t *scaled_font;
+    cairo_glyph_ucs2_info_t info, *i;
+
+    if (unlikely (cr->status))
+	return;
+
+    if (ucs2 == NULL)
+	return;
+
+    scaled_font = cairo_get_scaled_font (cr);
+    if (unlikely (scaled_font->status)) {
+	_cairo_set_error (cr, scaled_font->status);
+	return;
+    }
+
+    ucs2_len = wcslen (ucs2);
+
+    has_show_ucs2_glyphs =
+	cairo_surface_has_show_ucs2_glyphs (cairo_get_target (cr));
+
+    glyphs = stack_glyphs;
+    num_glyphs = ARRAY_LENGTH (stack_glyphs);
+
+    if (has_show_ucs2_glyphs) {
+	clusters = stack_clusters;
+	num_clusters = ARRAY_LENGTH (stack_clusters);
+    } else {
+	clusters = NULL;
+	num_clusters = 0;
+    }
+
+    cairo_get_current_point (cr, &x, &y);
+    status = cairo_scaled_font_ucs2_to_glyphs (scaled_font,
+					       x, y,
+					       ucs2, ucs2_len,
+					       &glyphs, &num_glyphs,
+					       has_show_ucs2_glyphs ? &clusters : NULL, &num_clusters,
+					       &cluster_flags);
+    if (unlikely (status))
+	goto BAIL;
+
+    if (num_glyphs == 0)
+	return;
+
+    i = NULL;
+    if (has_show_ucs2_glyphs) {
+	info.ucs2 = ucs2;
+	info.ucs2_len = ucs2_len;
+	info.clusters = clusters;
+	info.num_clusters = num_clusters;
+	info.cluster_flags = cluster_flags;
+	i = &info;
+    }
+
+    status = cr->backend->glyphs (cr, glyphs, num_glyphs, i);
+    if (unlikely (status))
+	goto BAIL;
+
+    last_glyph = &glyphs[num_glyphs - 1];
+    status = cr->backend->glyph_extents (cr, last_glyph, 1, &extents);
+    if (unlikely (status))
+	goto BAIL;
+
+    x = last_glyph->x + extents.x_advance;
+    y = last_glyph->y + extents.y_advance;
+    cr->backend->move_to (cr, x, y);
+
+ BAIL:
+    if (glyphs != stack_glyphs)
+	cairo_glyph_free (glyphs);
+    if (clusters != stack_clusters)
+	cairo_ucs2_cluster_free (clusters);
 
     if (unlikely (status))
 	_cairo_set_error (cr, status);
@@ -3357,8 +3495,8 @@ cairo_show_glyphs (cairo_t *cr, const cairo_glyph_t *glyphs, int num_glyphs)
  **/
 void
 cairo_show_text_glyphs (cairo_t			   *cr,
-			const wchar_t		   *wcs, // extk
-			int			    wcs_len,
+			const char		   *utf8,
+			int			    utf8_len,
 			const cairo_glyph_t	   *glyphs,
 			int			    num_glyphs,
 			const cairo_text_cluster_t *clusters,
@@ -3373,34 +3511,34 @@ cairo_show_text_glyphs (cairo_t			   *cr,
     /* A slew of sanity checks */
 
     /* Special case for NULL and -1 */
-    if (wcs == NULL && wcs_len == -1)
-	wcs_len = 0;
+    if (utf8 == NULL && utf8_len == -1)
+	utf8_len = 0;
 
     /* No NULLs for non-zeros */
     if ((num_glyphs   && glyphs   == NULL) ||
-	(wcs_len     && wcs     == NULL) ||
+	(utf8_len     && utf8     == NULL) ||
 	(num_clusters && clusters == NULL)) {
 	_cairo_set_error (cr, CAIRO_STATUS_NULL_POINTER);
 	return;
     }
 
-    /* A -1 for wcs_len means NUL-terminated */
-    if (wcs_len == -1)
-	wcs_len = wcslen (wcs);
+    /* A -1 for utf8_len means NUL-terminated */
+    if (utf8_len == -1)
+	utf8_len = strlen (utf8);
 
     /* Apart from that, no negatives */
-    if (num_glyphs < 0 || wcs_len < 0 || num_clusters < 0) {
+    if (num_glyphs < 0 || utf8_len < 0 || num_clusters < 0) {
 	_cairo_set_error (cr, CAIRO_STATUS_NEGATIVE_COUNT);
 	return;
     }
 
-    if (num_glyphs == 0 && wcs_len == 0)
+    if (num_glyphs == 0 && utf8_len == 0)
 	return;
 
-    if (wcs) {
-	/* Make sure clusters cover the entire glyphs and wcs arrays,
+    if (utf8) {
+	/* Make sure clusters cover the entire glyphs and utf8 arrays,
 	 * and that cluster boundaries are UTF-8 boundaries. */
-	status = _cairo_validate_text_clusters (wcs, wcs_len,
+	status = _cairo_validate_text_clusters (utf8, utf8_len,
 						glyphs, num_glyphs,
 						clusters, num_clusters, cluster_flags);
 	if (status == CAIRO_STATUS_INVALID_CLUSTERS) {
@@ -3409,14 +3547,89 @@ cairo_show_text_glyphs (cairo_t			   *cr,
 
 	    cairo_status_t status2;
 
-	    status2 = _cairo_ucs2_to_ucs4 (wcs, wcs_len, NULL, NULL);
+	    status2 = _cairo_utf8_to_ucs4 (utf8, utf8_len, NULL, NULL);
 	    if (status2)
 		status = status2;
 	} else {
 	    cairo_glyph_text_info_t info;
 
-	    info.wcs = wcs;
-	    info.wcs_len = wcs_len;
+	    info.utf8 = utf8;
+	    info.utf8_len = utf8_len;
+	    info.clusters = clusters;
+	    info.num_clusters = num_clusters;
+	    info.cluster_flags = cluster_flags;
+
+	    status = cr->backend->glyphs (cr, glyphs, num_glyphs, &info);
+	}
+    } else {
+	status = cr->backend->glyphs (cr, glyphs, num_glyphs, NULL);
+    }
+    if (unlikely (status))
+	_cairo_set_error (cr, status);
+}
+
+void
+cairo_show_ucs2_glyphs (cairo_t			   *cr,
+			const UCS2		   *ucs2, // extk
+			int			    ucs2_len,
+			const cairo_glyph_t	   *glyphs,
+			int			    num_glyphs,
+			const cairo_ucs2_cluster_t *clusters,
+			int			    num_clusters,
+			cairo_text_cluster_flags_t  cluster_flags)
+{
+    cairo_status_t status;
+
+    if (unlikely (cr->status))
+	return;
+
+    /* A slew of sanity checks */
+
+    /* Special case for NULL and -1 */
+    if (ucs2 == NULL && ucs2_len == -1)
+	ucs2_len = 0;
+
+    /* No NULLs for non-zeros */
+    if ((num_glyphs   && glyphs   == NULL) ||
+	(ucs2_len     && ucs2     == NULL) ||
+	(num_clusters && clusters == NULL)) {
+	_cairo_set_error (cr, CAIRO_STATUS_NULL_POINTER);
+	return;
+    }
+
+    /* A -1 for ucs2_len means NUL-terminated */
+    if (ucs2_len == -1)
+	ucs2_len = wcslen (ucs2);
+
+    /* Apart from that, no negatives */
+    if (num_glyphs < 0 || ucs2_len < 0 || num_clusters < 0) {
+	_cairo_set_error (cr, CAIRO_STATUS_NEGATIVE_COUNT);
+	return;
+    }
+
+    if (num_glyphs == 0 && ucs2_len == 0)
+	return;
+
+    if (ucs2) {
+	/* Make sure clusters cover the entire glyphs and ucs2 arrays,
+	 * and that cluster boundaries are UTF-8 boundaries. */
+	status = _cairo_validate_ucs2_clusters (ucs2, ucs2_len,
+						glyphs, num_glyphs,
+						clusters, num_clusters, cluster_flags);
+	if (status == CAIRO_STATUS_INVALID_CLUSTERS) {
+	    /* Either got invalid UTF-8 text, or cluster mapping is bad.
+	     * Differentiate those. */
+
+	    cairo_status_t status2;
+
+	    status2 = _cairo_ucs2_to_ucs4 (ucs2, ucs2_len, NULL, NULL);
+	    if (status2)
+		status = status2;
+	} else {
+	    cairo_glyph_ucs2_info_t info;
+
+	    info.ucs2 = ucs2;
+	    info.ucs2_len = ucs2_len;
 	    info.clusters = clusters;
 	    info.num_clusters = num_clusters;
 	    info.cluster_flags = cluster_flags;
@@ -3457,7 +3670,7 @@ cairo_show_text_glyphs (cairo_t			   *cr,
  * Since: 1.0
  **/
 void
-cairo_text_path (cairo_t *cr, const wchar_t *wcs) // extk
+cairo_text_path (cairo_t *cr, const char *utf8)
 {
     cairo_status_t status;
     cairo_text_extents_t extents;
@@ -3465,12 +3678,12 @@ cairo_text_path (cairo_t *cr, const wchar_t *wcs) // extk
     cairo_glyph_t *glyphs, *last_glyph;
     cairo_scaled_font_t *scaled_font;
     int num_glyphs;
-    floatt x, y;
+    double x, y;
 
     if (unlikely (cr->status))
 	return;
 
-    if (wcs == NULL)
+    if (utf8 == NULL)
 	return;
 
 
@@ -3486,7 +3699,67 @@ cairo_text_path (cairo_t *cr, const wchar_t *wcs) // extk
     cairo_get_current_point (cr, &x, &y);
     status = cairo_scaled_font_text_to_glyphs (scaled_font,
 					       x, y,
-					       wcs, -1,
+					       utf8, -1,
+					       &glyphs, &num_glyphs,
+					       NULL, NULL, NULL);
+
+    if (num_glyphs == 0)
+	return;
+
+    status = cr->backend->glyph_path (cr, glyphs, num_glyphs);
+
+    if (unlikely (status))
+	goto BAIL;
+
+    last_glyph = &glyphs[num_glyphs - 1];
+    status = cr->backend->glyph_extents (cr, last_glyph, 1, &extents);
+
+    if (unlikely (status))
+	goto BAIL;
+
+    x = last_glyph->x + extents.x_advance;
+    y = last_glyph->y + extents.y_advance;
+    cr->backend->move_to (cr, x, y);
+
+ BAIL:
+    if (glyphs != stack_glyphs)
+	cairo_glyph_free (glyphs);
+
+    if (unlikely (status))
+	_cairo_set_error (cr, status);
+}
+
+void
+cairo_ucs2_path (cairo_t *cr, const UCS2 *ucs2) // extk
+{
+    cairo_status_t status;
+    cairo_text_extents_t extents;
+    cairo_glyph_t stack_glyphs[CAIRO_STACK_ARRAY_LENGTH (cairo_glyph_t)];
+    cairo_glyph_t *glyphs, *last_glyph;
+    cairo_scaled_font_t *scaled_font;
+    int num_glyphs;
+    double x, y;
+
+    if (unlikely (cr->status))
+	return;
+
+    if (ucs2 == NULL)
+	return;
+
+
+    glyphs = stack_glyphs;
+    num_glyphs = ARRAY_LENGTH (stack_glyphs);
+
+    scaled_font = cairo_get_scaled_font (cr);
+    if (unlikely (scaled_font->status)) {
+	_cairo_set_error (cr, scaled_font->status);
+	return;
+    }
+
+    cairo_get_current_point (cr, &x, &y);
+    status = cairo_scaled_font_ucs2_to_glyphs (scaled_font,
+					       x, y,
+					       ucs2, -1,
 					       &glyphs, &num_glyphs,
 					       NULL, NULL, NULL);
 
@@ -3584,7 +3857,7 @@ cairo_get_operator (cairo_t *cr)
  *
  * Since: TBD
  **/
-floatt
+double
 cairo_get_opacity (cairo_t *cr)
 {
     if (unlikely (cr->status))
@@ -3604,7 +3877,7 @@ cairo_get_opacity (cairo_t *cr)
  *
  * Since: 1.0
  **/
-floatt
+double
 cairo_get_tolerance (cairo_t *cr)
 {
     if (unlikely (cr->status))
@@ -3687,9 +3960,9 @@ cairo_has_current_point (cairo_t *cr)
  * Since: 1.0
  **/
 void
-cairo_get_current_point (cairo_t *cr, floatt *x_ret, floatt *y_ret)
+cairo_get_current_point (cairo_t *cr, double *x_ret, double *y_ret)
 {
-    floatt x, y;
+    double x, y;
 
     x = y = 0;
     if (cr->status == CAIRO_STATUS_SUCCESS &&
@@ -3737,7 +4010,7 @@ cairo_get_fill_rule (cairo_t *cr)
  *
  * Since: 1.0
  **/
-floatt
+double
 cairo_get_line_width (cairo_t *cr)
 {
     if (unlikely (cr->status))
@@ -3795,7 +4068,7 @@ cairo_get_line_join (cairo_t *cr)
  *
  * Since: 1.0
  **/
-floatt
+double
 cairo_get_miter_limit (cairo_t *cr)
 {
     if (unlikely (cr->status))

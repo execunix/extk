@@ -263,8 +263,8 @@ render_glyphs (cairo_gl_surface_t *dst,
     for (i = 0; i < info->num_glyphs; i++) {
 	cairo_scaled_glyph_t *scaled_glyph;
 	cairo_gl_glyph_t *glyph;
-	floatt x_offset, y_offset;
-	floatt x1, x2, y1, y2;
+	double x_offset, y_offset;
+	double x1, x2, y1, y2;
 
 	status = _cairo_scaled_glyph_lookup (info->font,
 					     info->glyphs[i].index,

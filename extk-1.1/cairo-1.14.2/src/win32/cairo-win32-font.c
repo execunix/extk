@@ -102,13 +102,13 @@ typedef struct {
      * of the (desired font size) * (WIN32_FONT_LOGICAL_SCALE). The multiplication
      * by WIN32_FONT_LOGICAL_SCALE allows for sub-pixel precision.
      */
-    floatt logical_scale;
+    double logical_scale;
 
     /* The size we should actually request the font at from Windows; differs
      * from the logical_scale because it is quantized for orthogonal
      * transformations
      */
-    floatt logical_size;
+    double logical_size;
 
     /* Transformations from device <=> logical space
      */
@@ -125,8 +125,8 @@ typedef struct {
     cairo_bool_t swap_axes;
     cairo_bool_t swap_x;
     cairo_bool_t swap_y;
-    floatt x_scale;
-    floatt y_scale;
+    double x_scale;
+    double y_scale;
 
     /* The size of the design unit of the font
      */
@@ -636,8 +636,8 @@ _cairo_win32_scaled_font_fini (void *abstract_font)
 
 static cairo_int_status_t
 _cairo_win32_scaled_font_type1_text_to_glyphs (cairo_win32_scaled_font_t *scaled_font,
-					       floatt		          x,
-					       floatt		          y,
+					       double		          x,
+					       double		          y,
 					       const char	         *utf8,
 					       cairo_glyph_t            **glyphs,
 					       int		         *num_glyphs)
@@ -647,7 +647,7 @@ _cairo_win32_scaled_font_type1_text_to_glyphs (cairo_win32_scaled_font_t *scaled
     int i;
     WORD *glyph_indices = NULL;
     cairo_status_t status;
-    floatt x_pos, y_pos;
+    double x_pos, y_pos;
     HDC hdc = NULL;
     cairo_matrix_t mat;
 
@@ -727,8 +727,8 @@ FAIL1:
 
 static cairo_int_status_t
 _cairo_win32_scaled_font_text_to_glyphs (void		*abstract_font,
-					 floatt		x,
-					 floatt		y,
+					 double		x,
+					 double		y,
 					 const char	*utf8,
 					 cairo_glyph_t **glyphs,
 					 int		*num_glyphs)
@@ -741,8 +741,8 @@ _cairo_win32_scaled_font_text_to_glyphs (void		*abstract_font,
     WCHAR *glyph_indices = NULL;
     int *dx = NULL;
     cairo_status_t status;
-    floatt x_pos, y_pos;
-    floatt x_incr, y_incr;
+    double x_pos, y_pos;
+    double x_incr, y_incr;
     HDC hdc = NULL;
 
     /* GetCharacterPlacement() returns utf16 instead of glyph indices
@@ -859,7 +859,7 @@ _cairo_win32_scaled_font_ucs4_to_index (void		*abstract_font,
 					uint32_t	 ucs4)
 {
     cairo_win32_scaled_font_t *scaled_font = abstract_font;
-    wchar_t unicode[2];
+    UCS2 unicode[2];
     WORD glyph_index;
     HDC hdc = NULL;
     cairo_status_t status;
@@ -924,10 +924,10 @@ _cairo_win32_scaled_font_set_metrics (cairo_win32_scaled_font_t *scaled_font)
 	GetTextMetrics (hdc, &metrics);
 	_cairo_win32_scaled_font_done_unscaled_font (&scaled_font->base);
 
-	extents.ascent = (floatt)metrics.tmAscent / scaled_font->em_square;
-	extents.descent = (floatt)metrics.tmDescent / scaled_font->em_square;
-	extents.height = (floatt)(metrics.tmHeight + metrics.tmExternalLeading) / scaled_font->em_square;
-	extents.max_x_advance = (floatt)(metrics.tmMaxCharWidth) / scaled_font->em_square;
+	extents.ascent = (double)metrics.tmAscent / scaled_font->em_square;
+	extents.descent = (double)metrics.tmDescent / scaled_font->em_square;
+	extents.height = (double)(metrics.tmHeight + metrics.tmExternalLeading) / scaled_font->em_square;
+	extents.max_x_advance = (double)(metrics.tmMaxCharWidth) / scaled_font->em_square;
 	extents.max_y_advance = 0;
 
     }
@@ -1064,12 +1064,12 @@ _cairo_win32_scaled_font_init_glyph_metrics (cairo_win32_scaled_font_t *scaled_f
 	}
 	_cairo_win32_scaled_font_done_unscaled_font (&scaled_font->base);
 
-	extents.x_bearing = (floatt)metrics.gmptGlyphOrigin.x / scaled_font->em_square;
-	extents.y_bearing = - (floatt)metrics.gmptGlyphOrigin.y / scaled_font->em_square;
-	extents.width = (floatt)metrics.gmBlackBoxX / scaled_font->em_square;
-	extents.height = (floatt)metrics.gmBlackBoxY / scaled_font->em_square;
-	extents.x_advance = (floatt)metrics.gmCellIncX / scaled_font->em_square;
-	extents.y_advance = (floatt)metrics.gmCellIncY / scaled_font->em_square;
+	extents.x_bearing = (double)metrics.gmptGlyphOrigin.x / scaled_font->em_square;
+	extents.y_bearing = - (double)metrics.gmptGlyphOrigin.y / scaled_font->em_square;
+	extents.width = (double)metrics.gmBlackBoxX / scaled_font->em_square;
+	extents.height = (double)metrics.gmBlackBoxY / scaled_font->em_square;
+	extents.x_advance = (double)metrics.gmCellIncX / scaled_font->em_square;
+	extents.y_advance = (double)metrics.gmCellIncY / scaled_font->em_square;
     }
 
     _cairo_scaled_glyph_set_metrics (scaled_glyph,
@@ -1194,12 +1194,12 @@ _flush_glyphs (cairo_glyph_state_t *state)
 static cairo_status_t
 _add_glyph (cairo_glyph_state_t *state,
 	    unsigned long        index,
-	    floatt               device_x,
-	    floatt               device_y)
+	    double               device_x,
+	    double               device_y)
 {
     cairo_status_t status;
-    floatt user_x = device_x;
-    floatt user_y = device_y;
+    double user_x = device_x;
+    double user_y = device_y;
     WCHAR glyph_index = index;
     int logical_x, logical_y;
 
@@ -1637,8 +1637,8 @@ _cairo_win32_transform_FIXED_to_fixed (cairo_matrix_t *matrix,
                                        FIXED Fx, FIXED Fy,
                                        cairo_fixed_t *fx, cairo_fixed_t *fy)
 {
-    floatt x = Fx.value + Fx.fract / 65536.0;
-    floatt y = Fy.value + Fy.fract / 65536.0;
+    double x = Fx.value + Fx.fract / 65536.0;
+    double y = Fy.value + Fy.fract / 65536.0;
     cairo_matrix_transform_point (matrix, &x, &y);
     *fx = _cairo_fixed_from_double (x);
     *fy = _cairo_fixed_from_double (y);
@@ -1972,7 +1972,7 @@ _cairo_win32_font_face_keys_equal (const void *key_a,
 /* implement the platform-specific interface */
 
 static cairo_bool_t
-_is_scale (const cairo_matrix_t *matrix, floatt scale)
+_is_scale (const cairo_matrix_t *matrix, double scale)
 {
     return matrix->xx == scale && matrix->yy == scale &&
            matrix->xy == 0. && matrix->yx == 0. &&
@@ -2247,7 +2247,7 @@ cairo_win32_scaled_font_done_font (cairo_scaled_font_t *scaled_font)
  *
  * Since: 1.0
  **/
-floatt
+double
 cairo_win32_scaled_font_get_metrics_factor (cairo_scaled_font_t *scaled_font)
 {
     if (! _cairo_scaled_font_is_win32 (scaled_font)) {

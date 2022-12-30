@@ -152,9 +152,9 @@ _cairo_array_truncate (cairo_array_t *array, unsigned int num_elements)
  *
  * <informalexample><programlisting>
  *	cairo_array_t array;
- *	floatt *values;
+ *	double *values;
  *
- *	_cairo_array_init (&array, sizeof(floatt));
+ *	_cairo_array_init (&array, sizeof(double));
  *	... calls to _cairo_array_append() here ...
  *
  *	values = _cairo_array_index (&array, 0);
@@ -196,9 +196,9 @@ _cairo_array_index (cairo_array_t *array, unsigned int index)
  *
  * <informalexample><programlisting>
  *	cairo_array_t array;
- *	const floatt *values;
+ *	const double *values;
  *
- *	_cairo_array_init (&array, sizeof(floatt));
+ *	_cairo_array_init (&array, sizeof(double));
  *	... calls to _cairo_array_append() here ...
  *
  *	values = _cairo_array_index_const (&array, 0);

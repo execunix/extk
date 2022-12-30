@@ -60,22 +60,22 @@
    Of course, this error value applies only for the particular spline
    approximation that is used in _cairo_gstate_arc_segment.
 */
-static floatt
-_arc_error_normalized (floatt angle)
+static double
+_arc_error_normalized (double angle)
 {
     return 2.0/27.0 * pow (sin (angle / 4), 6) / pow (cos (angle / 4), 2);
 }
 
-static floatt
-_arc_max_angle_for_tolerance_normalized (floatt tolerance)
+static double
+_arc_max_angle_for_tolerance_normalized (double tolerance)
 {
-    floatt angle, error;
+    double angle, error;
     int i;
 
     /* Use table lookup to reduce search time in most cases. */
     struct {
-	floatt angle;
-	floatt error;
+	double angle;
+	double error;
     } table[] = {
 	{ M_PI / 1.0,   0.0185185185185185036127 },
 	{ M_PI / 2.0,   0.000272567143730179811158 },
@@ -105,12 +105,12 @@ _arc_max_angle_for_tolerance_normalized (floatt tolerance)
 }
 
 static int
-_arc_segments_needed (floatt	      angle,
-		      floatt	      radius,
+_arc_segments_needed (double	      angle,
+		      double	      radius,
 		      cairo_matrix_t *ctm,
-		      floatt	      tolerance)
+		      double	      tolerance)
 {
-    floatt major_axis, max_angle;
+    double major_axis, max_angle;
 
     /* the error is amplified by at most the length of the
      * major axis of the circle; see cairo-pen.c for a more detailed analysis
@@ -148,15 +148,15 @@ _arc_segments_needed (floatt	      angle,
 */
 static void
 _cairo_arc_segment (cairo_t *cr,
-		    floatt   xc,
-		    floatt   yc,
-		    floatt   radius,
-		    floatt   angle_A,
-		    floatt   angle_B)
+		    double   xc,
+		    double   yc,
+		    double   radius,
+		    double   angle_A,
+		    double   angle_B)
 {
-    floatt r_sin_A, r_cos_A;
-    floatt r_sin_B, r_cos_B;
-    floatt h;
+    double r_sin_A, r_cos_A;
+    double r_sin_B, r_cos_B;
+    double h;
 
     r_sin_A = radius * sin (angle_A);
     r_cos_A = radius * cos (angle_A);
@@ -176,11 +176,11 @@ _cairo_arc_segment (cairo_t *cr,
 
 static void
 _cairo_arc_in_direction (cairo_t	  *cr,
-			 floatt		   xc,
-			 floatt		   yc,
-			 floatt		   radius,
-			 floatt		   angle_min,
-			 floatt		   angle_max,
+			 double		   xc,
+			 double		   yc,
+			 double		   radius,
+			 double		   angle_min,
+			 double		   angle_max,
 			 cairo_direction_t dir)
 {
     if (cairo_status (cr))
@@ -196,7 +196,7 @@ _cairo_arc_in_direction (cairo_t	  *cr,
 
     /* Recurse if drawing arc larger than pi */
     if (angle_max - angle_min > M_PI) {
-	floatt angle_mid = angle_min + (angle_max - angle_min) / 2.0;
+	double angle_mid = angle_min + (angle_max - angle_min) / 2.0;
 	if (dir == CAIRO_DIRECTION_FORWARD) {
 	    _cairo_arc_in_direction (cr, xc, yc, radius,
 				     angle_min, angle_mid,
@@ -217,7 +217,7 @@ _cairo_arc_in_direction (cairo_t	  *cr,
     } else if (angle_max != angle_min) {
 	cairo_matrix_t ctm;
 	int i, segments;
-	floatt step;
+	double step;
 
 	cairo_get_matrix (cr, &ctm);
 	segments = _arc_segments_needed (angle_max - angle_min,
@@ -227,7 +227,7 @@ _cairo_arc_in_direction (cairo_t	  *cr,
 	segments -= 1;
 
 	if (dir == CAIRO_DIRECTION_REVERSE) {
-	    floatt t;
+	    double t;
 
 	    t = angle_min;
 	    angle_min = angle_max;
@@ -269,11 +269,11 @@ _cairo_arc_in_direction (cairo_t	  *cr,
  **/
 void
 _cairo_arc_path (cairo_t *cr,
-		 floatt	  xc,
-		 floatt	  yc,
-		 floatt	  radius,
-		 floatt	  angle1,
-		 floatt	  angle2)
+		 double	  xc,
+		 double	  yc,
+		 double	  radius,
+		 double	  angle1,
+		 double	  angle2)
 {
     _cairo_arc_in_direction (cr, xc, yc,
 			     radius,
@@ -299,11 +299,11 @@ _cairo_arc_path (cairo_t *cr,
  **/
 void
 _cairo_arc_path_negative (cairo_t *cr,
-			  floatt   xc,
-			  floatt   yc,
-			  floatt   radius,
-			  floatt   angle1,
-			  floatt   angle2)
+			  double   xc,
+			  double   yc,
+			  double   radius,
+			  double   angle1,
+			  double   angle2)
 {
     _cairo_arc_in_direction (cr, xc, yc,
 			     radius,

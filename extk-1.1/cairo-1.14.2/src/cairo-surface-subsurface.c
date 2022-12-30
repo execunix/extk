@@ -152,7 +152,7 @@ _cairo_surface_subsurface_fill (void			*abstract_surface,
 				const cairo_pattern_t	*source,
 				const cairo_path_fixed_t	*path,
 				cairo_fill_rule_t	 fill_rule,
-				floatt			 tolerance,
+				double			 tolerance,
 				cairo_antialias_t	 antialias,
 				const cairo_clip_t		*clip)
 {
@@ -178,7 +178,7 @@ _cairo_surface_subsurface_stroke (void				*abstract_surface,
 				  const cairo_stroke_style_t	*stroke_style,
 				  const cairo_matrix_t		*ctm,
 				  const cairo_matrix_t		*ctm_inverse,
-				  floatt			 tolerance,
+				  double			 tolerance,
 				  cairo_antialias_t		 antialias,
 				  const cairo_clip_t			*clip)
 {
@@ -430,7 +430,7 @@ static const cairo_surface_backend_t _cairo_surface_subsurface_backend = {
  * its bounds is drawn onto the target surface, making this a useful method
  * for passing constrained child surfaces to library routines that draw
  * directly onto the parent surface, i.e. with no further backend allocations,
- * floatt buffering or copies.
+ * double buffering or copies.
  *
  * <note><para>The semantics of subsurfaces have not been finalized yet
  * unless the rectangle is in full device units, is contained within
@@ -449,8 +449,8 @@ static const cairo_surface_backend_t _cairo_surface_subsurface_backend = {
  **/
 cairo_surface_t *
 cairo_surface_create_for_rectangle (cairo_surface_t *target,
-				    floatt x, floatt y,
-				    floatt width, floatt height)
+				    double x, double y,
+				    double width, double height)
 {
     cairo_surface_subsurface_t *surface;
 

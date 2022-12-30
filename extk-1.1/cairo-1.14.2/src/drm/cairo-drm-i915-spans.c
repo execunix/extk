@@ -172,7 +172,7 @@ i915_span_linear (i915_spans_t *spans,
 {
     float *vertices;
     float a = alpha / 255.;
-    floatt s, t;
+    double s, t;
 
     vertices = spans->get_rectangle (spans);
 
@@ -202,7 +202,7 @@ i915_span_texture (i915_spans_t *spans,
 {
     float *vertices;
     float a = alpha / 255.;
-    floatt s, t;
+    double s, t;
 
     vertices = spans->get_rectangle (spans);
 
@@ -234,7 +234,7 @@ i915_span_texture16 (i915_spans_t *spans,
 {
     float *vertices;
     float a = alpha / 255.;
-    floatt s, t;
+    double s, t;
 
     vertices = spans->get_rectangle (spans);
 
@@ -264,7 +264,7 @@ static void
 i915_span_generic (i915_spans_t *spans,
 		   int x0, int x1, int y0, int y1, int alpha)
 {
-    floatt s, t;
+    double s, t;
     float *vertices;
     float a = alpha / 255.;
 
@@ -583,7 +583,7 @@ i915_spans_init (i915_spans_t *spans,
 		 const cairo_pattern_t *pattern,
 		 cairo_antialias_t antialias,
 		 cairo_clip_t *clip,
-		 floatt opacity,
+		 double opacity,
 		 const cairo_composite_rectangles_t *extents)
 {
     cairo_status_t status;
@@ -682,7 +682,7 @@ i915_clip_and_composite_spans (i915_surface_t		*dst,
 			       void			*draw_closure,
 			       const cairo_composite_rectangles_t*extents,
 			       cairo_clip_t		*clip,
-			       floatt opacity)
+			       double opacity)
 {
     i915_spans_t spans;
     i915_device_t *device;

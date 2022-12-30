@@ -295,8 +295,8 @@ _cairo_path_to_quartz_context_move_to (void *closure,
 				       const cairo_point_t *point)
 {
     //ND ((stderr, "moveto: %f %f\n", _cairo_fixed_to_double (point->x), _cairo_fixed_to_double (point->y)));
-    floatt x = _cairo_fixed_to_double (point->x);
-    floatt y = _cairo_fixed_to_double (point->y);
+    double x = _cairo_fixed_to_double (point->x);
+    double y = _cairo_fixed_to_double (point->y);
 
     CGContextMoveToPoint (closure, x, y);
     return CAIRO_STATUS_SUCCESS;
@@ -307,8 +307,8 @@ _cairo_path_to_quartz_context_line_to (void *closure,
 				       const cairo_point_t *point)
 {
     //ND ((stderr, "lineto: %f %f\n",  _cairo_fixed_to_double (point->x), _cairo_fixed_to_double (point->y)));
-    floatt x = _cairo_fixed_to_double (point->x);
-    floatt y = _cairo_fixed_to_double (point->y);
+    double x = _cairo_fixed_to_double (point->x);
+    double y = _cairo_fixed_to_double (point->y);
 
     CGContextAddLineToPoint (closure, x, y);
     return CAIRO_STATUS_SUCCESS;
@@ -324,12 +324,12 @@ _cairo_path_to_quartz_context_curve_to (void *closure,
     //		   _cairo_fixed_to_double (p0->x), _cairo_fixed_to_double (p0->y),
     //		   _cairo_fixed_to_double (p1->x), _cairo_fixed_to_double (p1->y),
     //		   _cairo_fixed_to_double (p2->x), _cairo_fixed_to_double (p2->y)));
-    floatt x0 = _cairo_fixed_to_double (p0->x);
-    floatt y0 = _cairo_fixed_to_double (p0->y);
-    floatt x1 = _cairo_fixed_to_double (p1->x);
-    floatt y1 = _cairo_fixed_to_double (p1->y);
-    floatt x2 = _cairo_fixed_to_double (p2->x);
-    floatt y2 = _cairo_fixed_to_double (p2->y);
+    double x0 = _cairo_fixed_to_double (p0->x);
+    double y0 = _cairo_fixed_to_double (p0->y);
+    double x1 = _cairo_fixed_to_double (p1->x);
+    double y1 = _cairo_fixed_to_double (p1->y);
+    double x2 = _cairo_fixed_to_double (p2->x);
+    double y2 = _cairo_fixed_to_double (p2->y);
 
     CGContextAddCurveToPoint (closure, x0, y0, x1, y1, x2, y2);
     return CAIRO_STATUS_SUCCESS;
@@ -644,7 +644,7 @@ ComputeGradientValue (void *info,
                       const cairo_quartz_float_t *in,
                       cairo_quartz_float_t *out)
 {
-    floatt fdist = *in;
+    double fdist = *in;
     const cairo_gradient_pattern_t *grad = (cairo_gradient_pattern_t*) info;
     unsigned int i;
 
@@ -713,8 +713,8 @@ CairoQuartzCreateGradientFunction (const cairo_gradient_pattern_t *gradient,
     cairo_quartz_float_t input_value_range[2];
 
     if (gradient->base.extend != CAIRO_EXTEND_NONE) {
-	floatt bounds_x1, bounds_x2, bounds_y1, bounds_y2;
-	floatt t[2], tolerance;
+	double bounds_x1, bounds_x2, bounds_y1, bounds_y2;
+	double t[2], tolerance;
 
 	tolerance = fabs (_cairo_matrix_compute_determinant (&gradient->base.matrix));
 	tolerance /= _cairo_matrix_transformed_circle_major_axis (&gradient->base.matrix, 1);
@@ -1696,7 +1696,7 @@ _cairo_quartz_cg_mask_with_solid (cairo_quartz_surface_t *surface,
 				  cairo_composite_rectangles_t *extents)
 {
     cairo_quartz_drawing_state_t state;
-    floatt alpha = extents->mask_pattern.solid.color.alpha;
+    double alpha = extents->mask_pattern.solid.color.alpha;
     cairo_status_t status;
 
     status = _cairo_quartz_setup_state (&state, extents);
@@ -1808,7 +1808,7 @@ _cairo_quartz_cg_fill (const cairo_compositor_t *compositor,
 		       cairo_composite_rectangles_t *extents,
 		       const cairo_path_fixed_t *path,
 		       cairo_fill_rule_t fill_rule,
-		       floatt tolerance,
+		       double tolerance,
 		       cairo_antialias_t antialias)
 {
     cairo_quartz_drawing_state_t state;
@@ -1854,7 +1854,7 @@ _cairo_quartz_cg_stroke (const cairo_compositor_t *compositor,
 			 const cairo_stroke_style_t *style,
 			 const cairo_matrix_t *ctm,
 			 const cairo_matrix_t *ctm_inverse,
-			 floatt tolerance,
+			 double tolerance,
 			 cairo_antialias_t antialias)
 {
     cairo_quartz_drawing_state_t state;
@@ -2108,7 +2108,7 @@ _cairo_quartz_surface_fill (void *surface,
 			    const cairo_pattern_t *source,
 			    const cairo_path_fixed_t *path,
 			    cairo_fill_rule_t fill_rule,
-			    floatt tolerance,
+			    double tolerance,
 			    cairo_antialias_t antialias,
 			    const cairo_clip_t *clip)
 {
@@ -2126,7 +2126,7 @@ _cairo_quartz_surface_stroke (void *surface,
 			      const cairo_stroke_style_t *style,
 			      const cairo_matrix_t *ctm,
 			      const cairo_matrix_t *ctm_inverse,
-			      floatt tolerance,
+			      double tolerance,
 			      cairo_antialias_t antialias,
 			      const cairo_clip_t *clip)
 {
@@ -2155,7 +2155,7 @@ static cairo_status_t
 _cairo_quartz_surface_clipper_intersect_clip_path (cairo_surface_clipper_t *clipper,
 						   cairo_path_fixed_t *path,
 						   cairo_fill_rule_t fill_rule,
-						   floatt tolerance,
+						   double tolerance,
 						   cairo_antialias_t antialias)
 {
     cairo_quartz_surface_t *surface =

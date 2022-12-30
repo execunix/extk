@@ -145,7 +145,7 @@ static void blt_in(void *closure,
     rect.width  = w;
     rect.height = h;
 
-    _cairo_color_init_rgba (&color, 0, 0, 0, coverage / (floatt) 0xffff);
+    _cairo_color_init_rgba (&color, 0, 0, 0, coverage / (double) 0xffff);
     info->compositor->fill_rectangles (info->dst, CAIRO_OPERATOR_IN,
 				       &color, &rect, 1);
 }
@@ -1010,7 +1010,7 @@ struct composite_opacity_info {
     cairo_surface_t *dst;
     cairo_surface_t *src;
     int src_x, src_y;
-    floatt opacity;
+    double opacity;
 };
 
 static void composite_opacity(void *closure,
@@ -1081,7 +1081,7 @@ composite_opacity_boxes (const cairo_mask_compositor_t *compositor,
     } else
 	info.src = NULL;
 
-    info.opacity = mask_pattern->color.alpha / (floatt) 0xffff;
+    info.opacity = mask_pattern->color.alpha / (double) 0xffff;
 
     /* XXX for lots of boxes create a clip region for the fully opaque areas */
     for (i = 0; i < clip->num_boxes; i++)
@@ -1114,7 +1114,7 @@ static void composite_box(void *closure,
 	cairo_solid_pattern_t solid;
 	int mask_x, mask_y;
 
-	_cairo_color_init_rgba (&color, 0, 0, 0, coverage / (floatt)0xffff);
+	_cairo_color_init_rgba (&color, 0, 0, 0, coverage / (double)0xffff);
 	_cairo_pattern_init_solid (&solid, &color);
 
 	mask = compositor->pattern_to_surface (info->dst, &solid.base, FALSE,
@@ -1277,7 +1277,7 @@ _cairo_mask_compositor_stroke (const cairo_compositor_t *_compositor,
 			       const cairo_stroke_style_t	*style,
 			       const cairo_matrix_t	*ctm,
 			       const cairo_matrix_t	*ctm_inverse,
-			       floatt		 tolerance,
+			       double		 tolerance,
 			       cairo_antialias_t	 antialias)
 {
     const cairo_mask_compositor_t *compositor = (cairo_mask_compositor_t*)_compositor;
@@ -1349,7 +1349,7 @@ _cairo_mask_compositor_fill (const cairo_compositor_t *_compositor,
 			     cairo_composite_rectangles_t *extents,
 			     const cairo_path_fixed_t	*path,
 			     cairo_fill_rule_t	 fill_rule,
-			     floatt			 tolerance,
+			     double			 tolerance,
 			     cairo_antialias_t	 antialias)
 {
     const cairo_mask_compositor_t *compositor = (cairo_mask_compositor_t*)_compositor;

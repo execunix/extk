@@ -65,14 +65,14 @@ typedef enum _cairo_ps_level {
 
 cairo_public cairo_surface_t *
 cairo_ps_surface_create (const char		*filename,
-			 floatt			 width_in_points,
-			 floatt			 height_in_points);
+			 double			 width_in_points,
+			 double			 height_in_points);
 
 cairo_public cairo_surface_t *
 cairo_ps_surface_create_for_stream (cairo_write_func_t	write_func,
 				    void	       *closure,
-				    floatt		width_in_points,
-				    floatt		height_in_points);
+				    double		width_in_points,
+				    double		height_in_points);
 
 cairo_public void
 cairo_ps_surface_restrict_to_level (cairo_surface_t    *surface,
@@ -94,8 +94,8 @@ cairo_ps_surface_get_eps (cairo_surface_t	*surface);
 
 cairo_public void
 cairo_ps_surface_set_size (cairo_surface_t	*surface,
-			   floatt		 width_in_points,
-			   floatt		 height_in_points);
+			   double		 width_in_points,
+			   double		 height_in_points);
 
 cairo_public void
 cairo_ps_surface_dsc_comment (cairo_surface_t	*surface,

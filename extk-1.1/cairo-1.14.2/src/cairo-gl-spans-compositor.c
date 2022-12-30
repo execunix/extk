@@ -55,7 +55,7 @@ typedef struct _cairo_gl_span_renderer {
     cairo_span_renderer_t base;
 
     cairo_gl_composite_t setup;
-    floatt opacity;
+    double opacity;
 
     cairo_gl_emit_span_t emit;
 

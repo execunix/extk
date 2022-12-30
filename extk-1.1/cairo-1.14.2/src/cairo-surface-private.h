@@ -79,15 +79,15 @@ struct _cairo_surface {
     cairo_list_t device_transform_observers;
 
     /* The actual resolution of the device, in dots per inch. */
-    floatt x_resolution;
-    floatt y_resolution;
+    double x_resolution;
+    double y_resolution;
 
     /* The resolution that should be used when generating image-based
      * fallback; generally only used by the analysis/paginated
      * surfaces
      */
-    floatt x_fallback_resolution;
-    floatt y_fallback_resolution;
+    double x_fallback_resolution;
+    double y_fallback_resolution;
 
     /* A "snapshot" surface is immutable. See _cairo_surface_snapshot. */
     cairo_surface_t *snapshot_of;

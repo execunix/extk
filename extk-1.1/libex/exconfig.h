@@ -104,15 +104,17 @@ typedef unsigned   short ushort;
 typedef unsigned    long ulong;
 typedef unsigned     int uint;
 
-typedef unsigned   short ucs2;
-typedef unsigned     int ucs4;
-typedef wchar_t          wchar;
+typedef          wchar_t wchar;
 
 #if defined(_MSC_VER)
-//typedef float floatt;
-#else // compat linux
-typedef double floatt;
+typedef          wchar_t ucs2_t;
+typedef         uint32_t ucs4_t;
+#else
+typedef         uint16_t ucs2_t;
+typedef          wchar_t ucs4_t;
 #endif
+typedef           ucs2_t UCS2;
+typedef           ucs4_t UCS4;
 
 #ifdef _DEBUG
 #ifndef DEBUG

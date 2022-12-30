@@ -146,7 +146,7 @@ typedef struct cairo_gl_operand {
 	    cairo_gl_gradient_t *gradient;
 	    cairo_matrix_t m;
 	    cairo_circle_double_t circle_d;
-	    floatt radius_0, a;
+	    double radius_0, a;
 	    cairo_extend_t extend;
 	    int texgen;
 	} gradient;
@@ -760,7 +760,7 @@ _cairo_gl_operand_copy (cairo_gl_operand_t *dst,
 
 cairo_private void
 _cairo_gl_operand_translate (cairo_gl_operand_t *operand,
-			     floatt tx, floatt ty);
+			     double tx, double ty);
 
 cairo_private void
 _cairo_gl_operand_destroy (cairo_gl_operand_t *operand);

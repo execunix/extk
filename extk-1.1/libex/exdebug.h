@@ -83,9 +83,9 @@ const wchar* _wcserror(int errval);
 
 #endif // _WIN32_WCE
 
-extern int         dprint_verbose; // default 999 (0:quiet)
-extern int         dprint_charset; // default 949
-extern const char* dprint_appname; // default "[*] "
+extern int dprint_charset; // default 949
+extern int dprint_verbose; // default 999 (0:quiet)
+extern int (*ex_dprint_appinfo)(char* mbs, int len); // default "[*] "
 extern int (*ex_dprint_handler)(int lvl, const char* mbs);
 
 int debug_vprintf(int lvl, const wchar* fmt, va_list arg);
@@ -109,6 +109,8 @@ int debug_print(const char* fmt, ...);
 #else
 #define dprint dprint1
 #endif
+// WIN32 : dprint(7, L"%s %S", L"App", "Test");
+// LINUX : dprint(7, L"%ls %s", L"App", "Test");
 
 /*
  * The purpose of this function is to allow the user to set a breakpoint

@@ -32,10 +32,10 @@
 #include <math.h>
 #include "pixman-private.h"
 
-static force_inline floatt
-coordinates_to_parameter (floatt x, floatt y, floatt angle)
+static force_inline double
+coordinates_to_parameter (double x, double y, double angle)
 {
-    floatt t;
+    double t;
 
     t = atan2 (y, x) + angle;
 
@@ -64,12 +64,12 @@ conical_get_scanline_narrow (pixman_iter_t *iter, const uint32_t *mask)
     uint32_t       *end = buffer + width;
     pixman_gradient_walker_t walker;
     pixman_bool_t affine = TRUE;
-    floatt cx = 1.;
-    floatt cy = 0.;
-    floatt cz = 0.;
-    floatt rx = x + 0.5;
-    floatt ry = y + 0.5;
-    floatt rz = 1.;
+    double cx = 1.;
+    double cy = 0.;
+    double cz = 0.;
+    double rx = x + 0.5;
+    double ry = y + 0.5;
+    double rz = 1.;
 
     _pixman_gradient_walker_init (&walker, gradient, image->common.repeat);
 
@@ -107,7 +107,7 @@ conical_get_scanline_narrow (pixman_iter_t *iter, const uint32_t *mask)
 	{
 	    if (!mask || *mask++)
 	    {
-		floatt t = coordinates_to_parameter (rx, ry, conical->angle);
+		double t = coordinates_to_parameter (rx, ry, conical->angle);
 
 		*buffer = _pixman_gradient_walker_pixel (
 		    &walker, (pixman_fixed_48_16_t)pixman_double_to_fixed (t));
@@ -123,11 +123,11 @@ conical_get_scanline_narrow (pixman_iter_t *iter, const uint32_t *mask)
     {
 	while (buffer < end)
 	{
-	    floatt x, y;
+	    double x, y;
 
 	    if (!mask || *mask++)
 	    {
-		floatt t;
+		double t;
 
 		if (rz != 0)
 		{

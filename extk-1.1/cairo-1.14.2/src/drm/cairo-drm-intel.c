@@ -844,7 +844,7 @@ intel_glyph_cache_add_glyph (intel_device_t *device,
     cairo_image_surface_t *glyph_surface = scaled_glyph->surface;
     intel_glyph_t *glyph;
     cairo_rtree_node_t *node = NULL;
-    floatt sf_x, sf_y;
+    double sf_x, sf_y;
     cairo_status_t status;
     uint8_t *dst, *src;
     int width, height;
@@ -1241,8 +1241,8 @@ intel_gradient_sample_width (const cairo_gradient_pattern_t *gradient)
 
     width = 8;
     for (n = 1; n < gradient->n_stops; n++) {
-	floatt dx = gradient->stops[n].offset - gradient->stops[n-1].offset;
-	floatt delta, max;
+	double dx = gradient->stops[n].offset - gradient->stops[n-1].offset;
+	double delta, max;
 	int ramp;
 
 	if (dx == 0)

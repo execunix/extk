@@ -43,7 +43,7 @@ typedef struct _cairo_cogl_context {
     cairo_path_fixed_t user_path;
 
     cairo_bool_t path_is_rectangle;
-    floatt x, y, width, height;
+    double x, y, width, height;
 } cairo_cogl_context_t;
 
 cairo_t *

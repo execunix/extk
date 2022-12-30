@@ -71,11 +71,11 @@
 void
 _cairo_output_stream_init (cairo_output_stream_t            *stream,
 			   cairo_output_stream_write_func_t  write_func,
-			   cairo_output_stream_flush_func_t  flushFunc,
+			   cairo_output_stream_flush_func_t  flush_func,
 			   cairo_output_stream_close_func_t  close_func)
 {
     stream->write_func = write_func;
-    stream->flushFunc = flushFunc;
+    stream->flush_func = flush_func;
     stream->close_func = close_func;
     stream->position = 0;
     stream->status = CAIRO_STATUS_SUCCESS;
@@ -90,7 +90,7 @@ _cairo_output_stream_fini (cairo_output_stream_t *stream)
 
 const cairo_output_stream_t _cairo_output_stream_nil = {
     NULL, /* write_func */
-    NULL, /* flushFunc */
+    NULL, /* flush_func */
     NULL, /* close_func */
     0,    /* position */
     CAIRO_STATUS_NO_MEMORY,
@@ -99,7 +99,7 @@ const cairo_output_stream_t _cairo_output_stream_nil = {
 
 static const cairo_output_stream_t _cairo_output_stream_nil_write_error = {
     NULL, /* write_func */
-    NULL, /* flushFunc */
+    NULL, /* flush_func */
     NULL, /* close_func */
     0,    /* position */
     CAIRO_STATUS_WRITE_ERROR,
@@ -199,8 +199,8 @@ _cairo_output_stream_flush (cairo_output_stream_t *stream)
 	return stream->status;
     }
 
-    if (stream->flushFunc) {
-	status = stream->flushFunc (stream);
+    if (stream->flush_func) {
+	status = stream->flush_func (stream);
 	/* Don't overwrite a pre-existing status failure. */
 	if (stream->status == CAIRO_STATUS_SUCCESS)
 	    stream->status = status;
@@ -291,7 +291,7 @@ _cairo_output_stream_write_hex_string (cairo_output_stream_t *stream,
     }
 }
 
-/* Format a floatt in a locale independent way and trim trailing
+/* Format a double in a locale independent way and trim trailing
  * zeros.  Based on code from Alex Larson <alexl@redhat.com>.
  * http://mail.gnome.org/archives/gtk-devel-list/2001-October/msg00087.html
  *
@@ -300,7 +300,7 @@ _cairo_output_stream_write_hex_string (cairo_output_stream_t *stream,
  * into cairo (see COPYING). -- Kristian Høgsberg <krh@redhat.com>
  */
 static void
-_cairo_dtostr (char *buffer, size_t size, floatt d, cairo_bool_t limited_precision)
+_cairo_dtostr (char *buffer, size_t size, double d, cairo_bool_t limited_precision)
 {
     const char *decimal_point;
     int decimal_point_len;
@@ -495,10 +495,10 @@ _cairo_output_stream_vprintf (cairo_output_stream_t *stream,
 		      single_fmt, va_arg (ap, const char *));
 	    break;
 	case 'f':
-	    _cairo_dtostr (buffer, sizeof buffer, va_arg (ap, floatt), FALSE);
+	    _cairo_dtostr (buffer, sizeof buffer, va_arg (ap, double), FALSE);
 	    break;
 	case 'g':
-	    _cairo_dtostr (buffer, sizeof buffer, va_arg (ap, floatt), TRUE);
+	    _cairo_dtostr (buffer, sizeof buffer, va_arg (ap, double), TRUE);
 	    break;
 	case 'c':
 	    buffer[0] = va_arg (ap, int);
@@ -536,7 +536,7 @@ _cairo_output_stream_print_matrix (cairo_output_stream_t *stream,
 				   const cairo_matrix_t  *matrix)
 {
     cairo_matrix_t m;
-    floatt s, e;
+    double s, e;
 
     m = *matrix;
     s = fabs (m.xx);

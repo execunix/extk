@@ -764,7 +764,7 @@ _cairo_path_buf_create (int size_ops, int size_points)
     cairo_path_buf_t *buf;
 
     /* adjust size_ops to ensure that buf->points is naturally aligned */
-    size_ops += sizeof (floatt) - ((sizeof (cairo_path_buf_t) + size_ops) % sizeof (floatt));
+    size_ops += sizeof (double) - ((sizeof (cairo_path_buf_t) + size_ops) % sizeof (double));
     buf = _cairo_malloc_ab_plus_c (size_points, sizeof (cairo_point_t), size_ops + sizeof (cairo_path_buf_t));
     if (buf) {
 	buf->num_ops = 0;
@@ -1026,7 +1026,7 @@ static inline void
 _cairo_path_fixed_transform_point (cairo_point_t *p,
 				   const cairo_matrix_t *matrix)
 {
-    floatt dx, dy;
+    double dx, dy;
 
     dx = _cairo_fixed_to_double (p->x);
     dy = _cairo_fixed_to_double (p->y);
@@ -1104,7 +1104,7 @@ _cairo_path_fixed_transform (cairo_path_fixed_t	*path,
 
 /* Closure for path flattening */
 typedef struct cairo_path_flattener {
-    floatt tolerance;
+    double tolerance;
     cairo_point_t current_point;
     cairo_path_fixed_move_to_func_t	*move_to;
     cairo_path_fixed_line_to_func_t	*line_to;
@@ -1172,7 +1172,7 @@ _cairo_path_fixed_interpret_flat (const cairo_path_fixed_t		*path,
 				  cairo_path_fixed_line_to_func_t	*line_to,
 				  cairo_path_fixed_close_path_func_t	*close_path,
 				  void					*closure,
-				  floatt				tolerance)
+				  double				tolerance)
 {
     cpf_t flattener;
 

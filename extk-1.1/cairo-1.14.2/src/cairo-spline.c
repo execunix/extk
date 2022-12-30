@@ -171,11 +171,11 @@ _de_casteljau (cairo_spline_knots_t *s1, cairo_spline_knots_t *s2)
 
 /* Return an upper bound on the error (squared) that could result from
  * approximating a spline as a line segment connecting the two endpoints. */
-static floatt
+static double
 _cairo_spline_error_squared (const cairo_spline_knots_t *knots)
 {
-    floatt bdx, bdy, berr;
-    floatt cdx, cdy, cerr;
+    double bdx, bdy, berr;
+    double cdx, cdy, cerr;
 
     /* We are going to compute the distance (squared) between each of the the b
      * and c control points and the segment a-b. The maximum of these two
@@ -195,7 +195,7 @@ _cairo_spline_error_squared (const cairo_spline_knots_t *knots)
 	 *     u = ((p - p1) ∙ (p2 - p1)) / ∥p2 - p1∥²;
 	 */
 
-	floatt dx, dy, u, v;
+	double dx, dy, u, v;
 
 	dx = _cairo_fixed_to_double (knots->d.x - knots->a.x);
 	dy = _cairo_fixed_to_double (knots->d.y - knots->a.y);
@@ -238,7 +238,7 @@ _cairo_spline_error_squared (const cairo_spline_knots_t *knots)
 
 static cairo_status_t
 _cairo_spline_decompose_into (cairo_spline_knots_t *s1,
-			      floatt tolerance_squared,
+			      double tolerance_squared,
 			      cairo_spline_t *result)
 {
     cairo_spline_knots_t s2;
@@ -257,7 +257,7 @@ _cairo_spline_decompose_into (cairo_spline_knots_t *s1,
 }
 
 cairo_status_t
-_cairo_spline_decompose (cairo_spline_t *spline, floatt tolerance)
+_cairo_spline_decompose (cairo_spline_t *spline, double tolerance)
 {
     cairo_spline_knots_t s1;
     cairo_status_t status;
@@ -279,10 +279,10 @@ _cairo_spline_bound (cairo_spline_add_point_func_t add_point_func,
 		     const cairo_point_t *p0, const cairo_point_t *p1,
 		     const cairo_point_t *p2, const cairo_point_t *p3)
 {
-    floatt x0, x1, x2, x3;
-    floatt y0, y1, y2, y3;
-    floatt a, b, c;
-    floatt t[4];
+    double x0, x1, x2, x3;
+    double y0, y1, y2, y3;
+    double a, b, c;
+    double t[4];
     int t_num = 0, i;
     cairo_status_t status;
 
@@ -329,7 +329,7 @@ _cairo_spline_bound (cairo_spline_add_point_func_t add_point_func,
 
 #define ADD(t0) \
     { \
-	floatt _t0 = (t0); \
+	double _t0 = (t0); \
 	if (0 < _t0 && _t0 < 1) \
 	    t[t_num++] = _t0; \
     }
@@ -340,11 +340,11 @@ _cairo_spline_bound (cairo_spline_add_point_func_t add_point_func,
 	    if (b != 0) \
 		ADD (-c / (2*b)); \
 	} else { \
-	    floatt b2 = b * b; \
-	    floatt delta = b2 - a * c; \
+	    double b2 = b * b; \
+	    double delta = b2 - a * c; \
 	    if (delta > 0) { \
 		cairo_bool_t feasible; \
-		floatt _2ab = 2 * a * b; \
+		double _2ab = 2 * a * b; \
 		/* We are only interested in solutions t that satisfy 0<t<1 \
 		 * here.  We do some checks to avoid sqrt if the solutions \
 		 * are not in that range.  The checks can be derived from: \
@@ -359,7 +359,7 @@ _cairo_spline_bound (cairo_spline_add_point_func_t add_point_func,
 		    feasible = delta < b2 || delta < a*a + b2 + _2ab; \
 	        \
 		if (unlikely (feasible)) { \
-		    floatt sqrt_delta = sqrt (delta); \
+		    double sqrt_delta = sqrt (delta); \
 		    ADD ((-b - sqrt_delta) / a); \
 		    ADD ((-b + sqrt_delta) / a); \
 		} \
@@ -387,10 +387,10 @@ _cairo_spline_bound (cairo_spline_add_point_func_t add_point_func,
 
     for (i = 0; i < t_num; i++) {
 	cairo_point_t p;
-	floatt x, y;
-        floatt t_1_0, t_0_1;
-        floatt t_2_0, t_0_2;
-        floatt t_3_0, t_2_1_3, t_1_2_3, t_0_3;
+	double x, y;
+        double t_1_0, t_0_1;
+        double t_2_0, t_0_2;
+        double t_3_0, t_2_1_3, t_1_2_3, t_0_3;
 
         t_1_0 = t[i];          /*      t  */
         t_0_1 = 1 - t_1_0;     /* (1 - t) */

@@ -293,8 +293,8 @@ static cairo_int_status_t
 _paint_fallback_image (cairo_paginated_surface_t *surface,
 		       cairo_rectangle_int_t     *rect)
 {
-    floatt x_scale = surface->base.x_fallback_resolution / surface->target->x_resolution;
-    floatt y_scale = surface->base.y_fallback_resolution / surface->target->y_resolution;
+    double x_scale = surface->base.x_fallback_resolution / surface->target->x_resolution;
+    double y_scale = surface->base.y_fallback_resolution / surface->target->y_resolution;
     int x, y, width, height;
     cairo_status_t status;
     cairo_surface_t *image;
@@ -584,7 +584,7 @@ _cairo_paginated_surface_stroke (void			*abstract_surface,
 				 const cairo_stroke_style_t	*style,
 				 const cairo_matrix_t		*ctm,
 				 const cairo_matrix_t		*ctm_inverse,
-				 floatt			 tolerance,
+				 double			 tolerance,
 				 cairo_antialias_t	 antialias,
 				 const cairo_clip_t		*clip)
 {
@@ -603,7 +603,7 @@ _cairo_paginated_surface_fill (void			*abstract_surface,
 			       const cairo_pattern_t	*source,
 			       const cairo_path_fixed_t	*path,
 			       cairo_fill_rule_t	 fill_rule,
-			       floatt			 tolerance,
+			       double			 tolerance,
 			       cairo_antialias_t	 antialias,
 			       const cairo_clip_t		*clip)
 {
@@ -627,8 +627,8 @@ static cairo_int_status_t
 _cairo_paginated_surface_show_text_glyphs (void			      *abstract_surface,
 					   cairo_operator_t	       op,
 					   const cairo_pattern_t      *source,
-					   const wchar_t	      *wcs, // extk
-					   int			       wcs_len,
+					   const char		      *utf8,
+					   int			       utf8_len,
 					   cairo_glyph_t	      *glyphs,
 					   int			       num_glyphs,
 					   const cairo_text_cluster_t *clusters,
@@ -640,7 +640,32 @@ _cairo_paginated_surface_show_text_glyphs (void			      *abstract_surface,
     cairo_paginated_surface_t *surface = abstract_surface;
 
     return _cairo_surface_show_text_glyphs (surface->recording_surface, op, source,
-					    wcs, wcs_len,
+					    utf8, utf8_len,
+					    glyphs, num_glyphs,
+					    clusters, num_clusters,
+					    cluster_flags,
+					    scaled_font,
+					    clip);
+}
+
+static cairo_int_status_t
+_cairo_paginated_surface_show_ucs2_glyphs (void			      *abstract_surface,
+					   cairo_operator_t	       op,
+					   const cairo_pattern_t      *source,
+					   const UCS2		      *ucs2, // extk
+					   int			       ucs2_len,
+					   cairo_glyph_t	      *glyphs,
+					   int			       num_glyphs,
+					   const cairo_text_cluster_t *clusters,
+					   int			       num_clusters,
+					   cairo_text_cluster_flags_t  cluster_flags,
+					   cairo_scaled_font_t	      *scaled_font,
+					   const cairo_clip_t		      *clip)
+{
+    cairo_paginated_surface_t *surface = abstract_surface;
+
+    return _cairo_surface_show_ucs2_glyphs (surface->recording_surface, op, source,
+					    ucs2, ucs2_len,
 					    glyphs, num_glyphs,
 					    clusters, num_clusters,
 					    cluster_flags,
@@ -712,5 +737,6 @@ static const cairo_surface_backend_t cairo_paginated_surface_backend = {
     NULL, /* show_glyphs */
     _cairo_paginated_surface_has_show_text_glyphs,
     _cairo_paginated_surface_show_text_glyphs,
+    _cairo_paginated_surface_show_ucs2_glyphs,
     _cairo_paginated_surface_get_supported_mime_types,
 };

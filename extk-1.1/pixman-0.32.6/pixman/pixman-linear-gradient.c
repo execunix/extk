@@ -42,7 +42,7 @@ linear_gradient_is_horizontal (pixman_image_t *image,
     pixman_vector_t v;
     pixman_fixed_32_32_t l;
     pixman_fixed_48_16_t dx, dy;
-    floatt inc;
+    double inc;
 
     if (image->common.transform)
     {
@@ -77,9 +77,9 @@ linear_gradient_is_horizontal (pixman_image_t *image,
      * compute how much the input of the gradient walked changes
      * when moving vertically through the whole image
      */
-    inc = height * (floatt) pixman_fixed_1 * pixman_fixed_1 *
+    inc = height * (double) pixman_fixed_1 * pixman_fixed_1 *
 	(dx * v.vector[0] + dy * v.vector[1]) /
-	(v.vector[2] * (floatt) l);
+	(v.vector[2] * (double) l);
 
     /* check that casting to integer would result in 0 */
     if (-1 < inc && inc < 1)
@@ -138,7 +138,7 @@ linear_get_scanline_narrow (pixman_iter_t  *iter,
     {
 	/* affine transformation only */
         pixman_fixed_32_32_t t, next_inc;
-	floatt inc;
+	double inc;
 
 	if (l == 0 || v.vector[2] == 0)
 	{
@@ -147,10 +147,10 @@ linear_get_scanline_narrow (pixman_iter_t  *iter,
 	}
 	else
 	{
-	    floatt invden, v2;
+	    double invden, v2;
 
-	    invden = pixman_fixed_1 * (floatt) pixman_fixed_1 /
-		(l * (floatt) v.vector[2]);
+	    invden = pixman_fixed_1 * (double) pixman_fixed_1 /
+		(l * (double) v.vector[2]);
 	    v2 = v.vector[2] * (1. / pixman_fixed_1);
 	    t = ((dx * v.vector[0] + dy * v.vector[1]) - 
 		 (dx * linear->p1.x + dy * linear->p1.y) * v2) * invden;
@@ -187,7 +187,7 @@ linear_get_scanline_narrow (pixman_iter_t  *iter,
     else
     {
 	/* projective transformation */
-        floatt t;
+        double t;
 
 	t = 0;
 
@@ -197,10 +197,10 @@ linear_get_scanline_narrow (pixman_iter_t  *iter,
 	    {
 	        if (v.vector[2] != 0)
 		{
-		    floatt invden, v2;
+		    double invden, v2;
 
-		    invden = pixman_fixed_1 * (floatt) pixman_fixed_1 /
-			(l * (floatt) v.vector[2]);
+		    invden = pixman_fixed_1 * (double) pixman_fixed_1 /
+			(l * (double) v.vector[2]);
 		    v2 = v.vector[2] * (1. / pixman_fixed_1);
 		    t = ((dx * v.vector[0] + dy * v.vector[1]) - 
 			 (dx * linear->p1.x + dy * linear->p1.y) * v2) * invden;

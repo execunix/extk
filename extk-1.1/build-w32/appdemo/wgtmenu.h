@@ -41,7 +41,7 @@ class WgtMenu : public ExWidget {
     public:
         ExWidget* menuPop; // new
         Menu* link; // ref
-        floatt ani;
+        double ani;
         ExTimer timerAni;
     public:
         ~Popup() { clear(); }
@@ -61,7 +61,7 @@ class WgtMenu : public ExWidget {
     };
 
     const UINT WM_APP_MENUPOPUP = ExRegAppMessage();
-    const floatt fontSize = 12.f;
+    const double fontSize = 12.f;
     const int menuHeight = 28;
 protected:
     ExWindow* window;

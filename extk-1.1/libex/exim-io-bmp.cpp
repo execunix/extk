@@ -72,11 +72,11 @@ int ExImage::loadBmp(HANDLE hFile, const wchar* fname, bool query)
         for (; y_count > 0; y_count--) {
             if (!ReadFile(hFile, src_buf, src_bpl, &dwRead, NULL) ||
                 dwRead != src_bpl) goto bmp_cleanup;
-            register void* dp_end = dst_ptr + x_delta;
-            register UINT* dp = (UINT*)dst_ptr;
-            register WORD* sp = (WORD*)src_buf;
+            void* dp_end = dst_ptr + x_delta;
+            UINT* dp = (UINT*)dst_ptr;
+            WORD* sp = (WORD*)src_buf;
             while ((void*)dp < dp_end) {
-                register UINT c = *sp++;
+                UINT c = *sp++;
                 c = Ex555to8888(c);
                 c |= 0xff000000;
                 *dp++ = c;
@@ -87,13 +87,13 @@ int ExImage::loadBmp(HANDLE hFile, const wchar* fname, bool query)
         for (; y_count > 0; y_count--) {
             if (!ReadFile(hFile, src_buf, src_bpl, &dwRead, NULL) ||
                 dwRead != src_bpl) goto bmp_cleanup;
-            register void* dp_end = dst_ptr + x_delta;
-            register UINT* dp = (UINT*)dst_ptr;
-            register BYTE* sp = (BYTE*)src_buf;
+            void* dp_end = dst_ptr + x_delta;
+            UINT* dp = (UINT*)dst_ptr;
+            BYTE* sp = (BYTE*)src_buf;
             while ((void*)dp < dp_end) {
-                register UINT b = *sp++;
-                register UINT g = *sp++;
-                register UINT r = *sp++;
+                UINT b = *sp++;
+                UINT g = *sp++;
+                UINT r = *sp++;
                 *dp++ = (0xff000000 | (r << 16) | (g << 8) | b);
                 //*dp++ = ExARGB(0xff, sp[2], sp[1], sp[0]);
                 //sp += 3;
@@ -104,11 +104,11 @@ int ExImage::loadBmp(HANDLE hFile, const wchar* fname, bool query)
         for (; y_count > 0; y_count--) {
             if (!ReadFile(hFile, src_buf, src_bpl, &dwRead, NULL) ||
                 dwRead != src_bpl) goto bmp_cleanup;
-            register void* dp_end = dst_ptr + x_delta;
-            register UINT* dp = (UINT*)dst_ptr;
-            register UINT* sp = (UINT*)src_buf;
+            void* dp_end = dst_ptr + x_delta;
+            UINT* dp = (UINT*)dst_ptr;
+            UINT* sp = (UINT*)src_buf;
             while ((void*)dp < dp_end) {
-                register UINT c = *sp++;
+                UINT c = *sp++;
                 c |= 0xff000000;
                 *dp++ = c;
             }
@@ -200,11 +200,11 @@ int ExImage::loadBmp(int fd, const char* fname, bool query)
             for (; y_count > 0; y_count--) {
                 if (read(fd, src_buf, src_bpl) != src_bpl)
                     goto bmp_cleanup;
-                register void* dp_end = dst_ptr + x_delta;
-                register uint32* dp = (uint32*)dst_ptr;
-                register uint8* sp = (uint8*)src_buf;
+                void* dp_end = dst_ptr + x_delta;
+                uint32* dp = (uint32*)dst_ptr;
+                uint8* sp = (uint8*)src_buf;
                 while ((void*)dp < dp_end) {
-                    register uint8 c = *sp++;
+                    uint8 c = *sp++;
                     *dp++ = cmap[c];
                 }
                 dst_ptr += dst_offbpl;
@@ -213,11 +213,11 @@ int ExImage::loadBmp(int fd, const char* fname, bool query)
             for (; y_count > 0; y_count--) {
                 if (read(fd, src_buf, src_bpl) != src_bpl)
                     goto bmp_cleanup;
-                register void* dp_end = dst_ptr + x_delta;
-                register uint32* dp = (uint32*)dst_ptr;
-                register uint16* sp = (uint16*)src_buf;
+                void* dp_end = dst_ptr + x_delta;
+                uint32* dp = (uint32*)dst_ptr;
+                uint16* sp = (uint16*)src_buf;
                 while ((void*)dp < dp_end) {
-                    register uint32 c = *sp++;
+                    uint32 c = *sp++;
                     c = Ex555to8888(c);
                     c |= 0xff000000;
                     *dp++ = c;
@@ -228,15 +228,15 @@ int ExImage::loadBmp(int fd, const char* fname, bool query)
             for (; y_count > 0; y_count--) {
                 if (read(fd, src_buf, src_bpl) != src_bpl)
                     goto bmp_cleanup;
-                register void* dp_end = dst_ptr + x_delta;
-                register uint32* dp = (uint32*)dst_ptr;
-                register uint8* sp = src_buf;
+                void* dp_end = dst_ptr + x_delta;
+                uint32* dp = (uint32*)dst_ptr;
+                uint8* sp = src_buf;
                 while ((void*)dp < dp_end) {
-                    register uint32 b = *sp++;
-                    register uint32 g = *sp++;
-                    register uint32 r = *sp++;
+                    uint32 b = *sp++;
+                    uint32 g = *sp++;
+                    uint32 r = *sp++;
 #ifdef BMP24_CHROMA
-                    register uint32 rgb = (r << 16) | (g << 8) | b;
+                    uint32 rgb = (r << 16) | (g << 8) | b;
                     if (!(chroma && chroma == rgb))
                         rgb |= 0xff000000;
                     else
@@ -254,11 +254,11 @@ int ExImage::loadBmp(int fd, const char* fname, bool query)
             for (; y_count > 0; y_count--) {
                 if (read(fd, src_buf, src_bpl) != src_bpl)
                     goto bmp_cleanup;
-                register void* dp_end = dst_ptr + x_delta;
-                register uint32* dp = (uint32*)dst_ptr;
-                register uint32* sp = (uint32*)src_buf;
+                void* dp_end = dst_ptr + x_delta;
+                uint32* dp = (uint32*)dst_ptr;
+                uint32* sp = (uint32*)src_buf;
                 while ((void*)dp < dp_end) {
-                    register uint32 rgb = *sp++;
+                    uint32 rgb = *sp++;
 #ifdef BMP32_CHROMA
                     if (!(chroma && chroma == rgb))
                         rgb |= 0xff000000;

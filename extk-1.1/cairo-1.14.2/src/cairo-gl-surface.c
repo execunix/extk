@@ -527,7 +527,7 @@ _cairo_gl_surface_clear (cairo_gl_surface_t  *surface,
 {
     cairo_gl_context_t *ctx;
     cairo_status_t status;
-    floatt r, g, b, a;
+    double r, g, b, a;
 
     status = _cairo_gl_context_acquire (surface->base.device, &ctx);
     if (unlikely (status))
@@ -1386,7 +1386,7 @@ _cairo_gl_surface_stroke (void			        *surface,
                           const cairo_stroke_style_t	*style,
                           const cairo_matrix_t	        *ctm,
                           const cairo_matrix_t	        *ctm_inverse,
-                          floatt			 tolerance,
+                          double			 tolerance,
                           cairo_antialias_t		 antialias,
                           const cairo_clip_t		*clip)
 {
@@ -1402,7 +1402,7 @@ _cairo_gl_surface_fill (void			*surface,
                         const cairo_pattern_t	*source,
                         const cairo_path_fixed_t*path,
                         cairo_fill_rule_t	 fill_rule,
-                        floatt			 tolerance,
+                        double			 tolerance,
                         cairo_antialias_t	 antialias,
                         const cairo_clip_t	*clip)
 {

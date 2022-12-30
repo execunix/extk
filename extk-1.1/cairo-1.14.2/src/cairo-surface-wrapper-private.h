@@ -114,7 +114,7 @@ _cairo_surface_wrapper_stroke (cairo_surface_wrapper_t *wrapper,
 			       const cairo_stroke_style_t	*stroke_style,
 			       const cairo_matrix_t		*ctm,
 			       const cairo_matrix_t		*ctm_inverse,
-			       floatt			 tolerance,
+			       double			 tolerance,
 			       cairo_antialias_t	 antialias,
 			       const cairo_clip_t		*clip);
 
@@ -123,7 +123,7 @@ _cairo_surface_wrapper_fill_stroke (cairo_surface_wrapper_t *wrapper,
 				    cairo_operator_t	     fill_op,
 				    const cairo_pattern_t   *fill_source,
 				    cairo_fill_rule_t	     fill_rule,
-				    floatt		     fill_tolerance,
+				    double		     fill_tolerance,
 				    cairo_antialias_t	     fill_antialias,
 				    const cairo_path_fixed_t*path,
 				    cairo_operator_t	     stroke_op,
@@ -131,7 +131,7 @@ _cairo_surface_wrapper_fill_stroke (cairo_surface_wrapper_t *wrapper,
 				    const cairo_stroke_style_t    *stroke_style,
 				    const cairo_matrix_t	    *stroke_ctm,
 				    const cairo_matrix_t	    *stroke_ctm_inverse,
-				    floatt		     stroke_tolerance,
+				    double		     stroke_tolerance,
 				    cairo_antialias_t	     stroke_antialias,
 				    const cairo_clip_t	    *clip);
 
@@ -141,7 +141,7 @@ _cairo_surface_wrapper_fill (cairo_surface_wrapper_t *wrapper,
 			     const cairo_pattern_t *source,
 			     const cairo_path_fixed_t	*path,
 			     cairo_fill_rule_t	 fill_rule,
-			     floatt		 tolerance,
+			     double		 tolerance,
 			     cairo_antialias_t	 antialias,
 			     const cairo_clip_t	*clip);
 
@@ -149,8 +149,22 @@ cairo_private cairo_status_t
 _cairo_surface_wrapper_show_text_glyphs (cairo_surface_wrapper_t *wrapper,
 					 cairo_operator_t	     op,
 					 const cairo_pattern_t	    *source,
-					 const wchar_t		    *wcs, // extk
-					 int			     wcs_len,
+					 const char		    *utf8,
+					 int			     utf8_len,
+					 const cairo_glyph_t	    *glyphs,
+					 int			     num_glyphs,
+					 const cairo_text_cluster_t *clusters,
+					 int			     num_clusters,
+					 cairo_text_cluster_flags_t  cluster_flags,
+					 cairo_scaled_font_t	    *scaled_font,
+					 const cairo_clip_t	    *clip);
+
+cairo_private cairo_status_t
+_cairo_surface_wrapper_show_ucs2_glyphs (cairo_surface_wrapper_t *wrapper,
+					 cairo_operator_t	     op,
+					 const cairo_pattern_t	    *source,
+					 const UCS2		    *ucs2, // extk
+					 int			     ucs2_len,
 					 const cairo_glyph_t	    *glyphs,
 					 int			     num_glyphs,
 					 const cairo_text_cluster_t *clusters,

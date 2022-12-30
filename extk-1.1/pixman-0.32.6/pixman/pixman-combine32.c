@@ -842,11 +842,11 @@ blend_soft_light (uint32_t d_org,
 		  uint32_t s_org,
 		  uint32_t as_org)
 {
-    floatt d = d_org * (1.0 / MASK);
-    floatt ad = ad_org * (1.0 / MASK);
-    floatt s = s_org * (1.0 / MASK);
-    floatt as = as_org * (1.0 / MASK);
-    floatt r;
+    double d = d_org * (1.0 / MASK);
+    double ad = ad_org * (1.0 / MASK);
+    double s = s_org * (1.0 / MASK);
+    double as = as_org * (1.0 / MASK);
+    double r;
 
     if (2 * s < as)
     {
@@ -1044,8 +1044,8 @@ PDF_SEPARABLE_BLEND_MODE (exclusion)
 static void
 set_lum (uint32_t dest[3], uint32_t src[3], uint32_t sa, uint32_t lum)
 {
-    floatt a, l, min, max;
-    floatt tmp[3];
+    double a, l, min, max;
+    double tmp[3];
 
     a = sa * (1.0 / MASK);
 

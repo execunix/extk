@@ -42,19 +42,19 @@ CAIRO_BEGIN_DECLS
 
 cairo_private void
 _cairo_arc_path (cairo_t *cr,
-		 floatt	  xc,
-		 floatt	  yc,
-		 floatt	  radius,
-		 floatt	  angle1,
-		 floatt	  angle2);
+		 double	  xc,
+		 double	  yc,
+		 double	  radius,
+		 double	  angle1,
+		 double	  angle2);
 
 cairo_private void
 _cairo_arc_path_negative (cairo_t *cr,
-			  floatt   xc,
-			  floatt   yc,
-			  floatt   radius,
-			  floatt   angle1,
-			  floatt   angle2);
+			  double   xc,
+			  double   yc,
+			  double   radius,
+			  double   angle1,
+			  double   angle2);
 
 CAIRO_END_DECLS
 

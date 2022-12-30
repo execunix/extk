@@ -158,16 +158,16 @@ struct radial_gradient
     circle_t   c2;
 
     circle_t   delta;
-    floatt     a;
-    floatt     inva;
-    floatt     mindr;
+    double     a;
+    double     inva;
+    double     mindr;
 };
 
 struct conical_gradient
 {
     gradient_t           common;
     pixman_point_fixed_t center;
-    floatt		 angle;
+    double		 angle;
 };
 
 struct bits_image

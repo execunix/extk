@@ -199,6 +199,16 @@ uint32 ExWatch::getTickCount() {
 
 uint32 ExWatch::tickAppLaunch = ExWatch::getTickCount();
 
+pthread_key_t ExWatch::tls_key = 0;
+
+void ExWatch::tls_specific(const char* name)
+{
+    if (!tls_key)
+        pthread_key_create(&tls_key, NULL);
+    pthread_setspecific(tls_key, malloc(256));
+    strcpy((char*)pthread_getspecific(tls_key), name);
+}
+
 void* ExWatch::start(void* arg) {
     ExWatch* watch = (ExWatch*)arg;
     int r = watch->proc();
@@ -300,7 +310,8 @@ int ExWatch::setEvent(uint64 u) const {
 
 int ExWatch::proc() {
     pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
-    dprint("%s: tickAppLaunch=%d tickCount=%d\n", __func__, tickAppLaunch, tickCount);
+    tls_specific(name);
+    dprint("%s: tickAppLaunch=%d tickCount=%d\n", name, tickAppLaunch, tickCount);
     ExCbInfo cbinfo(0);
     enter();
     if (hookStart)
@@ -341,4 +352,3 @@ int ExWatch::onEvent(epoll_event* ev) {
 static ExWatch exWatchDflt("exWatchDflt");
 ExWatch* exWatchMain = &exWatchDflt;
 ExWatch* exWatchLast = &exWatchDflt;
-

@@ -245,6 +245,16 @@ cairo_text_cluster_allocate (int num_clusters)
 }
 slim_hidden_def (cairo_text_cluster_allocate);
 
+cairo_ucs2_cluster_t *
+cairo_ucs2_cluster_allocate (int num_clusters)
+{
+    if (num_clusters <= 0)
+	return NULL;
+
+    return _cairo_malloc_ab (num_clusters, sizeof (cairo_ucs2_cluster_t));
+}
+slim_hidden_def (cairo_ucs2_cluster_allocate);
+
 /**
  * cairo_text_cluster_free:
  * @clusters: array of text clusters to free, or %NULL
@@ -264,6 +274,13 @@ cairo_text_cluster_free (cairo_text_cluster_t *clusters)
     free (clusters);
 }
 slim_hidden_def (cairo_text_cluster_free);
+
+void
+cairo_ucs2_cluster_free (cairo_ucs2_cluster_t *clusters)
+{
+    free (clusters);
+}
+slim_hidden_def (cairo_ucs2_cluster_free);
 
 
 /* Private stuff */
@@ -287,11 +304,63 @@ slim_hidden_def (cairo_text_cluster_free);
  *               or bad cluster mapping.
  **/
 cairo_status_t
-_cairo_validate_text_clusters (const wchar_t		   *wcs, // extk
-			       int			    wcs_len,
+_cairo_validate_text_clusters (const char		   *utf8,
+			       int			    utf8_len,
 			       const cairo_glyph_t	   *glyphs,
 			       int			    num_glyphs,
 			       const cairo_text_cluster_t  *clusters,
+			       int			    num_clusters,
+			       cairo_text_cluster_flags_t   cluster_flags)
+{
+    cairo_status_t status;
+    unsigned int n_bytes  = 0;
+    unsigned int n_glyphs = 0;
+    int i;
+
+    for (i = 0; i < num_clusters; i++) {
+	int cluster_bytes  = clusters[i].num_bytes;
+	int cluster_glyphs = clusters[i].num_glyphs;
+
+	if (cluster_bytes < 0 || cluster_glyphs < 0)
+	    goto BAD;
+
+	/* A cluster should cover at least one character or glyph.
+	 * I can't see any use for a 0,0 cluster.
+	 * I can't see an immediate use for a zero-text cluster
+	 * right now either, but they don't harm.
+	 * Zero-glyph clusters on the other hand are useful for
+	 * things like U+200C ZERO WIDTH NON-JOINER */
+	if (cluster_bytes == 0 && cluster_glyphs == 0)
+	    goto BAD;
+
+	/* Since n_bytes and n_glyphs are unsigned, but the rest of
+	 * values involved are signed, we can detect overflow easily */
+	if (n_bytes+cluster_bytes > (unsigned int)utf8_len || n_glyphs+cluster_glyphs > (unsigned int)num_glyphs)
+	    goto BAD;
+
+	/* Make sure we've got valid UTF-8 for the cluster */
+	status = _cairo_utf8_to_ucs4 (utf8+n_bytes, cluster_bytes, NULL, NULL);
+	if (unlikely (status))
+	    return _cairo_error (CAIRO_STATUS_INVALID_CLUSTERS);
+
+	n_bytes  += cluster_bytes ;
+	n_glyphs += cluster_glyphs;
+    }
+
+    if (n_bytes != (unsigned int) utf8_len || n_glyphs != (unsigned int) num_glyphs) {
+      BAD:
+	return _cairo_error (CAIRO_STATUS_INVALID_CLUSTERS);
+    }
+
+    return CAIRO_STATUS_SUCCESS;
+}
+
+cairo_status_t
+_cairo_validate_ucs2_clusters (const UCS2		   *ucs2, // extk
+			       int			    ucs2_len,
+			       const cairo_glyph_t	   *glyphs,
+			       int			    num_glyphs,
+			       const cairo_ucs2_cluster_t  *clusters,
 			       int			    num_clusters,
 			       cairo_text_cluster_flags_t   cluster_flags)
 {
@@ -318,11 +387,11 @@ _cairo_validate_text_clusters (const wchar_t		   *wcs, // extk
 
 	/* Since n_ucs2s and n_glyphs are unsigned, but the rest of
 	 * values involved are signed, we can detect overflow easily */
-	if (n_ucs2s+cluster_ucs2s > (unsigned int)wcs_len || n_glyphs+cluster_glyphs > (unsigned int)num_glyphs)
+	if (n_ucs2s+cluster_ucs2s > (unsigned int)ucs2_len || n_glyphs+cluster_glyphs > (unsigned int)num_glyphs)
 	    goto BAD;
 
 	/* Make sure we've got valid UTF-8 for the cluster */
-	status = _cairo_ucs2_to_ucs4 (wcs+n_ucs2s, cluster_ucs2s, NULL, NULL);
+	status = _cairo_ucs2_to_ucs4 (ucs2+n_ucs2s, cluster_ucs2s, NULL, NULL);
 	if (unlikely (status))
 	    return _cairo_error (CAIRO_STATUS_INVALID_CLUSTERS);
 
@@ -330,7 +399,7 @@ _cairo_validate_text_clusters (const wchar_t		   *wcs, // extk
 	n_glyphs += cluster_glyphs;
     }
 
-    if (n_ucs2s != (unsigned int) wcs_len || n_glyphs != (unsigned int) num_glyphs) {
+    if (n_ucs2s != (unsigned int) ucs2_len || n_glyphs != (unsigned int) num_glyphs) {
       BAD:
 	return _cairo_error (CAIRO_STATUS_INVALID_CLUSTERS);
     }

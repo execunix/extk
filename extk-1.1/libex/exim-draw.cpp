@@ -27,19 +27,19 @@ void ExImage::fillBoxAlphaEx(const ExBox* box, uint8 alpha, uint8 a_out)
     } else {
         bx.init0();
     }
-    register uint8* p = this->bits;
-    register int y = 0;
+    uint8* p = this->bits;
+    int y = 0;
     for (; y < bx.t; y++) {
-        register uint8* p_end = p + this->bpl;
+        uint8* p_end = p + this->bpl;
         for (; p < p_end; p += 4)
             p[3] = a_out;
     }
     int rc_lx4 = (int)bx.l * 4;
     int rc_rx4 = (int)bx.r * 4;
     for (; y < bx.b; y++) {
-        register uint8* p_endl = p + rc_lx4;
-        register uint8* p_endr = p + rc_rx4;
-        register uint8* p_endw = p + this->bpl;
+        uint8* p_endl = p + rc_lx4;
+        uint8* p_endr = p + rc_rx4;
+        uint8* p_endw = p + this->bpl;
         for (; p < p_endl; p += 4)
             p[3] = a_out;
         for (; p < p_endr; p += 4)
@@ -48,7 +48,7 @@ void ExImage::fillBoxAlphaEx(const ExBox* box, uint8 alpha, uint8 a_out)
             p[3] = a_out;
     }
     for (; y < this->height; y++) {
-        register uint8* p_end = p + this->bpl;
+        uint8* p_end = p + this->bpl;
         for (; p < p_end; p += 4)
             p[3] = a_out;
     }
@@ -75,13 +75,13 @@ void ExImage::fillBoxAlpha(const ExBox* box, uint8 alpha)
         bx.r = this->width;
         bx.b = this->height;
     }
-    register int y = bx.t;
-    register uint8* p_y = this->bits + this->bpl * y;
+    int y = bx.t;
+    uint8* p_y = this->bits + this->bpl * y;
     int rc_lx4 = (int)bx.l * 4;
     int rc_rx4 = (int)bx.r * 4;
     for (; y < bx.b; y++) {
-        register uint8* p = p_y + rc_lx4;
-        register uint8* q = p_y + rc_rx4;
+        uint8* p = p_y + rc_lx4;
+        uint8* q = p_y + rc_rx4;
         for (; p < q; p += 4)
             p[3] = alpha;
         p_y += this->bpl;
@@ -107,19 +107,19 @@ void ExImage::fillBoxRgbEx(const ExBox* box, uint32 rgb, uint32 rgb_out)
     } else {
         bx.init0();
     }
-    register uint8* p = this->bits;
-    register int y = 0;
+    uint8* p = this->bits;
+    int y = 0;
     for (; y < bx.t; y++) {
-        register uint8* p_end = p + this->bpl;
+        uint8* p_end = p + this->bpl;
         for (; p < p_end; p += 4)
             *(uint32*)p = (0xff000000 & *(uint32*)p) | rgb_out;
     }
     int rc_lx4 = (int)bx.l * 4;
     int rc_rx4 = (int)bx.r * 4;
     for (; y < bx.b; y++) {
-        register uint8* p_endl = p + rc_lx4;
-        register uint8* p_endr = p + rc_rx4;
-        register uint8* p_endw = p + this->bpl;
+        uint8* p_endl = p + rc_lx4;
+        uint8* p_endr = p + rc_rx4;
+        uint8* p_endw = p + this->bpl;
         for (; p < p_endl; p += 4)
             *(uint32*)p = (0xff000000 & *(uint32*)p) | rgb_out;
         for (; p < p_endr; p += 4)
@@ -128,7 +128,7 @@ void ExImage::fillBoxRgbEx(const ExBox* box, uint32 rgb, uint32 rgb_out)
             *(uint32*)p = (0xff000000 & *(uint32*)p) | rgb_out;
     }
     for (; y < this->height; y++) {
-        register uint8* p_end = p + this->bpl;
+        uint8* p_end = p + this->bpl;
         for (; p < p_end; p += 4)
             *(uint32*)p = (0xff000000 & *(uint32*)p) | rgb_out;
     }
@@ -155,13 +155,13 @@ void ExImage::fillBoxRgb(const ExBox* box, uint32 rgb)
         bx.r = this->width;
         bx.b = this->height;
     }
-    register int y = bx.t;
-    register uint8* p_y = this->bits + this->bpl * y;
+    int y = bx.t;
+    uint8* p_y = this->bits + this->bpl * y;
     int rc_lx4 = (int)bx.l * 4;
     int rc_rx4 = (int)bx.r * 4;
     for (; y < bx.b; y++) {
-        register uint8* p = p_y + rc_lx4;
-        register uint8* q = p_y + rc_rx4;
+        uint8* p = p_y + rc_lx4;
+        uint8* q = p_y + rc_rx4;
         for (; p < q; p += 4)
             *(uint32*)p = (0xff000000 & *(uint32*)p) | rgb;
         p_y += this->bpl;
@@ -187,19 +187,19 @@ void ExImage::fillBoxEx(const ExBox* box, uint32 color, uint32 c_out)
     } else {
         bx.init0();
     }
-    register uint8* p = this->bits;
-    register int y = 0;
+    uint8* p = this->bits;
+    int y = 0;
     for (; y < bx.t; y++) {
-        register uint8* p_end = p + this->bpl;
+        uint8* p_end = p + this->bpl;
         for (; p < p_end; p += 4)
             *(uint32*)p = c_out;
     }
     int rc_lx4 = (int)bx.l * 4;
     int rc_rx4 = (int)bx.r * 4;
     for (; y < bx.b; y++) {
-        register uint8* p_endl = p + rc_lx4;
-        register uint8* p_endr = p + rc_rx4;
-        register uint8* p_endw = p + this->bpl;
+        uint8* p_endl = p + rc_lx4;
+        uint8* p_endr = p + rc_rx4;
+        uint8* p_endw = p + this->bpl;
         for (; p < p_endl; p += 4)
             *(uint32*)p = c_out;
         for (; p < p_endr; p += 4)
@@ -208,7 +208,7 @@ void ExImage::fillBoxEx(const ExBox* box, uint32 color, uint32 c_out)
             *(uint32*)p = c_out;
     }
     for (; y < this->height; y++) {
-        register uint8* p_end = p + this->bpl;
+        uint8* p_end = p + this->bpl;
         for (; p < p_end; p += 4)
             *(uint32*)p = c_out;
     }
@@ -235,13 +235,13 @@ void ExImage::fillBox(const ExBox* box, uint32 color)
         bx.r = this->width;
         bx.b = this->height;
     }
-    register int y = bx.t;
-    register uint8* p_y = this->bits + this->bpl * y;
+    int y = bx.t;
+    uint8* p_y = this->bits + this->bpl * y;
     int rc_lx4 = (int)bx.l * 4;
     int rc_rx4 = (int)bx.r * 4;
     for (; y < bx.b; y++) {
-        register uint8* p = p_y + rc_lx4;
-        register uint8* q = p_y + rc_rx4;
+        uint8* p = p_y + rc_lx4;
+        uint8* q = p_y + rc_rx4;
         for (; p < q; p += 4)
             *(uint32*)p = color;
         p_y += this->bpl;
@@ -269,28 +269,28 @@ void ExImage::drawBox(const ExBox* box, uint32 color)
         bx.r = this->width;
         bx.b = this->height;
     }
-    register int y = bx.t;
-    register uint8* p_y = this->bits + this->bpl * y;
+    int y = bx.t;
+    uint8* p_y = this->bits + this->bpl * y;
     int rc_lx4 = (int)bx.l * 4;
     int rc_rx4 = (int)bx.r * 4;
     for (; y < bx.t + 1; y++) {
-        register uint8* p = p_y + rc_lx4;
-        register uint8* q = p_y + rc_rx4;
+        uint8* p = p_y + rc_lx4;
+        uint8* q = p_y + rc_rx4;
         for (; p < q; p += 4)
             *(uint32*)p = color;
         p_y += this->bpl;
     }
     for (; y < bx.b - 1; y++) {
-        register uint8* p = p_y + rc_lx4;
-        register uint8* q = p_y + rc_rx4;
+        uint8* p = p_y + rc_lx4;
+        uint8* q = p_y + rc_rx4;
         *(uint32*)p = color;
         q -= 4;
         *(uint32*)q = color;
         p_y += this->bpl;
     }
     for (; y < bx.b; y++) {
-        register uint8* p = p_y + rc_lx4;
-        register uint8* q = p_y + rc_rx4;
+        uint8* p = p_y + rc_lx4;
+        uint8* q = p_y + rc_rx4;
         for (; p < q; p += 4)
             *(uint32*)p = color;
         p_y += this->bpl;

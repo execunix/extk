@@ -78,8 +78,8 @@ cairo_script_get_mode (cairo_device_t *script);
 cairo_public cairo_surface_t *
 cairo_script_surface_create (cairo_device_t *script,
 			     cairo_content_t content,
-			     floatt width,
-			     floatt height);
+			     double width,
+			     double height);
 
 cairo_public cairo_surface_t *
 cairo_script_surface_create_for_target (cairo_device_t *script,

@@ -48,11 +48,11 @@ cairo_private int
 _cairo_time_cmp (const void *a,
 		 const void *b);
 
-cairo_private floatt
+cairo_private double
 _cairo_time_to_s (cairo_time_t t);
 
 cairo_private cairo_time_t
-_cairo_time_from_s (floatt t);
+_cairo_time_from_s (double t);
 
 cairo_private cairo_time_t
 _cairo_time_get (void);
@@ -67,7 +67,7 @@ _cairo_time_get_delta (cairo_time_t t)
     return _cairo_time_sub (now, t);
 }
 
-static cairo_always_inline floatt
+static cairo_always_inline double
 _cairo_time_to_ns (cairo_time_t t)
 {
     return 1.e9 * _cairo_time_to_s (t);

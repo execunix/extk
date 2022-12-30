@@ -443,7 +443,7 @@ typedef struct _XGlyphElt32 {
     int			    yOff;
 } XGlyphElt32;
 
-typedef floatt	XDouble;
+typedef double	XDouble;
 
 typedef struct _XPointDouble {
     XDouble  x, y;

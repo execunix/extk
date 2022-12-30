@@ -50,8 +50,8 @@ const cairo_rectangle_int_t _cairo_unbounded_rectangle = {
 
 cairo_private void
 _cairo_box_from_doubles (cairo_box_t *box,
-			 floatt *x1, floatt *y1,
-			 floatt *x2, floatt *y2)
+			 double *x1, double *y1,
+			 double *x2, double *y2)
 {
     box->p1.x = _cairo_fixed_from_double (*x1);
     box->p1.y = _cairo_fixed_from_double (*y1);
@@ -61,8 +61,8 @@ _cairo_box_from_doubles (cairo_box_t *box,
 
 cairo_private void
 _cairo_box_to_doubles (const cairo_box_t *box,
-		       floatt *x1, floatt *y1,
-		       floatt *x2, floatt *y2)
+		       double *x1, double *y1,
+		       double *x2, double *y2)
 {
     *x1 = _cairo_fixed_to_double (box->p1.x);
     *y1 = _cairo_fixed_to_double (box->p1.y);

@@ -31,7 +31,7 @@ void WgtTitle::onDrawTitle(ExCanvas* canvas, const ExWidget* widget, const ExReg
 
     rc.w -= 48.f;
     cr.set_font(res.f.gothic_B.crf, rc.h * .5f);
-    ExCairo::Point pt = cr.text_align(title, rc, ExCairo::Right | ExCairo::VCenter);
+    ExCairo::Point pt = cr.ucs2_align(title, rc, ExCairo::Right | ExCairo::VCenter);
 #if 0
     cairo_move_to(cr, pt.x + 2.f, pt.y + 2.f);
     cairo_set_source_rgb(cr, .2f, .2f, .2f);
@@ -39,9 +39,9 @@ void WgtTitle::onDrawTitle(ExCanvas* canvas, const ExWidget* widget, const ExReg
     cairo_set_line_width(cr, 2.f);
     cairo_stroke(cr);
 #else
-    cr.show_text(title, ExCairo::Color(.2f), ExCairo::Point(pt.x + 2.f, pt.y + 2.f));
+    cr.show_ucs2(title, ExCairo::Color(.2f), ExCairo::Point(pt.x + 2.f, pt.y + 2.f));
 #endif
-    cr.show_text(title, ExCairo::Color(1.f), pt);
+    cr.show_ucs2(title, ExCairo::Color(1.f), pt);
 }
 
 static int STDCALL
@@ -172,7 +172,7 @@ void WndMain::onDrawBtns(ExCanvas* canvas, const ExWidget* widget, const ExRegio
 
     const char* text = widget->getName();
     cr.set_font(res.f.gothic.crf, 12.f);
-    cr.show_text(mbs2wcs(text), ExCairo::Color(0.f), rc);
+    cr.show_ucs2(mbs2wcs(text), ExCairo::Color(0.f), rc);
 
 #if USE_PATTERN_BTN
     cairo_pattern_destroy(crp);
@@ -267,7 +267,7 @@ void WndMain::onDrawToy(ExCanvas* canvas, const WndMain* w, const ExRegion* dama
     float delta = bx.height()/2 * .9f;
     cairo_scaled_font_t* scaled_font = cairo_scaled_font_create(res.f.gothic_B.crf,
         &font_matrix, &ctm, options);
-    status = cairo_scaled_font_text_to_glyphs(scaled_font, 0, 0, str, len,
+    status = cairo_scaled_font_ucs2_to_glyphs(scaled_font, 0, 0, str, len,
         &glyphs, &num_glyphs, NULL, NULL, NULL);
     if (status == CAIRO_STATUS_SUCCESS) {
         for (int i = 0; i < num_glyphs; i++) {
@@ -275,7 +275,7 @@ void WndMain::onDrawToy(ExCanvas* canvas, const WndMain* w, const ExRegion* dama
             glyphs[i].x *= toy_scale;
         }
         ExPoint p = bx.center();
-        floatt w = glyphs[num_glyphs - 1].x + fs / 2.f;
+        double w = glyphs[num_glyphs - 1].x + fs / 2.f;
         ExCairo cr(canvas, damage);
         cairo_translate(cr, p.x - w / 2.f, p.y + fs / 2.f);
         cr.set_font(res.f.gothic_B.crf, fs);

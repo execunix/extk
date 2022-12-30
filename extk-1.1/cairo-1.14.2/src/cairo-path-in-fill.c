@@ -37,7 +37,7 @@
 #include "cairo-path-fixed-private.h"
 
 typedef struct cairo_in_fill {
-    floatt tolerance;
+    double tolerance;
     cairo_bool_t on_edge;
     int winding;
 
@@ -50,9 +50,9 @@ typedef struct cairo_in_fill {
 
 static void
 _cairo_in_fill_init (cairo_in_fill_t	*in_fill,
-		     floatt		 tolerance,
-		     floatt		 x,
-		     floatt		 y)
+		     double		 tolerance,
+		     double		 x,
+		     double		 y)
 {
     in_fill->on_edge = FALSE;
     in_fill->winding = 0;
@@ -246,9 +246,9 @@ _cairo_in_fill_close_path (void *closure)
 cairo_bool_t
 _cairo_path_fixed_in_fill (const cairo_path_fixed_t	*path,
 			   cairo_fill_rule_t	 fill_rule,
-			   floatt		 tolerance,
-			   floatt		 x,
-			   floatt		 y)
+			   double		 tolerance,
+			   double		 x,
+			   double		 y)
 {
     cairo_in_fill_t in_fill;
     cairo_status_t status;

@@ -153,8 +153,8 @@ typedef struct _cairo_cff_font {
     int  		 units_per_em;
     int 		 global_sub_bias;
     int			 local_sub_bias;
-    floatt               default_width;
-    floatt               nominal_width;
+    double               default_width;
+    double               nominal_width;
 
     /* CID Font Data */
     int                 *fdselect;
@@ -163,8 +163,8 @@ typedef struct _cairo_cff_font {
     cairo_hash_table_t **fd_private_dict;
     cairo_array_t       *fd_local_sub_index;
     int			*fd_local_sub_bias;
-    floatt              *fd_default_width;
-    floatt              *fd_nominal_width;
+    double              *fd_default_width;
+    double              *fd_nominal_width;
 
     /* Subsetted Font Data */
     char                *subset_font_name;
@@ -293,7 +293,7 @@ decode_nibble (int n, char *buf)
 }
 
 static unsigned char *
-decode_real (unsigned char *p, floatt *real)
+decode_real (unsigned char *p, double *real)
 {
     const char *decimal_point;
     int decimal_point_len;
@@ -342,7 +342,7 @@ decode_real (unsigned char *p, floatt *real)
 }
 
 static unsigned char *
-decode_number (unsigned char *p, floatt *number)
+decode_number (unsigned char *p, double *number)
 {
     if (*p == 30) {
         p = decode_real (p, number);
@@ -911,8 +911,8 @@ cairo_cff_font_read_private_dict (cairo_cff_font_t   *font,
                                   cairo_array_t      *local_sub_index,
                                   int                *local_sub_bias,
                                   cairo_bool_t      **local_subs_used,
-                                  floatt             *default_width,
-                                  floatt             *nominal_width,
+                                  double             *default_width,
+                                  double             *nominal_width,
                                   unsigned char      *ptr,
                                   int                 size)
 {
@@ -1052,13 +1052,13 @@ cairo_cff_font_read_cid_fontdict (cairo_cff_font_t *font, unsigned char *ptr)
         goto fail;
     }
 
-    font->fd_default_width = calloc (font->num_fontdicts, sizeof (floatt));
+    font->fd_default_width = calloc (font->num_fontdicts, sizeof (double));
     if (unlikely (font->fd_default_width == NULL)) {
         status = _cairo_error (CAIRO_STATUS_NO_MEMORY);
         goto fail;
     }
 
-    font->fd_nominal_width = calloc (font->num_fontdicts, sizeof (floatt));
+    font->fd_nominal_width = calloc (font->num_fontdicts, sizeof (double));
     if (unlikely (font->fd_nominal_width == NULL)) {
         status = _cairo_error (CAIRO_STATUS_NO_MEMORY);
         goto fail;
@@ -1121,8 +1121,8 @@ cairo_cff_font_read_font_metrics (cairo_cff_font_t *font, cairo_hash_table_t  *t
     unsigned char *p;
     unsigned char *end;
     int size;
-    floatt x_min, y_min, x_max, y_max;
-    floatt xx, yx, xy, yy;
+    double x_min, y_min, x_max, y_max;
+    double xx, yx, xy, yy;
 
     x_min = 0.0;
     y_min = 0.0;
@@ -2976,20 +2976,20 @@ _cairo_cff_subset_init (cairo_cff_subset_t          *cff_subset,
 	cff_subset->family_name_utf8 = NULL;
     }
 
-    cff_subset->widths = calloc (sizeof (floatt), font->scaled_font_subset->num_glyphs);
+    cff_subset->widths = calloc (sizeof (double), font->scaled_font_subset->num_glyphs);
     if (unlikely (cff_subset->widths == NULL)) {
 	status = _cairo_error (CAIRO_STATUS_NO_MEMORY);
 	goto fail3;
     }
     for (i = 0; i < font->scaled_font_subset->num_glyphs; i++)
-        cff_subset->widths[i] = (floatt)font->widths[i]/font->units_per_em;
+        cff_subset->widths[i] = (double)font->widths[i]/font->units_per_em;
 
-    cff_subset->x_min = (floatt)font->x_min/font->units_per_em;
-    cff_subset->y_min = (floatt)font->y_min/font->units_per_em;
-    cff_subset->x_max = (floatt)font->x_max/font->units_per_em;
-    cff_subset->y_max = (floatt)font->y_max/font->units_per_em;
-    cff_subset->ascent = (floatt)font->ascent/font->units_per_em;
-    cff_subset->descent = (floatt)font->descent/font->units_per_em;
+    cff_subset->x_min = (double)font->x_min/font->units_per_em;
+    cff_subset->y_min = (double)font->y_min/font->units_per_em;
+    cff_subset->x_max = (double)font->x_max/font->units_per_em;
+    cff_subset->y_max = (double)font->y_max/font->units_per_em;
+    cff_subset->ascent = (double)font->ascent/font->units_per_em;
+    cff_subset->descent = (double)font->descent/font->units_per_em;
 
     cff_subset->data = malloc (length);
     if (unlikely (cff_subset->data == NULL)) {
@@ -3387,21 +3387,21 @@ _cairo_cff_fallback_init (cairo_cff_subset_t          *cff_subset,
 	goto fail2;
     }
 
-    cff_subset->widths = calloc (sizeof (floatt), font->scaled_font_subset->num_glyphs);
+    cff_subset->widths = calloc (sizeof (double), font->scaled_font_subset->num_glyphs);
     if (unlikely (cff_subset->widths == NULL)) {
 	status = _cairo_error (CAIRO_STATUS_NO_MEMORY);
 	goto fail3;
     }
 
     for (i = 0; i < font->scaled_font_subset->num_glyphs; i++)
-        cff_subset->widths[i] = (floatt)type2_subset.widths[i]/1000;
+        cff_subset->widths[i] = (double)type2_subset.widths[i]/1000;
 
-    cff_subset->x_min = (floatt)type2_subset.x_min/1000;
-    cff_subset->y_min = (floatt)type2_subset.y_min/1000;
-    cff_subset->x_max = (floatt)type2_subset.x_max/1000;
-    cff_subset->y_max = (floatt)type2_subset.y_max/1000;
-    cff_subset->ascent = (floatt)type2_subset.y_max/1000;
-    cff_subset->descent = (floatt)type2_subset.y_min/1000;
+    cff_subset->x_min = (double)type2_subset.x_min/1000;
+    cff_subset->y_min = (double)type2_subset.y_min/1000;
+    cff_subset->x_max = (double)type2_subset.x_max/1000;
+    cff_subset->y_max = (double)type2_subset.y_max/1000;
+    cff_subset->ascent = (double)type2_subset.y_max/1000;
+    cff_subset->descent = (double)type2_subset.y_min/1000;
 
     cff_subset->data = malloc (length);
     if (unlikely (cff_subset->data == NULL)) {

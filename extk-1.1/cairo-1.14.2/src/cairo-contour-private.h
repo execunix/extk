@@ -82,7 +82,7 @@ _cairo_shape_init_from_polygon (cairo_shape_t *shape,
 				const cairo_polygon_t *polygon);
 
 cairo_private cairo_status_t
-_cairo_shape_reduce (cairo_shape_t *shape, floatt tolerance);
+_cairo_shape_reduce (cairo_shape_t *shape, double tolerance);
 #endif
 
 cairo_private void
@@ -94,7 +94,7 @@ __cairo_contour_add_point (cairo_contour_t *contour,
 			   const cairo_point_t *point);
 
 cairo_private void
-_cairo_contour_simplify (cairo_contour_t *contour, floatt tolerance);
+_cairo_contour_simplify (cairo_contour_t *contour, double tolerance);
 
 cairo_private void
 _cairo_contour_reverse (cairo_contour_t *contour);

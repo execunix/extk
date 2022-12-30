@@ -45,7 +45,7 @@
 #include <float.h>
 
 static unsigned char *
-encode_coordinate (unsigned char *p, floatt c)
+encode_coordinate (unsigned char *p, double c)
 {
     uint32_t f;
 
@@ -68,7 +68,7 @@ encode_point (unsigned char *p, const cairo_point_double_t *point)
 }
 
 static unsigned char *
-encode_color_component (unsigned char *p, floatt color)
+encode_color_component (unsigned char *p, double color)
 {
     uint16_t c;
 
@@ -112,7 +112,7 @@ _cairo_pdf_shading_generate_decode_array (cairo_pdf_shading_t        *shading,
 
     shading->decode_array_length = 4 + num_color_components * 2;
     shading->decode_array = _cairo_malloc_ab (shading->decode_array_length,
-					      sizeof (floatt));
+					      sizeof (double));
     if (unlikely (shading->decode_array == NULL))
 	return _cairo_error (CAIRO_STATUS_NO_MEMORY);
 
@@ -147,7 +147,7 @@ _cairo_pdf_shading_generate_data (cairo_pdf_shading_t        *shading,
 				  cairo_bool_t                is_alpha)
 {
     const cairo_mesh_patch_t *patch;
-    floatt x_off, y_off, x_scale, y_scale;
+    double x_off, y_off, x_scale, y_scale;
     unsigned int num_patches;
     unsigned int num_color_components;
     unsigned char *p;

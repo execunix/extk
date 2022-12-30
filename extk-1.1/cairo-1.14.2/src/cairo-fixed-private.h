@@ -50,7 +50,7 @@
 #endif
 
 #define CAIRO_FIXED_ONE        ((cairo_fixed_t)(1 << CAIRO_FIXED_FRAC_BITS))
-#define CAIRO_FIXED_ONE_DOUBLE ((floatt)(1 << CAIRO_FIXED_FRAC_BITS))
+#define CAIRO_FIXED_ONE_DOUBLE ((double)(1 << CAIRO_FIXED_FRAC_BITS))
 #define CAIRO_FIXED_EPSILON    ((cairo_fixed_t)(1))
 
 #define CAIRO_FIXED_ERROR_DOUBLE (1. / (2 * CAIRO_FIXED_ONE_DOUBLE))
@@ -104,10 +104,10 @@ _cairo_fixed_from_int (int i)
 #define CAIRO_MAGIC_NUMBER_FIXED_16_16 (103079215104.0)
 
 #if CAIRO_FIXED_BITS <= 32
-#ifdef floattype_flt // extk
+#ifdef realtype_32bit // extk
 /* For 32-bit fixed point numbers */
 static inline cairo_fixed_t
-_cairo_fixed_from_double(floatt d)
+_cairo_fixed_from_double(double d)
 {
     return (cairo_fixed_t)(d * 256.f);
 }
@@ -157,10 +157,10 @@ _cairo_fixed_from_16_16 (uint32_t i)
 #endif
 }
 
-static inline floatt
+static inline double
 _cairo_fixed_to_double (cairo_fixed_t f)
 {
-    return ((floatt) f) / CAIRO_FIXED_ONE_DOUBLE;
+    return ((double) f) / CAIRO_FIXED_ONE_DOUBLE;
 }
 
 static inline int
@@ -265,9 +265,9 @@ _cairo_fixed_to_16_16 (cairo_fixed_t f)
 #endif
 }
 
-#ifdef floattype_flt // extk
+#ifdef realtype_32bit // extk
 static inline cairo_fixed_16_16_t
-_cairo_fixed_16_16_from_double(floatt d)
+_cairo_fixed_16_16_from_double(double d)
 {
     return (cairo_fixed_16_16_t)(d * 65536.f);
 }
@@ -298,10 +298,10 @@ _cairo_fixed_16_16_floor (cairo_fixed_16_16_t f)
 	return -((-f - 1) >> 16) - 1;
 }
 
-static inline floatt
+static inline double
 _cairo_fixed_16_16_to_double (cairo_fixed_16_16_t f)
 {
-    return ((floatt) f) / (floatt) (1 << 16);
+    return ((double) f) / (double) (1 << 16);
 }
 
 #if CAIRO_FIXED_BITS == 32
@@ -381,8 +381,8 @@ _slow_segment_intersection (const cairo_point_t *seg1_p1,
 			    const cairo_point_t *seg2_p2,
 			    cairo_point_t *intersection)
 {
-    floatt denominator, u_a, u_b;
-    floatt seg1_dx, seg1_dy, seg2_dx, seg2_dy, seg_start_dx, seg_start_dy;
+    double denominator, u_a, u_b;
+    double seg1_dx, seg1_dy, seg2_dx, seg2_dy, seg_start_dx, seg_start_dy;
 
     seg1_dx = _cairo_fixed_to_double (seg1_p2->x - seg1_p1->x);
     seg1_dy = _cairo_fixed_to_double (seg1_p2->y - seg1_p1->y);

@@ -217,7 +217,7 @@ _cairo_surface_wrapper_stroke (cairo_surface_wrapper_t *wrapper,
 			       const cairo_stroke_style_t	*stroke_style,
 			       const cairo_matrix_t		*ctm,
 			       const cairo_matrix_t		*ctm_inverse,
-			       floatt			 tolerance,
+			       double			 tolerance,
 			       cairo_antialias_t	 antialias,
 			       const cairo_clip_t		*clip)
 {
@@ -276,7 +276,7 @@ _cairo_surface_wrapper_fill_stroke (cairo_surface_wrapper_t *wrapper,
 				    cairo_operator_t	     fill_op,
 				    const cairo_pattern_t   *fill_source,
 				    cairo_fill_rule_t	     fill_rule,
-				    floatt		     fill_tolerance,
+				    double		     fill_tolerance,
 				    cairo_antialias_t	     fill_antialias,
 				    const cairo_path_fixed_t*path,
 				    cairo_operator_t	     stroke_op,
@@ -284,7 +284,7 @@ _cairo_surface_wrapper_fill_stroke (cairo_surface_wrapper_t *wrapper,
 				    const cairo_stroke_style_t    *stroke_style,
 				    const cairo_matrix_t	    *stroke_ctm,
 				    const cairo_matrix_t	    *stroke_ctm_inverse,
-				    floatt		     stroke_tolerance,
+				    double		     stroke_tolerance,
 				    cairo_antialias_t	     stroke_antialias,
 				    const cairo_clip_t	    *clip)
 {
@@ -352,7 +352,7 @@ _cairo_surface_wrapper_fill (cairo_surface_wrapper_t	*wrapper,
 			     const cairo_pattern_t *source,
 			     const cairo_path_fixed_t	*path,
 			     cairo_fill_rule_t	 fill_rule,
-			     floatt		 tolerance,
+			     double		 tolerance,
 			     cairo_antialias_t	 antialias,
 			     const cairo_clip_t	*clip)
 {
@@ -403,8 +403,8 @@ cairo_status_t
 _cairo_surface_wrapper_show_text_glyphs (cairo_surface_wrapper_t *wrapper,
 					 cairo_operator_t	     op,
 					 const cairo_pattern_t	    *source,
-					 const wchar_t		    *wcs, // extk
-					 int			     wcs_len,
+					 const char		    *utf8,
+					 int			     utf8_len,
 					 const cairo_glyph_t	    *glyphs,
 					 int			     num_glyphs,
 					 const cairo_text_cluster_t *clusters,
@@ -492,7 +492,115 @@ _cairo_surface_wrapper_show_text_glyphs (cairo_surface_wrapper_t *wrapper,
     }
 
     status = _cairo_surface_show_text_glyphs (wrapper->target, op, source,
-					      wcs, wcs_len,
+					      utf8, utf8_len,
+					      dev_glyphs, num_glyphs,
+					      clusters, num_clusters,
+					      cluster_flags,
+					      dev_scaled_font,
+					      dev_clip);
+ FINISH:
+    _cairo_clip_destroy (dev_clip);
+    if (dev_glyphs != stack_glyphs)
+	free (dev_glyphs);
+    if (dev_scaled_font != scaled_font)
+	cairo_scaled_font_destroy (dev_scaled_font);
+    return status;
+}
+
+cairo_status_t
+_cairo_surface_wrapper_show_ucs2_glyphs (cairo_surface_wrapper_t *wrapper,
+					 cairo_operator_t	     op,
+					 const cairo_pattern_t	    *source,
+					 const UCS2		    *ucs2, // extk
+					 int			     ucs2_len,
+					 const cairo_glyph_t	    *glyphs,
+					 int			     num_glyphs,
+					 const cairo_text_cluster_t *clusters,
+					 int			     num_clusters,
+					 cairo_text_cluster_flags_t  cluster_flags,
+					 cairo_scaled_font_t	    *scaled_font,
+					 const cairo_clip_t	    *clip)
+{
+    cairo_status_t status;
+    cairo_clip_t *dev_clip;
+    cairo_glyph_t stack_glyphs [CAIRO_STACK_ARRAY_LENGTH(cairo_glyph_t)];
+    cairo_glyph_t *dev_glyphs = stack_glyphs;
+    cairo_scaled_font_t *dev_scaled_font = scaled_font;
+    cairo_pattern_union_t source_copy;
+    cairo_font_options_t options;
+
+    if (unlikely (wrapper->target->status))
+	return wrapper->target->status;
+
+    dev_clip = _cairo_surface_wrapper_get_clip (wrapper, clip);
+    if (_cairo_clip_is_all_clipped (dev_clip))
+	return CAIRO_INT_STATUS_NOTHING_TO_DO;
+
+    cairo_surface_get_font_options (wrapper->target, &options);
+    cairo_font_options_merge (&options, &scaled_font->options);
+
+    if (wrapper->needs_transform) {
+	cairo_matrix_t m;
+	int i;
+
+	_cairo_surface_wrapper_get_transform (wrapper, &m);
+
+	if (! _cairo_matrix_is_translation (&m)) {
+	    cairo_matrix_t ctm;
+
+	    _cairo_matrix_multiply (&ctm,
+				    &m,
+				    &scaled_font->ctm);
+	    dev_scaled_font = cairo_scaled_font_create (scaled_font->font_face,
+							&scaled_font->font_matrix,
+							&ctm, &options);
+	}
+
+	if (num_glyphs > ARRAY_LENGTH (stack_glyphs)) {
+	    dev_glyphs = _cairo_malloc_ab (num_glyphs, sizeof (cairo_glyph_t));
+	    if (unlikely (dev_glyphs == NULL)) {
+		status = _cairo_error (CAIRO_STATUS_NO_MEMORY);
+		goto FINISH;
+	    }
+	}
+
+	for (i = 0; i < num_glyphs; i++) {
+	    dev_glyphs[i] = glyphs[i];
+	    cairo_matrix_transform_point (&m,
+					  &dev_glyphs[i].x,
+					  &dev_glyphs[i].y);
+	}
+
+	status = cairo_matrix_invert (&m);
+	assert (status == CAIRO_STATUS_SUCCESS);
+
+	_copy_transformed_pattern (&source_copy.base, source, &m);
+	source = &source_copy.base;
+    } else {
+	if (! cairo_font_options_equal (&options, &scaled_font->options)) {
+	    dev_scaled_font = cairo_scaled_font_create (scaled_font->font_face,
+							&scaled_font->font_matrix,
+							&scaled_font->ctm,
+							&options);
+	}
+
+	/* show_text_glyphs is special because _cairo_surface_show_text_glyphs is allowed
+	 * to modify the glyph array that's passed in.  We must always
+	 * copy the array before handing it to the backend.
+	 */
+	if (num_glyphs > ARRAY_LENGTH (stack_glyphs)) {
+	    dev_glyphs = _cairo_malloc_ab (num_glyphs, sizeof (cairo_glyph_t));
+	    if (unlikely (dev_glyphs == NULL)) {
+		status = _cairo_error (CAIRO_STATUS_NO_MEMORY);
+		goto FINISH;
+	    }
+	}
+
+	memcpy (dev_glyphs, glyphs, sizeof (cairo_glyph_t) * num_glyphs);
+    }
+
+    status = _cairo_surface_show_ucs2_glyphs (wrapper->target, op, source,
+					      ucs2, ucs2_len,
 					      dev_glyphs, num_glyphs,
 					      clusters, num_clusters,
 					      cluster_flags,
@@ -650,7 +758,7 @@ _cairo_surface_wrapper_get_target_extents (cairo_surface_wrapper_t *wrapper,
 
     if (has_clip && wrapper->needs_transform) {
 	cairo_matrix_t m;
-	floatt x1, y1, x2, y2;
+	double x1, y1, x2, y2;
 
 	_cairo_surface_wrapper_get_inverse_transform (wrapper, &m);
 

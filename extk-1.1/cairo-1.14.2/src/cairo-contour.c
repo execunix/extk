@@ -245,7 +245,7 @@ point_distance_sq (const cairo_point_t *p1,
 #define MARK_DELETED(p) ((p)->x = INT_MIN, (p)->y = INT_MAX)
 
 static cairo_bool_t
-_cairo_contour_simplify_chain (cairo_contour_t *contour, const floatt tolerance,
+_cairo_contour_simplify_chain (cairo_contour_t *contour, const double tolerance,
 			       const cairo_contour_iter_t *first,
 			       const cairo_contour_iter_t *last)
 {
@@ -304,7 +304,7 @@ _cairo_contour_simplify_chain (cairo_contour_t *contour, const floatt tolerance,
 }
 
 void
-_cairo_contour_simplify (cairo_contour_t *contour, floatt tolerance)
+_cairo_contour_simplify (cairo_contour_t *contour, double tolerance)
 {
     cairo_contour_chain_t *chain;
     cairo_point_t *last = NULL;

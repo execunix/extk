@@ -232,7 +232,7 @@ cairo_clip_t *
 _cairo_clip_intersect_path (cairo_clip_t       *clip,
 			    const cairo_path_fixed_t *path,
 			    cairo_fill_rule_t   fill_rule,
-			    floatt              tolerance,
+			    double              tolerance,
 			    cairo_antialias_t   antialias)
 {
     cairo_clip_path_t *clip_path;
@@ -708,10 +708,10 @@ _cairo_clip_int_rect_to_user (cairo_gstate_t *gstate,
 {
     cairo_bool_t is_tight;
 
-    floatt x1 = clip_rect->x;
-    floatt y1 = clip_rect->y;
-    floatt x2 = clip_rect->x + (int) clip_rect->width;
-    floatt y2 = clip_rect->y + (int) clip_rect->height;
+    double x1 = clip_rect->x;
+    double y1 = clip_rect->y;
+    double x2 = clip_rect->x + (int) clip_rect->width;
+    double y2 = clip_rect->y + (int) clip_rect->height;
 
     _cairo_gstate_backend_to_user_rectangle (gstate,
 					     &x1, &y1, &x2, &y2,

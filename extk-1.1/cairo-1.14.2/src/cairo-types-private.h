@@ -72,6 +72,7 @@ typedef struct _cairo_font_face_backend     cairo_font_face_backend_t;
 typedef struct _cairo_gstate cairo_gstate_t;
 typedef struct _cairo_gstate_backend cairo_gstate_backend_t;
 typedef struct _cairo_glyph_text_info cairo_glyph_text_info_t;
+typedef struct _cairo_glyph_ucs2_info cairo_glyph_ucs2_info_t;
 typedef struct _cairo_hash_entry cairo_hash_entry_t;
 typedef struct _cairo_hash_table cairo_hash_table_t;
 typedef struct _cairo_image_surface cairo_image_surface_t;
@@ -197,10 +198,19 @@ struct _cairo_font_options {
 };
 
 struct _cairo_glyph_text_info {
-    const wchar_t *wcs; // extk
-    int wcs_len;
+    const char *utf8;
+    int utf8_len;
 
     const cairo_text_cluster_t *clusters;
+    int num_clusters;
+    cairo_text_cluster_flags_t cluster_flags;
+};
+
+struct _cairo_glyph_ucs2_info {
+    const UCS2 *ucs2; // extk
+    int ucs2_len;
+
+    const cairo_ucs2_cluster_t *clusters;
     int num_clusters;
     cairo_text_cluster_flags_t cluster_flags;
 };
@@ -213,10 +223,10 @@ struct _cairo_glyph_text_info {
    at least this does prevent precision loss in color when changing
    alpha. */
 struct _cairo_color {
-    floatt red;
-    floatt green;
-    floatt blue;
-    floatt alpha;
+    double red;
+    double green;
+    double blue;
+    double alpha;
 
     unsigned short red_short;
     unsigned short green_short;
@@ -226,10 +236,10 @@ struct _cairo_color {
 
 struct _cairo_color_stop {
     /* unpremultiplied */
-    floatt red;
-    floatt green;
-    floatt blue;
-    floatt alpha;
+    double red;
+    double green;
+    double blue;
+    double alpha;
 
     /* unpremultipled, for convenience */
     uint16_t red_short;
@@ -268,18 +278,18 @@ typedef struct _cairo_slope {
 } cairo_slope_t, cairo_distance_t;
 
 typedef struct _cairo_point_double {
-    floatt x;
-    floatt y;
+    double x;
+    double y;
 } cairo_point_double_t;
 
 typedef struct _cairo_circle_double {
     cairo_point_double_t center;
-    floatt               radius;
+    double               radius;
 } cairo_circle_double_t;
 
 typedef struct _cairo_distance_double {
-    floatt dx;
-    floatt dy;
+    double dx;
+    double dy;
 } cairo_distance_double_t;
 
 typedef struct _cairo_box_double {
@@ -359,8 +369,8 @@ typedef struct _cairo_pen_vertex {
 } cairo_pen_vertex_t;
 
 typedef struct _cairo_pen {
-    floatt radius;
-    floatt tolerance;
+    double radius;
+    double tolerance;
 
     int num_vertices;
     cairo_pen_vertex_t *vertices;
@@ -368,13 +378,13 @@ typedef struct _cairo_pen {
 } cairo_pen_t;
 
 typedef struct _cairo_stroke_style {
-    floatt		 line_width;
+    double		 line_width;
     cairo_line_cap_t	 line_cap;
     cairo_line_join_t	 line_join;
-    floatt		 miter_limit;
-    floatt		*dash;
+    double		 miter_limit;
+    double		*dash;
     unsigned int	 num_dashes;
-    floatt		 dash_offset;
+    double		 dash_offset;
 } cairo_stroke_style_t;
 
 typedef struct _cairo_format_masks {
