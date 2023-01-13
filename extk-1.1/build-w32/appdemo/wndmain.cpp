@@ -519,6 +519,29 @@ int WndMain::onActBtns(ExWidget* widget, ExCbInfo* cbinfo) {
             return Ex_Continue;
         }
     }
+    if (widget == &btns1[2]) {
+        if (cbinfo->type == Ex_CbActivate) {
+            static ExTimer setCursor;
+            if (setCursor.u32[0] == 0) {
+                setCursor.u32[0] = 1;
+                setCursor.init(exWatchDisp, [](void* data, ExTimer* timer, ExCbInfo* cbinfo)->int {
+                    POINT pt;
+                    setCursor.u32[1]++;
+                    int n = setCursor.u32[1] & 1 ? -5 : 5;
+                    GetCursorPos(&pt);
+                    SetCursorPos(pt.x + n, pt.y + n);
+                    return 0; }, NULL);
+            }
+            if (setCursor.u32[0] == 1) {
+                setCursor.u32[0] = 2;
+                setCursor.start(1000, 1000);
+            } else if (setCursor.u32[0] == 2) {
+                setCursor.u32[0] = 1;
+                setCursor.stop();
+            }
+            return Ex_Continue;
+        }
+    }
     if (widget == &btns1[3]) {
         if (cbinfo->type == Ex_CbActivate) {
             WndTest* wndTest = new WndTest;
