@@ -11,8 +11,8 @@
 class Menu {
 public:
     ExImage* icon;
-    wchar text[256];
-    wchar hkey[32];
+    char text[256];
+    char hkey[32];
     int flag;
     int id;
     enum {
@@ -33,7 +33,7 @@ public:
 public:
     ~Menu();
     Menu();
-    Menu* add(const wchar* text, int id, int flag = 0);
+    Menu* add(const char* text, int id, int flag = 0);
 };
 
 class WgtMenu : public ExWidget {

@@ -64,7 +64,7 @@ void WndTest::onDrawBtns(ExCanvas* canvas, const ExWidget* widget, const ExRegio
 
     const char* text = widget->getName();
     cr.set_font(res.f.gothic.crf, 12.f);
-    cr.show_ucs2(mbs2wcs(text), ExCairo::Color(0.f), rc);
+    cr.show_text(text, ExCairo::Color(0.f), rc);
 
     cairo_pattern_destroy(crp);
 }
@@ -176,20 +176,20 @@ int WndTest::onFilter(WndTest* w, ExCbInfo* cbinfo) {
 
 void WndTest::initEdit(int x, int y, int w, int h)
 {
-    wchar lpszLatin[] = L"Lorem ipsum dolor sit amet, consectetur "
-        L"adipisicing elit, sed do eiusmod tempor "
-        L"incididunt ut labore et dolore magna "
-        L"aliqua. Ut enim ad minim veniam, quis "
-        L"nostrud exercitation ullamco laboris nisi "
-        L"ut aliquip ex ea commodo consequat. Duis "
-        L"aute irure dolor in reprehenderit in "
-        L"voluptate velit esse cillum dolore eu "
-        L"fugiat nulla pariatur. Excepteur sint "
-        L"occaecat cupidatat non proident, sunt "
-        L"in culpa qui officia deserunt mollit "
-        L"anim id est laborum.";
+    char lpszLatin[] = "Lorem ipsum dolor sit amet, consectetur "
+        "adipisicing elit, sed do eiusmod tempor "
+        "incididunt ut labore et dolore magna "
+        "aliqua. Ut enim ad minim veniam, quis "
+        "nostrud exercitation ullamco laboris nisi "
+        "ut aliquip ex ea commodo consequat. Duis "
+        "aute irure dolor in reprehenderit in "
+        "voluptate velit esse cillum dolore eu "
+        "fugiat nulla pariatur. Excepteur sint "
+        "occaecat cupidatat non proident, sunt "
+        "in culpa qui officia deserunt mollit "
+        "anim id est laborum.";
 
-    hwndEdit = CreateWindowEx(0, L"EDIT",   // predefined class
+    hwndEdit = CreateWindowEx(0, "EDIT",   // predefined class
                               NULL,         // no window title
                               WS_CHILD | WS_VISIBLE | WS_VSCROLL |
                               ES_LEFT | ES_MULTILINE | ES_AUTOVSCROLL,

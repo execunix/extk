@@ -872,20 +872,20 @@ FILE *
 _cairo_win32_tmpfile (void)
 {
     DWORD path_len;
-    WCHAR path_name[MAX_PATH + 1];
-    WCHAR file_name[MAX_PATH + 1];
+    CHAR path_name[MAX_PATH + 1];
+    CHAR file_name[MAX_PATH + 1];
     HANDLE handle;
     int fd;
     FILE *fp;
 
-    path_len = GetTempPathW (MAX_PATH, path_name);
+    path_len = GetTempPath (MAX_PATH, path_name);
     if (path_len <= 0 || path_len >= MAX_PATH)
 	return NULL;
 
-    if (GetTempFileNameW (path_name, L"ps_", 0, file_name) == 0)
+    if (GetTempFileName (path_name, "ps_", 0, file_name) == 0)
 	return NULL;
 
-    handle = CreateFileW (file_name,
+    handle = CreateFile (file_name,
 			 GENERIC_READ | GENERIC_WRITE,
 			 0,
 			 NULL,
@@ -893,7 +893,7 @@ _cairo_win32_tmpfile (void)
 			 FILE_ATTRIBUTE_NORMAL | FILE_FLAG_DELETE_ON_CLOSE,
 			 NULL);
     if (handle == INVALID_HANDLE_VALUE) {
-	DeleteFileW (file_name);
+	DeleteFile (file_name);
 	return NULL;
     }
 

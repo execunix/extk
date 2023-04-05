@@ -30,7 +30,7 @@ public:
 #ifdef WIN32
     static HINSTANCE    hInstance;
     static HINSTANCE    hPrevInstance;
-    static LPTSTR       lpCmdLine;
+    static LPSTR        lpCmdLine;
     static int          nCmdShow;
 #endif
     static int          retCode;                // 0:EXIT_SUCCESS,1:EXIT_FAILURE
@@ -62,7 +62,7 @@ public:
     static void collect();
     static void exit(int retCode);
 #ifdef WIN32
-    static int init(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCmdLine, int nCmdShow);
+    static int init(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow);
 #endif
 public:
     static int& butRepeatCnt() { return (int&)but_timer.u32[0]; };

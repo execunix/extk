@@ -159,7 +159,7 @@ const char* strerror(int errval)
 
 const wchar* _wcserror(int errval)
 { // tbd
-    return L"syserr";
+    return "syserr";
 }
 #endif // _WIN32_WCE
 

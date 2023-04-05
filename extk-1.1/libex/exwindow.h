@@ -156,7 +156,7 @@ protected:
     virtual int basicWndProc(ExCbInfo* cbinfo);
 #ifdef WIN32
     static LRESULT CALLBACK sysWndProc(HWND, UINT, WPARAM, LPARAM);
-    static LPCTSTR getClassName() { return L"ExWindow"; }
+    static LPCSTR getClassName() { return "ExWindow"; }
     static ATOM classInit(HINSTANCE hInstance);
 #endif
 public:

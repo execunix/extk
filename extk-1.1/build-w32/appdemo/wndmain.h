@@ -10,14 +10,14 @@
 
 class WgtTitle : public ExWidget {
 public:
-    wchar title[256];
+    char title[256];
 public:
     ~WgtTitle() {}
     WgtTitle() : ExWidget() {}
 public:
     void init(ExWindow* window);
-    void setTitle(const wchar* str) {
-        wcsncpy(title, str, 255);
+    void setTitle(const char* str) {
+        strncpy(title, str, 255);
         title[255] = 0;
     }
     int STDCALL onLayout(WgtTitle* widget, ExCbInfo* cbinfo);

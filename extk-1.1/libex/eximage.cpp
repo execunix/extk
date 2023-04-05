@@ -61,7 +61,7 @@ int ExImage::setInfo(int width, int height, int type)
 }
 
 #ifdef WIN32
-int ExImage::load(const wchar* fname, bool query)
+int ExImage::load(const char* fname, bool query)
 {
     if (crs != NULL || bits != NULL) {
         exerror("%s - loaded\n", __func__);
@@ -71,17 +71,17 @@ int ExImage::load(const wchar* fname, bool query)
         exerror("%s - invalid filename.\n", __func__);
         return -1;
     }
-    const wchar* ext = NULL;
-    for (const wchar* p = fname; *p; p++)
+    const char* ext = NULL;
+    for (const char* p = fname; *p; p++)
         if (*p == '.') ext = p + 1;
     if (ext == NULL) {
-        exerror(L"%s(%s) - invalid extension.\n", __funcw__, fname);
+        exerror("%s(%s) - invalid extension.\n", __func__, fname);
         return NULL;
     }
     HANDLE hFile = CreateFile(fname, GENERIC_READ, 0, NULL,
                               OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
     if (hFile == INVALID_HANDLE_VALUE) {
-        exerror(L"%s(%s) - CreateFile fail.\n", __funcw__, fname);
+        exerror("%s(%s) - CreateFile fail.\n", __func__, fname);
         return NULL;
     }
     int r = -1;
@@ -89,20 +89,20 @@ int ExImage::load(const wchar* fname, bool query)
     unsigned char hdr[8];
     ReadFile(hFile, hdr, 8, &dwRead, NULL);
     SetFilePointer(hFile, 0, NULL, FILE_BEGIN);
-    if (_wcsnicmp(ext, L"png", 3) == 0) {
+    if (_strnicmp(ext, "png", 3) == 0) {
         assert(hdr[0] == 0x89 && hdr[1] == 'P' && hdr[2] == 'N' && hdr[3] == 'G');
         this->format = Ex_IMM_PNG;
         r = this->loadPng(hFile, fname, query);
         goto clean;
     }
 #if 1
-    if (_wcsnicmp(ext, L"bmp", 3) == 0) {
+    if (_strnicmp(ext, "bmp", 3) == 0) {
         assert(hdr[0] == 'B' && hdr[1] == 'M');
         this->format = Ex_IMM_BMP;
         r = this->loadBmp(hFile, fname, query);
         goto clean;
     }
-    if (_wcsnicmp(ext, L"jp", 2) == 0) {
+    if (_strnicmp(ext, "jp", 2) == 0) {
         CloseHandle(hFile);
         assert(hdr[0] == 0xff && hdr[1] == 0xd8);
         this->format = Ex_IMM_JPG;
@@ -110,7 +110,7 @@ int ExImage::load(const wchar* fname, bool query)
         goto done;
     }
 #endif
-    exerror(L"%s(%s) - unknown image format.\n", __funcw__, fname);
+    exerror("%s(%s) - unknown image format.\n", __func__, fname);
 clean:
     CloseHandle(hFile);
 done:

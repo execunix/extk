@@ -14,7 +14,7 @@ typedef struct {
 } Shmem;
 
 void*
-ExShmemCreate(size_t size, const wchar* name) {
+ExShmemCreate(size_t size, const char* name) {
     uchar* addr;
     HANDLE hmap;
     Shmem* shmem;

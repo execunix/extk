@@ -26,7 +26,7 @@ static void jpg_error_exit(j_common_ptr cinfo)
 }
 
 #ifdef WIN32
-int ExImage::loadJpg(HANDLE hFile, const wchar* fname, bool query)
+int ExImage::loadJpg(HANDLE hFile, const char* fname, bool query)
 {
     struct jpeg_decompress_struct cinfo;
     struct jpeg_error_mgr jerr;
@@ -35,8 +35,8 @@ int ExImage::loadJpg(HANDLE hFile, const wchar* fname, bool query)
     FILE* infile;
     int r = -1;
 
-    if ((infile = _wfopen(fname, L"rb")) == NULL) {
-        exerror(L"%s(%s) - open fail.\n", __funcw__, fname);
+    if ((infile = fopen(fname, "rb")) == NULL) {
+        exerror("%s(%s) - open fail.\n", __func__, fname);
         return -1;
     }
     cinfo.err = jpeg_std_error(&jerr);
@@ -59,7 +59,7 @@ int ExImage::loadJpg(HANDLE hFile, const wchar* fname, bool query)
     cinfo.scale_denom = 2;
     jpeg_calc_output_dimensions(&cinfo);
     if (cinfo.progressive_mode) {
-        exerror(L"%s(%s) - progressive_mode.\n", __funcw__, fname);
+        exerror("%s(%s) - progressive_mode.\n", __func__, fname);
         goto jpg_cleanup;
     }
     if (query) {

@@ -25,7 +25,7 @@ drawName(void* data, ExCanvas* canvas, const ExWidget* widget, const ExRegion* d
     cr.fill_rect_rgba(rc, fc);
     const char* text = widget->getName();
     cr.set_font(res.f.gothic.crf, 12.f);
-    cr.show_ucs2(mbs2wcs(text), ExCairo::Color(1.f), rc);
+    cr.show_text(text, ExCairo::Color(1.f), rc);
 }
 
 void WgtPage1::fini() {

@@ -224,7 +224,7 @@ public:
     static ExImage* create(int width, int height, int type);
     int init(int width, int height, int type);
 #ifdef WIN32
-    int load(const wchar* fname, bool query = false);
+    int load(const char* fname, bool query = false);
 #else // compat linux
     int load(const char* fname, bool query = false);
 #endif
@@ -264,10 +264,10 @@ public:
 protected:
     int setInfo(int width, int height, int type);
 #ifdef WIN32
-    int loadBmp(HANDLE hFile, const wchar* fname, bool query);
-    int loadGif(HANDLE hFile, const wchar* fname, bool query);
-    int loadJpg(HANDLE hFile, const wchar* fname, bool query);
-    int loadPng(HANDLE hFile, const wchar* fname, bool query);
+    int loadBmp(HANDLE hFile, const char* fname, bool query);
+    int loadGif(HANDLE hFile, const char* fname, bool query);
+    int loadJpg(HANDLE hFile, const char* fname, bool query);
+    int loadPng(HANDLE hFile, const char* fname, bool query);
     int savePng(HANDLE hFile);
 #else // compat linux
     int loadBmp(int fd, const char* fname, bool query);

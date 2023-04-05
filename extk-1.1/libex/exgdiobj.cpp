@@ -233,7 +233,7 @@ ExBmpBlt(HDC dhdc, int dx, int dy, ExGdiBmp* sbmp)
 // class ExGdiFont
 
 int
-ExGdiFont::CreateFont(int height, int weight, const wchar* facename)
+ExGdiFont::CreateFont(int height, int weight, const char* facename)
 {
     LOGFONT logfont;
     memset(&logfont, 0, sizeof(logfont));
@@ -243,7 +243,7 @@ ExGdiFont::CreateFont(int height, int weight, const wchar* facename)
 #ifdef _WIN32_WCE
     logfont.lfQuality = CLEARTYPE_QUALITY;
 #endif
-    _snwprintf(logfont.lfFaceName, LF_FACESIZE, L"%s", facename);
+    _snprintf(logfont.lfFaceName, LF_FACESIZE, "%s", facename);
     return Create(&logfont);
 }
 

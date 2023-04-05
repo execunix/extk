@@ -12,7 +12,7 @@
 void WgtTitle::init(ExWindow* window) {
     ExRect rc;
     ExWidget::init(window, "WgtTitle", &rc.set(0, 0, 800, 36));
-    setTitle(L"Welcome to Rectangles and Callbacks World.");
+    setTitle("Welcome to Rectangles and Callbacks World.");
     setFlags(Ex_Selectable);
     addListener(this, &WgtTitle::onLayout, Ex_CbLayout);
     drawFunc = ExDrawFunc(this, &WgtTitle::onDrawTitle);
@@ -31,7 +31,7 @@ void WgtTitle::onDrawTitle(ExCanvas* canvas, const ExWidget* widget, const ExReg
 
     rc.w -= 48.f;
     cr.set_font(res.f.gothic_B.crf, rc.h * .5f);
-    ExCairo::Point pt = cr.ucs2_align(title, rc, ExCairo::Right | ExCairo::VCenter);
+    ExCairo::Point pt = cr.text_align(title, rc, ExCairo::Right | ExCairo::VCenter);
 #if 0
     cairo_move_to(cr, pt.x + 2.f, pt.y + 2.f);
     cairo_set_source_rgb(cr, .2f, .2f, .2f);
@@ -39,9 +39,9 @@ void WgtTitle::onDrawTitle(ExCanvas* canvas, const ExWidget* widget, const ExReg
     cairo_set_line_width(cr, 2.f);
     cairo_stroke(cr);
 #else
-    cr.show_ucs2(title, ExCairo::Color(.2f), ExCairo::Point(pt.x + 2.f, pt.y + 2.f));
+    cr.show_text(title, ExCairo::Color(.2f), ExCairo::Point(pt.x + 2.f, pt.y + 2.f));
 #endif
-    cr.show_ucs2(title, ExCairo::Color(1.f), pt);
+    cr.show_text(title, ExCairo::Color(1.f), pt);
 }
 
 static int STDCALL
@@ -172,7 +172,7 @@ void WndMain::onDrawBtns(ExCanvas* canvas, const ExWidget* widget, const ExRegio
 
     const char* text = widget->getName();
     cr.set_font(res.f.gothic.crf, 12.f);
-    cr.show_ucs2(mbs2wcs(text), ExCairo::Color(0.f), rc);
+    cr.show_text(text, ExCairo::Color(0.f), rc);
 
 #if USE_PATTERN_BTN
     cairo_pattern_destroy(crp);
@@ -247,9 +247,9 @@ void WndMain::onDrawPane(ExCanvas* canvas, const ExWidget* widget, const ExRegio
 
 void WndMain::onDrawToy(ExCanvas* canvas, const WndMain* w, const ExRegion* damage) {
     static const float fs = 16.; // font_size
-    static const wchar* strtbl[2] = {
-        L"ExeCUnix Project for the Embedded Unix",
-        L"C.H Park <execunix@gmail.com>"
+    static const char* strtbl[2] = {
+        "ExeCUnix Project for the Embedded Unix",
+        "C.H Park <execunix@gmail.com>"
     };
 
     const ExBox& bx = w->calcBox();
@@ -261,13 +261,13 @@ void WndMain::onDrawToy(ExCanvas* canvas, const WndMain* w, const ExRegion* dama
     cairo_font_options_t* options = cairo_font_options_create();
     cairo_glyph_t* glyphs = NULL;
     uint& textId = toy.userdata.u32[0];
-    const wchar* str = strtbl[textId % 2];
+    const char* str = strtbl[textId % 2];
     int num_glyphs = 0;
-    int len = (int)wcslen(str);
+    int len = (int)strlen(str);
     float delta = bx.height()/2 * .9f;
     cairo_scaled_font_t* scaled_font = cairo_scaled_font_create(res.f.gothic_B.crf,
         &font_matrix, &ctm, options);
-    status = cairo_scaled_font_ucs2_to_glyphs(scaled_font, 0, 0, str, len,
+    status = cairo_scaled_font_text_to_glyphs(scaled_font, 0, 0, str, len,
         &glyphs, &num_glyphs, NULL, NULL, NULL);
     if (status == CAIRO_STATUS_SUCCESS) {
         for (int i = 0; i < num_glyphs; i++) {
@@ -592,12 +592,12 @@ int WndMain::initIomux() {
     launchInputTimer.init(NULL, [](void* d, ExTimer* t, ExCbInfo*)->int {
         dprint("launchInputTimer: %d\n", exWatchDisp->getTick());
 
-        hWakeupNoti = CreateEvent(NULL, FALSE, FALSE, L"AppDemo"); // tbd
+        hWakeupNoti = CreateEvent(NULL, FALSE, FALSE, "AppDemo"); // tbd
         exWatchLast->ioAdd([](void* d, HANDLE handle)->int {
             dprint("hWakeupNoti signaled...\n");
             return 0; }, (void*)NULL, hWakeupNoti, NULL);
 
-        hStorageNoti = FindFirstChangeNotification(L"\\", TRUE, FILE_NOTIFY_CHANGE_DIR_NAME);
+        hStorageNoti = FindFirstChangeNotification("\\", TRUE, FILE_NOTIFY_CHANGE_DIR_NAME);
         exWatchLast->ioAdd([](void* d, HANDLE handle)->int {
             dprint("hStorageNoti root fs changed...\n");
             FindNextChangeNotification(hStorageNoti);
@@ -1081,7 +1081,7 @@ int WndMain::start() {
     //showWindow(0, WS_POPUP | WS_VISIBLE);
     showWindow(0, WS_OVERLAPPEDWINDOW | WS_VISIBLE, env.wnd.x, env.wnd.y);
     //SetWindowTextA(hwnd, "AppDemo-extk-1.1");
-    SetWindowTextW(hwnd, res.s.title);
+    SetWindowText(hwnd, res.s.title);
     if (env.wnd.show == SW_SHOWMAXIMIZED) {
         ShowWindow(hwnd, SW_SHOWMAXIMIZED);
     }

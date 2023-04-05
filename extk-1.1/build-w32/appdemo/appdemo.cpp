@@ -400,10 +400,10 @@ static int STDCALL flushMainWnd(void* data, ExWatch* watch, ExCbInfo* cbinfo) {
     return 0;
 }
 
-int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
-                      _In_opt_ HINSTANCE hPrevInstance,
-                      _In_ LPWSTR    lpCmdLine,
-                      _In_ int       nCmdShow)
+int APIENTRY WinMain(_In_ HINSTANCE hInstance,
+                     _In_opt_ HINSTANCE hPrevInstance,
+                     _In_ LPSTR     lpCmdLine,
+                     _In_ int       nCmdShow)
 {
     //cb_test();
     //app_test();

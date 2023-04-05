@@ -41,7 +41,7 @@ ExWindow*    ExApp::mainWnd = NULL;
 #ifdef WIN32
 HINSTANCE    ExApp::hInstance = 0;
 HINSTANCE    ExApp::hPrevInstance = 0;
-LPTSTR       ExApp::lpCmdLine = NULL;
+LPSTR        ExApp::lpCmdLine = NULL;
 int          ExApp::nCmdShow = 0;
 #endif
 int          ExApp::retCode = 0;             // 0:EXIT_SUCCESS,1:EXIT_FAILURE
@@ -278,7 +278,7 @@ void ExApp::exit(int retCode)
 #ifdef WIN32
 int ExApp::init(HINSTANCE hInstance,
     HINSTANCE hPrevInstance,
-    LPTSTR lpCmdLine,
+    LPSTR lpCmdLine,
     int nCmdShow)
 {
     // init lib

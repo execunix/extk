@@ -131,7 +131,7 @@ int ExWindow::showWindow(DWORD dwExStyle, DWORD dwStyle, int x, int y) {
 
     HWND hwnd = NULL;
     HWND hwndParent = NULL;
-    LPCTSTR lpWindowName = wcsconv(name);
+    LPCSTR lpWindowName = name;
     HINSTANCE hInstance = ExApp::hInstance;
     //if (parent) hwndParent = parent->getWindow()->getHwnd(); // tbd
     hwnd = CreateWindowEx(dwExStyle, getClassName(), lpWindowName, dwStyle,

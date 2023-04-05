@@ -13,7 +13,7 @@
 #define BMP_BPL(w,bpp)  ((((w)*(bpp)+7)/8 + (sizeof(uint32)-1)) & ~(sizeof(uint32)-1))
 
 #ifdef WIN32
-int ExImage::loadBmp(HANDLE hFile, const wchar* fname, bool query)
+int ExImage::loadBmp(HANDLE hFile, const char* fname, bool query)
 {
     BITMAPFILEHEADER bf;
     BITMAPINFOHEADER bi;
@@ -119,7 +119,7 @@ int ExImage::loadBmp(HANDLE hFile, const wchar* fname, bool query)
     return 0;
 
 bmp_cleanup:
-    exerror(L"%s(%s) - error.\n", __funcw__, fname);
+    exerror("%s(%s) - error.\n", __func__, fname);
     if (src_buf)
         delete[] src_buf;
     this->clear();

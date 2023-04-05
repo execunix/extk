@@ -84,7 +84,7 @@ int ExImage::savePng(int fd)
 #endif
 
 #ifdef WIN32
-int ExImage::loadPng(HANDLE hFile, const wchar* fname, bool query)
+int ExImage::loadPng(HANDLE hFile, const char* fname, bool query)
 {
     DWORD dwRead = 0;
     int jmpret = 0;

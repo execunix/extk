@@ -18,7 +18,7 @@ int Face::load(const char* name)
     assert(ftLib != NULL);
 
     char faceName[256];
-    sprintf_s(faceName, 256, "%S/%s", res.path, name);
+    sprintf_s(faceName, 256, "%s/%s", res.path, name);
 
     if (FT_New_Face(ftLib, faceName, 0, &ftFace) != FT_Err_Ok) {
         dprint1("%s(%s) FT_New_Face fail", __func__, faceName);
@@ -45,10 +45,10 @@ void Face::free()
     }
 }
 
-static int load(ExImage* img, const wchar* name)
+static int load(ExImage* img, const char* name)
 {
-    wchar pathname[256];
-    swprintf_s(pathname, 256, L"%s/%s", res.path, name);
+    char pathname[256];
+    sprintf_s(pathname, 256, "%s/%s", res.path, name);
     if (img->load(pathname) != 0) {
         dprint("%s: load %S fail.\n", __func__, pathname);
         return -1;
@@ -59,10 +59,10 @@ static int load(ExImage* img, const wchar* name)
 int initRes()
 {
     struct _stat statbuf;
-    swprintf_s(res.path, 256, L"%s/res", exModulePath);
-    if (_wstat(res.path, &statbuf))
-        swprintf_s(res.path, 256, L"%s/../../res", exModulePath);
-    if (_wstat(res.path, &statbuf)) {
+    sprintf_s(res.path, 256, "%s/res", exModulePath);
+    if (_stat(res.path, &statbuf))
+        sprintf_s(res.path, 256, "%s/../../res", exModulePath);
+    if (_stat(res.path, &statbuf)) {
         dprint("%s: cant open res path\n", __func__);
         return -1;
     }
@@ -98,12 +98,12 @@ int initRes()
 
     // image
     //
-    load(&res.i.bg0, L"img/S01090.bmp");
-    load(&res.i.bg1, L"img/S01051.PNG");
+    load(&res.i.bg0, "img/S01090.bmp");
+    load(&res.i.bg1, "img/S01051.PNG");
 
     // string
     //
-    res.s.title = L"AppDemo-extk-1.1";
+    res.s.title = "AppDemo-extk-1.1";
 
     return 0;
 }

@@ -20,16 +20,16 @@ struct Face {
 };
 
 struct Res {
-    wchar path[256];
+    char path[256];
 
-    struct Font {
+    struct Fonts {
         Face gothic;
         Face gothic_B;
         Face square;
         Face square_B;
     } f;
 
-    struct Color {
+    struct Colors {
         uint32 bg;
         uint32 fg;
 
@@ -48,13 +48,13 @@ struct Res {
 
     } c;
 
-    struct Image {
+    struct Images {
         ExImage bg0;
         ExImage bg1;
     } i;
 
-    struct String {
-        const wchar* title;
+    struct Strings {
+        const char* title;
     } s;
 
 };

@@ -9,7 +9,7 @@
 #endif
 
 #ifdef WIN32
-int ExImage::loadGif(HANDLE hFile, const wchar* fname, bool query)
+int ExImage::loadGif(HANDLE hFile, const char* fname, bool query)
 {
     // tbd
     return -1;

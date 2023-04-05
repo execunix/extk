@@ -139,7 +139,7 @@ ExShmemDestroy()
     Remove a block of shared memory
 */
 
-void* ExShmemCreate(size_t size, const wchar* name);
+void* ExShmemCreate(size_t size, const char* name);
 int   ExShmemDestroy(void* addr);
 
 // tbd - add open/close api
