@@ -7,13 +7,12 @@
 #include "exwindow.h"
 #ifdef WIN32
 #include <ft2build.h>
-#include <cairo-ft.h>
 #include FT_FREETYPE_H
 #endif
 #ifdef __linux__
 #include <freetype2/ft2build.h>
-#include <cairo/cairo-ft.h>
 #endif
+#include <cairo/cairo-ft.h>
 #include "exapp.h"
 #include <assert.h>
 

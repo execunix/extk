@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>15.0</VCProjectVersion>
+    <ProjectGuid>{F6EDF5E5-F8EC-4441-8CD6-7379911BEEE3}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>camee</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>DPRINTF;CAIRO_WIN32_STATIC_BUILD;WIN32;_CRT_SECURE_NO_WARNINGS;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>false</ConformanceMode>
+      <AdditionalIncludeDirectories>../ffmpeg/include;../libex2;../extk/include</AdditionalIncludeDirectories>
+      <DisableSpecificWarnings>4576;4146;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>../ffmpeg/bin;../extk/$(IntDir)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>avcodec.lib;avfilter.lib;avformat.lib;avutil.lib;swresample.lib;swscale.lib;libpng.lib;libz.lib;libcairo.lib;libpixman.lib;libft.lib;msimg32.lib;winmm.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>CAIRO_WIN32_STATIC_BUILD;WIN32;_CRT_SECURE_NO_WARNINGS;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>false</ConformanceMode>
+      <AdditionalIncludeDirectories>../ffmpeg/include;../libex2;../extk/include</AdditionalIncludeDirectories>
+      <DisableSpecificWarnings>4576;4146;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>../ffmpeg/bin;../extk/$(IntDir)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>avcodec.lib;avfilter.lib;avformat.lib;avutil.lib;swresample.lib;swscale.lib;libpng.lib;libz.lib;libcairo.lib;libpixman.lib;libft.lib;msimg32.lib;winmm.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClInclude Include="..\libex2\ex.h" />
+    <ClInclude Include="..\libex2\exapp.h" />
+    <ClInclude Include="..\libex2\exbutton.h" />
+    <ClInclude Include="..\libex2\excairo.h" />
+    <ClInclude Include="..\libex2\excallback.h" />
+    <ClInclude Include="..\libex2\excanvas.h" />
+    <ClInclude Include="..\libex2\exconf.h" />
+    <ClInclude Include="..\libex2\exdebug.h" />
+    <ClInclude Include="..\libex2\exevent.h" />
+    <ClInclude Include="..\libex2\exgdiobj.h" />
+    <ClInclude Include="..\libex2\exgeomet.h" />
+    <ClInclude Include="..\libex2\eximage.h" />
+    <ClInclude Include="..\libex2\exinput.h" />
+    <ClInclude Include="..\libex2\exlabel.h" />
+    <ClInclude Include="..\libex2\exlist.h" />
+    <ClInclude Include="..\libex2\exmacro.h" />
+    <ClInclude Include="..\libex2\exmemory.h" />
+    <ClInclude Include="..\libex2\exobject.h" />
+    <ClInclude Include="..\libex2\expackpop.h" />
+    <ClInclude Include="..\libex2\expackpush.h" />
+    <ClInclude Include="..\libex2\exregion.h" />
+    <ClInclude Include="..\libex2\exregion_p.h" />
+    <ClInclude Include="..\libex2\exrender.h" />
+    <ClInclude Include="..\libex2\exsearch.h" />
+    <ClInclude Include="..\libex2\exstuff.h" />
+    <ClInclude Include="..\libex2\exstyle.h" />
+    <ClInclude Include="..\libex2\exthread.h" />
+    <ClInclude Include="..\libex2\extimer.h" />
+    <ClInclude Include="..\libex2\extype.h" />
+    <ClInclude Include="..\libex2\exwidget.h" />
+    <ClInclude Include="..\libex2\exwindow.h" />
+    <ClInclude Include="camee.h" />
+    <ClInclude Include="common.h" />
+    <ClInclude Include="compat.h" />
+    <ClInclude Include="env.h" />
+    <ClInclude Include="ffctx.h" />
+    <ClInclude Include="ffplay.h" />
+    <ClInclude Include="framework.h" />
+    <ClInclude Include="res.h" />
+    <ClInclude Include="Resource.h" />
+    <ClInclude Include="targetver.h" />
+    <ClInclude Include="wavplayer.h" />
+    <ClInclude Include="wgtlineproc.h" />
+    <ClInclude Include="wndmain.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\libex2\exapp.cpp" />
+    <ClCompile Include="..\libex2\exbutton.cpp" />
+    <ClCompile Include="..\libex2\excairo.cpp" />
+    <ClCompile Include="..\libex2\excallback.cpp" />
+    <ClCompile Include="..\libex2\excanvas.cpp" />
+    <ClCompile Include="..\libex2\exdebug.cpp" />
+    <ClCompile Include="..\libex2\exevent.cpp" />
+    <ClCompile Include="..\libex2\exgdiobj.cpp" />
+    <ClCompile Include="..\libex2\exgeomet.cpp" />
+    <ClCompile Include="..\libex2\exim-draw.cpp" />
+    <ClCompile Include="..\libex2\exim-io-bmp.cpp" />
+    <ClCompile Include="..\libex2\exim-io-gif.cpp" />
+    <ClCompile Include="..\libex2\exim-io-jpg.cpp" />
+    <ClCompile Include="..\libex2\exim-io-png.cpp" />
+    <ClCompile Include="..\libex2\eximage.cpp" />
+    <ClCompile Include="..\libex2\exinput.cpp" />
+    <ClCompile Include="..\libex2\exlabel.cpp" />
+    <ClCompile Include="..\libex2\exlist.cpp" />
+    <ClCompile Include="..\libex2\exmemory.cpp" />
+    <ClCompile Include="..\libex2\exobject.cpp" />
+    <ClCompile Include="..\libex2\exregion.cpp" />
+    <ClCompile Include="..\libex2\exrender.cpp" />
+    <ClCompile Include="..\libex2\exsearch.cpp" />
+    <ClCompile Include="..\libex2\exstuff.cpp" />
+    <ClCompile Include="..\libex2\exstyle.cpp" />
+    <ClCompile Include="..\libex2\exthread.cpp" />
+    <ClCompile Include="..\libex2\extimer.cpp" />
+    <ClCompile Include="..\libex2\exwidget.cpp" />
+    <ClCompile Include="..\libex2\exwindow.cpp" />
+    <ClCompile Include="camee.cpp" />
+    <ClCompile Include="common.cpp" />
+    <ClCompile Include="compat.cpp" />
+    <ClCompile Include="connect.cpp" />
+    <ClCompile Include="env.cpp" />
+    <ClCompile Include="ffctx.cpp" />
+    <ClCompile Include="ffplay.cpp" />
+    <ClCompile Include="res.cpp" />
+    <ClCompile Include="wavplayer.cpp" />
+    <ClCompile Include="wgtlineproc.cpp" />
+    <ClCompile Include="wndmain.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="camee.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="camee.ico" />
+    <Image Include="small.ico" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

@@ -41,11 +41,11 @@
 #include <string.h>
 #include <wchar.h>
 
+#include <cairo/cairo.h>
 #ifdef WIN32
-#include <cairo.h>
+//#include <cairo.h>
 #include <pixman.h>
 #else // linux
-#include <cairo/cairo.h>
 #include <math.h>
 #endif
 

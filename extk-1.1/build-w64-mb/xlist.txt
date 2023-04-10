@@ -1,0 +1,8 @@
+Win32
+.idc
+.suo
+.sln
+.user
+.vspscc
+.vssscc
+.scc
