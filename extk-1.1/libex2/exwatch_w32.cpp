@@ -193,7 +193,7 @@ uint32 ExWatch::IomuxMap::invoke(uint32 waittick) {
         return cnt; // got input signal
     }
     exerror("IomuxMap: dwWaitRet=%p GetLastError=0x%p\n", dwWaitRet, GetLastError());
-    return -1; // error
+    return 0U; // error
 }
 
 // Watch thread
@@ -260,7 +260,7 @@ bool ExWatch::init(size_t stacksize) {
     exassert(hev != NULL);
     ioAdd(this, &ExWatch::onEvent, hev);
 
-    tickCount = getTickCount(); // update tick
+    tickCount = GetTickCount(); // update tick
 
     hThread = CreateThread(NULL, stacksize, start, this, 0, &idThread);
     dprint1("CreateThread: hThread=%p idThread=%p\n", hThread, idThread);
@@ -348,6 +348,7 @@ uint32 ExWatch::proc() {
 
 uint32 ExWatch::onEvent(HANDLE handle) {
     dprint0("%s: handle=%p\n", __func__, handle);
+
     #if 0 // for manual reset
     uint64 u64 = 0UL;
     if (getEvent(&u64))
@@ -355,6 +356,7 @@ uint32 ExWatch::onEvent(HANDLE handle) {
     else
         dprint1("%s: got event fail.\n", __func__);
     #endif
+
     #if 0 // tbd - cond wait and signal
     pthread_cond_wait(&cond, &mutex);
     ...
