@@ -32,20 +32,21 @@ protected:
         void clearAll();
         void remove(ExTimer* timer);
         void active(ExTimer* timer);
-        int  invoke(uint32 tick_count);
+        uint32 invoke(uint32 tick_count);
     };
     // IomuxMap
     struct Iomux {
         HANDLE          handle;
         ExNotify        notify;
-        mutable int     fRemoved;
+        mutable int32   fRemoved;
+        //mutable enum { NONE, ADD, MOD, DEL, RUN } status;
         Iomux() : handle(handle), notify(), fRemoved(0) {}
     };
     class IomuxMap : protected std::list<Iomux> {
     protected:
         ExWatch*        watch;
-        int             count;
-        int             dirty;
+        int32           count;
+        int32           dirty;
         HANDLE          handles[MAXIMUM_WAIT_OBJECTS];
     public:
         ~IomuxMap() { fini(); }
@@ -54,19 +55,21 @@ protected:
         void fini();
         void init();
         // inherit void clear();
-        // inherit iterator find(int fd);
-        int setup();
+        // inherit iterator find(int32 fd);
+        int32 setup();
         const Iomux* search(HANDLE handle) const;
-        int probe(const ExCallback& callback, void* cbinfo);
-        int add(HANDLE handle, const ExNotify& notify, int pos);
-        int add(HANDLE handle, const ExNotify& notify);
-        int del(HANDLE handle);
-        int invoke(int waittick = INFINITE);
+        uint32 probe(const ExCallback& callback, void* cbinfo);
+        bool add(HANDLE handle, const ExNotify& notify, int32 pos);
+        bool add(HANDLE handle, const ExNotify& notify);
+        bool del(HANDLE handle);
+        uint32 invoke(uint32 waittick = INFINITE);
     };
 public:
-    const char* name; // for debug
+    const char_t* name; // for debug
     static uint32 getTickCount();
     static uint32 tickAppLaunch;
+    static DWORD tls_key;
+    static void tls_specific(const char_t* name); // tbd
 protected:
     static DWORD WINAPI start(_In_ LPVOID arg);
     IomuxMap        iomuxmap;
@@ -74,7 +77,7 @@ protected:
     DWORD           idThread;
     HANDLE          hThread;
     HANDLE          hev;
-    int             halt;
+    uint32          halt;
     uint32          tickCount;
     mutable HANDLE  mutex;
 public:
@@ -89,41 +92,41 @@ public:
         fini();
         CloseHandle(mutex);
     }
-    explicit ExWatch(const char* name) : name(name)
+    explicit ExWatch(const char_t* name) : name(name)
         , iomuxmap(this), timerset(), idThread(0), hThread(NULL), hev(NULL), halt(0)
         , tickCount(0), hookStart(), hookTimer(), hookIomux(), hookClean() {
         mutex = CreateMutex(NULL, FALSE, NULL);
         tickCount = tickAppLaunch;
     }
-    int fini();
-    int init(size_t stacksize = 1048576 * 8);
-    int enter() const;
-    int leave() const;
-    int wakeup() const;
-    int setHalt(int r = Ex_Halt);
-    int getHalt() const { return halt; }
+    bool fini();
+    bool init(size_t stacksize = 1048576UL);
+    bool enter() const;
+    bool leave() const;
+    bool wakeup() const;
+    uint32 setHalt(uint32 r = Ex_Halt);
+    uint32 getHalt() const { return halt; }
     uint32 getTick() const { return tickCount; }
 protected:
-    int setEvent(uint64 u) const;
-    int getEvent(uint64* u) const;
-    int STDCALL proc();
-    int STDCALL onEvent(HANDLE handle);
+    bool setEvent(uint64 u64) const;
+    bool getEvent(uint64* u64) const;
+    uint32 STDCALL proc();
+    uint32 STDCALL onEvent(HANDLE handle);
 public:
     #if EX2CONF_LAMBDA_CALLBACK
-    int ioAdd(int (STDCALL *f)(void*, HANDLE handle), void* d, HANDLE handle, int pos = -1) {
+    bool ioAdd(uint32 (STDCALL *f)(void*, HANDLE handle), void* d, HANDLE handle, int32 pos = -1) {
         return iomuxmap.add(handle, ExNotify(f, d), pos);
     }
     #endif
     template <typename A>
-    int ioAdd(A* d, int (STDCALL A::*f)(HANDLE handle), HANDLE handle, int pos) {
+    bool ioAdd(A* d, uint32 (STDCALL A::*f)(HANDLE handle), HANDLE handle, int32 pos) {
         return iomuxmap.add(handle, ExNotify(d, f), pos);
     }
     template <typename A>
-    int ioAdd(A* d, int (STDCALL A::* f)(HANDLE handle), HANDLE handle) {
+    bool ioAdd(A* d, uint32 (STDCALL A::* f)(HANDLE handle), HANDLE handle) {
         return iomuxmap.add(handle, ExNotify(d, f));
     }
-    int ioDel(HANDLE handle) {
-        return getHalt() ? 0 : iomuxmap.del(handle);
+    bool ioDel(HANDLE handle) {
+        return (getHalt() == 0U) ? iomuxmap.del(handle) : false;
     }
 protected:
     friend class ExTimer;

@@ -52,7 +52,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>../../cairo-1.14.2;../../cairo-1.14.2/src;../extk/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../freetype-2.4.8/include;../../cairo-1.14.2;../../cairo-1.14.2/src;../extk/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>CAIRO_WIN32_STATIC_BUILD;_CRT_SECURE_NO_DEPRECATE;WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -66,9 +66,9 @@
       <OutputFile>$(OutDir)libcairo.lib</OutputFile>
     </Lib>
     <PostBuildEvent>
-      <Command>xcopy ..\..\cairo-1.14.2\src\cairo.h ..\extk\include\ /d /y
-xcopy ..\..\cairo-1.14.2\src\cairo-*.h ..\extk\include\ /d /y
-xcopy ..\..\cairo-1.14.2\cairo-version.h ..\extk\include\ /d /y
+      <Command>xcopy ..\..\cairo-1.14.2\src\cairo.h ..\extk\include\cairo\ /d /y
+xcopy ..\..\cairo-1.14.2\src\cairo-*.h ..\extk\include\cairo\ /d /y
+xcopy ..\..\cairo-1.14.2\cairo-version.h ..\extk\include\cairo\ /d /y
 xcopy "$(OutDir)$(TargetFileName)" "..\extk\$(OutDir)" /d /y
 </Command>
     </PostBuildEvent>
@@ -76,7 +76,7 @@ xcopy "$(OutDir)$(TargetFileName)" "..\extk\$(OutDir)" /d /y
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
       <Optimization>MinSpace</Optimization>
-      <AdditionalIncludeDirectories>../../cairo-1.14.2;../../cairo-1.14.2/src;../extk/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../freetype-2.4.8/include;../../cairo-1.14.2;../../cairo-1.14.2/src;../extk/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>CAIRO_WIN32_STATIC_BUILD;_CRT_SECURE_NO_DEPRECATE;WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -90,9 +90,9 @@ xcopy "$(OutDir)$(TargetFileName)" "..\extk\$(OutDir)" /d /y
       <OutputFile>$(OutDir)libcairo.lib</OutputFile>
     </Lib>
     <PostBuildEvent>
-      <Command>xcopy ..\..\cairo-1.14.2\src\cairo.h ..\extk\include\ /d /y
-xcopy ..\..\cairo-1.14.2\src\cairo-*.h ..\extk\include\ /d /y
-xcopy ..\..\cairo-1.14.2\cairo-version.h ..\extk\include\ /d /y
+      <Command>xcopy ..\..\cairo-1.14.2\src\cairo.h ..\extk\include\cairo\ /d /y
+xcopy ..\..\cairo-1.14.2\src\cairo-*.h ..\extk\include\cairo\ /d /y
+xcopy ..\..\cairo-1.14.2\cairo-version.h ..\extk\include\cairo\ /d /y
 xcopy "$(OutDir)$(TargetFileName)" "..\extk\$(OutDir)" /d /y
 </Command>
     </PostBuildEvent>

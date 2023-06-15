@@ -167,7 +167,7 @@ uint32 ExWatch::IomuxMap::invoke(uint32 waittick) {
     if (dwWaitRet >= WAIT_OBJECT_0 &&
         dwWaitRet < (WAIT_OBJECT_0 + nCount)) {
         dprint("IomuxMap: dwWaitRet=%p nCount=%d\n", dwWaitRet, nCount);
-        uint32 cnt = 1;
+        uint32 cnt = 1U;
         iterator i = begin();
         for (DWORD n = 0; n < nCount; n++) {
             exassert(i != end());

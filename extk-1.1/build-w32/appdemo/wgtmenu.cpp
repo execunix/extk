@@ -82,7 +82,7 @@ void WgtMenu::Popup::clear() {
     link = NULL;
 }
 
-int WgtMenu::onTimerAni(Popup* popup, ExCbInfo* cbinfo) {
+uint32 WgtMenu::onTimerAni(Popup* popup, ExCbInfo* cbinfo) {
     popup->ani += 0.05f;
     popup->damage();
     if (popup->ani >= 1.f) {
@@ -114,11 +114,11 @@ void WgtMenu::onDrawMenuPop(ExCanvas* canvas, const ExWidget* widget, const ExRe
         if (im->view == widget) isFocused = true;
     if (menu->flag & Menu::Separator) {
         ExCairo::Point p1(rc.x + 36.f, rc.y + menuHeight + 1.5f);
-        cairo_set_source_rgb(cr, 1.f, 1.f, 1.f);
-        cairo_move_to(cr, p1.x, p1.y);
-        cairo_line_to(cr, p2.x, p1.y);
-        cairo_set_line_width(cr, .2f);
-        cairo_stroke(cr);
+        cr_set_source_rgb(cr, 1.f, 1.f, 1.f);
+        cr_move_to(cr, p1.x, p1.y);
+        cr_line_to(cr, p2.x, p1.y);
+        cr_set_line_width(cr, .2f);
+        cr_stroke(cr);
     }
     if (menu->child) {
         double h2, x1, x2, yc;
@@ -126,13 +126,13 @@ void WgtMenu::onDrawMenuPop(ExCanvas* canvas, const ExWidget* widget, const ExRe
         x1 = p2.x - menuHeight * .7f;
         x2 = x1 + h2;
         yc = rc.y + menuHeight / 2.f;
-        cairo_set_source_rgb(cr, 1.f, 1.f, 1.f);
-        cairo_move_to(cr, x1, yc - h2 * .6f);
-        cairo_line_to(cr, x1, yc + h2 * .6f);
-        cairo_line_to(cr, x2, yc);
-        cairo_close_path(cr);
-        cairo_set_line_width(cr, 1.f);
-        cairo_stroke(cr);
+        cr_set_source_rgb(cr, 1.f, 1.f, 1.f);
+        cr_move_to(cr, x1, yc - h2 * .6f);
+        cr_line_to(cr, x1, yc + h2 * .6f);
+        cr_line_to(cr, x2, yc);
+        cr_close_path(cr);
+        cr_set_line_width(cr, 1.f);
+        cr_stroke(cr);
     }
     rc.h = (double)menuHeight;
     if (!(menu->flag & Menu::Disabled) &&
@@ -176,7 +176,7 @@ void WgtMenu::onDrawMenuBar(ExCanvas* canvas, const ExWidget* widget, const ExRe
     cr.show_text(menu->text, ExCairo::Color(1.f), cr.text_align(canvas->fe, menu->extents, rc));
 }
 
-int WgtMenu::onLayoutHorz(ExWidget* widget, ExCbInfo* cbinfo) {
+uint32 WgtMenu::onLayoutHorz(ExWidget* widget, ExCbInfo* cbinfo) {
     ExRect* horz = (ExRect*)cbinfo->data;
     Menu* menu = (Menu*)widget->getData();
     ExCairo::text_extent(window->canvas->cr, res.f.gothic.crf, fontSize, menu->text, &menu->extents);
@@ -187,7 +187,7 @@ int WgtMenu::onLayoutHorz(ExWidget* widget, ExCbInfo* cbinfo) {
     return Ex_Continue;
 }
 
-int WgtMenu::onLayoutVert(ExWidget* widget, ExCbInfo* cbinfo) {
+uint32 WgtMenu::onLayoutVert(ExWidget* widget, ExCbInfo* cbinfo) {
     ExRect* vert = (ExRect*)cbinfo->data;
     Menu* menu = (Menu*)widget->getData();
     ExCairo::text_extent(window->canvas->cr, res.f.gothic.crf, fontSize, menu->text, &menu->extents);
@@ -200,15 +200,15 @@ int WgtMenu::onLayoutVert(ExWidget* widget, ExCbInfo* cbinfo) {
     return Ex_Continue;
 }
 
-int WgtMenu::onActivate(ExWidget* widget, ExCbInfo* cbinfo) {
+uint32 WgtMenu::onActivate(ExWidget* widget, ExCbInfo* cbinfo) {
     return Ex_Continue;
 }
 
-int WgtMenu::onFocused(ExWidget* widget, ExCbInfo* cbinfo) {
+uint32 WgtMenu::onFocused(ExWidget* widget, ExCbInfo* cbinfo) {
     return Ex_Continue;
 }
 
-int WgtMenu::onHandler(ExWidget* widget, ExCbInfo* cbinfo) {
+uint32 WgtMenu::onHandler(ExWidget* widget, ExCbInfo* cbinfo) {
     if (cbinfo->event->message == WM_COMMAND) {
         dprint("WM_COMMAND: %d\n", cbinfo->event->wParam);
         if (cbinfo->event->wParam == IDM_EXIT)
@@ -218,7 +218,7 @@ int WgtMenu::onHandler(ExWidget* widget, ExCbInfo* cbinfo) {
     return Ex_Continue;
 }
 
-int WgtMenu::onFilter(ExWidget* widget, ExCbInfo* cbinfo) {
+uint32 WgtMenu::onFilter(ExWidget* widget, ExCbInfo* cbinfo) {
     if (cbinfo->event->message == WM_MOUSEMOVE) {
         if (popList.empty())
             return Ex_Continue;
@@ -321,7 +321,7 @@ int WgtMenu::onFilter(ExWidget* widget, ExCbInfo* cbinfo) {
     return Ex_Continue;
 }
 
-int WgtMenu::onLayout(ExWidget* widget, ExCbInfo* cbinfo) {
+uint32 WgtMenu::onLayout(ExWidget* widget, ExCbInfo* cbinfo) {
     ExRect* expand = (ExRect*)cbinfo->data;
     ExRect horz(1, 1, area.w - 2, area.h - 2);
     for (int n = 0; n < rootMenu.size; n++) {

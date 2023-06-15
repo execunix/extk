@@ -5,16 +5,9 @@
 
 #include "excanvas.h"
 #include "exwindow.h"
-#ifdef WIN32
-#include <ft2build.h>
-#include FT_FREETYPE_H
-#endif
-#ifdef __linux__
 #include <freetype2/ft2build.h>
-#endif
 #include <cairo/cairo-ft.h>
 #include "exapp.h"
-#include <assert.h>
 
 // class ExCanvas
 //
@@ -33,12 +26,12 @@ ExCanvas::ExCanvas()
     memset(&fe, 0, sizeof(fe));
 }
 
-int ExCanvas::init(ExWindow* window) {
+bool ExCanvas::init(ExWindow* window) {
     ExSize sz = window ? window->area.u.sz : ExApp::smSize;
     return init(window, sz);
 }
 
-int ExCanvas::init(ExWindow* window, ExSize sz) {
+bool ExCanvas::init(ExWindow* window, ExSize sz) {
     wnd = window;
     wnd->canvas = this;
     //if (ftLib == NULL &&
@@ -47,12 +40,12 @@ int ExCanvas::init(ExWindow* window, ExSize sz) {
     return createMemGC(sz.w, sz.h);
 }
 
-int ExCanvas::resize(int w, int h) {
+bool ExCanvas::resize(int32 w, int32 h) {
     deleteMemGC();
     return createMemGC(w, h);
 }
 
-int ExCanvas::deleteMemGC() {
+void ExCanvas::deleteMemGC() {
     if (cr) {
         cairo_destroy(cr);
         cr = NULL;
@@ -61,26 +54,25 @@ int ExCanvas::deleteMemGC() {
         delete gc;
         gc = NULL;
     }
-    return 0;
 }
 
-int ExCanvas::createMemGC(int width, int height) {
+bool ExCanvas::createMemGC(int32 width, int32 height) {
     deleteMemGC();
     gc = ExImage::create(width, height, Ex_IMAGE_DIRECT_8888);
     if (!gc) {
         dprint1("%s(%d,%d) %s\n", __func__, width, height, "ExImage::create fail");
-        return -1;
+        return false;
     }
     cairo_status_t status;
     cairo_format_t format = CAIRO_FORMAT_ARGB32;
-    int stride = cairo_format_stride_for_width(format, gc->width);
+    int32 stride = cairo_format_stride_for_width(format, gc->width);
     gc->crs = cairo_image_surface_create_for_data(
         gc->bits, format, gc->width, gc->height, stride);
-    assert(stride == gc->bpl);
+    exassert(stride == gc->bpl);
     //static const cairo_user_data_key_t key;
     //cairo_surface_set_user_data(gc->crs, &key, gc->bits, (cairo_destroy_func_t)free);
     //cairo_content_t crc_image = cairo_surface_get_content(gc->crs);
-    //assert(crc_image == CAIRO_CONTENT_COLOR_ALPHA);
+    //exassert(crc_image == CAIRO_CONTENT_COLOR_ALPHA);
     status = cairo_surface_status(gc->crs);
     if (status == CAIRO_STATUS_SUCCESS) {
         cr = cairo_create(gc->crs);
@@ -91,11 +83,11 @@ int ExCanvas::createMemGC(int width, int height) {
 #endif
     if (status == CAIRO_STATUS_SUCCESS) {
         wnd->damage(); // tbd
-        return 0;
+        return true;
     }
     dprint1("%s(%d,%d) %s\n", __func__, width, height, cairo_status_to_string(status));
     deleteMemGC();
-    return -1;
+    return false;
 }
 
 #ifdef WIN32
@@ -127,7 +119,7 @@ ExRegionToGdi(HDC hdc, const ExRegion* srcrgn)
     r.right = srcrgn->boxes[0].r;
     r.bottom = srcrgn->boxes[0].b;
     HRGN hrgn = CreateRectRgnIndirect(&r);
-    for (int i = 1; i < srcrgn->n_boxes; i++) {
+    for (int32 i = 1; i < srcrgn->n_boxes; i++) {
         r.left = srcrgn->boxes[i].l;
         r.top = srcrgn->boxes[i].t;
         r.right = srcrgn->boxes[i].r;

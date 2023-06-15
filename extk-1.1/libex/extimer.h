@@ -21,8 +21,8 @@ protected:
     uint32      repeat;     // The time, in milliseconds, repeat period
     ExCallback  callback;
 private: // Modify the flags only in the ExWatch::TimerSet class.
-    mutable int fActived;   // is started and inserted ?
-    int         _ra_1;      // reserved for align
+    mutable uint32 fActived; // is started and inserted ?
+    uint32      _ra_1;      // reserved for align
 public:
     ExObject*   object;     // Pass the object linked to the timer
     union {                 // Storing arbitrary user data : 32 bytes
@@ -45,31 +45,31 @@ protected:
     }
 public:
     #if EX2CONF_LAMBDA_CALLBACK
-    void init(ExWatch* watch, int (STDCALL *f)(void*, ExTimer*, ExCbInfo*), void* d) {
+    void init(ExWatch* watch, uint32 (STDCALL *f)(void*, ExTimer*, ExCbInfo*), void* d) {
         setup(watch, ExCallback(f, d), NULL);
     }
-    void init(ExWatch* watch, int (STDCALL* f)(void*, ExWidget*, ExCbInfo*), void* d, ExWidget* w) {
+    void init(ExWatch* watch, uint32 (STDCALL* f)(void*, ExWidget*, ExCbInfo*), void* d, ExWidget* w) {
         setup(watch, ExCallback(f, d), (ExObject*)w);
     }
     #endif
     template <typename A, typename B>
-    void init(ExWatch* watch, int (STDCALL *f)(A*, B*, ExCbInfo*), A* d, B* obj) {
+    void init(ExWatch* watch, uint32 (STDCALL *f)(A*, B*, ExCbInfo*), A* d, B* obj) {
         setup(watch, ExCallback(f, d), obj);
     }
     template <typename A, typename B>
-    void init(ExWatch* watch, A* d, int (STDCALL A::*f)(B*, ExCbInfo*), B* obj) {
+    void init(ExWatch* watch, A* d, uint32 (STDCALL A::*f)(B*, ExCbInfo*), B* obj) {
         setup(watch, ExCallback(d, f), obj);
     }
     template <typename A>
-    void init(ExWatch* watch, A* d, int (STDCALL A::*f)(ExTimer*, ExCbInfo*)) {
+    void init(ExWatch* watch, A* d, uint32 (STDCALL A::*f)(ExTimer*, ExCbInfo*)) {
         setup(watch, ExCallback(d, f));
     }
     void stop(); // notes: clear fActived by remove from timerlist.
     void start(uint32 initial); // notes: set fActived by insert to timerlist.
     void start(uint32 initial, uint32 repeat) { this->repeat = repeat; start(initial); }
     operator uint32 () const { return value; }
-    int enter() const;
-    int leave() const;
+    bool enter() const;
+    bool leave() const;
 protected:
     friend class ExWatch;
 public:

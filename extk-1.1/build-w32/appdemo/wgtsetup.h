@@ -57,12 +57,12 @@ public:
     WgtSetup() : ExWidget() {}
 public:
     void STDCALL onDrawSetup(ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage);
-    int STDCALL onTitleMove(ExWidget* widget, ExCbInfo* cbinfo);
-    int STDCALL onActivate(ExWidget* widget, ExCbInfo* cbinfo);
-    int STDCALL onFocused(ExWidget* widget, ExCbInfo* cbinfo);
-    int STDCALL onHandler(ExWidget* widget, ExCbInfo* cbinfo);
-    int STDCALL onFilter(ExWidget* widget, ExCbInfo* cbinfo);
-    int STDCALL onLayout(ExWidget* widget, ExCbInfo* cbinfo);
+    uint32 STDCALL onTitleMove(ExWidget* widget, ExCbInfo* cbinfo);
+    uint32 STDCALL onActivate(ExWidget* widget, ExCbInfo* cbinfo);
+    uint32 STDCALL onFocused(ExWidget* widget, ExCbInfo* cbinfo);
+    uint32 STDCALL onHandler(ExWidget* widget, ExCbInfo* cbinfo);
+    uint32 STDCALL onFilter(ExWidget* widget, ExCbInfo* cbinfo);
+    uint32 STDCALL onLayout(ExWidget* widget, ExCbInfo* cbinfo);
     void fini();
     void init(ExWidget* parent, int x, int y);
 };

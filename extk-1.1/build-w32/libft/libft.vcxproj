@@ -65,7 +65,8 @@
       <OutputFile>$(OutDir)libft.lib</OutputFile>
     </Lib>
     <PostBuildEvent>
-      <Command>xcopy ..\..\freetype-2.4.8\include\*.* ..\extk\include /d /s /e /y /i /exclude:..\xlist.txt
+      <Command>xcopy ..\..\freetype-2.4.8\include\freetype\*.* ..\extk\include\freetype /d /s /e /y /i /exclude:..\xlist.txt
+xcopy ..\..\freetype-2.4.8\include\ft2build.h ..\extk\include\freetype2\ /d /s /e /y /i
 xcopy "$(OutDir)$(TargetFileName)" "..\extk\$(OutDir)" /d /y
 </Command>
     </PostBuildEvent>
@@ -86,7 +87,8 @@ xcopy "$(OutDir)$(TargetFileName)" "..\extk\$(OutDir)" /d /y
       <OutputFile>$(OutDir)libft.lib</OutputFile>
     </Lib>
     <PostBuildEvent>
-      <Command>xcopy ..\..\freetype-2.4.8\include\*.* ..\extk\include /d /s /e /y /i /exclude:..\xlist.txt
+      <Command>xcopy ..\..\freetype-2.4.8\include\freetype\*.* ..\extk\include\freetype /d /s /e /y /i /exclude:..\xlist.txt
+xcopy ..\..\freetype-2.4.8\include\ft2build.h ..\extk\include\freetype2\ /d /s /e /y /i
 xcopy "$(OutDir)$(TargetFileName)" "..\extk\$(OutDir)" /d /y
 </Command>
     </PostBuildEvent>

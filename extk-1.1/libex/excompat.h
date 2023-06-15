@@ -19,10 +19,10 @@ typedef uint WPARAM;
 typedef uint LPARAM;
 typedef long LRESULT;
 typedef void* HINSTANCE;
-typedef char* LPSTR;
-typedef wchar* LPTSTR;
-typedef const char* LPCSTR;
-typedef const wchar* LPCTSTR;
+typedef char_t* LPSTR;
+typedef ucs2_t* LPTSTR;
+typedef const char_t* LPCSTR;
+typedef const ucs2_t* LPCTSTR;
 #define CALLBACK
 #define CW_USEDEFAULT -1
 #define DestroyWindow(...) ((void)0)

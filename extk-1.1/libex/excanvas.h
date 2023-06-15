@@ -10,6 +10,7 @@
 #include "exregion.h"
 #include "exgdiobj.h"
 #include "eximage.h"
+#include "excairo.h"
 
 // class ExCanvas
 //
@@ -20,22 +21,26 @@ public:
 #ifdef WIN32
     ExMemDC*    dc; // tbd
 #endif
-    cairo_t*    cr;
-    mutable cairo_font_extents_t fe;
+    cr_t*       cr;
+    mutable cr_font_extents_t fe;
     // tbd - protect with window->mutex
-    //static cairo_font_face_t* crf[8];
+    //static cr_font_face_t* crf[8];
 public:
     virtual ~ExCanvas();
     explicit ExCanvas();
 public:
-    int init(ExWindow* window);
-    int init(ExWindow* window, ExSize sz);
-    int resize(int w, int h);
-    virtual int deleteMemGC();
-    virtual int createMemGC(int width, int height); // sample
+    bool init(ExWindow* window);
+    bool init(ExWindow* window, ExSize sz);
+    bool resize(int32 w, int32 h);
+    virtual void deleteMemGC();
+    virtual bool createMemGC(int32 width, int32 height); // sample
 public:
     Ex_DECLARE_TYPEINFO(ExCanvas, ExObject);
 };
+
+inline ExCairo::operator cr_t* const () const {
+    return canvas->cr;
+}
 
 #ifdef WIN32
 class ExCairoCanvas : public ExCanvas {
@@ -71,8 +76,8 @@ public:
 //
 class ExTripleCanvas : public ExCanvas {
 protected:
-    ExImage*    gcBuf[3];
-    cairo_t*    crBuf[3];
+    ExImage* gcBuf[3];
+    cr_t*    crBuf[3];
 public:
     virtual ~ExTripleCanvas();
     explicit ExTripleCanvas();

@@ -17,7 +17,7 @@ bool ExEmitMessage(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
     return r ? true : false;
 }
 
-bool ExEmitKeyEvent(ExWidget* widget, UINT message, int virtkey, long keydata) {
+bool ExEmitKeyEvent(ExWidget* widget, UINT message, int32 virtkey, long keydata) {
     HWND hwnd;
     if (widget && widget->getFlags(Ex_Realized) &&
         (hwnd = widget->getWindow()->getHwnd()) != NULL) {
@@ -26,7 +26,7 @@ bool ExEmitKeyEvent(ExWidget* widget, UINT message, int virtkey, long keydata) {
     return false;
 }
 
-bool ExEmitPtrEvent(ExWidget* widget, UINT message, WPARAM wParam, int x, int y) {
+bool ExEmitPtrEvent(ExWidget* widget, UINT message, WPARAM wParam, int32 x, int32 y) {
     HWND hwnd;
     if (widget && widget->getFlags(Ex_Realized) &&
         (hwnd = widget->getWindow()->getHwnd()) != NULL) {
@@ -40,18 +40,18 @@ bool ExEmitPtrEvent(ExWidget* widget, UINT message, WPARAM wParam, int x, int y)
     return false;
 }
 
-bool ExEmitButPress(ExWidget* widget, int x, int y) {
+bool ExEmitButPress(ExWidget* widget, int32 x, int32 y) {
     return (ExEmitPtrEvent(widget, WM_MOUSEMOVE, 0, x, y) &&
             ExEmitPtrEvent(widget, WM_LBUTTONDOWN, 0, x, y));
 }
 
-bool ExEmitButRelease(ExWidget* widget, int x, int y) {
+bool ExEmitButRelease(ExWidget* widget, int32 x, int32 y) {
     return ExEmitPtrEvent(widget, WM_LBUTTONUP, 0, x, y);
 }
 #endif
 
 #ifdef __linux__
-bool ExEmitMessage(int type, int message, int wParam, int lParam) {
+bool ExEmitMessage(int32 type, int32 message, int32 wParam, int32 lParam) {
     return false;
 }
 #endif

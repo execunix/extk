@@ -6,15 +6,14 @@
 #include "exgdiobj.h"
 #include "exwindow.h"
 #include "eximage.h"
-#include <assert.h>
 
 #ifdef WIN32
 
 /////////////////////////////////////////////////////////////////////////////
 // class ExGdiBmp
 
-int
-ExGdiBmp::Create(int w, int h, int bpp, const void* lpvBits)
+int32
+ExGdiBmp::Create(int32 w, int32 h, int32 bpp, const void* lpvBits)
 {
     //Destroy();
 #if 1
@@ -34,10 +33,10 @@ ExGdiBmp::Create(int w, int h, int bpp, const void* lpvBits)
     bmi.bmiHeader.biSizeImage = 0; // This may be set to zero for BI_RGB bitmaps
 #if 0
     if (bmi.bmiHeader.biBitCount == 32) {
-        *(unsigned int*)&bmi.bmiColors[0] = 0x000000FF;
-        *(unsigned int*)&bmi.bmiColors[1] = 0x0000FF00;
-        *(unsigned int*)&bmi.bmiColors[2] = 0x00FF0000;
-        *(unsigned int*)&bmi.bmiColors[3] = 0xFF000000;
+        *(unsigned int32*)&bmi.bmiColors[0] = 0x000000FF;
+        *(unsigned int32*)&bmi.bmiColors[1] = 0x0000FF00;
+        *(unsigned int32*)&bmi.bmiColors[2] = 0x00FF0000;
+        *(unsigned int32*)&bmi.bmiColors[3] = 0xFF000000;
     }
 #endif
     hbmp = CreateDIBSection(NULL, &bmi, DIB_RGB_COLORS, (void**)&bits, NULL, NULL);
@@ -46,7 +45,7 @@ ExGdiBmp::Create(int w, int h, int bpp, const void* lpvBits)
         return -1;
     }
     GetObject(hbmp, sizeof(bm), &bm);
-    assert(bits == bm.bmBits);
+    exassert(bits == bm.bmBits);
     if (lpvBits != NULL) {
         // TBD
         memcpy(bm.bmBits, lpvBits, Size());
@@ -57,8 +56,8 @@ ExGdiBmp::Create(int w, int h, int bpp, const void* lpvBits)
 #endif
 }
 
-int
-ExGdiBmp::Create(ExImage& img, int bpp/*[0:DDB],[15,16,24,32:DIB],[Others:Invalid]*/)
+int32
+ExGdiBmp::Create(ExImage& img, int32 bpp/*[0:DDB],[15,16,24,32:DIB],[Others:Invalid]*/)
 {
     //Destroy();
     LONG w, h;
@@ -112,7 +111,7 @@ ExGdiBmp::Create(ExImage& img, int bpp/*[0:DDB],[15,16,24,32:DIB],[Others:Invali
         return 0;
     }
     if (bpp == 16) {
-        int channels = img.bpp / 8;
+        int32 channels = img.bpp / 8;
         for (h = 0; h < bm.bmHeight; h++) {
             BYTE* sp = (BYTE*)img.bits + img.bpl * h;
             WORD* dp = (WORD*)((BYTE*)bm.bmBits + bm.bmWidthBytes * h);
@@ -125,7 +124,7 @@ ExGdiBmp::Create(ExImage& img, int bpp/*[0:DDB],[15,16,24,32:DIB],[Others:Invali
         return 0;
     }
     if (bpp == 15) {
-        int channels = img.bpp / 8;
+        int32 channels = img.bpp / 8;
         if (channels == 4) {
             for (h = 0; h < bm.bmHeight; h++) {
                 BYTE* sp = (BYTE*)img.bits + img.bpl * h;
@@ -176,8 +175,8 @@ ExGdiBmp::BltEnd()
     hdc = NULL;
 }
 
-int
-ExBmpBlt(HDC dhdc, int dx, int dy, int dw, int dh, ExGdiBmp* sbmp, int sx, int sy, int sw, int sh)
+int32
+ExBmpBlt(HDC dhdc, int32 dx, int32 dy, int32 dw, int32 dh, ExGdiBmp* sbmp, int32 sx, int32 sy, int32 sw, int32 sh)
 {
     if (!(dhdc && sbmp))
         return -1;
@@ -192,8 +191,8 @@ ExBmpBlt(HDC dhdc, int dx, int dy, int dw, int dh, ExGdiBmp* sbmp, int sx, int s
     return 0;
 }
 
-int
-ExBmpBlt(HDC dhdc, int dx, int dy, int w, int h, ExGdiBmp* sbmp, int sx, int sy)
+int32
+ExBmpBlt(HDC dhdc, int32 dx, int32 dy, int32 w, int32 h, ExGdiBmp* sbmp, int32 sx, int32 sy)
 {
     if (!(dhdc && sbmp))
         return -1;
@@ -208,16 +207,16 @@ ExBmpBlt(HDC dhdc, int dx, int dy, int w, int h, ExGdiBmp* sbmp, int sx, int sy)
     return 0;
 }
 
-int
-ExBmpBlt(HDC dhdc, int dx, int dy, ExGdiBmp* sbmp)
+int32
+ExBmpBlt(HDC dhdc, int32 dx, int32 dy, ExGdiBmp* sbmp)
 {
     if (!(dhdc && sbmp))
         return -1;
     HDC shdc = sbmp->BltBegin();
     if (shdc == NULL)
         return -1;
-    int w = sbmp->Width();
-    int h = sbmp->Height();
+    int32 w = sbmp->Width();
+    int32 h = sbmp->Height();
     if (sbmp->chroma)
         TransparentBlt(dhdc, dx, dy, w, h, shdc, 0, 0, w, h, sbmp->chroma);
     else
@@ -232,8 +231,8 @@ ExBmpBlt(HDC dhdc, int dx, int dy, ExGdiBmp* sbmp)
 /////////////////////////////////////////////////////////////////////////////
 // class ExGdiFont
 
-int
-ExGdiFont::CreateFont(int height, int weight, const char* facename)
+int32
+ExGdiFont::CreateFont(int32 height, int32 weight, const char_t* facename)
 {
     LOGFONT logfont;
     memset(&logfont, 0, sizeof(logfont));
@@ -280,7 +279,7 @@ ExMemDC::ExMemDC(ExWindow* window)
     Create(window); // DDB
 }
 
-ExMemDC::ExMemDC(HDC hdcWnd, int w, int h)
+ExMemDC::ExMemDC(HDC hdcWnd, int32 w, int32 h)
     : ExGdiDC()
     , hbmOld(NULL)
     , hbmMem(NULL)
@@ -288,7 +287,7 @@ ExMemDC::ExMemDC(HDC hdcWnd, int w, int h)
     Create(hdcWnd, w, h); // DDB
 }
 
-ExMemDC::ExMemDC(int w, int h, int planes, int bpp, DWORD biCompression)
+ExMemDC::ExMemDC(int32 w, int32 h, int32 planes, int32 bpp, DWORD biCompression)
     : ExGdiDC()
     , hbmOld(NULL)
     , hbmMem(NULL)
@@ -296,7 +295,7 @@ ExMemDC::ExMemDC(int w, int h, int planes, int bpp, DWORD biCompression)
     Create(w, h, planes, bpp, biCompression); // DIB
 }
 
-int
+int32
 ExMemDC::Destroy()
 {
     if (hbmOld) {
@@ -313,7 +312,7 @@ ExMemDC::Destroy()
     return 0;
 }
 
-int
+int32
 ExMemDC::Create(ExWindow* window)
 {
     ExWndDC wnddc;
@@ -324,8 +323,8 @@ ExMemDC::Create(ExWindow* window)
     return 0;
 }
 
-int
-ExMemDC::Create(HDC hdcWnd, int w, int h)
+int32
+ExMemDC::Create(HDC hdcWnd, int32 w, int32 h)
 {
     if (Attach(CreateCompatibleDC(NULL)))
         return -1;
@@ -339,8 +338,8 @@ ExMemDC::Create(HDC hdcWnd, int w, int h)
     return 0;
 }
 
-int
-ExMemDC::Create(int w, int h, int planes, int bpp, DWORD biCompression)
+int32
+ExMemDC::Create(int32 w, int32 h, int32 planes, int32 bpp, DWORD biCompression)
 {
     BITMAPINFO bmi;
     BYTE* bits = NULL;
@@ -361,7 +360,7 @@ ExMemDC::Create(int w, int h, int planes, int bpp, DWORD biCompression)
     }
     GetObject(hbmMem, sizeof(bm), &bm);
     hbmOld = (HBITMAP)SelectObject(hdc, hbmMem);
-    assert(bits == bm.bmBits);
+    exassert(bits == bm.bmBits);
     return 0;
 }
 

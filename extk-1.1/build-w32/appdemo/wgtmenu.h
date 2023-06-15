@@ -29,7 +29,7 @@ public:
     void attach(Menu* menu);
 public:
     ExWidget* view; // ref
-    cairo_text_extents_t extents;
+    cr_text_extents_t extents;
 public:
     ~Menu();
     Menu();
@@ -75,19 +75,19 @@ public:
     ~WgtMenu() { fini();  }
     WgtMenu() : ExWidget(), menuBar(NULL), oldFocus(NULL), focused(NULL) {}
 public:
-    int STDCALL onTimerAni(Popup* popup, ExCbInfo* cbinfo);
+    uint32 STDCALL onTimerAni(Popup* popup, ExCbInfo* cbinfo);
     void STDCALL onDrawMenuPopBkgd(ExCanvas* canvas, const Popup* popup, const ExRegion* damage);
     void STDCALL onDrawMenuPop(ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage);
     void STDCALL onDrawMenuBarBkgd(ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage);
     void STDCALL onDrawMenuBar(ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage);
     //void STDCALL onDrawMenu(ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage);
-    int STDCALL onLayoutHorz(ExWidget* widget, ExCbInfo* cbinfo);
-    int STDCALL onLayoutVert(ExWidget* widget, ExCbInfo* cbinfo);
-    int STDCALL onActivate(ExWidget* widget, ExCbInfo* cbinfo);
-    int STDCALL onFocused(ExWidget* widget, ExCbInfo* cbinfo);
-    int STDCALL onHandler(ExWidget* widget, ExCbInfo* cbinfo);
-    int STDCALL onFilter(ExWidget* widget, ExCbInfo* cbinfo);
-    int STDCALL onLayout(ExWidget* widget, ExCbInfo* cbinfo);
+    uint32 STDCALL onLayoutHorz(ExWidget* widget, ExCbInfo* cbinfo);
+    uint32 STDCALL onLayoutVert(ExWidget* widget, ExCbInfo* cbinfo);
+    uint32 STDCALL onActivate(ExWidget* widget, ExCbInfo* cbinfo);
+    uint32 STDCALL onFocused(ExWidget* widget, ExCbInfo* cbinfo);
+    uint32 STDCALL onHandler(ExWidget* widget, ExCbInfo* cbinfo);
+    uint32 STDCALL onFilter(ExWidget* widget, ExCbInfo* cbinfo);
+    uint32 STDCALL onLayout(ExWidget* widget, ExCbInfo* cbinfo);
     void moveMenuFocus(int dir);
     Menu* findMenu(const ExPoint& pt);
     void menuFocus(Menu* menu);

@@ -5,7 +5,6 @@
 
 #include "exwatch.h"
 #include "exapp.h"
-#include <assert.h>
 
 // app private variables
 //
@@ -36,43 +35,43 @@ uint32 ex_key_timer_instant_repeat = 0;
 
 // class ExApp
 //
-const char*  ExApp::appName = "ExApp";
+const char_t* ExApp::appName = "ExApp";
 ExWindow*    ExApp::mainWnd = NULL;
 #ifdef WIN32
 HINSTANCE    ExApp::hInstance = 0;
 HINSTANCE    ExApp::hPrevInstance = 0;
 LPSTR        ExApp::lpCmdLine = NULL;
-int          ExApp::nCmdShow = 0;
+int32        ExApp::nCmdShow = 0;
 #endif
-int          ExApp::retCode = 0;             // 0:EXIT_SUCCESS,1:EXIT_FAILURE
+int32        ExApp::retCode = 0;             // 0:EXIT_SUCCESS,1:EXIT_FAILURE
 ExSize       ExApp::smSize; // SystemMetrics
 ExEvent      ExApp::event;
 
 ExTimer      ExApp::but_timer;
 ExTimer      ExApp::key_timer;
 uint32       ExApp::key_state = 0;
-int          ExApp::button_x[2];             /* The last 2 button click positions. */
-int          ExApp::button_y[2];
+int32        ExApp::button_x[2];             /* The last 2 button click positions. */
+int32        ExApp::button_y[2];
 uint32       ExApp::double_click_distance;   /* Maximum distance between clicks in pixels */
 uint32       ExApp::double_click_count;
 uint32       ExApp::button_react_delay;
 uint32       ExApp::button_click_time[2];    /* The last 2 button click times. */
 uint32       ExApp::double_click_time;       /* Maximum time between clicks in msecs */
-int          ExApp::button_number[2];        /* The last 2 buttons to be pressed. */
+uint32       ExApp::button_number[2];        /* The last 2 buttons to be pressed. */
 ExWidget*    ExApp::button_widget[2];        /* The last 2 widgets to receive button presses. */
 ExWindow*    ExApp::button_window[2];        /* The last 2 windows to receive button presses. */
 #ifdef WIN32
 UINT         ExApp::regAppMsgIndex = WM_APP;
 #endif
 
-int ExEventPeek(ExEvent& event)
+bool ExEventPeek(ExEvent& event)
 {
 #ifdef WIN32
     BOOL bRet;
 
     exWatchDisp->leave();
     if ((bRet = GetMessage(&event.msg, NULL, 0, 0)) != TRUE) {
-        assert(event.msg.message == WM_QUIT);
+        exassert(event.msg.message == WM_QUIT);
         // WM_DESTROY => PostQuitMessage
         bRet = TRUE;
     }
@@ -80,7 +79,7 @@ int ExEventPeek(ExEvent& event)
 
     return bRet;
 #else
-    return 0;
+    return false; // tbd
 #endif
 }
 
@@ -90,7 +89,7 @@ ExEventFunc exEventFunc = &ExEventPeek;
 // ExModalCtrl - tbd
 //
 struct ExModalCtrl {
-    int             flags;
+    uint32          flags;
     void*           result;
     ExThreadCond*   cond;
     ExModalCtrl**   prev;
@@ -99,7 +98,7 @@ struct ExModalCtrl {
 
 static ExModalCtrl exModalMain;
 
-int   ExModalUnblock(ExModalCtrl* ctrl, void* result);
+int32 ExModalUnblock(ExModalCtrl* ctrl, void* result);
 void* ExModalBlock(ExModalCtrl* ctrl, long flags);
 
 /**
@@ -114,9 +113,9 @@ Returns:
     0	Success.
     -1	An error occurred.
 */
-int ExModalUnblock(ExModalCtrl* ctrl, void* result)
+int32 ExModalUnblock(ExModalCtrl* ctrl, void* result)
 {
-    assert(ctrl->flags & 0x80000000);
+    exassert(ctrl->flags & 0x80000000);
     ctrl->flags = 0;
     ctrl->result = result;
     ExWakeupMainThread();
@@ -162,7 +161,7 @@ void* ExModalBlock(ExModalCtrl* ctrl, long flags)
                 break;
             if (event.msg.message == WM_QUIT) { // WM_DESTROY => PostQuitMessage
                 dprint("message == WM_QUIT tick=%d\n", exWatchDisp->getTick());
-                ExApp::retCode = (int)event.msg.wParam; // cause DestroyWindow
+                ExApp::retCode = (int32)event.msg.wParam; // cause DestroyWindow
                 exWatchDisp->setHalt(Ex_Halt); // stop event loop
                 break;
             }
@@ -196,7 +195,7 @@ void ExMainLoop()
             continue;
         if (event.msg.message == WM_QUIT) { // WM_DESTROY => PostQuitMessage
             dprint("message == WM_QUIT tick=%d\n", exWatchDisp->getTick());
-            ExApp::retCode = (int)event.msg.wParam; // cause DestroyWindow
+            ExApp::retCode = (int32)event.msg.wParam; // cause DestroyWindow
             exWatchDisp->setHalt(Ex_Halt); // stop event loop
             break;
         }
@@ -253,7 +252,7 @@ void ExApp::collect()
     // tbd etc...
 }
 
-void ExApp::exit(int retCode)
+void ExApp::exit(int32 retCode)
 {
     dprint("%s(%d)\n", __func__, retCode);
 #ifdef WIN32
@@ -276,10 +275,10 @@ void ExApp::exit(int retCode)
 }
 
 #ifdef WIN32
-int ExApp::init(HINSTANCE hInstance,
+int32 ExApp::init(HINSTANCE hInstance,
     HINSTANCE hPrevInstance,
     LPSTR lpCmdLine,
-    int nCmdShow)
+    int32 nCmdShow)
 {
     // init lib
     ExInitProcess();

@@ -4,7 +4,6 @@
  */
 
 #include "exrender.h"
-#include <assert.h>
 
 #define logdraw dprint0
 #define logdra0 dprint0
@@ -23,7 +22,7 @@ void ExRender::Build4MT::checkExtent(ExWidget* w) {
 }
 
 void ExRender::Build4MT::buildRegion(ExWidget* w) {
-    assert(w->getFlags(Ex_Visible) && !w->extent.empty());
+    exassert(w->getFlags(Ex_Visible) && !w->extent.empty());
     for (ExWidget* c = w->getChildTail(); c; c = c->getBroPrev()) {
         if (c->getFlags(Ex_Exposed) &&
             c->getFlags(Ex_Visible)) {
@@ -35,7 +34,7 @@ void ExRender::Build4MT::buildRegion(ExWidget* w) {
 }
 
 ExRender::Build4MT::Build4MT(ExWidget* w) {
-    assert(w->getFlags(Ex_Visible) && w->getFlags(Ex_HasOwnGC));
+    exassert(w->getFlags(Ex_Visible) && w->getFlags(Ex_HasOwnGC));
     checkExtent(w);
     buildRegion(w);
 }
@@ -67,7 +66,7 @@ void ExRender::Build::checkExtent(ExWidget* w) {
 }
 
 void ExRender::Build::buildExtent(ExWidget* w) {
-    assert(w->getFlags(Ex_Visible));
+    exassert(w->getFlags(Ex_Visible));
     if (!w->calcExtent()) {
         w->flags &= ~(Ex_Exposed | Ex_Damaged);
         w->exposeRgn.setEmpty();
@@ -93,7 +92,7 @@ void ExRender::Build::buildExtent(ExWidget* w) {
 }
 
 void ExRender::Build::buildOpaque(ExWidget* w) { // remove hidden areas
-    assert(w->getFlags(Ex_Visible) && !w->extent.empty());
+    exassert(w->getFlags(Ex_Visible) && !w->extent.empty());
     for (ExWidget* c = w->getChildTail(); c; c = c->getBroPrev()) {
         if (c->getFlags(Ex_Visible) && !c->extent.empty()) {
             buildOpaque(c);
@@ -109,12 +108,12 @@ ExRender::Build::Build(ExWidget* w)
     : exposeAcc()
     , opaqueAcc() {
 #if 0
-    assert(w->getFlags(Ex_Rebuild) &&
+    exassert(w->getFlags(Ex_Rebuild) &&
            w->getFlags(Ex_Visible) &&
            w->getFlags(Ex_HasOwnGC));
     exposeAcc.copy(w->exposeRgn);
 #else
-    assert(w->getFlags(Ex_Visible) && w->getFlags(Ex_HasOwnGC));
+    exassert(w->getFlags(Ex_Visible) && w->getFlags(Ex_HasOwnGC));
 #endif
     checkExtent(w);
     if (!w->extent.empty() &&
@@ -127,10 +126,10 @@ ExRender::Build::Build(ExWidget* w)
 // ExRender::Draw
 //
 void ExRender::Draw::draw(ExWidget* w) {
-    assert(w->getFlags(Ex_Visible));
+    exassert(w->getFlags(Ex_Visible));
     if (w->drawFunc && !w->exposeRgn.empty()) {
         if (w->getFlags(Ex_HasOwnGC)) {
-            assert(&w->damageRgn == &updateRgn);
+            exassert(&w->damageRgn == &updateRgn);
         } else if (w->getFlags(Ex_Exposed | Ex_Damaged)) {
             w->damageRgn.copy(w->exposeRgn);
         } else {
@@ -162,7 +161,7 @@ void ExRender::Draw::draw(ExWidget* w) {
 
 ExRender::Draw::Draw(ExCanvas* canvas, ExWidget* w)
     : canvas(canvas), updateRgn(w->damageRgn) {
-    assert(w->getFlags(Ex_HasOwnGC));
+    exassert(w->getFlags(Ex_HasOwnGC));
     if (w->getFlags(Ex_Visible))
         draw(w);
     updateRgn.setEmpty();
@@ -170,7 +169,7 @@ ExRender::Draw::Draw(ExCanvas* canvas, ExWidget* w)
 
 // ExRender
 //
-void ExRender::render(ExCanvas* canvas, ExWidget* w, int flags) {
+void ExRender::render(ExCanvas* canvas, ExWidget* w, uint32 flags) {
     if (flags & Ex_RenderRebuild) {
         Build build(w);
         w->damageRgn.combine(build.exposeAcc);
@@ -207,7 +206,7 @@ void STDCALL onDrawOwnGC(void* data, ExCanvas* canvas, const ExWidget* widget, c
 #endif
 
 #if defined(EXAPITEST)
-int exrender_test1(void*, ExWidget* w, ExCbInfo* cbinfo) {
+uint32 exrender_test1(void*, ExWidget* w, ExCbInfo* cbinfo) {
     if (cbinfo->type != Ex_CbEnumEnter)
         return Ex_Continue;
     if (!w->getFlags(Ex_Visible)) {

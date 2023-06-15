@@ -53,8 +53,8 @@ void ExCallbackList::CallbackList::push(const Callback& cb) {
     push_back(cb);
 }
 
-int ExCallbackList::CallbackList::invoke(void* object, void* cbinfo) {
-    int r = Ex_Continue;
+uint32 ExCallbackList::CallbackList::invoke(void* object, void* cbinfo) {
+    uint32 r = Ex_Continue;
     influx++;
     for (iterator i = begin(); i != end();) {
         iterator it = i++;
@@ -102,7 +102,7 @@ int ExCallbackList::CallbackList::invoke(void* object, void* cbinfo) {
 
 // class ExListenerList
 //
-bool ExListenerList::ListenerList::remove2(int type, uint8 prio) {
+bool ExListenerList::ListenerList::remove2(uint32 type, uint8 prio) {
     for (iterator i = begin(); i != end(); ++i) {
         // Be careful not to remove items from this list within the callback.
         if ((*i).type == type &&
@@ -133,8 +133,8 @@ void ExListenerList::ListenerList::push(const Listener& cb) {
     push_back(cb);
 }
 
-int ExListenerList::ListenerList::invoke(int type, void* object, void* cbinfo) {
-    int r = Ex_Continue;
+uint32 ExListenerList::ListenerList::invoke(uint32 type, void* object, void* cbinfo) {
+    uint32 r = Ex_Continue;
     influx++;
     for (iterator i = begin(); i != end();) {
         iterator it = i++;
@@ -184,7 +184,7 @@ int ExListenerList::ListenerList::invoke(int type, void* object, void* cbinfo) {
 
 // class ExWidget::ListenerList
 //
-bool ExWidget::ListenerList::remove(int type, uint8 prio) {
+bool ExWidget::ListenerList::remove(uint32 type, uint8 prio) {
     for (iterator i = begin(); i != end(); ++i) {
         // Be careful not to remove items from this list within the callback.
         if ((*i).type == type &&
@@ -215,8 +215,8 @@ void ExWidget::ListenerList::push(const Listener& cb) {
     push_back(cb);
 }
 
-int ExWidget::ListenerList::invoke(ExWatch* watch, int type, ExObject* object, ExCbInfo* cbinfo) {
-    int r = Ex_Continue;
+uint32 ExWidget::ListenerList::invoke(ExWatch* watch, uint32 type, ExObject* object, ExCbInfo* cbinfo) {
+    uint32 r = Ex_Continue;
     influx++;
     for (iterator i = begin(); i != end();) {
         iterator it = i++;
@@ -305,8 +305,8 @@ void ExWindow::CallbackList::push(const Callback& cb) {
     push_back(cb);
 }
 
-int ExWindow::CallbackList::invoke(ExWatch* watch, ExObject* object, ExCbInfo* cbinfo) {
-    int r = Ex_Continue;
+uint32 ExWindow::CallbackList::invoke(ExWatch* watch, ExObject* object, ExCbInfo* cbinfo) {
+    uint32 r = Ex_Continue;
     influx++;
     for (iterator i = begin(); i != end();) {
         iterator it = i++;

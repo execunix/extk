@@ -20,16 +20,16 @@ void WndTest::onDrawBtns(ExCanvas* canvas, const ExWidget* widget, const ExRegio
     ExCairo::Rect rc(widget->calcRect());
     ExCairo::Point p2(rc.p2());
 
-    cairo_new_path(cr);
-    cairo_move_to(cr, rc.x + 4, rc.y + 1);
-    cairo_line_to(cr, p2.x - 4, rc.y + 1);
-    cairo_line_to(cr, p2.x - 1, rc.y + 4);
-    cairo_line_to(cr, p2.x - 1, p2.y - 4);
-    cairo_line_to(cr, p2.x - 4, p2.y - 1);
-    cairo_line_to(cr, rc.x + 4, p2.y - 1);
-    cairo_line_to(cr, rc.x + 1, p2.y - 4);
-    cairo_line_to(cr, rc.x + 1, rc.y + 4);
-    cairo_close_path(cr);
+    cr_new_path(cr);
+    cr_move_to(cr, rc.x + 4, rc.y + 1);
+    cr_line_to(cr, p2.x - 4, rc.y + 1);
+    cr_line_to(cr, p2.x - 1, rc.y + 4);
+    cr_line_to(cr, p2.x - 1, p2.y - 4);
+    cr_line_to(cr, p2.x - 4, p2.y - 1);
+    cr_line_to(cr, rc.x + 4, p2.y - 1);
+    cr_line_to(cr, rc.x + 1, p2.y - 4);
+    cr_line_to(cr, rc.x + 1, rc.y + 4);
+    cr_close_path(cr);
 
     ExCairo::Color pc0; // pattern color offset 0.f
     ExCairo::Color pc1; // pattern color offset 1.f
@@ -40,11 +40,11 @@ void WndTest::onDrawBtns(ExCanvas* canvas, const ExWidget* widget, const ExRegio
         pc0.setv(64, 128, 128, 255);
         pc1.setv(16, 64, 64, 128);
     }
-    cairo_pattern_t* crp = cairo_pattern_create_linear(rc.x, rc.y, p2.x, p2.y);
-    cairo_pattern_add_color_stop_rgba(crp, 0.f, pc0.r, pc0.g, pc0.b, pc0.a);
-    cairo_pattern_add_color_stop_rgba(crp, 1.f, pc1.r, pc1.g, pc1.b, pc1.a);
-    cairo_set_source(cr, crp);
-    cairo_fill_preserve(cr);
+    cr_pattern_t* crp = cr_pattern_create_linear(rc.x, rc.y, p2.x, p2.y);
+    cr_pattern_add_color_stop_rgba(crp, 0.f, pc0.r, pc0.g, pc0.b, pc0.a);
+    cr_pattern_add_color_stop_rgba(crp, 1.f, pc1.r, pc1.g, pc1.b, pc1.a);
+    cr_set_source(cr, crp);
+    cr_fill_preserve(cr);
 
     ExCairo::Color lc; // line color
     if (widget->getFlags(Ex_Focused)) {
@@ -55,21 +55,21 @@ void WndTest::onDrawBtns(ExCanvas* canvas, const ExWidget* widget, const ExRegio
         uint32 c = ((uint64)widget) & 0xffffff;
         lc.setv(ExRValue(c), ExGValue(c), ExBValue(c), 255);
     }
-    cairo_set_line_width(cr, widget->getFlags(Ex_Focused) ? 3.6f : 1.2f);
-    cairo_set_line_join(cr, CAIRO_LINE_JOIN_ROUND);
-    cairo_set_line_cap(cr, CAIRO_LINE_CAP_ROUND);
-    cairo_set_antialias(cr, CAIRO_ANTIALIAS_GRAY);
-    cairo_set_source_rgba(cr, lc.r, lc.g, lc.b, lc.a);
-    cairo_stroke(cr);
+    cr_set_line_width(cr, widget->getFlags(Ex_Focused) ? 3.6f : 1.2f);
+    cr_set_line_join(cr, CR_LINE_JOIN_ROUND);
+    cr_set_line_cap(cr, CR_LINE_CAP_ROUND);
+    cr_set_antialias(cr, CR_ANTIALIAS_GRAY);
+    cr_set_source_rgba(cr, lc.r, lc.g, lc.b, lc.a);
+    cr_stroke(cr);
 
     const char* text = widget->getName();
     cr.set_font(res.f.gothic.crf, 12.f);
     cr.show_text(text, ExCairo::Color(0.f), rc);
 
-    cairo_pattern_destroy(crp);
+    cr_pattern_destroy(crp);
 }
 
-int WndTest::onLayout(WndTest* widget, ExCbInfo* cbinfo) {
+uint32 WndTest::onLayout(WndTest* widget, ExCbInfo* cbinfo) {
     dprint("%s(%s) %d (%d,%d-%dx%d)\n", __func__, widget->getName(),
            cbinfo->subtype, widget->area.x, widget->area.y, widget->area.w, widget->area.h);
     ExRect ar(0, 0, widget->area.w, widget->area.h);
@@ -93,14 +93,14 @@ int WndTest::onLayout(WndTest* widget, ExCbInfo* cbinfo) {
     return Ex_Continue;
 }
 
-int WndTest::onActMain(WndTest* widget, ExCbInfo* cbinfo) {
+uint32 WndTest::onActMain(WndTest* widget, ExCbInfo* cbinfo) {
     if (widget == this) {
         return Ex_Continue;
     }
     return Ex_Continue;
 }
 
-int WndTest::onActBtns(ExWidget* widget, ExCbInfo* cbinfo) {
+uint32 WndTest::onActBtns(ExWidget* widget, ExCbInfo* cbinfo) {
     dprint0("WndTest::onActBtns %s %d %d\n",
             widget->getName(), cbinfo->type, cbinfo->subtype);
     if (cbinfo->type == Ex_CbButPress) {
@@ -135,31 +135,31 @@ int WndTest::onActBtns(ExWidget* widget, ExCbInfo* cbinfo) {
     return Ex_Continue;
 }
 
-int WndTest::onTimer(ExTimer* timer, ExCbInfo* cbinfo)
+uint32 WndTest::onTimer(ExTimer* timer, ExCbInfo* cbinfo)
 {
     dprint0("%s: %d\n", __func__, timer->u32[0]);
 
     return Ex_Continue;
 }
 
-int WndTest::initBtn(ExWidget* parent, ExWidget* btn, const char* name) {
+bool WndTest::initBtn(ExWidget* parent, ExWidget* btn, const char* name) {
     btn->init(parent, name, NULL);
     //btn->setFlags(Ex_Opaque); // test
     btn->setFlags(Ex_FocusRender);
     btn->setFlags(Ex_Selectable | Ex_AutoHighlight);
     btn->drawFunc = ExDrawFunc(this, &WndTest::onDrawBtns);
     btn->addListener(this, &WndTest::onActBtns, Ex_CbActivate);
-    return 0;
+    return true;
 }
 
-int WndTest::onDestroyed(WndTest* w, ExCbInfo* cbinfo) {
+uint32 WndTest::onDestroyed(WndTest* w, ExCbInfo* cbinfo) {
     dprint("%s()\n", __func__);
     assert(w == this);
     timer.stop();
     return Ex_Continue;
 }
 
-int WndTest::onFilter(WndTest* w, ExCbInfo* cbinfo) {
+uint32 WndTest::onFilter(WndTest* w, ExCbInfo* cbinfo) {
     dprint("filter WM_0x%04x\n", cbinfo->event->message);
     if (cbinfo->event->message == WM_KEYDOWN) {
         switch (cbinfo->event->wParam) {
@@ -220,7 +220,7 @@ int WndTest::start() {
 
     addFilter(this, &WndTest::onFilter);
 
-    addFilter([](void* data, ExWindow* window, ExCbInfo* cbinfo)->int {
+    addFilter([](void* data, ExWindow* window, ExCbInfo* cbinfo)->uint32 {
         dprint("[%s] WM_0x%04x\n", window->getName(), cbinfo->event->message);
         if (cbinfo->event->message == WM_CREATE) {
             cbinfo->event->lResult = 0;

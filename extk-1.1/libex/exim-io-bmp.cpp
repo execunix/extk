@@ -13,7 +13,7 @@
 #define BMP_BPL(w,bpp)  ((((w)*(bpp)+7)/8 + (sizeof(uint32)-1)) & ~(sizeof(uint32)-1))
 
 #ifdef WIN32
-int ExImage::loadBmp(HANDLE hFile, const char* fname, bool query)
+bool ExImage::loadBmp(HANDLE hFile, const char_t* fname, bool query)
 {
     BITMAPFILEHEADER bf;
     BITMAPINFOHEADER bi;
@@ -42,21 +42,21 @@ int ExImage::loadBmp(HANDLE hFile, const char* fname, bool query)
     if (query) {
         return this->setInfo(bi.biWidth, bi.biHeight, Ex_IMAGE_DIRECT_8888);
     }
-    if (this->init(bi.biWidth, bi.biHeight, Ex_IMAGE_DIRECT_8888)) {
+    if (this->init(bi.biWidth, bi.biHeight, Ex_IMAGE_DIRECT_8888) != true) {
         goto bmp_cleanup;
     }
 
     SetFilePointer(hFile, bf.bfOffBits, NULL, FILE_BEGIN);
 
-    int src_bpl = BMP_BPL(bi.biWidth, bi.biBitCount);
-    int src_width = bi.biWidth;
-    int src_height = bi.biHeight;
-    //int src_offbpl = src_bpl;
+    int32 src_bpl = BMP_BPL(bi.biWidth, bi.biBitCount);
+    int32 src_width = bi.biWidth;
+    int32 src_height = bi.biHeight;
+    //int32 src_offbpl = src_bpl;
     src_buf = new uint8[src_bpl];
     if (src_buf == NULL)
         goto bmp_cleanup;
     uint8* dst_ptr = this->bits;
-    int dst_offbpl = this->bpl;
+    int32 dst_offbpl = this->bpl;
     // If biHeight is positive, the bitmap is a bottom-up DIB and its origin is the lower left corner.
     // If biHeight is negative, the bitmap is a top-down DIB and its origin is the upper left corner.
     if (src_height > 0) {
@@ -65,8 +65,8 @@ int ExImage::loadBmp(HANDLE hFile, const char* fname, bool query)
     } else {
         src_height = -src_height;
     }
-    int x_delta = src_width * this->bpp / 8;
-    int y_count = src_height;
+    int32 x_delta = src_width * this->bpp / 8;
+    int32 y_count = src_height;
 
     if (bi.biBitCount == 16) {
         for (; y_count > 0; y_count--) {
@@ -116,17 +116,17 @@ int ExImage::loadBmp(HANDLE hFile, const char* fname, bool query)
         }
     }
     delete[] src_buf;
-    return 0;
+    return true;
 
 bmp_cleanup:
     exerror("%s(%s) - error.\n", __func__, fname);
     if (src_buf)
         delete[] src_buf;
     this->clear();
-    return -1;
+    return false;
 }
 #else // compat linux
-int ExImage::loadBmp(int fd, const char* fname, bool query)
+bool ExImage::loadBmp(int32 fd, const char_t* fname, bool query)
 {
     BITMAPFILEHEADER bf;
     BITMAPINFOHEADER bi;
@@ -152,7 +152,7 @@ int ExImage::loadBmp(int fd, const char* fname, bool query)
                 goto bmp_cleanup;
             }
             chroma &= 0xfefefe; // tolerant 1-bit
-            for (int i = 0; i < 256; i++) {
+            for (int32 i = 0; i < 256; i++) {
                 bool cc = (chroma && ((cmap[i] & 0xfefefe) == chroma));
                 bool ac = ((cmap[i] & 0xfc000000) == 0xfc000000);
                 // tbd - check endian
@@ -169,22 +169,22 @@ int ExImage::loadBmp(int fd, const char* fname, bool query)
         if (query) {
             return this->setInfo(bi.biWidth, bi.biHeight, Ex_IMAGE_DIRECT_8888);
         }
-        if (this->init(bi.biWidth, bi.biHeight, Ex_IMAGE_DIRECT_8888)) {
+        if (this->init(bi.biWidth, bi.biHeight, Ex_IMAGE_DIRECT_8888) != true) {
             goto bmp_cleanup;
         }
 
         if (lseek(fd, bf.bfOffBits, SEEK_SET) < 0)
-            exerror("%s(%s) - %s fail. %s\n", __func__, fname, "seek", strerror(errno));
+            exerror("%s(%s) - %s fail. %s\n", __func__, fname, "seek", exstrerr());
 
-        int src_bpl = BMP_BPL(bi.biWidth, bi.biBitCount);
-        int src_width = bi.biWidth;
-        int src_height = bi.biHeight;
-        //int src_offbpl = src_bpl;
+        int32 src_bpl = BMP_BPL(bi.biWidth, bi.biBitCount);
+        int32 src_width = bi.biWidth;
+        int32 src_height = bi.biHeight;
+        //int32 src_offbpl = src_bpl;
         src_buf = new uint8[src_bpl];
         if (src_buf == NULL)
             goto bmp_cleanup;
         uint8* dst_ptr = this->bits;
-        int dst_offbpl = this->bpl;
+        int32 dst_offbpl = this->bpl;
         // If biHeight is positive, the bitmap is a bottom-up DIB and its origin is the lower left corner.
         // If biHeight is negative, the bitmap is a top-down DIB and its origin is the upper left corner.
         if (src_height > 0) {
@@ -193,8 +193,8 @@ int ExImage::loadBmp(int fd, const char* fname, bool query)
         } else {
             src_height = -src_height;
         }
-        int x_delta = src_width * this->bpp / 8;
-        int y_count = src_height;
+        int32 x_delta = src_width * this->bpp / 8;
+        int32 y_count = src_height;
 
         if (bi.biBitCount == 8) {
             for (; y_count > 0; y_count--) {
@@ -273,7 +273,7 @@ int ExImage::loadBmp(int fd, const char* fname, bool query)
             }
         }
         delete[] src_buf;
-        return 0;
+        return true;
     } while (0);
 
 bmp_cleanup:
@@ -281,6 +281,6 @@ bmp_cleanup:
     if (src_buf)
         delete[] src_buf;
     this->clear();
-    return -1;
+    return false;
 }
 #endif

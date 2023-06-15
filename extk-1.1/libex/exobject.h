@@ -11,12 +11,12 @@
 /* Emulate The C++ RTTI(Run-Time Type Info)
  */
 class ExTypeInfo {
-    const char* name;
+    const char_t* name;
     const ExTypeInfo* base;
 public:
-    explicit ExTypeInfo(const char* name, const ExTypeInfo* base)
+    explicit ExTypeInfo(const char_t* name, const ExTypeInfo* base)
         : name(name), base(base) {}
-    operator const char* () const { return name; }
+    operator const char_t* () const { return name; }
     bool isBase(const ExTypeInfo* type) const {
         for (const ExTypeInfo* t = this; t; t = t->base)
             if (t == type) return true;
@@ -31,7 +31,7 @@ protected:
     virtual ~ExObject() {}
     explicit ExObject() {}
 public:
-    const char* getTypeName() const {
+    const char_t* getTypeName() const {
         return *getDynamicTypeInfo();
     }
 public:

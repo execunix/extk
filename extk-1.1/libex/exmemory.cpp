@@ -4,7 +4,18 @@
  */
 
 #include "exmemory.h"
-#include <assert.h>
+
+void* ExHeapAlloc(size_t size)
+{
+    return malloc(size);
+}
+
+void ExHeapFree(void* ptr)
+{
+    free(ptr);
+}
+
+#ifdef WIN32
 
 typedef struct {
     HANDLE hmap;
@@ -14,7 +25,7 @@ typedef struct {
 } Shmem;
 
 void*
-ExShmemCreate(size_t size, const char* name) {
+ExShmemCreate(size_t size, const char_t* name) {
     uchar* addr;
     HANDLE hmap;
     Shmem* shmem;
@@ -37,31 +48,33 @@ ExShmemCreate(size_t size, const char* name) {
     return addr;
 }
 
-int
+int32
 ExShmemDestroy(void* addr) {
     HANDLE hmap;
     Shmem* shmem;
     if (!addr)
         return -1;
     shmem = (Shmem*)((uchar*)addr - sizeof(Shmem));
-    assert(shmem->hmap && !shmem->refcnt); // TBD
+    exassert(shmem->hmap && !shmem->refcnt); // TBD
     hmap = shmem->hmap;
     UnmapViewOfFile(shmem);
     CloseHandle(hmap);
     return 0;
 }
 
+#endif
+
 void
 exmemory_apitest() {
-    char src_buf[256];
-    char dst_buf[256];
+    mbyte src_buf[256];
+    mbyte dst_buf[256];
     exmemset4(src_buf, 0, 256);
     exmemcpy4(dst_buf, src_buf, 256);
     exmemmov4(dst_buf, src_buf, 256);
     exmemcmp4(dst_buf, src_buf, 256);
     exmemsum4(dst_buf, 256 - 4);
-    char* str = exstrdup("exstrdup");
-    free(str);
+    mbyte* mbs = exstrdup("exstrdup");
+    free(mbs);
     wchar* wcs = exwcsdup(L"exwcsdup");
     free(wcs);
 }

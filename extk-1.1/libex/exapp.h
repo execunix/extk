@@ -25,28 +25,28 @@ extern uint32 ex_key_timer_instant_repeat;
 //
 class ExApp {
 public:
-    static const char*  appName;
+    static const char_t* appName;
     static ExWindow*    mainWnd;
 #ifdef WIN32
     static HINSTANCE    hInstance;
     static HINSTANCE    hPrevInstance;
     static LPSTR        lpCmdLine;
-    static int          nCmdShow;
+    static int32        nCmdShow;
 #endif
-    static int          retCode;                // 0:EXIT_SUCCESS,1:EXIT_FAILURE
+    static int32        retCode;                // 0:EXIT_SUCCESS,1:EXIT_FAILURE
     static ExSize       smSize;                 // SystemMetrics
     static ExEvent      event;
     static ExTimer      but_timer;
     static ExTimer      key_timer;
     static uint32       key_state;
-    static int          button_x[2];            /* The last 2 button click positions. */
-    static int          button_y[2];
+    static int32        button_x[2];            /* The last 2 button click positions. */
+    static int32        button_y[2];
     static uint32       double_click_distance;  /* Maximum distance between clicks in pixels */
     static uint32       double_click_count;
     static uint32       button_react_delay;
     static uint32       button_click_time[2];   /* The last 2 button click times. */
     static uint32       double_click_time;      /* Maximum time between clicks in msecs */
-    static int          button_number[2];       /* The last 2 buttons to be pressed. */
+    static uint32       button_number[2];       /* The last 2 buttons to be pressed. */
     static ExWidget*    button_widget[2];       /* The last 2 widgets to receive button presses. */
     static ExWindow*    button_window[2];       /* The last 2 windows to receive button presses. */
 #ifdef WIN32
@@ -60,13 +60,13 @@ public:
     static void dispatch(ExEvent& ev);
 #endif
     static void collect();
-    static void exit(int retCode);
+    static void exit(int32 retCode);
 #ifdef WIN32
-    static int init(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow);
+    static int32 init(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int32 nCmdShow);
 #endif
 public:
-    static int& butRepeatCnt() { return (int&)but_timer.u32[0]; };
-    static int& keyRepeatCnt() { return (int&)key_timer.u32[0]; };
+    static uint32& butRepeatCnt() { return but_timer.u32[0]; };
+    static uint32& keyRepeatCnt() { return key_timer.u32[0]; };
 public:
     friend class ExWindow;
     friend class ExWidget;
@@ -82,9 +82,9 @@ Returns:
     0	no messages are available
     1	a message is available
 */
-int ExEventPeek(ExEvent& event);
+bool ExEventPeek(ExEvent& event);
 
-typedef int (*ExEventFunc)(ExEvent& event);
+typedef bool (*ExEventFunc)(ExEvent& event);
 extern ExEventFunc exEventFunc;
 
 void ExMainLoop();
@@ -98,7 +98,7 @@ inline UINT ExRegAppMessage() {
 
 /* sample
 
-int callback(...) {
+uint32 callback(...) {
     if (...quit...) {
         ExQuitMainLoop();
         return Ex_Halt;
@@ -113,7 +113,7 @@ void start(...) {
     ...create widgets and add callbacks...
 }
 
-void main(int argc, char* argv[]) {
+int main(int argc, char* argv[]) {
     ExApp::init(argc, argv);
     start(...);
     ExMainLoop();

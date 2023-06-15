@@ -13,15 +13,13 @@
 // ExPoint
 //
 struct ExPoint {
-    union {
-        struct { int16 x, y; };
-        uint32 u32;
-    };
+    int16 x;
+    int16 y;
     ExPoint() {}
     ExPoint(int16 i) : x(i), y(i) {}
     ExPoint(int16 x, int16 y) : x(x), y(y) {}
-    ExPoint(const ExPoint& pt) : u32(pt.u32) {}
-    ExPoint& operator = (const ExPoint& pt) { u32 = pt.u32; return *this; }
+    ExPoint(const ExPoint& pt) = default;
+    ExPoint& operator = (const ExPoint& pt) = default;
 #ifdef WIN32
     ExPoint(const POINT& pt) : x((int16)pt.x), y((int16)pt.y) {}
     ExPoint& operator = (const POINT& pt) { x = (int16)pt.x; y = (int16)pt.y; return *this; }
@@ -44,10 +42,10 @@ struct ExPoint {
     ExPoint& operator += (const ExSize& sz); // reasonable
     ExPoint& operator -= (const ExSize& sz); // reasonable
 
-    static int dotProduct(const ExPoint& p1, const ExPoint& p2) {
+    static int32 dotProduct(const ExPoint& p1, const ExPoint& p2) {
         return p1.x * p2.x + p1.y * p2.y;
     }
-    static int crossPruduct(const ExPoint& p1, const ExPoint& p2) {
+    static int32 crossPruduct(const ExPoint& p1, const ExPoint& p2) {
         return p1.x * p2.y - p1.y * p2.x;
     }
 };
@@ -65,15 +63,13 @@ operator / (const ExPoint& pt, int16 i) {
 // ExSize
 //
 struct ExSize {
-    union {
-        struct { int16 w, h; };
-        uint32 u32;
-    };
+    int16 w;
+    int16 h;
     ExSize() {}
     ExSize(int16 i) : w(i), h(i) {}
     ExSize(int16 w, int16 h) : w(w), h(h) {}
-    ExSize(const ExSize& sz) : u32(sz.u32) {}
-    ExSize& operator = (const ExSize& sz) { u32 = sz.u32; return *this; }
+    ExSize(const ExSize& sz) = default;
+    ExSize& operator = (const ExSize& sz) = default;
 #ifdef WIN32
     ExSize(const SIZE& sz) : w((int16)sz.cx), h((int16)sz.cy) {}
     ExSize& operator = (const SIZE& sz) { w = (int16)sz.cx; h = (int16)sz.cy; return *this; }

@@ -27,7 +27,7 @@ dprint_handler(int32 lvl, const mbyte* mbs)
     #if 1
     printf("%s", mbs);
     #else
-    dprintf(0/*stdout*/, "%s", mbs); // tbd
+    dprintf(STDOUT_FILENO/*stdout*/, "%s", mbs); // tbd
     #endif
 #endif
     return 0;

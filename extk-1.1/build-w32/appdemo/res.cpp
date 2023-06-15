@@ -3,84 +3,53 @@
 // SPDX-License-Identifier:     GPL-2.0+
 //
 
-#include "framework.h"
-#include <ft2build.h>
-#include <cairo-ft.h>
-#include FT_FREETYPE_H
-#include <assert.h>
 
-static FT_Library ftLib;
+#include "res.h"
+#include "env.h"
+#include <sys/stat.h>
+//#include "framework.h"
 
 Res res;
 
-int Face::load(const char* name)
+static bool img_init(ExImage* img, const char_t* name)
 {
-    assert(ftLib != NULL);
-
-    char faceName[256];
-    sprintf_s(faceName, 256, "%s/%s", res.path, name);
-
-    if (FT_New_Face(ftLib, faceName, 0, &ftFace) != FT_Err_Ok) {
-        dprint1("%s(%s) FT_New_Face fail", __func__, faceName);
-        return -1;
-    }
-    if ((crf = cairo_ft_font_face_create_for_ft_face(ftFace, FT_LOAD_DEFAULT | FT_LOAD_NO_BITMAP)) == NULL) {
-        dprint1("%s(%s) cairo_ft_font_face_create_for_ft_face fail", __func__, faceName);
-        return -1;
-    }
-    return 0;
-}
-
-void Face::free()
-{
-    assert(ftLib != NULL);
-
-    if (crf) {
-        cairo_font_face_destroy(crf);
-        crf = NULL;
-    }
-    if (ftFace) {
-        FT_Done_Face(ftFace);
-        ftFace = NULL;
-    }
-}
-
-static int load(ExImage* img, const char* name)
-{
-    char pathname[256];
+    char_t pathname[256];
     sprintf_s(pathname, 256, "%s/%s", res.path, name);
-    if (img->load(pathname) != 0) {
-        dprint("%s: load %S fail.\n", __func__, pathname);
-        return -1;
+    bool result = img->load(pathname);
+    if (result != true) {
+        dprint("%s: %s fail.\n", __func__, pathname);
     }
-    return 0;
+    return result;
 }
 
-int initRes()
+bool initRes()
 {
+    bool hasResPath = true;
     struct _stat statbuf;
     sprintf_s(res.path, 256, "%s/res", exModulePath);
-    if (_stat(res.path, &statbuf))
+    if (_stat(res.path, &statbuf) != 0) {
         sprintf_s(res.path, 256, "%s/../../res", exModulePath);
-    if (_stat(res.path, &statbuf)) {
-        dprint("%s: cant open res path\n", __func__);
-        return -1;
+        if (_stat(res.path, &statbuf) != 0) {
+            dprint("%s: cant open res path\n", __func__);
+            hasResPath = false;
+        }
     }
 
-    assert(ftLib == NULL);
-    FT_Init_FreeType(&ftLib);
+    ExCairo::Face::initFtLib();
 
     // font
     //
-    res.f.gothic.load("font/NanumGothic.ttf");
-    res.f.gothic_B.load("font/NanumGothicBold.ttf");
-    res.f.square.load("font/NanumSquareB.ttf");
-    res.f.square_B.load("font/NanumSquareEB.ttf");
+    if (hasResPath == true) {
+        res.f.gothic.load(res.path, "font/NanumGothic.ttf");
+        res.f.gothic_B.load(res.path, "font/NanumGothicBold.ttf");
+        res.f.square.load(res.path, "font/NanumSquareB.ttf");
+        res.f.square_B.load(res.path, "font/NanumSquareEB.ttf");
+    }
 
     // color
     //
-    res.c.bg = 0x202020;
-    res.c.fg = 0xc0c0c0;
+    res.c.bg = 0x202020U;
+    res.c.fg = 0xc0c0c0U;
 
     // common button pattern color
     res.c.cbtn_pc_N[0].setv(88, 88, 88, 255); // normal 0
@@ -98,27 +67,25 @@ int initRes()
 
     // image
     //
-    load(&res.i.bg0, "img/S01090.bmp");
-    load(&res.i.bg1, "img/S01051.PNG");
+    img_init(&res.i.bg0, "img/S01090.bmp");
+    img_init(&res.i.bg1, "img/S01051.PNG");
 
     // string
     //
     res.s.title = "AppDemo-extk-1.1";
 
-    return 0;
+    return hasResPath;
 }
 
-int finiRes()
+bool finiRes()
 {
     res.f.gothic.free();
     res.f.gothic_B.free();
     res.f.square.free();
     res.f.square_B.free();
 
-    assert(ftLib != NULL);
-    FT_Done_FreeType(ftLib);
-    ftLib = NULL;
+    ExCairo::Face::finiFtLib();
 
-    return 0;
+    return true;
 }
 

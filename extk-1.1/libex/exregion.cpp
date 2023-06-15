@@ -78,16 +78,6 @@ SOFTWARE.
 
 #include "exregion.h"
 #include "exregion_p.h"
-#include <assert.h>
-
-#undef  ABS
-#define ABS(a)                  (((a) < 0) ? -(a) : (a))
-
-#undef  MAX
-#define MAX(a, b)               (((a) > (b)) ? (a) : (b))
-
-#undef  MIN
-#define MIN(a, b)               (((a) < (b)) ? (a) : (b))
 
 #undef  CLAMP
 #define CLAMP(x, low, high)     (((x) > (high)) ? (high) : (((x) < (low)) ? (low) : (x)))
@@ -128,7 +118,7 @@ void ExRegion::copy(const ExRegion& srcrgn)
         extent = srcrgn.extent;
         if (boxes != &extent) {
 #if 1
-            for (int i = 0; i < n_boxes; i++)
+            for (int32 i = 0; i < n_boxes; i++)
                 boxes[i] = srcrgn.boxes[i];
 #else // warning: non-trivially
             memcpy(boxes, srcrgn.boxes, n_boxes * sizeof(ExBox));
@@ -137,12 +127,12 @@ void ExRegion::copy(const ExRegion& srcrgn)
     }
 }
 
-void ExRegion::getRects(ExBox** boxes, int* n_boxes) const
+void ExRegion::getRects(ExBox** boxes, int32* n_boxes) const
 {
     *n_boxes = this->n_boxes;
     *boxes = (ExBox*)malloc(sizeof(ExBox) * this->n_boxes);
 
-    for (int i = 0; i < this->n_boxes; i++)
+    for (int32 i = 0; i < this->n_boxes; i++)
         (*boxes)[i] = this->boxes[i];
 }
 
@@ -196,7 +186,7 @@ miSetExtents(ExRegion* rgn)
     extent->x2 = bxEnd->x2;
     extent->y2 = bxEnd->y2;
 
-    assert(extent->y1 < extent->y2);
+    exassert(extent->y1 < extent->y2);
     while (bx <= bxEnd) {
         if (bx->x1 < extent->x1) {
             extent->x1 = bx->x1;
@@ -206,7 +196,7 @@ miSetExtents(ExRegion* rgn)
         }
         bx++;
     }
-    assert(extent->x1 < extent->x2);
+    exassert(extent->x1 < extent->x2);
 }
 
 void ExRegion::move(int16 dx, int16 dy)
@@ -215,7 +205,7 @@ void ExRegion::move(int16 dx, int16 dy)
         return;
 
     ExBox* bx = boxes;
-    int n_box = n_boxes;
+    int32 n_box = n_boxes;
 
     while (n_box--) {
         bx->x1 += dx;
@@ -336,8 +326,8 @@ miIntersectOlap(ExRegion* rgn,
 
     nextRect = &rgn->boxes[rgn->n_boxes];
     while ((r1 != r1End) && (r2 != r2End)) {
-        x1 = MAX(r1->x1, r2->x1);
-        x2 = MIN(r1->x2, r2->x2);
+        x1 = std::max(r1->x1, r2->x1);
+        x2 = std::min(r1->x2, r2->x2);
         /*
          * If there's any overlap between the two rectangles, add that
          * overlap to the new region.
@@ -346,7 +336,7 @@ miIntersectOlap(ExRegion* rgn,
          * right next to each other. Since that should never happen...
          */
         if (x1 < x2) {
-            assert(y1 < y2);
+            exassert(y1 < y2);
             MEM_CHECK(rgn, nextRect, rgn->boxes);
             nextRect->x1 = x1;
             nextRect->y1 = y1;
@@ -354,7 +344,7 @@ miIntersectOlap(ExRegion* rgn,
             nextRect->y2 = y2;
             rgn->n_boxes += 1;
             nextRect++;
-            assert(rgn->n_boxes <= rgn->size);
+            exassert(rgn->n_boxes <= rgn->size);
         }
         /*
          * Need to advance the pointers. Shift the one that extends
@@ -404,16 +394,16 @@ void ExRegion::intersect(const ExRegion& srcrgn)
  *            altered.
  *          - rgn->n_boxes will be decreased.
  */
-static int
+static int32
 miCoalesce(ExRegion* rgn,       /* Region to coalesce */
-           int       prevStart, /* Index of start of previous band */
-           int       curStart)  /* Index of start of current band */
+           int32     prevStart, /* Index of start of previous band */
+           int32     curStart)  /* Index of start of current band */
 {
     ExBox* prevBox;             /* Current box in previous band */
     ExBox* curBox;              /* Current box in current band */
     ExBox* endBox;              /* End of region */
-    int curNumRects;            /* Number of rectangles in current band */
-    int prevNumRects;           /* Number of rectangles in previous band */
+    int32 curNumRects;          /* Number of rectangles in current band */
+    int32 prevNumRects;         /* Number of rectangles in previous band */
     int16 bandY1;               /* Y1 coordinate for current band */
 
     endBox = &rgn->boxes[rgn->n_boxes];
@@ -544,8 +534,8 @@ miRegionOp(ExRegion*       newrgn,          /* New region */
     int16 ybot;                 /* Bottom of intersection */
     int16 ytop;                 /* Top of intersection */
     ExBox* oldRects;            /* Old boxes for newrgn */
-    int prevBand;               /* Index of start of previous band in newrgn */
-    int curBand;                /* Index of start of current band in newrgn */
+    int32 prevBand;             /* Index of start of previous band in newrgn */
+    int32 curBand;              /* Index of start of current band in newrgn */
     ExBox* r1BandEnd;           /* End of current band in r1 */
     ExBox* r2BandEnd;           /* End of current band in r2 */
     int16 top;                  /* Top of non-overlapping band */
@@ -572,7 +562,7 @@ miRegionOp(ExRegion*       newrgn,          /* New region */
      * have to worry about using too much memory. I hope to be able to
      * nuke the Xrealloc() at the end of this function eventually.
      */
-    newrgn->size = MAX(dstrgn->n_boxes, srcrgn->n_boxes) * 4;
+    newrgn->size = std::max(dstrgn->n_boxes, srcrgn->n_boxes) * 4;
     newrgn->boxes = (ExBox*)malloc(sizeof(ExBox) * newrgn->size);
     EMPTY_REGION(newrgn);
 
@@ -631,15 +621,15 @@ miRegionOp(ExRegion*       newrgn,          /* New region */
          * the other, this entire loop will be passed through n times.
          */
         if (r1->y1 < r2->y1) {
-            top = MAX(r1->y1, ybot);
-            bot = MIN(r1->y2, r2->y1);
+            top = std::max(r1->y1, ybot);
+            bot = std::min(r1->y2, r2->y1);
             if ((top != bot) && (nonOverlap1Func != (NonOverlapFunc)NULL)) {
                 (*nonOverlap1Func)(newrgn, r1, r1BandEnd, top, bot);
             }
             ytop = r2->y1;
         } else if (r2->y1 < r1->y1) {
-            top = MAX(r2->y1, ybot);
-            bot = MIN(r2->y2, r1->y1);
+            top = std::max(r2->y1, ybot);
+            bot = std::min(r2->y2, r1->y1);
             if ((top != bot) && (nonOverlap2Func != (NonOverlapFunc)NULL)) {
                 (*nonOverlap2Func)(newrgn, r2, r2BandEnd, top, bot);
             }
@@ -660,7 +650,7 @@ miRegionOp(ExRegion*       newrgn,          /* New region */
          * Now see if we've hit an intersecting band. The two bands only
          * intersect if ybot > ytop
          */
-        ybot = MIN(r1->y2, r2->y2);
+        ybot = std::min(r1->y2, r2->y2);
         curBand = newrgn->n_boxes;
         if (ybot > ytop) {
             (*overlapFunc)(newrgn, r1, r1BandEnd, r2, r2BandEnd, ytop, ybot);
@@ -691,7 +681,7 @@ miRegionOp(ExRegion*       newrgn,          /* New region */
                 while ((r1BandEnd < r1End) && (r1BandEnd->y1 == r1->y1)) {
                     r1BandEnd++;
                 }
-                (*nonOverlap1Func)(newrgn, r1, r1BandEnd, MAX(r1->y1, ybot), r1->y2);
+                (*nonOverlap1Func)(newrgn, r1, r1BandEnd, std::max(r1->y1, ybot), r1->y2);
                 r1 = r1BandEnd;
             } while (r1 != r1End);
         }
@@ -701,7 +691,7 @@ miRegionOp(ExRegion*       newrgn,          /* New region */
             while ((r2BandEnd < r2End) && (r2BandEnd->y1 == r2->y1)) {
                 r2BandEnd++;
             }
-            (*nonOverlap2Func)(newrgn, r2, r2BandEnd, MAX(r2->y1, ybot), r2->y2);
+            (*nonOverlap2Func)(newrgn, r2, r2BandEnd, std::max(r2->y1, ybot), r2->y2);
             r2 = r2BandEnd;
         } while (r2 != r2End);
     }
@@ -762,9 +752,9 @@ miUnionNonOlap(ExRegion* rgn,
     ExBox* nextRect;
 
     nextRect = &rgn->boxes[rgn->n_boxes];
-    assert(y1 < y2);
+    exassert(y1 < y2);
     while (r != rEnd) {
-        assert(r->x1 < r->x2);
+        exassert(r->x1 < r->x2);
         MEM_CHECK(rgn, nextRect, rgn->boxes);
         nextRect->x1 = r->x1;
         nextRect->y1 = y1;
@@ -772,7 +762,7 @@ miUnionNonOlap(ExRegion* rgn,
         nextRect->y2 = y2;
         rgn->n_boxes += 1;
         nextRect++;
-        assert(rgn->n_boxes <= rgn->size);
+        exassert(rgn->n_boxes <= rgn->size);
         r++;
     }
 }
@@ -800,28 +790,28 @@ miUnionOlap(ExRegion* rgn,
 
     nextRect = &rgn->boxes[rgn->n_boxes];
 
-#define MERGE_RECT(r)                                  \
-    if ((rgn->n_boxes != 0) &&                         \
-        (nextRect[-1].y1 == y1) &&                     \
-        (nextRect[-1].y2 == y2) &&                     \
-        (nextRect[-1].x2 >= r->x1)) {                  \
-        if (nextRect[-1].x2 < r->x2) {                 \
-            nextRect[-1].x2 = r->x2;                   \
-            assert(nextRect[-1].x1 < nextRect[-1].x2); \
-        }                                              \
-    } else {                                           \
-        MEM_CHECK(rgn, nextRect, rgn->boxes);          \
-        nextRect->y1 = y1;                             \
-        nextRect->y2 = y2;                             \
-        nextRect->x1 = r->x1;                          \
-        nextRect->x2 = r->x2;                          \
-        rgn->n_boxes += 1;                             \
-        nextRect += 1;                                 \
-    }                                                  \
-    assert(rgn->n_boxes <= rgn->size);                 \
+#define MERGE_RECT(r)                                    \
+    if ((rgn->n_boxes != 0) &&                           \
+        (nextRect[-1].y1 == y1) &&                       \
+        (nextRect[-1].y2 == y2) &&                       \
+        (nextRect[-1].x2 >= r->x1)) {                    \
+        if (nextRect[-1].x2 < r->x2) {                   \
+            nextRect[-1].x2 = r->x2;                     \
+            exassert(nextRect[-1].x1 < nextRect[-1].x2); \
+        }                                                \
+    } else {                                             \
+        MEM_CHECK(rgn, nextRect, rgn->boxes);            \
+        nextRect->y1 = y1;                               \
+        nextRect->y2 = y2;                               \
+        nextRect->x1 = r->x1;                            \
+        nextRect->x2 = r->x2;                            \
+        rgn->n_boxes += 1;                               \
+        nextRect += 1;                                   \
+    }                                                    \
+    exassert(rgn->n_boxes <= rgn->size);                 \
     r++;
 
-    assert(y1 < y2);
+    exassert(y1 < y2);
     while ((r1 != r1End) && (r2 != r2End)) {
         if (r1->x1 < r2->x1) {
             MERGE_RECT(r1);
@@ -879,10 +869,10 @@ void ExRegion::combine(const ExRegion& srcrgn)
 
     miRegionOp(this, this, &srcrgn, miUnionOlap, miUnionNonOlap, miUnionNonOlap);
 
-    this->extent.x1 = MIN(this->extent.x1, srcrgn.extent.x1);
-    this->extent.y1 = MIN(this->extent.y1, srcrgn.extent.y1);
-    this->extent.x2 = MAX(this->extent.x2, srcrgn.extent.x2);
-    this->extent.y2 = MAX(this->extent.y2, srcrgn.extent.y2);
+    this->extent.x1 = std::min(this->extent.x1, srcrgn.extent.x1);
+    this->extent.y1 = std::min(this->extent.y1, srcrgn.extent.y1);
+    this->extent.x2 = std::max(this->extent.x2, srcrgn.extent.x2);
+    this->extent.y2 = std::max(this->extent.y2, srcrgn.extent.y2);
 }
 
 /************************************************************************
@@ -907,9 +897,9 @@ miSubtractNonOlap1(ExRegion* rgn,
     ExBox* nextRect;
 
     nextRect = &rgn->boxes[rgn->n_boxes];
-    assert(y1 < y2);
+    exassert(y1 < y2);
     while (r != rEnd) {
-        assert(r->x1 < r->x2);
+        exassert(r->x1 < r->x2);
         MEM_CHECK(rgn, nextRect, rgn->boxes);
         nextRect->x1 = r->x1;
         nextRect->y1 = y1;
@@ -917,7 +907,7 @@ miSubtractNonOlap1(ExRegion* rgn,
         nextRect->y2 = y2;
         rgn->n_boxes += 1;
         nextRect++;
-        assert(rgn->n_boxes <= rgn->size);
+        exassert(rgn->n_boxes <= rgn->size);
         r++;
     }
 }
@@ -944,7 +934,7 @@ miSubtractOlap(ExRegion* rgn,
     int16 x1;
 
     x1 = r1->x1;
-    assert(y1 < y2);
+    exassert(y1 < y2);
     nextRect = &rgn->boxes[rgn->n_boxes];
     while ((r1 != r1End) && (r2 != r2End)) {
         if (r2->x2 <= x1) {
@@ -976,7 +966,7 @@ miSubtractOlap(ExRegion* rgn,
              * Left part of subtrahend covers part of minuend: add uncovered
              * part of minuend to region and skip to next subtrahend.
              */
-            assert(x1 < r2->x1);
+            exassert(x1 < r2->x1);
             MEM_CHECK(rgn, nextRect, rgn->boxes);
             nextRect->x1 = x1;
             nextRect->y1 = y1;
@@ -984,7 +974,7 @@ miSubtractOlap(ExRegion* rgn,
             nextRect->y2 = y2;
             rgn->n_boxes += 1;
             nextRect++;
-            assert(rgn->n_boxes <= rgn->size);
+            exassert(rgn->n_boxes <= rgn->size);
             x1 = r2->x2;
             if (x1 >= r1->x2) {
                 /*
@@ -1011,7 +1001,7 @@ miSubtractOlap(ExRegion* rgn,
                 nextRect->y2 = y2;
                 rgn->n_boxes += 1;
                 nextRect++;
-                assert(rgn->n_boxes <= rgn->size);
+                exassert(rgn->n_boxes <= rgn->size);
             }
             r1++;
             if (r1 != r1End)
@@ -1023,7 +1013,7 @@ miSubtractOlap(ExRegion* rgn,
      * Add remaining minuend rectangles to region.
      */
     while (r1 != r1End) {
-        assert(x1 < r1->x2);
+        exassert(x1 < r1->x2);
         MEM_CHECK(rgn, nextRect, rgn->boxes);
         nextRect->x1 = x1;
         nextRect->y1 = y1;
@@ -1031,7 +1021,7 @@ miSubtractOlap(ExRegion* rgn,
         nextRect->y2 = y2;
         rgn->n_boxes += 1;
         nextRect++;
-        assert(rgn->n_boxes <= rgn->size);
+        exassert(rgn->n_boxes <= rgn->size);
         r1++;
         if (r1 != r1End) {
             x1 = r1->x1;
@@ -1070,7 +1060,7 @@ bool ExRegion::equal(const ExRegion& rgn) const
         return false;
     if (extent.y2 != rgn.extent.y2)
         return false;
-    for (int i = 0; i < n_boxes; i++) {
+    for (int32 i = 0; i < n_boxes; i++) {
         if (boxes[i].x1 != rgn.boxes[i].x1)
             return false;
         if (boxes[i].x2 != rgn.boxes[i].x2)
@@ -1085,7 +1075,7 @@ bool ExRegion::equal(const ExRegion& rgn) const
 
 bool ExRegion::contain(int16 x, int16 y) const
 {
-    int i;
+    int32 i;
 
     if (n_boxes == 0)
         return false;
@@ -1161,11 +1151,11 @@ ExOverlap ExRegion::contain(const ExBox& box) const
 static void
 enumUnsortedSpansIntersect(ExRegion*     region,
                            const ExSpan* spans,
-                           int           n_spans,
+                           int32         n_spans,
                            ExSpanFunc    spanfunc,
                            void*         data)
 {
-    int i;
+    int32 i;
     int16 left, right, y;
     int16 clipped_left, clipped_right;
     ExBox* bx;
@@ -1194,8 +1184,8 @@ enumUnsortedSpansIntersect(ExRegion*     region,
                 break; /* passed the spanline */
             if ((right > bx->x1) && (left < bx->x2)) {
                 ExSpan out_span;
-                clipped_left = MAX(left, bx->x1);
-                clipped_right = MIN(right, bx->x2);
+                clipped_left = std::max(left, bx->x1);
+                clipped_right = std::min(right, bx->x2);
                 out_span.y = y;
                 out_span.x = clipped_left;
                 out_span.w = clipped_right - clipped_left;
@@ -1206,7 +1196,7 @@ enumUnsortedSpansIntersect(ExRegion*     region,
 }
 
 void ExRegion::enumSpansintersect(const ExSpan* spans,
-                                  int           n_spans,
+                                  int32         n_spans,
                                   bool          sorted,
                                   ExSpanFunc    spanfunc,
                                   void*         data)
@@ -1260,8 +1250,8 @@ void ExRegion::enumSpansintersect(const ExSpan* spans,
 
             if ((right > bx->x1) && (left < bx->x2)) {
                 ExSpan out_span;
-                clipped_left = MAX(left, bx->x1);
-                clipped_right = MIN(right, bx->x2);
+                clipped_left = std::max(left, bx->x1);
+                clipped_right = std::min(right, bx->x2);
                 out_span.y = y;
                 out_span.x = clipped_left;
                 out_span.w = clipped_right - clipped_left;

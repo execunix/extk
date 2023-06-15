@@ -6,7 +6,7 @@
 #include "excairo.h"
 #include "eximage.h"
 #include "exapp.h"
-#include <assert.h>
+#include <cairo/cairo.h>
 
 #define logdraw dprint0
 #define logdra0 dprint0
@@ -64,7 +64,7 @@ static void STDCALL s_fill(void* data, ExCanvas* canvas, const ExWidget* widget,
     HDC hdc = GetDC(hwnd ? hwnd : GetDesktopWindow());
     COLORREF c = ((uint64)widget) & 0xffffff;//RGB(0, 0, 128);
     HBRUSH hbr = CreateSolidBrush(c);
-    for (int i = 0; i < damage->n_boxes; i++)
+    for (int32 i = 0; i < damage->n_boxes; i++)
         FillRect(hdc, damage->boxes[i], hbr);
     DeleteObject(hbr);
 #endif
@@ -142,7 +142,7 @@ void ExWidget::detachParent() {
 }
 
 void ExWidget::attachHead(ExWidget* child) {
-    assert(child != this);
+    exassert(child != this);
     if (child == NULL)
         return;
     if (childHead == child) // already attached to the head
@@ -165,7 +165,7 @@ void ExWidget::attachHead(ExWidget* child) {
 }
 
 void ExWidget::attachTail(ExWidget* child) {
-    assert(child != this);
+    exassert(child != this);
     if (child == NULL)
         return;
     if (childTail() == child) // already attached to the tail
@@ -227,12 +227,12 @@ void ExWidget::dumpFrontToBack(ExWidget* end) {
     }
 }
 
-void ExWidget::setName(const char* text) {
-    char buf[20];
+void ExWidget::setName(const char_t* text) {
+    char_t buf[20];
     if (name != NULL)
         free(name);
     if (text == NULL) {
-        sprintf(buf, "%p", this);
+        snprintf(buf, 20, "%p", this);
         text = buf;
     }
     name = strdup(text);
@@ -280,7 +280,7 @@ ExRect& ExWidget::calcRect(ExRect& rc) const {
     return rc;
 }
 
-int ExWidget::init(ExWidget* parent, const char* name, const ExRect* area) {
+uint32 ExWidget::init(ExWidget* parent, const char_t* name, const ExRect* area) {
     this->setName(name);
     if (parent) parent->attachTail(this);
     if (area) this->area = *area;
@@ -291,22 +291,22 @@ int ExWidget::init(ExWidget* parent, const char* name, const ExRect* area) {
 }
 
 ExWidget* // static
-ExWidget::create(ExWidget* parent, const char* name, const ExRect* area) {
+ExWidget::create(ExWidget* parent, const char_t* name, const ExRect* area) {
     ExWidget* widget = new ExWidget();
-    assert(widget != NULL);
+    exassert(widget != NULL);
     widget->flags |= Ex_FreeMemory;
     widget->init(parent, name, area);
     return widget;
 }
 
-int ExWidget::destroy() {
+uint32 ExWidget::destroy() {
     if (getFlags(Ex_Destroyed))
         return 1;
     ExWindow* window = getWindow();
     ExWidgetList destroyed;
     vanish(window);
     for (ExWidget* w = last(); w; w = last()) {
-        dprint1("destroy: %s\n", w->name);
+        dprint0("destroy: %s\n", w->name);
         w->flags |= Ex_Destroyed;
         w->detachParent();
         if (window->wgtCapture == w)
@@ -331,7 +331,7 @@ int ExWidget::destroy() {
     return 0;
 }
 
-int ExWidget::realize() {
+uint32 ExWidget::realize() {
     if (getFlags(Ex_Realized))
         return 1;
     ExWidget* end = last();
@@ -347,7 +347,7 @@ int ExWidget::realize() {
     return 0;
 }
 
-int ExWidget::unrealize() {
+uint32 ExWidget::unrealize() {
     if (!getFlags(Ex_Realized))
         return 1;
     ExWidget* end = this;
@@ -363,7 +363,7 @@ int ExWidget::unrealize() {
     return 0;
 }
 
-void ExWidget::addRenderFlags(int value) {
+void ExWidget::addRenderFlags(uint32 value) {
     for (ExWidget* w = this; w; w = w->parent) {
         if (w->getClassFlags(Ex_DISJOINT) && w->getFlags(Ex_Visible)) {
             ((ExWindow*)w)->renderFlags |= value;
@@ -401,9 +401,9 @@ void ExWidget::resetArea() {
     flags |= Ex_Exposed;
 }
 
-int ExWidget::setVisible(bool show) {
+void ExWidget::setVisible(bool show) {
     if (!getFlags(Ex_Visible) == !show)
-        return 1;
+        return/* 1*/;
 
     if (!show) {
         vanish(getWindow());
@@ -414,7 +414,7 @@ int ExWidget::setVisible(bool show) {
         flags |= Ex_Visible | Ex_Exposed;
         addRenderFlags(Ex_RenderRebuild);
     }
-    return 0;
+    return/* 0*/;
 }
 
 bool ExWidget::isVisible() {
@@ -425,7 +425,7 @@ bool ExWidget::isVisible() {
     return false;
 }
 
-int ExWidget::vanish(ExWindow* window) {
+uint32 ExWidget::vanish(ExWindow* window) {
     if (getFlags(Ex_Destroyed))
         return 1;
     if (window) {
@@ -440,7 +440,7 @@ int ExWidget::vanish(ExWindow* window) {
     return 0;
 }
 
-int ExWidget::layout(ExRect& ar) {
+uint32 ExWidget::layout(ExRect& ar) {
     // Layout is to determine its own area relative to the parent,
     // regardless of whether it is visible or not.
     area = ar;
@@ -458,7 +458,7 @@ int ExWidget::layout(ExRect& ar) {
     return 0;
 }
 
-int ExWidget::damage() {
+uint32 ExWidget::damage() {
     if (!getFlags(Ex_Visible))
         return -1;
     if (getFlags(Ex_Damaged | Ex_Exposed) ||
@@ -469,7 +469,7 @@ int ExWidget::damage() {
     return 0;
 }
 
-int ExWidget::damage(const ExBox& clip) {
+uint32 ExWidget::damage(const ExBox& clip) {
     addUpdateRegion(ExRegion(clip));
     return 0;
 }
@@ -524,7 +524,7 @@ transparent(i.e. any widget beneath can be seen), the Ex_Opaque flag must be cle
 */
 void
 ExWidget::calcOpaque(ExRegion& opaqueAcc) {
-    assert(!extent.empty());
+    exassert(!extent.empty());
 #if 0
     //exposeRgn.setRect(extent);
 #else
@@ -549,7 +549,7 @@ ExWidget::calcOpaque(ExRegion& opaqueAcc) {
 }
 
 void ExWidget::buildExtent() {
-    assert(getFlags(Ex_Visible));
+    exassert(getFlags(Ex_Visible));
     if (!calcExtent()) {
         flags &= ~(Ex_Exposed | Ex_Damaged);
         exposeRgn.setEmpty();
@@ -565,7 +565,7 @@ void ExWidget::buildExtent() {
 }
 
 void ExWidget::buildRegion() { // simple ver for gpu
-    assert(getFlags(Ex_Visible) && !extent.empty());
+    exassert(getFlags(Ex_Visible) && !extent.empty());
     for (ExWidget* c = getChildTail(); c; c = c->getBroPrev()) {
         if (c->getFlags(Ex_Exposed) &&
             c->getFlags(Ex_Visible)) {
@@ -576,7 +576,7 @@ void ExWidget::buildRegion() { // simple ver for gpu
 }
 
 void ExWidget::dumpImage(ExCanvas* canvas) {
-    assert(getFlags(Ex_Visible) && !extent.empty());
+    exassert(getFlags(Ex_Visible) && !extent.empty());
     if (drawFunc && !exposeRgn.empty()) {
         drawFunc(canvas, this, &exposeRgn);
 #ifdef DEBUG
@@ -592,8 +592,8 @@ void ExWidget::dumpImage(ExCanvas* canvas) {
 }
 
 #if 0 // deprecated...
-int ExWidget::dumpImage(ExCanvas* canvas, const ExRegion& updateRgn) { // tbd
-    int call_cnt = 0;
+uint32 ExWidget::dumpImage(ExCanvas* canvas, const ExRegion& updateRgn) { // tbd
+    uint32 call_cnt = 0;
     logdraw("%s(%s) enter update:%d\n", __func__, getName(), updateRgn.n_boxes);
     ExWidget* w = this;
     ExWidget* c;
@@ -737,7 +737,7 @@ void ExWidget::setOpaque(bool set) {
 
 ExWidget* // static
 ExWidget::enumBackToFront(ExWidget* begin, ExWidget* end, const ExCallback& cb, ExCbInfo* cbinfo) {
-    int r;
+    uint32 r;
     ExCbInfo ci(0);
     if (cbinfo == NULL)
         cbinfo = &ci;
@@ -776,7 +776,7 @@ proc_leave:
 
 ExWidget* // static
 ExWidget::enumFrontToBack(ExWidget* begin, ExWidget* end, const ExCallback& cb, ExCbInfo* cbinfo) {
-    int r;
+    uint32 r;
     ExCbInfo ci(0);
     if (cbinfo == NULL)
         cbinfo = &ci;
