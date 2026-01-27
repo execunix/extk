@@ -85,12 +85,12 @@ ExCairo::Point // static
 ExCairo::text_align(const cairo_font_extents_t& fe, const cairo_text_extents_t& te, const Rect& r, int align) {
     Point p;
     switch (align & 0x3) {
-        case Center: p.x = r.x + (r.w - te.width) / 2.f; break;
+        case Center: p.x = r.x + (r.w - te.width) / 2.; break;
         case Right: p.x = r.x + r.w - te.width; break;
         default: p.x = r.x;
     }
     switch (align & (0x3 << 2)) {
-        case VCenter: p.y = r.y + (r.h + fe.height) / 2.f; break;
+        case VCenter: p.y = r.y + (r.h + fe.height) / 2.; break;
         case Bottom: p.y = r.y + r.h; break;
         default: p.y = r.y + fe.height;
     }
