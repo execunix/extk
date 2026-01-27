@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{E432E305-55C1-4D55-82C2-81D9E1424D6B}</ProjectGuid>
+    <RootNamespace>libex2</RootNamespace>
+    <Keyword>Win32Proj</Keyword>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>15.0.28307.799</_ProjectFileVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <OutDir>$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(Platform)\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <OutDir>$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(Platform)\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>../../libex2;../extk/include/freetype2;../extk/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>DPRINT;WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <Lib>
+      <OutputFile>$(OutDir)libex2.lib</OutputFile>
+    </Lib>
+    <PostBuildEvent>
+      <Command>xcopy ..\..\libex2\*.h ..\extk\include\ex2 /d /s /e /y /i /exclude:..\xlist.txt
+xcopy "$(OutDir)$(TargetFileName)" "..\extk\$(OutDir)" /d /y
+</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <Optimization>MinSpace</Optimization>
+      <AdditionalIncludeDirectories>../../libex2;../extk/include/freetype2;../extk/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <Lib>
+      <OutputFile>$(OutDir)libex2.lib</OutputFile>
+    </Lib>
+    <PostBuildEvent>
+      <Command>xcopy ..\..\libex2\*.h ..\extk\include\ex2 /d /s /e /y /i /exclude:..\xlist.txt
+xcopy "$(OutDir)$(TargetFileName)" "..\extk\$(OutDir)" /d /y
+</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\libex2\ex.h" />
+    <ClInclude Include="..\..\libex2\exapp.h" />
+    <ClInclude Include="..\..\libex2\excairo.h" />
+    <ClInclude Include="..\..\libex2\excallback.h" />
+    <ClInclude Include="..\..\libex2\excanvas.h" />
+    <ClInclude Include="..\..\libex2\exconfig.h" />
+    <ClInclude Include="..\..\libex2\exdebug.h" />
+    <ClInclude Include="..\..\libex2\exevent.h" />
+    <ClInclude Include="..\..\libex2\exgdiobj.h" />
+    <ClInclude Include="..\..\libex2\exgeomet.h" />
+    <ClInclude Include="..\..\libex2\exiconv.h" />
+    <ClInclude Include="..\..\libex2\eximage.h" />
+    <ClInclude Include="..\..\libex2\exmacro.h" />
+    <ClInclude Include="..\..\libex2\exmemory.h" />
+    <ClInclude Include="..\..\libex2\exobject.h" />
+    <ClInclude Include="..\..\libex2\expackpop.h" />
+    <ClInclude Include="..\..\libex2\expackpush.h" />
+    <ClInclude Include="..\..\libex2\exregion.h" />
+    <ClInclude Include="..\..\libex2\exregion_p.h" />
+    <ClInclude Include="..\..\libex2\exrender.h" />
+    <ClInclude Include="..\..\libex2\exthread.h" />
+    <ClInclude Include="..\..\libex2\extimer.h" />
+    <ClInclude Include="..\..\libex2\extypes.h" />
+    <ClInclude Include="..\..\libex2\exwatch.h" />
+    <ClInclude Include="..\..\libex2\exwatch_w32.h" />
+    <ClInclude Include="..\..\libex2\exwidget.h" />
+    <ClInclude Include="..\..\libex2\exwindow.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\libex2\exapp.cpp" />
+    <ClCompile Include="..\..\libex2\excairo.cpp" />
+    <ClCompile Include="..\..\libex2\excallback.cpp" />
+    <ClCompile Include="..\..\libex2\excanvas.cpp" />
+    <ClCompile Include="..\..\libex2\exdebug.cpp" />
+    <ClCompile Include="..\..\libex2\exevent.cpp" />
+    <ClCompile Include="..\..\libex2\exgdiobj.cpp" />
+    <ClCompile Include="..\..\libex2\exgeomet.cpp" />
+    <ClCompile Include="..\..\libex2\exiconv.cpp" />
+    <ClCompile Include="..\..\libex2\exim-draw.cpp" />
+    <ClCompile Include="..\..\libex2\exim-io-bmp.cpp" />
+    <ClCompile Include="..\..\libex2\exim-io-gif.cpp" />
+    <ClCompile Include="..\..\libex2\exim-io-jpg.cpp" />
+    <ClCompile Include="..\..\libex2\exim-io-png.cpp" />
+    <ClCompile Include="..\..\libex2\eximage.cpp" />
+    <ClCompile Include="..\..\libex2\exmemory.cpp" />
+    <ClCompile Include="..\..\libex2\exobject.cpp" />
+    <ClCompile Include="..\..\libex2\exregion.cpp" />
+    <ClCompile Include="..\..\libex2\exrender.cpp" />
+    <ClCompile Include="..\..\libex2\exthread.cpp" />
+    <ClCompile Include="..\..\libex2\extimer.cpp" />
+    <ClCompile Include="..\..\libex2\exwatch.cpp" />
+    <ClCompile Include="..\..\libex2\exwatch_w32.cpp" />
+    <ClCompile Include="..\..\libex2\exwidget.cpp" />
+    <ClCompile Include="..\..\libex2\exwindow.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="ReadMe.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\libcairo\libcairo.vcxproj">
+      <Project>{ae2d85f9-a52a-4faa-b28e-70a73c4d9be1}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

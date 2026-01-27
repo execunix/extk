@@ -63,9 +63,9 @@ Menu::Menu()
     extents.width = 0;
 }
 
-Menu* Menu::add(const wchar* text, int id, int flag) {
+Menu* Menu::add(const char* text, int id, int flag) {
     Menu* menu = new Menu;
-    wcsncpy(menu->text, text, 255);
+    strncpy(menu->text, text, 255);
     menu->text[255] = 0;
     menu->flag = flag;
     menu->id = id;
@@ -82,7 +82,7 @@ void WgtMenu::Popup::clear() {
     link = NULL;
 }
 
-int WgtMenu::onTimerAni(Popup* popup, ExCbInfo* cbinfo) {
+uint32 WgtMenu::onTimerAni(Popup* popup, ExCbInfo* cbinfo) {
     popup->ani += 0.05f;
     popup->damage();
     if (popup->ani >= 1.f) {
@@ -114,11 +114,11 @@ void WgtMenu::onDrawMenuPop(ExCanvas* canvas, const ExWidget* widget, const ExRe
         if (im->view == widget) isFocused = true;
     if (menu->flag & Menu::Separator) {
         ExCairo::Point p1(rc.x + 36.f, rc.y + menuHeight + 1.5f);
-        cairo_set_source_rgb(cr, 1.f, 1.f, 1.f);
-        cairo_move_to(cr, p1.x, p1.y);
-        cairo_line_to(cr, p2.x, p1.y);
-        cairo_set_line_width(cr, .2f);
-        cairo_stroke(cr);
+        cr_set_source_rgb(cr, 1.f, 1.f, 1.f);
+        cr_move_to(cr, p1.x, p1.y);
+        cr_line_to(cr, p2.x, p1.y);
+        cr_set_line_width(cr, .2f);
+        cr_stroke(cr);
     }
     if (menu->child) {
         double h2, x1, x2, yc;
@@ -126,13 +126,13 @@ void WgtMenu::onDrawMenuPop(ExCanvas* canvas, const ExWidget* widget, const ExRe
         x1 = p2.x - menuHeight * .7f;
         x2 = x1 + h2;
         yc = rc.y + menuHeight / 2.f;
-        cairo_set_source_rgb(cr, 1.f, 1.f, 1.f);
-        cairo_move_to(cr, x1, yc - h2 * .6f);
-        cairo_line_to(cr, x1, yc + h2 * .6f);
-        cairo_line_to(cr, x2, yc);
-        cairo_close_path(cr);
-        cairo_set_line_width(cr, 1.f);
-        cairo_stroke(cr);
+        cr_set_source_rgb(cr, 1.f, 1.f, 1.f);
+        cr_move_to(cr, x1, yc - h2 * .6f);
+        cr_line_to(cr, x1, yc + h2 * .6f);
+        cr_line_to(cr, x2, yc);
+        cr_close_path(cr);
+        cr_set_line_width(cr, 1.f);
+        cr_stroke(cr);
     }
     rc.h = (double)menuHeight;
     if (!(menu->flag & Menu::Disabled) &&
@@ -146,7 +146,7 @@ void WgtMenu::onDrawMenuPop(ExCanvas* canvas, const ExWidget* widget, const ExRe
     else
         tc.set(1.f, 1.f, 1.f);
     cr.set_font(res.f.gothic.crf, fontSize);
-    cr.show_ucs2(menu->text, tc, cr.text_align(canvas->fe, menu->extents, rc, ExCairo::Left));
+    cr.show_text(menu->text, tc, cr.text_align(canvas->fe, menu->extents, rc, ExCairo::Left));
 }
 
 void WgtMenu::onDrawMenuBarBkgd(ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage) {
@@ -173,13 +173,13 @@ void WgtMenu::onDrawMenuBar(ExCanvas* canvas, const ExWidget* widget, const ExRe
         cr.fill_rect_rgba(rc, fc);
     }
     cr.set_font(res.f.gothic.crf, fontSize);
-    cr.show_ucs2(menu->text, ExCairo::Color(1.f), cr.text_align(canvas->fe, menu->extents, rc));
+    cr.show_text(menu->text, ExCairo::Color(1.f), cr.text_align(canvas->fe, menu->extents, rc));
 }
 
-int WgtMenu::onLayoutHorz(ExWidget* widget, ExCbInfo* cbinfo) {
+uint32 WgtMenu::onLayoutHorz(ExWidget* widget, ExCbInfo* cbinfo) {
     ExRect* horz = (ExRect*)cbinfo->data;
     Menu* menu = (Menu*)widget->getData();
-    ExCairo::ucs2_extent(window->canvas->cr, res.f.gothic.crf, fontSize, menu->text, &menu->extents);
+    ExCairo::text_extent(window->canvas->cr, res.f.gothic.crf, fontSize, menu->text, &menu->extents);
     int menu_width = (int)menu->extents.width + 36;
     widget->area.set(horz->x, horz->y, menu_width, horz->h);
     horz->x += menu_width + 1;
@@ -187,10 +187,10 @@ int WgtMenu::onLayoutHorz(ExWidget* widget, ExCbInfo* cbinfo) {
     return Ex_Continue;
 }
 
-int WgtMenu::onLayoutVert(ExWidget* widget, ExCbInfo* cbinfo) {
+uint32 WgtMenu::onLayoutVert(ExWidget* widget, ExCbInfo* cbinfo) {
     ExRect* vert = (ExRect*)cbinfo->data;
     Menu* menu = (Menu*)widget->getData();
-    ExCairo::ucs2_extent(window->canvas->cr, res.f.gothic.crf, fontSize, menu->text, &menu->extents);
+    ExCairo::text_extent(window->canvas->cr, res.f.gothic.crf, fontSize, menu->text, &menu->extents);
     int menu_width = (int)menu->extents.width + 120;
     int separator = menu->flag & Menu::Separator ? 3 : 0;
     if (vert->w < menu_width) vert->w = menu_width; // save max width
@@ -200,15 +200,15 @@ int WgtMenu::onLayoutVert(ExWidget* widget, ExCbInfo* cbinfo) {
     return Ex_Continue;
 }
 
-int WgtMenu::onActivate(ExWidget* widget, ExCbInfo* cbinfo) {
+uint32 WgtMenu::onActivate(ExWidget* widget, ExCbInfo* cbinfo) {
     return Ex_Continue;
 }
 
-int WgtMenu::onFocused(ExWidget* widget, ExCbInfo* cbinfo) {
+uint32 WgtMenu::onFocused(ExWidget* widget, ExCbInfo* cbinfo) {
     return Ex_Continue;
 }
 
-int WgtMenu::onHandler(ExWidget* widget, ExCbInfo* cbinfo) {
+uint32 WgtMenu::onHandler(ExWidget* widget, ExCbInfo* cbinfo) {
     if (cbinfo->event->message == WM_COMMAND) {
         dprint("WM_COMMAND: %d\n", cbinfo->event->wParam);
         if (cbinfo->event->wParam == IDM_EXIT)
@@ -218,7 +218,7 @@ int WgtMenu::onHandler(ExWidget* widget, ExCbInfo* cbinfo) {
     return Ex_Continue;
 }
 
-int WgtMenu::onFilter(ExWidget* widget, ExCbInfo* cbinfo) {
+uint32 WgtMenu::onFilter(ExWidget* widget, ExCbInfo* cbinfo) {
     if (cbinfo->event->message == WM_MOUSEMOVE) {
         if (popList.empty())
             return Ex_Continue;
@@ -321,7 +321,7 @@ int WgtMenu::onFilter(ExWidget* widget, ExCbInfo* cbinfo) {
     return Ex_Continue;
 }
 
-int WgtMenu::onLayout(ExWidget* widget, ExCbInfo* cbinfo) {
+uint32 WgtMenu::onLayout(ExWidget* widget, ExCbInfo* cbinfo) {
     ExRect* expand = (ExRect*)cbinfo->data;
     ExRect horz(1, 1, area.w - 2, area.h - 2);
     for (int n = 0; n < rootMenu.size; n++) {
@@ -466,7 +466,7 @@ WgtMenu::Popup* WgtMenu::popup(int x, int y, Menu* link) {
     for (int n = 0; n < link->size; n++) {
         menu->view = &pop->menuPop[n];
         pop->menuPop[n].setData(menu);
-        pop->menuPop[n].init(pop, wcs2mbs(menu->text));
+        pop->menuPop[n].init(pop, menu->text);
         pop->menuPop[n].setFlags(Ex_Selectable | Ex_FocusRender);
         pop->menuPop[n].addListener(this, &WgtMenu::onLayoutVert, Ex_CbLayout);
         pop->menuPop[n].addListener(this, &WgtMenu::onActivate, Ex_CbActivate);
@@ -493,7 +493,7 @@ void WgtMenu::setup() {
     for (int n = 0; n < rootMenu.size; n++) {
         menu->view = &menuBar[n];
         menuBar[n].setData(menu);
-        menuBar[n].init(this, wcs2mbs(menu->text));
+        menuBar[n].init(this, menu->text);
         menuBar[n].setFlags(Ex_Selectable | Ex_AutoHighlight | Ex_FocusRender);
         menuBar[n].addListener(this, &WgtMenu::onLayoutHorz, Ex_CbLayout);
         menuBar[n].addListener(this, &WgtMenu::onActivate, Ex_CbActivate);
@@ -535,59 +535,59 @@ void WgtMenu::load() {
     Menu* menu2 = NULL; // depth 2
     Menu* menu3 = NULL; // depth 3
 
-    menu1 = rootMenu.add(L"File", 1000);
-    menu2 = menu1->add(L"New Project...", 1001);
-    menu2 = menu1->add(L"New File...", 1002, Menu::Separator);
-    menu2 = menu1->add(L"Open Project...", 1003);
-    menu2 = menu1->add(L"Open File...", 1004);
-    menu2 = menu1->add(L"Start Page", 1005, Menu::Separator);
-    menu2 = menu1->add(L"Open from Source Control", 1006);
-    menu2 = menu1->add(L"Exit", IDM_EXIT);
+    menu1 = rootMenu.add("File", 1000);
+    menu2 = menu1->add("New Project...", 1001);
+    menu2 = menu1->add("New File...", 1002, Menu::Separator);
+    menu2 = menu1->add("Open Project...", 1003);
+    menu2 = menu1->add("Open File...", 1004);
+    menu2 = menu1->add("Start Page", 1005, Menu::Separator);
+    menu2 = menu1->add("Open from Source Control", 1006);
+    menu2 = menu1->add("Exit", IDM_EXIT);
 
-    menu1 = rootMenu.add(L"Edit", 2000);
-    menu2 = menu1->add(L"Go To", 2001);
-    menu3 = menu2->add(L"Go To Line...", 2002);
-    menu3 = menu2->add(L"Go To All...", 2003);
-    menu3 = menu2->add(L"Go To File...", 2004);
-    menu2 = menu1->add(L"Find and Replace", 2005, Menu::Separator);
-    menu3 = menu2->add(L"Quick Find", 2006);
-    menu3 = menu2->add(L"Quick Replace", 2007);
-    menu3 = menu2->add(L"Find In Files", 2008);
-    menu3 = menu2->add(L"Replace In Files", 2009);
-    menu2 = menu1->add(L"Undo", 2010);
-    menu2 = menu1->add(L"Redo", 2011, Menu::Separator);
-    menu2 = menu1->add(L"Cut", 2012);
-    menu2 = menu1->add(L"Copy", 2013);
-    menu2 = menu1->add(L"Paste", 2014);
+    menu1 = rootMenu.add("Edit", 2000);
+    menu2 = menu1->add("Go To", 2001);
+    menu3 = menu2->add("Go To Line...", 2002);
+    menu3 = menu2->add("Go To All...", 2003);
+    menu3 = menu2->add("Go To File...", 2004);
+    menu2 = menu1->add("Find and Replace", 2005, Menu::Separator);
+    menu3 = menu2->add("Quick Find", 2006);
+    menu3 = menu2->add("Quick Replace", 2007);
+    menu3 = menu2->add("Find In Files", 2008);
+    menu3 = menu2->add("Replace In Files", 2009);
+    menu2 = menu1->add("Undo", 2010);
+    menu2 = menu1->add("Redo", 2011, Menu::Separator);
+    menu2 = menu1->add("Cut", 2012);
+    menu2 = menu1->add("Copy", 2013);
+    menu2 = menu1->add("Paste", 2014);
 
-    menu1 = rootMenu.add(L"View", 3000);
-    menu2 = menu1->add(L"Code", 3001, Menu::Separator);
-    menu2 = menu1->add(L"Start Page", 3002, Menu::Separator);
-    menu2 = menu1->add(L"Solution Explorer", 3003);
-    menu2 = menu1->add(L"Team Explorer", 3004);
-    menu2 = menu1->add(L"Server Explorer", 3005);
-    menu2 = menu1->add(L"SQL Server Object Explorer", 3006, Menu::Separator);
-    menu2 = menu1->add(L"Call Hierarchy", 3007);
+    menu1 = rootMenu.add("View", 3000);
+    menu2 = menu1->add("Code", 3001, Menu::Separator);
+    menu2 = menu1->add("Start Page", 3002, Menu::Separator);
+    menu2 = menu1->add("Solution Explorer", 3003);
+    menu2 = menu1->add("Team Explorer", 3004);
+    menu2 = menu1->add("Server Explorer", 3005);
+    menu2 = menu1->add("SQL Server Object Explorer", 3006, Menu::Separator);
+    menu2 = menu1->add("Call Hierarchy", 3007);
 
-    menu1 = rootMenu.add(L"Window", 4000);
-    menu2 = menu1->add(L"New Window", 4001);
-    menu2 = menu1->add(L"Split", 4002, Menu::Separator);
-    menu2 = menu1->add(L"Float", 4003);
-    menu2 = menu1->add(L"Float All", 4004);
-    menu2 = menu1->add(L"Dock", 4005, Menu::Disabled);
-    menu2 = menu1->add(L"Auto Hide", 4006, Menu::Disabled);
-    menu2 = menu1->add(L"Hide", 4007, Menu::Separator | Menu::Disabled);
-    menu2 = menu1->add(L"Pin Tab", 4008, Menu::Separator);
+    menu1 = rootMenu.add("Window", 4000);
+    menu2 = menu1->add("New Window", 4001);
+    menu2 = menu1->add("Split", 4002, Menu::Separator);
+    menu2 = menu1->add("Float", 4003);
+    menu2 = menu1->add("Float All", 4004);
+    menu2 = menu1->add("Dock", 4005, Menu::Disabled);
+    menu2 = menu1->add("Auto Hide", 4006, Menu::Disabled);
+    menu2 = menu1->add("Hide", 4007, Menu::Separator | Menu::Disabled);
+    menu2 = menu1->add("Pin Tab", 4008, Menu::Separator);
 
-    menu1 = rootMenu.add(L"Help", 5000);
-    menu2 = menu1->add(L"View Help", 5001);
-    menu2 = menu1->add(L"Add and Remove Help Content", 5002);
-    menu2 = menu1->add(L"Set Help Preference", 5003, Menu::Separator);
-    menu2 = menu1->add(L"Send Feedback", 5004, Menu::Separator);
-    menu2 = menu1->add(L"Register Product", 5005);
-    menu2 = menu1->add(L"Technical Support", 5006);
-    menu2 = menu1->add(L"Online Privacy Statement...", 5007);
-    menu2 = menu1->add(L"Manage Visual Studio Performance", 5008);
-    menu2 = menu1->add(L"Check for Updates", 5009);
+    menu1 = rootMenu.add("Help", 5000);
+    menu2 = menu1->add("View Help", 5001);
+    menu2 = menu1->add("Add and Remove Help Content", 5002);
+    menu2 = menu1->add("Set Help Preference", 5003, Menu::Separator);
+    menu2 = menu1->add("Send Feedback", 5004, Menu::Separator);
+    menu2 = menu1->add("Register Product", 5005);
+    menu2 = menu1->add("Technical Support", 5006);
+    menu2 = menu1->add("Online Privacy Statement...", 5007);
+    menu2 = menu1->add("Manage Visual Studio Performance", 5008);
+    menu2 = menu1->add("Check for Updates", 5009);
 }
 

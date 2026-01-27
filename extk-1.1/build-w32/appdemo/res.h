@@ -3,33 +3,22 @@
 // SPDX-License-Identifier:     GPL-2.0+
 //
 
-#pragma once
+#ifndef res_h_included
+#define res_h_included
 
 #include <ex.h>
 
-#ifndef FT_FREETYPE_H
-typedef struct FT_FaceRec_* FT_Face;
-#endif
-
-struct Face {
-    cairo_font_face_t* crf;
-    FT_Face ftFace;
-
-    int load(const char* name);
-    void free();
-};
-
 struct Res {
-    wchar path[256];
+    char_t path[256];
 
-    struct Font {
-        Face gothic;
-        Face gothic_B;
-        Face square;
-        Face square_B;
+    struct Fonts {
+        ExCairo::Face gothic;
+        ExCairo::Face gothic_B;
+        ExCairo::Face square;
+        ExCairo::Face square_B;
     } f;
 
-    struct Color {
+    struct Colors {
         uint32 bg;
         uint32 fg;
 
@@ -48,20 +37,22 @@ struct Res {
 
     } c;
 
-    struct Image {
+    struct Images {
         ExImage bg0;
         ExImage bg1;
     } i;
 
-    struct String {
-        const wchar* title;
+    struct Strings {
+        const char_t* title;
     } s;
 
 };
 
-int initRes();
-//int loadRes();
-//int saveRes();
-int finiRes();
+bool initRes();
+//bool loadRes();
+//bool saveRes();
+bool finiRes();
 
 extern Res res;
+
+#endif // res_h_included

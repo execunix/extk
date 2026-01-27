@@ -12,13 +12,13 @@
 void WgtTitle::init(ExWindow* window) {
     ExRect rc;
     ExWidget::init(window, "WgtTitle", &rc.set(0, 0, 800, 36));
-    setTitle(L"Welcome to Rectangles and Callbacks World.");
+    setTitle("Welcome to Rectangles and Callbacks World.");
     setFlags(Ex_Selectable);
     addListener(this, &WgtTitle::onLayout, Ex_CbLayout);
     drawFunc = ExDrawFunc(this, &WgtTitle::onDrawTitle);
 }
 
-int WgtTitle::onLayout(WgtTitle* widget, ExCbInfo* cbinfo) {
+uint32 WgtTitle::onLayout(WgtTitle* widget, ExCbInfo* cbinfo) {
     //ExRect* expand = (ExRect*)cbinfo->data;
     return Ex_Continue;
 }
@@ -31,26 +31,26 @@ void WgtTitle::onDrawTitle(ExCanvas* canvas, const ExWidget* widget, const ExReg
 
     rc.w -= 48.f;
     cr.set_font(res.f.gothic_B.crf, rc.h * .5f);
-    ExCairo::Point pt = cr.ucs2_align(title, rc, ExCairo::Right | ExCairo::VCenter);
+    ExCairo::Point pt = cr.text_align(title, rc, ExCairo::Right | ExCairo::VCenter);
 #if 0
-    cairo_move_to(cr, pt.x + 2.f, pt.y + 2.f);
-    cairo_set_source_rgb(cr, .2f, .2f, .2f);
-    cairo_text_path(cr, title);
-    cairo_set_line_width(cr, 2.f);
-    cairo_stroke(cr);
+    cr_move_to(cr, pt.x + 2.f, pt.y + 2.f);
+    cr_set_source_rgb(cr, .2f, .2f, .2f);
+    cr_text_path(cr, title);
+    cr_set_line_width(cr, 2.f);
+    cr_stroke(cr);
 #else
-    cr.show_ucs2(title, ExCairo::Color(.2f), ExCairo::Point(pt.x + 2.f, pt.y + 2.f));
+    cr.show_text(title, ExCairo::Color(.2f), ExCairo::Point(pt.x + 2.f, pt.y + 2.f));
 #endif
-    cr.show_ucs2(title, ExCairo::Color(1.f), pt);
+    cr.show_text(title, ExCairo::Color(1.f), pt);
 }
 
-static int STDCALL
+static uint32 STDCALL
 onUnrealized(void* data, ExWidget* w, ExCbInfo* cbinfo) {
     dprint("onUnrealized()\n");
     return Ex_Continue;
 }
 
-static int STDCALL
+static uint32 STDCALL
 onRealized(WndMain* data, ExWindow* w, ExCbInfo* cbinfo) {
     dprint("onRealized()\n");
     //GetLocalTime(&app.tm);
@@ -87,8 +87,8 @@ void WndMain::onDrawBkgd(ExCanvas* canvas, const ExWidget* widget, const ExRegio
         } else if (res.i.bg1.crs) {
             ExCairo::Rect rc(widget->calcRect());
             ExCairo cr(canvas, damage);
-            cairo_set_source_surface(cr, res.i.bg1.crs, rc.x, rc.y);
-            cairo_paint_with_alpha(cr, .75); // for alpha blend
+            cr_set_source_surface(cr, res.i.bg1.crs, rc.x, rc.y);
+            cr_paint_with_alpha(cr, .75); // for alpha blend
         }
     }
 }
@@ -111,16 +111,16 @@ void WndMain::onDrawBtns(ExCanvas* canvas, const ExWidget* widget, const ExRegio
     ExCairo::Rect rc(widget->calcRect());
     ExCairo::Point p2(rc.p2());
 
-    cairo_new_path(cr);
-    cairo_move_to(cr, rc.x + 4, rc.y + 1);
-    cairo_line_to(cr, p2.x - 4, rc.y + 1);
-    cairo_line_to(cr, p2.x - 1, rc.y + 4);
-    cairo_line_to(cr, p2.x - 1, p2.y - 4);
-    cairo_line_to(cr, p2.x - 4, p2.y - 1);
-    cairo_line_to(cr, rc.x + 4, p2.y - 1);
-    cairo_line_to(cr, rc.x + 1, p2.y - 4);
-    cairo_line_to(cr, rc.x + 1, rc.y + 4);
-    cairo_close_path(cr);
+    cr_new_path(cr);
+    cr_move_to(cr, rc.x + 4, rc.y + 1);
+    cr_line_to(cr, p2.x - 4, rc.y + 1);
+    cr_line_to(cr, p2.x - 1, rc.y + 4);
+    cr_line_to(cr, p2.x - 1, p2.y - 4);
+    cr_line_to(cr, p2.x - 4, p2.y - 1);
+    cr_line_to(cr, rc.x + 4, p2.y - 1);
+    cr_line_to(cr, rc.x + 1, p2.y - 4);
+    cr_line_to(cr, rc.x + 1, rc.y + 4);
+    cr_close_path(cr);
 
     ExCairo::Color pc0; // pattern color offset 0.f
     ExCairo::Color pc1; // pattern color offset 1.f
@@ -132,23 +132,23 @@ void WndMain::onDrawBtns(ExCanvas* canvas, const ExWidget* widget, const ExRegio
         pc1.setv(16, 64, 64, 128);
     }
 #if USE_PATTERN_BTN
-    cairo_pattern_t* crp = cairo_pattern_create_linear(rc.x, rc.y, p2.x, p2.y);
+    cr_pattern_t* crp = cr_pattern_create_linear(rc.x, rc.y, p2.x, p2.y);
 #if USE_ALPHA_BTN
-    cairo_pattern_add_color_stop_rgba(crp, 0.f, pc0.r, pc0.g, pc0.b, pc0.a);
-    cairo_pattern_add_color_stop_rgba(crp, 1.f, pc1.r, pc1.g, pc1.b, pc1.a);
+    cr_pattern_add_color_stop_rgba(crp, 0.f, pc0.r, pc0.g, pc0.b, pc0.a);
+    cr_pattern_add_color_stop_rgba(crp, 1.f, pc1.r, pc1.g, pc1.b, pc1.a);
 #else
-    cairo_pattern_add_color_stop_rgb(crp, 0.f, pc0.r, pc0.g, pc0.b);
-    cairo_pattern_add_color_stop_rgb(crp, 1.f, pc1.r, pc1.g, pc1.b);
+    cr_pattern_add_color_stop_rgb(crp, 0.f, pc0.r, pc0.g, pc0.b);
+    cr_pattern_add_color_stop_rgb(crp, 1.f, pc1.r, pc1.g, pc1.b);
 #endif
-    cairo_set_source(cr, crp);
+    cr_set_source(cr, crp);
 #else//USE_PATTERN_BTN
 #if USE_ALPHA_BTN
-    cairo_set_source_rgba(cr, pc0.r, pc0.g, pc0.b, .75f);
+    cr_set_source_rgba(cr, pc0.r, pc0.g, pc0.b, .75f);
 #else
-    cairo_set_source_rgb(cr, pc0.r, pc0.g, pc0.b);
+    cr_set_source_rgb(cr, pc0.r, pc0.g, pc0.b);
 #endif
 #endif//USE_PATTERN_BTN
-    cairo_fill_preserve(cr);
+    cr_fill_preserve(cr);
 
     ExCairo::Color lc; // line color
     if (widget->getFlags(Ex_Focused)) {
@@ -159,23 +159,23 @@ void WndMain::onDrawBtns(ExCanvas* canvas, const ExWidget* widget, const ExRegio
         uint32 c = ((uint64)widget) & 0xffffff;
         lc.setv(ExRValue(c), ExGValue(c), ExBValue(c), 255);
     }
-    cairo_set_line_width(cr, widget->getFlags(Ex_Focused) ? 3.6f : 1.2f);
-    cairo_set_line_join(cr, CAIRO_LINE_JOIN_ROUND);
-    cairo_set_line_cap(cr, CAIRO_LINE_CAP_ROUND);
-    cairo_set_antialias(cr, CAIRO_ANTIALIAS_GRAY);
+    cr_set_line_width(cr, widget->getFlags(Ex_Focused) ? 3.6f : 1.2f);
+    cr_set_line_join(cr, CR_LINE_JOIN_ROUND);
+    cr_set_line_cap(cr, CR_LINE_CAP_ROUND);
+    cr_set_antialias(cr, CR_ANTIALIAS_GRAY);
 #if USE_ALPHA_BTN
-    cairo_set_source_rgba(cr, lc.r, lc.g, lc.b, lc.a);
+    cr_set_source_rgba(cr, lc.r, lc.g, lc.b, lc.a);
 #else
-    cairo_set_source_rgb(cr, lc.r, lc.g, lc.b);
+    cr_set_source_rgb(cr, lc.r, lc.g, lc.b);
 #endif
-    cairo_stroke(cr);
+    cr_stroke(cr);
 
     const char* text = widget->getName();
     cr.set_font(res.f.gothic.crf, 12.f);
-    cr.show_ucs2(mbs2wcs(text), ExCairo::Color(0.f), rc);
+    cr.show_text(text, ExCairo::Color(0.f), rc);
 
 #if USE_PATTERN_BTN
-    cairo_pattern_destroy(crp);
+    cr_pattern_destroy(crp);
 #endif//USE_PATTERN_BTN
 }
 
@@ -184,16 +184,16 @@ void WndMain::onDrawPane(ExCanvas* canvas, const ExWidget* widget, const ExRegio
     ExCairo::Rect rc(widget->calcRect());
     ExCairo::Point p2(rc.p2());
 
-    cairo_new_path(cr);
-    cairo_move_to(cr, rc.x + 4, rc.y + 1);
-    cairo_line_to(cr, p2.x - 4, rc.y + 1);
-    cairo_line_to(cr, p2.x - 1, rc.y + 4);
-    cairo_line_to(cr, p2.x - 1, p2.y - 4);
-    cairo_line_to(cr, p2.x - 4, p2.y - 1);
-    cairo_line_to(cr, rc.x + 4, p2.y - 1);
-    cairo_line_to(cr, rc.x + 1, p2.y - 4);
-    cairo_line_to(cr, rc.x + 1, rc.y + 4);
-    cairo_close_path(cr);
+    cr_new_path(cr);
+    cr_move_to(cr, rc.x + 4, rc.y + 1);
+    cr_line_to(cr, p2.x - 4, rc.y + 1);
+    cr_line_to(cr, p2.x - 1, rc.y + 4);
+    cr_line_to(cr, p2.x - 1, p2.y - 4);
+    cr_line_to(cr, p2.x - 4, p2.y - 1);
+    cr_line_to(cr, rc.x + 4, p2.y - 1);
+    cr_line_to(cr, rc.x + 1, p2.y - 4);
+    cr_line_to(cr, rc.x + 1, rc.y + 4);
+    cr_close_path(cr);
 
     ExCairo::Color pc0; // pattern color offset 0.f
     ExCairo::Color pc1; // pattern color offset 1.f
@@ -207,22 +207,22 @@ void WndMain::onDrawPane(ExCanvas* canvas, const ExWidget* widget, const ExRegio
         pc1.b = FD8V(177);
     }
 #if USE_PATTERN_BTN
-    cairo_pattern_t* crp = cairo_pattern_create_linear(rc.x, rc.y, p2.x, p2.y);
+    cr_pattern_t* crp = cr_pattern_create_linear(rc.x, rc.y, p2.x, p2.y);
     if (widget->isOpaque()) {
-        cairo_pattern_add_color_stop_rgb(crp, 0.f, pc0.r, pc0.g, pc0.b);
-        cairo_pattern_add_color_stop_rgb(crp, 1.f, pc1.r, pc1.g, pc1.b);
+        cr_pattern_add_color_stop_rgb(crp, 0.f, pc0.r, pc0.g, pc0.b);
+        cr_pattern_add_color_stop_rgb(crp, 1.f, pc1.r, pc1.g, pc1.b);
     } else {
-        cairo_pattern_add_color_stop_rgba(crp, 0.f, pc0.r, pc0.g, pc0.b, pc0.a);
-        cairo_pattern_add_color_stop_rgba(crp, 1.f, pc1.r, pc1.g, pc1.b, pc1.a);
+        cr_pattern_add_color_stop_rgba(crp, 0.f, pc0.r, pc0.g, pc0.b, pc0.a);
+        cr_pattern_add_color_stop_rgba(crp, 1.f, pc1.r, pc1.g, pc1.b, pc1.a);
     }
-    cairo_set_source(cr, crp);
+    cr_set_source(cr, crp);
 #else//USE_PATTERN_BTN
     if (widget->isOpaque())
-        cairo_set_source_rgb(cr, pc1.r, pc1.g, pc1.b);
+        cr_set_source_rgb(cr, pc1.r, pc1.g, pc1.b);
     else
-        cairo_set_source_rgba(cr, pc1.r, pc1.g, pc1.b, pc1.a);
+        cr_set_source_rgba(cr, pc1.r, pc1.g, pc1.b, pc1.a);
 #endif//USE_PATTERN_BTN
-    cairo_fill_preserve(cr);
+    cr_fill_preserve(cr);
 
     ExCairo::Color lc; // line color
     if (widget->getFlags(Ex_Focused)) {
@@ -230,46 +230,46 @@ void WndMain::onDrawPane(ExCanvas* canvas, const ExWidget* widget, const ExRegio
     } else {
         lc.setv(160, 160, 160, 128);
     }
-    cairo_set_line_width(cr, widget->getFlags(Ex_Focused) ? 3.f : 1.f);
-    cairo_set_line_join(cr, CAIRO_LINE_JOIN_ROUND);
-    cairo_set_line_cap(cr, CAIRO_LINE_CAP_ROUND);
-    cairo_set_antialias(cr, CAIRO_ANTIALIAS_GRAY);
+    cr_set_line_width(cr, widget->getFlags(Ex_Focused) ? 3.f : 1.f);
+    cr_set_line_join(cr, CR_LINE_JOIN_ROUND);
+    cr_set_line_cap(cr, CR_LINE_CAP_ROUND);
+    cr_set_antialias(cr, CR_ANTIALIAS_GRAY);
     if (widget->isOpaque())
-        cairo_set_source_rgb(cr, lc.r, lc.g, lc.b);
+        cr_set_source_rgb(cr, lc.r, lc.g, lc.b);
     else
-        cairo_set_source_rgba(cr, lc.r, lc.g, lc.b, lc.a);
-    cairo_stroke(cr);
+        cr_set_source_rgba(cr, lc.r, lc.g, lc.b, lc.a);
+    cr_stroke(cr);
 
 #if USE_PATTERN_BTN
-    cairo_pattern_destroy(crp);
+    cr_pattern_destroy(crp);
 #endif//USE_PATTERN_BTN
 }
 
 void WndMain::onDrawToy(ExCanvas* canvas, const WndMain* w, const ExRegion* damage) {
     static const float fs = 16.; // font_size
-    static const wchar* strtbl[2] = {
-        L"ExeCUnix Project for the Embedded Unix",
-        L"C.H Park <execunix@gmail.com>"
+    static const char* strtbl[2] = {
+        "ExeCUnix Project for the Embedded Unix",
+        "C.H Park <execunix@gmail.com>"
     };
 
     const ExBox& bx = w->calcBox();
 
-    cairo_status_t status;
-    cairo_matrix_t font_matrix, ctm;
-    cairo_matrix_init_scale(&ctm, fs, fs);
-    cairo_matrix_init_scale(&font_matrix, fs, fs);
-    cairo_font_options_t* options = cairo_font_options_create();
-    cairo_glyph_t* glyphs = NULL;
+    cr_status_t status;
+    cr_matrix_t font_matrix, ctm;
+    cr_matrix_init_scale(&ctm, fs, fs);
+    cr_matrix_init_scale(&font_matrix, fs, fs);
+    cr_font_options_t* options = cr_font_options_create();
+    cr_glyph_t* glyphs = NULL;
     uint& textId = toy.userdata.u32[0];
-    const wchar* str = strtbl[textId % 2];
+    const char* str = strtbl[textId % 2];
     int num_glyphs = 0;
-    int len = (int)wcslen(str);
+    int len = (int)strlen(str);
     float delta = bx.height()/2 * .9f;
-    cairo_scaled_font_t* scaled_font = cairo_scaled_font_create(res.f.gothic_B.crf,
+    cr_scaled_font_t* scaled_font = cr_scaled_font_create(res.f.gothic_B.crf,
         &font_matrix, &ctm, options);
-    status = cairo_scaled_font_ucs2_to_glyphs(scaled_font, 0, 0, str, len,
-        &glyphs, &num_glyphs, NULL, NULL, NULL);
-    if (status == CAIRO_STATUS_SUCCESS) {
+    status = cr_scaled_font_text_to_glyphs(scaled_font, 0, 0, str, len,
+                    &glyphs, &num_glyphs);
+    if (status == CR_STATUS_SUCCESS) {
         for (int i = 0; i < num_glyphs; i++) {
             glyphs[i].y += toy_delta * (i % 2 ? delta : -delta);
             glyphs[i].x *= toy_scale;
@@ -277,17 +277,17 @@ void WndMain::onDrawToy(ExCanvas* canvas, const WndMain* w, const ExRegion* dama
         ExPoint p = bx.center();
         double w = glyphs[num_glyphs - 1].x + fs / 2.f;
         ExCairo cr(canvas, damage);
-        cairo_translate(cr, p.x - w / 2.f, p.y + fs / 2.f);
+        cr_translate(cr, p.x - w / 2.f, p.y + fs / 2.f);
         cr.set_font(res.f.gothic_B.crf, fs);
-        cairo_set_source_rgba(cr, 1, 1, 1, toy_alpha);
-        cairo_show_glyphs(cr, glyphs, num_glyphs);
-        cairo_glyph_free(glyphs);
+        cr_set_source_rgba(cr, 1, 1, 1, toy_alpha);
+        cr_show_glyphs(cr, glyphs, num_glyphs);
+        cr_glyph_free(glyphs);
     }
-    cairo_scaled_font_destroy(scaled_font);
-    cairo_font_options_destroy(options);
+    cr_scaled_font_destroy(scaled_font);
+    cr_font_options_destroy(options);
 }
 
-int WndMain::onTimerToy(WndMain* wnd, ExCbInfo* cbinfo) {
+uint32 WndMain::onTimerToy(WndMain* wnd, ExCbInfo* cbinfo) {
     uint& cnt = timerToy.u32[0];
     uint& textId = toy.userdata.u32[0];
     cnt++; // 0 ~ 100
@@ -319,21 +319,21 @@ void WndMain::onDrawBackBuf(ExCanvas* canvas, const ExWidget* w, const ExRegion*
         wndBackBuf.canvas->gc->crs) {
         ExCairo cr(canvas, damage);
         ExCairo::Rect rc(w->calcRect());
-        cairo_set_source_surface(cr, wndBackBuf.canvas->gc->crs, rc.x, rc.y);
-        cairo_paint_with_alpha(cr, .75); // for alpha blend
+        cr_set_source_surface(cr, wndBackBuf.canvas->gc->crs, rc.x, rc.y);
+        cr_paint_with_alpha(cr, .75); // for alpha blend
         return;
     }
     if (w == &wndBackBuf &&
         res.i.bg1.crs) { // draw to wndBackBuf canvas
         ExCairo cr(canvas, damage);
         ExCairo::Point pt(-backBufCnt, -backBufCnt);
-        cairo_set_source_surface(cr, res.i.bg1.crs, 1.5f * pt.x, pt.y);
-        cairo_paint_with_alpha(cr, .75); // for alpha blend
+        cr_set_source_surface(cr, res.i.bg1.crs, 1.5f * pt.x, pt.y);
+        cr_paint_with_alpha(cr, .75); // for alpha blend
         return;
     }
 }
 
-int WndMain::onLayout(WndMain* widget, ExCbInfo* cbinfo) {
+uint32 WndMain::onLayout(WndMain* widget, ExCbInfo* cbinfo) {
     dprint("%s(%s) %d (%d,%d-%dx%d)\n", __func__, widget->getName(),
            cbinfo->subtype, widget->area.x, widget->area.y, widget->area.w, widget->area.h);
     ExRect ar(0, 0, widget->area.w, widget->area.h);
@@ -390,7 +390,7 @@ int WndMain::onLayout(WndMain* widget, ExCbInfo* cbinfo) {
     return Ex_Continue;
 }
 
-int WndMain::onActMain(WndMain* widget, ExCbInfo* cbinfo) {
+uint32 WndMain::onActMain(WndMain* widget, ExCbInfo* cbinfo) {
     if (widget == this) {
         static ExPoint but_pt(0);
         ExPoint msg_pt(cbinfo->event->msg.pt);
@@ -422,7 +422,7 @@ int WndMain::onActMain(WndMain* widget, ExCbInfo* cbinfo) {
     return Ex_Continue;
 }
 
-int WndMain::onActBkgd(WndMain* widget, ExCbInfo* cbinfo) {
+uint32 WndMain::onActBkgd(WndMain* widget, ExCbInfo* cbinfo) {
     if (widget == &wgtBkgd) {
         static ExPoint but_pt(0);
         ExPoint msg_pt(cbinfo->event->msg.pt);
@@ -442,7 +442,7 @@ int WndMain::onActBkgd(WndMain* widget, ExCbInfo* cbinfo) {
     return Ex_Continue;
 }
 
-static int STDCALL
+static uint32 STDCALL
 onEnum(void* data, ExWidget* widget, ExCbInfo* cbinfo) {
     if (cbinfo->type == Ex_CbEnumEnter) {
         dprint("enum: %s enter\n", widget->getName());
@@ -456,7 +456,7 @@ onEnum(void* data, ExWidget* widget, ExCbInfo* cbinfo) {
     return Ex_Break;
 }
 
-int WndMain::onActBtns(ExWidget* widget, ExCbInfo* cbinfo) {
+uint32 WndMain::onActBtns(ExWidget* widget, ExCbInfo* cbinfo) {
     dprint0("WndMain::onActBtns %s %d %d\n",
             widget->getName(), cbinfo->type, cbinfo->subtype);
     if (cbinfo->type == Ex_CbButPress) {
@@ -524,7 +524,7 @@ int WndMain::onActBtns(ExWidget* widget, ExCbInfo* cbinfo) {
             static ExTimer setCursor;
             if (setCursor.u32[0] == 0) {
                 setCursor.u32[0] = 1;
-                setCursor.init(exWatchDisp, [](void* data, ExTimer* timer, ExCbInfo* cbinfo)->int {
+                setCursor.init(exWatchDisp, [](void* data, ExTimer* timer, ExCbInfo* cbinfo)->uint32 {
                     POINT pt;
                     setCursor.u32[1]++;
                     int n = setCursor.u32[1] & 1 ? -5 : 5;
@@ -570,7 +570,7 @@ int WndMain::onActBtns(ExWidget* widget, ExCbInfo* cbinfo) {
     return Ex_Continue;
 }
 
-int WndMain::onTimer(ExTimer* timer, ExCbInfo* cbinfo)
+uint32 WndMain::onTimer(ExTimer* timer, ExCbInfo* cbinfo)
 {
     int dx = state ? -2 : 2;
     int dy = state ? -1 : 1;
@@ -589,22 +589,22 @@ static HANDLE hStorageNoti;
 
 int WndMain::initIomux() {
     static ExTimer launchInputTimer;
-    launchInputTimer.init(NULL, [](void* d, ExTimer* t, ExCbInfo*)->int {
+    launchInputTimer.init(NULL, [](void* d, ExTimer* t, ExCbInfo*)->uint32 {
         dprint("launchInputTimer: %d\n", exWatchDisp->getTick());
 
-        hWakeupNoti = CreateEvent(NULL, FALSE, FALSE, L"AppDemo"); // tbd
-        exWatchLast->ioAdd([](void* d, HANDLE handle)->int {
+        hWakeupNoti = CreateEvent(NULL, FALSE, FALSE, "AppDemo"); // tbd
+        exWatchLast->ioAdd([](void* d, HANDLE handle)->uint32 {
             dprint("hWakeupNoti signaled...\n");
             return 0; }, (void*)NULL, hWakeupNoti, NULL);
 
-        hStorageNoti = FindFirstChangeNotification(L"\\", TRUE, FILE_NOTIFY_CHANGE_DIR_NAME);
-        exWatchLast->ioAdd([](void* d, HANDLE handle)->int {
+        hStorageNoti = FindFirstChangeNotification("\\", TRUE, FILE_NOTIFY_CHANGE_DIR_NAME);
+        exWatchLast->ioAdd([](void* d, HANDLE handle)->uint32 {
             dprint("hStorageNoti root fs changed...\n");
             FindNextChangeNotification(hStorageNoti);
             return 0; }, (void*)NULL, hStorageNoti, NULL);
 
         static ExTimer signalInputTimer;
-        signalInputTimer.init(NULL, [](void* d, ExTimer* t, ExCbInfo*)->int {
+        signalInputTimer.init(NULL, [](void* d, ExTimer* t, ExCbInfo*)->uint32 {
             (t->u32[0])++;
             // emulate initial state.
             if (!((t->u32[0]) % 5))
@@ -616,17 +616,17 @@ int WndMain::initIomux() {
     return 0;
 }
 
-int WndMain::initBtn(ExWidget* parent, ExWidget* btn, const char* name) {
+bool WndMain::initBtn(ExWidget* parent, ExWidget* btn, const char* name) {
     btn->init(parent, name, NULL);
     //btn->setFlags(Ex_Opaque); // test
     btn->setFlags(Ex_FocusRender);
     btn->setFlags(Ex_Selectable | Ex_AutoHighlight);
     btn->drawFunc = ExDrawFunc(this, &WndMain::onDrawBtns);
     btn->addListener(this, &WndMain::onActBtns, Ex_CbActivate);
-    return 0;
+    return true;
 }
 
-int WndMain::onDestroyed(WndMain* w, ExCbInfo* cbinfo) {
+uint32 WndMain::onDestroyed(WndMain* w, ExCbInfo* cbinfo) {
     dprint("%s()\n", __func__);
     assert(w == this);
     timerToy.stop();
@@ -636,7 +636,7 @@ int WndMain::onDestroyed(WndMain* w, ExCbInfo* cbinfo) {
     return Ex_Continue;
 }
 
-int WndMain::onRbtnDown(WndMain* w, ExCbInfo* cbinfo) {
+uint32 WndMain::onRbtnDown(WndMain* w, ExCbInfo* cbinfo) {
     if (cbinfo->event->message == WM_RBUTTONDOWN) {
         int xPos = LOWORD(cbinfo->event->lParam);
         int yPos = HIWORD(cbinfo->event->lParam);
@@ -650,12 +650,12 @@ int WndMain::onRbtnDown(WndMain* w, ExCbInfo* cbinfo) {
     return Ex_Continue;
 }
 
-int WndMain::onHandler(WndMain* w, ExCbInfo* cbinfo) {
+uint32 WndMain::onHandler(WndMain* w, ExCbInfo* cbinfo) {
     dprint("handler WM_0x%04x:0x%04x\n", cbinfo->event->message, cbinfo->event->msg.message);
     return Ex_Continue;
 }
 
-int WndMain::onFilter(WndMain* w, ExCbInfo* cbinfo) {
+uint32 WndMain::onFilter(WndMain* w, ExCbInfo* cbinfo) {
     dprint("filter WM_0x%04x\n", cbinfo->event->message);
 #if 1 // test
     // filter and handler can be installed intersection each other
@@ -808,7 +808,7 @@ ExWidget* WndMain::moveFocus(int dir) {
     return giveFocus(newFocus);
 }
 
-int WndMain::onFocused(WndMain* widget, ExCbInfo* cbinfo) {
+uint32 WndMain::onFocused(WndMain* widget, ExCbInfo* cbinfo) {
     static ExWidget* losted[3] = { NULL, };
     if (cbinfo->type == Ex_CbLostFocus) {
         // memory focused child
@@ -855,7 +855,7 @@ void WndMain::onFlushBackBuf(WndMain* w, const ExRegion* updateRgn) {
 #endif
 }
 
-int WndMain::onBackViewMove(WndMain* widget, ExCbInfo* cbinfo) {
+uint32 WndMain::onBackViewMove(WndMain* widget, ExCbInfo* cbinfo) {
     static ExPoint but_pt(0);
     assert(widget == &wgtBackViewer);
     if (cbinfo->type == Ex_CbButPress) {
@@ -877,7 +877,7 @@ int WndMain::onBackViewMove(WndMain* widget, ExCbInfo* cbinfo) {
     return Ex_Continue;
 }
 
-int WndMain::onBackBufUpdater(ExTimer* timer, ExCbInfo* cbinfo) {
+uint32 WndMain::onBackBufUpdater(ExTimer* timer, ExCbInfo* cbinfo) {
     backBufCnt++;
     if (backBufCnt > 500)
         backBufCnt = 0;
@@ -949,7 +949,7 @@ int WndMain::start() {
     addListener(this, &WndMain::onLayout, Ex_CbLayout);
     addListener(this, &WndMain::onFocused, Ex_CbGotFocus);
     addListener(this, &WndMain::onActMain, Ex_CbActivate);
-    addListener([](void* data, ExWidget* widget, ExCbInfo* cbinfo)->int {
+    addListener([](void* data, ExWidget* widget, ExCbInfo* cbinfo)->uint32 {
         dprint("%s Activate %d,%d\n", widget->getName(), cbinfo->type, cbinfo->subtype);
         return Ex_Continue; }, this, Ex_CbActivate);
 
@@ -1002,10 +1002,10 @@ int WndMain::start() {
     timer.init(NULL, this, &WndMain::onTimer);
 
     static ExTimer timerTest;
-    timerTest.init(NULL, [](void* d, ExWidget* w, ExCbInfo*)->int {
+    timerTest.init(NULL, [](void* d, ExWidget* w, ExCbInfo*)->uint32 {
         dprint("timerTest: %s\n", w->getName());
         return Ex_Continue; }, (void*)0, this); // test
-    timerTest.init(NULL, [](void* d, ExTimer* t, ExCbInfo*)->int {
+    timerTest.init(NULL, [](void* d, ExTimer* t, ExCbInfo*)->uint32 {
         dprint("timerTest: %d %u %u\n", (t->u32[0])++, (ulong)*t, exWatchDisp->getTick());
         return Ex_Continue; }, (void*)0);
     timerTest.start(1, 1000);
@@ -1048,7 +1048,7 @@ int WndMain::start() {
     wgtTitle.init(this);
 
 #if DISP_AT_ONCE
-    addFilter([](void* data, ExWindow* window, ExCbInfo* cbinfo)->int {
+    addFilter([](void* data, ExWindow* window, ExCbInfo* cbinfo)->uint32 {
         dprint("[%s] WM_0x%04x\n", window->getName(), cbinfo->event->message);
         if (cbinfo->event->message == WM_CREATE) {
             cbinfo->event->lResult = 0;
@@ -1081,7 +1081,7 @@ int WndMain::start() {
     //showWindow(0, WS_POPUP | WS_VISIBLE);
     showWindow(0, WS_OVERLAPPEDWINDOW | WS_VISIBLE, env.wnd.x, env.wnd.y);
     //SetWindowTextA(hwnd, "AppDemo-extk-1.1");
-    SetWindowTextW(hwnd, res.s.title);
+    SetWindowText(hwnd, res.s.title);
     if (env.wnd.show == SW_SHOWMAXIMIZED) {
         ShowWindow(hwnd, SW_SHOWMAXIMIZED);
     }

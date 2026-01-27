@@ -25,7 +25,7 @@ drawName(void* data, ExCanvas* canvas, const ExWidget* widget, const ExRegion* d
     cr.fill_rect_rgba(rc, fc);
     const char* text = widget->getName();
     cr.set_font(res.f.gothic.crf, 12.f);
-    cr.show_ucs2(mbs2wcs(text), ExCairo::Color(1.f), rc);
+    cr.show_text(text, ExCairo::Color(1.f), rc);
 }
 
 void WgtPage1::fini() {
@@ -80,7 +80,7 @@ void WgtSetup::onDrawSetup(ExCanvas* canvas, const ExWidget* widget, const ExReg
     // tbd - border
 }
 
-int WgtSetup::onTitleMove(ExWidget* widget, ExCbInfo* cbinfo) {
+uint32 WgtSetup::onTitleMove(ExWidget* widget, ExCbInfo* cbinfo) {
     ExWindow* window = getWindow();
     if (widget == &title && window) {
         static ExPoint but_pt(0);
@@ -102,7 +102,7 @@ int WgtSetup::onTitleMove(ExWidget* widget, ExCbInfo* cbinfo) {
     return Ex_Continue;
 }
 
-int WgtSetup::onActivate(ExWidget* widget, ExCbInfo* cbinfo) {
+uint32 WgtSetup::onActivate(ExWidget* widget, ExCbInfo* cbinfo) {
     if (widget == &close) {
         if (cbinfo->type == Ex_CbActivate) {
 #if 1
@@ -119,11 +119,11 @@ int WgtSetup::onActivate(ExWidget* widget, ExCbInfo* cbinfo) {
     return Ex_Continue;
 }
 
-int WgtSetup::onFocused(ExWidget* widget, ExCbInfo* cbinfo) {
+uint32 WgtSetup::onFocused(ExWidget* widget, ExCbInfo* cbinfo) {
     return Ex_Continue;
 }
 
-int WgtSetup::onHandler(ExWidget* widget, ExCbInfo* cbinfo) {
+uint32 WgtSetup::onHandler(ExWidget* widget, ExCbInfo* cbinfo) {
     if (cbinfo->event->message == WM_CbRemove &&
         cbinfo->event->lParam == (LPARAM)this) {
         dprint("WgtSetup::onHandler - WM_CbRemove\n");
@@ -136,7 +136,7 @@ int WgtSetup::onHandler(ExWidget* widget, ExCbInfo* cbinfo) {
     return Ex_Continue;
 }
 
-int WgtSetup::onFilter(ExWidget* widget, ExCbInfo* cbinfo) {
+uint32 WgtSetup::onFilter(ExWidget* widget, ExCbInfo* cbinfo) {
     if (cbinfo->event->message == WM_CbRemove &&
         cbinfo->event->lParam == (LPARAM)this) {
         dprint("WgtSetup::onFilter - WM_CbRemove\n");
@@ -179,7 +179,7 @@ int WgtSetup::onFilter(ExWidget* widget, ExCbInfo* cbinfo) {
     return Ex_Continue;
 }
 
-int WgtSetup::onLayout(ExWidget* widget, ExCbInfo* cbinfo) {
+uint32 WgtSetup::onLayout(ExWidget* widget, ExCbInfo* cbinfo) {
     ExRect* expand = (ExRect*)cbinfo->data;
     cbinfo->subtype = Ex_LayoutDone;
     return Ex_Continue;

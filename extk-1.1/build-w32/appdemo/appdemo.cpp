@@ -9,47 +9,47 @@
 
 class TestClass {
 public:
-    int STDCALL onCb1(ExObject* object, ExCbInfo* cbinfo) {
+    uint32 STDCALL onCb1(ExObject* object, ExCbInfo* cbinfo) {
         dprint("onCb1\n");
-        return 0;
+        return 0U;
     }
-    virtual int STDCALL onCb2(ExObject* object, ExCbInfo* cbinfo) {
+    virtual uint32 STDCALL onCb2(ExObject* object, ExCbInfo* cbinfo) {
         dprint("onCb2\n");
-        return 0;
+        return 0U;
     }
-    static int STDCALL onCb3(void* data, ExObject* object, ExCbInfo* cbinfo) {
+    static uint32 STDCALL onCb3(void* data, ExObject* object, ExCbInfo* cbinfo) {
         dprint("onCb3\n");
-        return 0;
+        return 0U;
     }
-    static int STDCALL onCb4(TestClass* data, ExObject* object, ExCbInfo* cbinfo) {
+    static uint32 STDCALL onCb4(TestClass* data, ExObject* object, ExCbInfo* cbinfo) {
         dprint("onCb4\n");
-        return 0;
+        return 0U;
     }
 };
 
 class TestClass2 : public TestClass {
 public:
-    int STDCALL onCb5(ExObject* object, TestClass* cbinfo) {
+    uint32 STDCALL onCb5(ExObject* object, TestClass* cbinfo) {
         dprint("onCb5\n");
-        return 0;
+        return 0U;
     }
 };
 
-static int STDCALL
+static uint32 STDCALL
 func(void* data, ExWidget* widget, ExCbInfo* cbinfo) {
     dprint("func: data=%p type=%d\n", data, cbinfo ? cbinfo->type : -1);
-    return 0;
+    return 0U;
 }
 
 #if 0
 void functional_test() {
     std::function<int(int, int)> fn1 = [](int a, int b) { return a + b; };
-    std::function<int(void*, ExWidget*, ExCbInfo*)> fn2 = func;
-    std::function<int STDCALL(void*, ExWidget*, ExCbInfo*)> fn3 = func;
+    std::function<uint32 (void*, ExWidget*, ExCbInfo*)> fn2 = func;
+    std::function<uint32 STDCALL(void*, ExWidget*, ExCbInfo*)> fn3 = func;
     //ExCallback cb2(fn2, NULL);
     //ExCallback cb3(fn3, NULL);
-    ExCallback::Func fn4 = [](void* data, void* widget, void* cbinfo)->int {
-        return 0; };
+    ExCallback::Func fn4 = [](void* data, void* widget, void* cbinfo)->uint32 {
+        return 0U; };
     ExCallback cb4(fn4, NULL);
 }
 #endif
@@ -65,7 +65,7 @@ void add_callback(ExCallback& cb) {
 }
 
 void cb_test() {
-    int r;
+    uint32 r;
     ExCbInfo cbinfo(0);
 
 #if 0
@@ -161,7 +161,7 @@ void exwindow_apitest() {
 #endif
 
 #define MAGIC_NUMBER_FIXED_16_16 (103079215104.0)
-#define MAGIC_NUMBER_FIXED ((1LL << (52 - 8/*CAIRO_FIXED_FRAC_BITS*/)) * 1.5)
+#define MAGIC_NUMBER_FIXED ((1LL << (52 - 8/*CR_FIXED_FRAC_BITS*/)) * 1.5)
 
 static inline int32
 _fixed_from_float(float d)
@@ -381,7 +381,7 @@ int app_test() {
     top.giveFocus(&w2311);
     top.giveFocus(NULL);
 
-    top.addListener([](void* data, ExWidget* widget, ExCbInfo* cbinfo)->int {
+    top.addListener([](void* data, ExWidget* widget, ExCbInfo* cbinfo)->uint32 {
         dprint1("\n*** anonymous func data=%p name=%s type=%d\n",
                 data, widget->getName(), cbinfo->type);
         return 0; }, &top, 1);
@@ -391,7 +391,7 @@ int app_test() {
     return 0;
 }
 
-static int STDCALL flushMainWnd(void* data, ExWatch* watch, ExCbInfo* cbinfo) {
+static uint32 STDCALL flushMainWnd(void* data, ExWatch* watch, ExCbInfo* cbinfo) {
     if (cbinfo->type != ExWatch::HookTimer)
         return -1;
     if (ExApp::mainWnd != NULL) {
@@ -400,10 +400,10 @@ static int STDCALL flushMainWnd(void* data, ExWatch* watch, ExCbInfo* cbinfo) {
     return 0;
 }
 
-int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
-                      _In_opt_ HINSTANCE hPrevInstance,
-                      _In_ LPWSTR    lpCmdLine,
-                      _In_ int       nCmdShow)
+int APIENTRY WinMain(_In_ HINSTANCE hInstance,
+                     _In_opt_ HINSTANCE hPrevInstance,
+                     _In_ LPSTR     lpCmdLine,
+                     _In_ int       nCmdShow)
 {
     //cb_test();
     //app_test();
