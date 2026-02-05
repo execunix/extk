@@ -49,7 +49,6 @@ typedef enum {
     CAIRO_COMMAND_STROKE,
     CAIRO_COMMAND_FILL,
     CAIRO_COMMAND_SHOW_TEXT_GLYPHS,
-    CAIRO_COMMAND_SHOW_UCS2_GLYPHS,
 } cairo_command_type_t;
 
 typedef enum {
@@ -113,19 +112,6 @@ typedef struct _cairo_command_show_text_glyphs {
     cairo_scaled_font_t		*scaled_font;
 } cairo_command_show_text_glyphs_t;
 
-typedef struct _cairo_command_show_ucs2_glyphs {
-    cairo_command_header_t       header;
-    cairo_pattern_union_t	 source;
-    UCS2			*ucs2; // extk
-    int				 ucs2_len;
-    cairo_glyph_t		*glyphs;
-    unsigned int		 num_glyphs;
-    cairo_text_cluster_t	*clusters;
-    int				 num_clusters;
-    cairo_text_cluster_flags_t   cluster_flags;
-    cairo_scaled_font_t		*scaled_font;
-} cairo_command_show_ucs2_glyphs_t;
-
 typedef union _cairo_command {
     cairo_command_header_t      header;
 
@@ -134,7 +120,6 @@ typedef union _cairo_command {
     cairo_command_stroke_t			stroke;
     cairo_command_fill_t			fill;
     cairo_command_show_text_glyphs_t		show_text_glyphs;
-    cairo_command_show_ucs2_glyphs_t		show_ucs2_glyphs;
 } cairo_command_t;
 
 typedef struct _cairo_recording_surface {

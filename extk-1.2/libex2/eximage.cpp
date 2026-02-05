@@ -79,7 +79,7 @@ bool ExImage::setInfo(int32 width, int32 height, uint32 type)
 }
 
 #ifdef WIN32
-bool ExImage::load(const char_t* fname, bool query)
+bool ExImage::load(const char* fname, bool query)
 {
     if (crs != NULL || bits != NULL) {
         exerror("%s - loaded\n", __func__);
@@ -89,8 +89,8 @@ bool ExImage::load(const char_t* fname, bool query)
         exerror("%s - invalid filename.\n", __func__);
         return false;
     }
-    const char_t* ext = NULL;
-    for (const char_t* p = fname; *p; p++)
+    const char* ext = NULL;
+    for (const char* p = fname; *p; p++)
         if (*p == '.') ext = p + 1;
     if (ext == NULL) {
         exerror("%s(%s) - invalid extension.\n", __func__, fname);
@@ -154,7 +154,7 @@ done:
     return r;
 }
 #else // compat linux
-bool ExImage::load(const char_t* fname, bool query)
+bool ExImage::load(const char* fname, bool query)
 {
     if (crs != NULL || bits != NULL) {
         exerror("%s - loaded\n", __func__);
@@ -164,8 +164,8 @@ bool ExImage::load(const char_t* fname, bool query)
         exerror("%s - invalid filename.\n", __func__);
         return false;
     }
-    const char_t* ext = NULL;
-    for (const char_t* p = fname; *p; p++)
+    const char* ext = NULL;
+    for (const char* p = fname; *p; p++)
         if (*p == '.') ext = p + 1;
     if (ext == NULL) {
         exerror("%s(%s) - invalid extension.\n", __func__, fname);

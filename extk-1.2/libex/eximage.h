@@ -8,6 +8,7 @@
 
 #include "exobject.h"
 #include "exregion.h"
+#include "excairo.h"
 
 // Graphics macro functions
 //
@@ -23,7 +24,7 @@
 #define ExCMYK(c,m,y,k)         ExRGB(0xff ^ min(c + k,255), \
                                       0xff ^ min(m + k,255), \
                                       0xff ^ min(y + k,255))
-#define ExCMYK2RGB(a)           ExCMYK((a).c,(a).m,(a).y,(a).k)
+#define ExCMYK2RGB(a)           ExCMYK((a).c, (a).m, (a).y, (a).k)
 #define ExGray(v)               ExRGB(v, v, v)
 #define ExGrey(v)               ExGray(v)
 #define ExBValue(c)             ((uint8)((c) & 0xFF))
@@ -74,9 +75,9 @@
 #define ExRedValue4444(c)       (((c) & 0xF00) >> 4)
 #define ExAlphaValue4444(c)     (((c) & 0xF000) >> 8)
 
-#define ExLighterColor(c)       (ExRGB( (0xff-((0xff-ExRValue(c)) >> 1)), \
-                                        (0xff-((0xff-ExGValue(c)) >> 1)), \
-                                        (0xff-((0xff-ExBValue(c)) >> 1)) ))
+#define ExLighterColor(c)       (ExRGB( (0xff - ((0xff - ExRValue(c)) >> 1)), \
+                                        (0xff - ((0xff - ExGValue(c)) >> 1)), \
+                                        (0xff - ((0xff - ExBValue(c)) >> 1)) ))
 
 #define ExALighterColor(c)      (ExARGB(ExAValue(c), \
                                         (0xff - ((0xff - ExRValue(c)) >> 1)), \
@@ -167,25 +168,25 @@
 #pragma pack(push, 1)
 
 typedef struct tagBITMAPFILEHEADER {
-    uint16/*WORD */ bfType;
-    uint32/*DWORD*/ bfSize;
-    uint16/*WORD */ bfReserved1;
-    uint16/*WORD */ bfReserved2;
-    uint32/*DWORD*/ bfOffBits;
+    uint16_t /*WORD */ bfType;
+    uint32_t /*DWORD*/ bfSize;
+    uint16_t /*WORD */ bfReserved1;
+    uint16_t /*WORD */ bfReserved2;
+    uint32_t /*DWORD*/ bfOffBits;
 } BITMAPFILEHEADER, *LPBITMAPFILEHEADER, *PBITMAPFILEHEADER;
 
 typedef struct tagBITMAPINFOHEADER{
-    uint32/*DWORD*/ biSize;
-    int32 /*LONG */ biWidth;
-    int32 /*LONG */ biHeight;
-    uint16/*WORD */ biPlanes;
-    uint16/*WORD */ biBitCount;
-    uint32/*DWORD*/ biCompression;
-    uint32/*DWORD*/ biSizeImage;
-    int32 /*LONG */ biXPelsPerMeter;
-    int32 /*LONG */ biYPelsPerMeter;
-    uint32/*DWORD*/ biClrUsed;
-    uint32/*DWORD*/ biClrImportant;
+    uint32_t /*DWORD*/ biSize;
+    int32_t  /*LONG */ biWidth;
+    int32_t  /*LONG */ biHeight;
+    uint16_t /*WORD */ biPlanes;
+    uint16_t /*WORD */ biBitCount;
+    uint32_t /*DWORD*/ biCompression;
+    uint32_t /*DWORD*/ biSizeImage;
+    int32_t  /*LONG */ biXPelsPerMeter;
+    int32_t  /*LONG */ biYPelsPerMeter;
+    uint32_t /*DWORD*/ biClrUsed;
+    uint32_t /*DWORD*/ biClrImportant;
 } BITMAPINFOHEADER, *LPBITMAPINFOHEADER, *PBITMAPINFOHEADER;
 
 #pragma pack(pop)
@@ -204,40 +205,30 @@ typedef struct tagBITMAPINFOHEADER{
 //
 class ExImage : public ExObject {
 public:
-    int         type;           /* image type ( milti, pseudo, direct ) */
+    uint32      type;           /* image type ( milti, pseudo, direct ) */
                                 /* bitmap type (backfilled, transparent fill)*/
-    int         bpp;            /* image bits per pixel (channels=bpp/8) */
-    int         bpl;            /* image bytes per line (len=bpl*height) */
-    int         width;          /* image size.width */
-    int         height;         /* image size.height */
-    int         format;         /* graphic format */
-    int         flags;          /* image flags */
-    uint8*      bits;           /* image bitmap data */
+    int32       bpp;            /* image bits per pixel (channels=bpp/8) */
+    int32       bpl;            /* image bytes per line (len=bpl*height) */
+    int32       width;          /* image size.width */
+    int32       height;         /* image size.height */
+    uint32      format;         /* graphic format */
     uint32      chroma;         /* color to mask out when drawing */
-    cairo_surface_t* crs;
+    uint32      flags;          /* image flags */
+    uint8*      bits;           /* image bitmap data */
+    cr_surface_t* crs;
 public:
     virtual ~ExImage();
-    explicit ExImage() : ExObject(), type(0), bpp(0), bpl(0)
-        , width(0), height(0), format(0), flags(0), bits(NULL)
-        , chroma(0), crs(NULL) {}
+    explicit ExImage() : ExObject(), type(0U), bpp(0), bpl(0)
+        , width(0), height(0), format(0U), chroma(0U)
+        , flags(0U), bits(NULL), crs(NULL) {}
 public:
-    static ExImage* create(int width, int height, int type);
-    int init(int width, int height, int type);
-#ifdef WIN32
-    int load(const wchar* fname, bool query = false);
-#else // compat linux
-    int load(const char* fname, bool query = false);
-#endif
-    int getBitsSize() { return bpl * height; }
-    int makeTrans(uint32 transColor) { return 0; } // tbd
-    int makeGhost() { return 0; } // tbd
-    void clear() {
-        if (bits) free(bits);
-        if (crs) cairo_surface_destroy(crs);
-        type = bpp = bpl = width = height = format = 0;
-        bits = NULL; crs = NULL;
-        chroma = 0;
-    }
+    static ExImage* create(int32 width, int32 height, uint32 type);
+    bool init(int32 width, int32 height, uint32 type);
+    bool load(const char* fname, bool query = false);
+    size_t getBitsSize() { return (size_t)(bpl * height); }
+    bool makeTrans(uint32 transColor) { return false; } // tbd
+    bool makeGhost() { return false; } // tbd
+    void clear();
     void fillBoxAlphaEx(const ExBox* box, uint8 alpha, uint8 a_out);
     void fillBoxAlpha(const ExBox* box, uint8 alpha);
     void fillBoxRgbEx(const ExBox* box, uint32 rgb, uint32 rgb_out);
@@ -245,40 +236,40 @@ public:
     void fillBoxEx(const ExBox* box, uint32 color, uint32 c_out);
     void fillBox(const ExBox* box, uint32 color);
     void drawBox(const ExBox* box, uint32 color);
-    void blit(int dx, int dy, int w, int h, const ExImage* srcimg, int sx, int sy) {
+    void blit(int32 dx, int32 dy, int32 w, int32 h, const ExImage* srcimg, int32 sx, int32 sy) {
         Blit(this, dx, dy, w, h, srcimg, sx, sy);
     }
-    void blitRgb(int dx, int dy, int w, int h, const ExImage* srcimg, int sx, int sy) {
+    void blitRgb(int32 dx, int32 dy, int32 w, int32 h, const ExImage* srcimg, int32 sx, int32 sy) {
         BlitRgb(this, dx, dy, w, h, srcimg, sx, sy);
     }
-    void blitAlpha(int dx, int dy, int w, int h, const ExImage* srcimg, int sx, int sy) {
+    void blitAlpha(int32 dx, int32 dy, int32 w, int32 h, const ExImage* srcimg, int32 sx, int32 sy) {
         BlitAlpha(this, dx, dy, w, h, srcimg, sx, sy);
     }
-    void blitAlphaOver(int dx, int dy, int w, int h, const ExImage* srcimg, int sx, int sy) {
+    void blitAlphaOver(int32 dx, int32 dy, int32 w, int32 h, const ExImage* srcimg, int32 sx, int32 sy) {
         BlitAlphaOver(this, dx, dy, w, h, srcimg, sx, sy);
     }
-    static void Blit(ExImage* dstimg, int dx, int dy, int w, int h, const ExImage* srcimg, int sx, int sy);
-    static void BlitRgb(ExImage* dstimg, int dx, int dy, int w, int h, const ExImage* srcimg, int sx, int sy);
-    static void BlitAlpha(ExImage* dstimg, int dx, int dy, int w, int h, const ExImage* srcimg, int sx, int sy);
-    static void BlitAlphaOver(ExImage* dstimg, int dx, int dy, int w, int h, const ExImage* srcimg, int sx, int sy);
+    static void Blit(ExImage* dstimg, int32 dx, int32 dy, int32 w, int32 h, const ExImage* srcimg, int32 sx, int32 sy);
+    static void BlitRgb(ExImage* dstimg, int32 dx, int32 dy, int32 w, int32 h, const ExImage* srcimg, int32 sx, int32 sy);
+    static void BlitAlpha(ExImage* dstimg, int32 dx, int32 dy, int32 w, int32 h, const ExImage* srcimg, int32 sx, int32 sy);
+    static void BlitAlphaOver(ExImage* dstimg, int32 dx, int32 dy, int32 w, int32 h, const ExImage* srcimg, int32 sx, int32 sy);
 protected:
-    int setInfo(int width, int height, int type);
+    bool setInfo(int32 width, int32 height, uint32 type);
 #ifdef WIN32
-    int loadBmp(HANDLE hFile, const wchar* fname, bool query);
-    int loadGif(HANDLE hFile, const wchar* fname, bool query);
-    int loadJpg(HANDLE hFile, const wchar* fname, bool query);
-    int loadPng(HANDLE hFile, const wchar* fname, bool query);
-    int savePng(HANDLE hFile);
+    bool loadBmp(HANDLE hFile, const char* fname, bool query);
+    bool loadGif(HANDLE hFile, const char* fname, bool query);
+    bool loadJpg(HANDLE hFile, const char* fname, bool query);
+    bool loadPng(HANDLE hFile, const char* fname, bool query);
+    bool savePng(HANDLE hFile);
 #else // compat linux
-    int loadBmp(int fd, const char* fname, bool query);
-    int loadGif(int fd, const char* fname, bool query);
-    int loadJpg(int fd, const char* fname, bool query);
-    int loadPng(int fd, const char* fname, bool query);
-    int savePng(int fd);
+    bool loadBmp(int32 fd, const char* fname, bool query);
+    bool loadGif(int32 fd, const char* fname, bool query);
+    bool loadJpg(int32 fd, const char* fname, bool query);
+    bool loadPng(int32 fd, const char* fname, bool query);
+    bool savePng(int32 fd);
 #endif
     void preMultiply();
 public:
-    static int getBitsPerPixel(int type) {
+    static int32 getBitsPerPixel(uint32 type) {
         switch (type) {
             case Ex_IMAGE_DIRECT_8888: return 32;
             case Ex_IMAGE_DIRECT_888: return 24;
@@ -290,7 +281,7 @@ public:
         }
         return 0;
     }
-    static int getBytesPerLine(int w, int bpp) {
+    static int32 getBytesPerLine(int32 w, int32 bpp) {
         return ((w * bpp + 31) & ~31) / 8;
     }
 public:

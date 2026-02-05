@@ -33,22 +33,22 @@ protected:
         void clearAll();
         void remove(ExTimer* timer);
         void active(ExTimer* timer);
-        int  invoke(uint32 tick_count);
+        uint32 invoke(uint32 tick_count);
     };
     // IomuxMap
     struct Iomux {
-        int             fd;
+        int32           fd;
         ExNotify        notify;
         epoll_event     event;
         //mutable enum { NONE, ADD, MOD, DEL, RUN } status;
         Iomux() : notify() {}
     };
-    class IomuxMap : protected std::map<int, Iomux*> {
+    class IomuxMap : protected std::map<int32, Iomux*> {
     protected:
         ExWatch*        watch;
-        int             epfd;   // epoll fd
+        int32           epfd;   // epoll fd
         epoll_event*    events;
-        int             maxevents;
+        size_t          maxevents;
         #if EX2CONF_ENABLE_IOMUX_LOCK
         mutable pthread_mutex_t mutex;
         mutable pthread_cond_t cond;
@@ -61,7 +61,7 @@ protected:
             pthread_mutex_destroy(&mutex);
             #endif
         }
-        IomuxMap(ExWatch* watch) : std::map<int, Iomux*>(), watch(watch), epfd(-1), events(NULL), maxevents(0) {
+        IomuxMap(ExWatch* watch) : std::map<int32, Iomux*>(), watch(watch), epfd(-1), events(NULL), maxevents(0) {
             #if EX2CONF_ENABLE_IOMUX_LOCK
             pthread_mutex_init(&mutex, NULL);
             pthread_cond_init(&cond, NULL);
@@ -69,19 +69,19 @@ protected:
         }
     public:
         void fini();
-        void init(int max);
+        void init(size_t max);
         #if EX2CONF_ENABLE_IOMUX_LOCK
         void enter_mux() const;
         void leave_mux() const;
         #endif
         // inherit void clear();
-        // inherit iterator find(int fd);
-        const Iomux* search(int fd) const;
-        int probe(const ExCallback& callback, void* cbinfo);
-        int add(int fd, uint32 events, const ExNotify& notify);
-        int mod(int fd, uint32 events, const ExNotify& notify);
-        int del(int fd);
-        int invoke(int waittick = 60000);
+        // inherit iterator find(int32 fd);
+        const Iomux* search(int32 fd) const;
+        uint32 probe(const ExCallback& callback, void* cbinfo);
+        bool add(int32 fd, uint32 events, const ExNotify& notify);
+        bool mod(int32 fd, uint32 events, const ExNotify& notify);
+        bool del(int32 fd);
+        uint32 invoke(uint32 waittick = 60000);
     };
 public:
     const char* name; // for debug
@@ -94,8 +94,8 @@ protected:
     IomuxMap        iomuxmap;
     TimerSet        timerset;
     pthread_t       tid;
-    int             efd;    // event fd
-    int             halt;
+    int32           efd;    // event fd
+    uint32          halt;
     uint32          tickCount;
     mutable pthread_mutex_t mutex;
     mutable pthread_cond_t  cond;
@@ -119,39 +119,39 @@ public:
         pthread_cond_init(&cond, NULL);
         tickCount = tickAppLaunch;
     }
-    int fini();
-    int init(int max_iomux = 256, size_t stacksize = 1048576);
-    int enter() const;
-    int leave() const;
-    int wakeup() const;
-    int setHalt(int r = Ex_Halt);
-    int getHalt() const { return halt; }
+    bool fini();
+    bool init(size_t max_iomux = 256UL, size_t stacksize = 1048576UL);
+    bool enter() const;
+    bool leave() const;
+    bool wakeup() const;
+    uint32 setHalt(uint32 r = Ex_Halt);
+    uint32 getHalt() const { return halt; }
     uint32 getTick() const { return tickCount; }
 protected:
-    int setEvent(uint64 u) const;
-    int getEvent(uint64* u) const;
-    int STDCALL proc();
-    int STDCALL onEvent(epoll_event* ev);
+    bool setEvent(uint64 u64) const;
+    bool getEvent(uint64* u64) const;
+    uint32 STDCALL proc();
+    uint32 STDCALL onEvent(epoll_event* ev);
 public:
     template <typename A>
-    int ioAdd(A* d, int (STDCALL A::*f)(epoll_event*), int fd, uint32 events = EPOLLIN | EPOLLERR) {
+    bool ioAdd(A* d, uint32 (STDCALL A::*f)(epoll_event*), int32 fd, uint32 events = EPOLLIN | EPOLLERR) {
         return iomuxmap.add(fd, events, ExNotify(d, f));
     }
     template <typename A>
-    int ioMod(A* d, int (STDCALL A::*f)(epoll_event*), int fd, uint32 events = EPOLLIN | EPOLLERR) {
+    bool ioMod(A* d, uint32 (STDCALL A::*f)(epoll_event*), int32 fd, uint32 events = EPOLLIN | EPOLLERR) {
         return iomuxmap.mod(fd, events, ExNotify(d, f));
     }
-    int ioDel(int fd) {
-        return getHalt() ? 0 : iomuxmap.del(fd);
+    bool ioDel(int32 fd) {
+        return (getHalt() == 0U) ? iomuxmap.del(fd) : false;
     }
 #if 0
 protected:
     // export api for inheritance
     void timerset_clearAll() { timerset.clearAll(); }
     void iomuxmap_fini() { iomuxmap.fini(); }
-    void iomuxmap_init(int max) { iomuxmap.init(max); }
-    int timerset_invoke(uint32 tick_count) { return timerset_invoke(tick_count); }
-    int iomuxmap_invoke(int waittick = 60000) { return iomuxmap_invoke(waittick); }
+    void iomuxmap_init(uint32 max) { iomuxmap.init(max); }
+    uint32 timerset_invoke(uint32 tick_count) { return timerset.invoke(tick_count); }
+    uint32 iomuxmap_invoke(uint32 waittick = 60000) { return iomuxmap.invoke(waittick); }
 #endif
 protected:
     friend class ExTimer;

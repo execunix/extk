@@ -198,8 +198,8 @@ ExThread::self() {
 
 // variables for the exlib
 //
-const wchar* exModulePath = NULL;
-const wchar* exModuleName = NULL;
+const char* exModulePath = NULL;
+const char* exModuleName = NULL;
 
 HANDLE exLibMutex = NULL;
 
@@ -298,16 +298,16 @@ ExFiniProcess()
 void
 ExInitProcess()
 {
-    exLibMutex = CreateMutex(NULL, FALSE, L"exLibMutex");
+    exLibMutex = CreateMutex(NULL, FALSE, "exLibMutex");
     assert(exModulePath == NULL);
     assert(exModuleName == NULL);
-    wchar buf[256];
+    char buf[256];
     int len = GetModuleFileName(NULL, buf, 256);
     while (len > 0 && buf[len] != '\\')
         len--;
     buf[len] = 0;
-    exModulePath = exwcsdup(buf);
-    exModuleName = exwcsdup(buf + len + 1);
+    exModulePath = exstrdup(buf);
+    exModuleName = exstrdup(buf + len + 1);
     ExEnter();
     dprint1("ExInitProcess(%s\\%s) %p\n", exModulePath, exModuleName, exLibMutex);
     ExThreadInitWin32Impl();

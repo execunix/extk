@@ -159,12 +159,12 @@ uint32 ExWatch::tickAppLaunch = ExWatch::getTickCount();
 
 pthread_key_t ExWatch::tls_key = (pthread_key_t)-1;
 
-void ExWatch::tls_specific(const char_t* name)
+void ExWatch::tls_specific(const char* name)
 {
     if (tls_key == (pthread_key_t)-1)
         pthread_key_create(&tls_key, NULL);
     pthread_setspecific(tls_key, malloc(256));
-    strcpy((char_t*)pthread_getspecific(tls_key), name);
+    strcpy((char*)pthread_getspecific(tls_key), name);
 }
 
 void* ExWatch::start(void* arg) {

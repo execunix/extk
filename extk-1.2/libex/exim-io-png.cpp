@@ -26,7 +26,7 @@ s_png_read_data(png_structp png_ptr, png_bytep data, png_size_t length)
         png_error(png_ptr, "read error");
     }
 #else // compat linux
-    int fd = (int64)png_ptr->io_ptr;
+    int32 fd = (int64)png_ptr->io_ptr;
     if (read(fd, data, length) != (ssize_t)length) {
         exerror("%s - read error.\n", __func__);
         png_error(png_ptr, "read error");
@@ -46,7 +46,7 @@ s_png_write_data(png_structp png_ptr, png_bytep data, png_size_t length)
         png_error(png_ptr, "write error");
     }
 #else // compat linux
-    int fd = (int64)png_ptr->io_ptr;
+    int32 fd = (int64)png_ptr->io_ptr;
     if (write(fd, data, length) != (ssize_t)length) {
         exerror("%s - write error.\n", __func__);
         png_error(png_ptr, "write error");
@@ -61,50 +61,51 @@ s_png_flush(png_structp png_ptr)
     HANDLE hFile = png_ptr->io_ptr;
     FlushFileBuffers(hFile);
 #else // compat linux
-    int fd = (int64)png_ptr->io_ptr;
+    int32 fd = (int64)png_ptr->io_ptr;
     fsync(fd);
 #endif
 }
 
 #ifdef WIN32
-int ExImage::savePng(HANDLE hFile)
+bool ExImage::savePng(HANDLE hFile)
 {
-    // TBD
     png_structp png_ptr = NULL;
+    // tbd
     png_set_write_fn(png_ptr, (png_voidp)hFile, s_png_write_data, s_png_flush);
-    return 0;
+    return false;
 }
 #else // compat linux
-int ExImage::savePng(int fd)
+bool ExImage::savePng(int32 fd)
 {
     png_structp png_ptr = NULL;
+    // tbd
     png_set_write_fn(png_ptr, (png_voidp)(int64)fd, s_png_write_data, s_png_flush);
-    return 0;
+    return false;
 }
 #endif
 
 #ifdef WIN32
-int ExImage::loadPng(HANDLE hFile, const wchar* fname, bool query)
+bool ExImage::loadPng(HANDLE hFile, const char* fname, bool query)
 {
     DWORD dwRead = 0;
-    int jmpret = 0;
+    int32 jmpret = 0;
 #if 0
     png_byte pbSig[8];
     ReadFile(hFile, pbSig, 8, &dwRead, NULL);
     if (!png_check_sig(pbSig, 8)) {
-        return NULL;
+        return false;
     }
 #endif
     png_structp png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
     if (!png_ptr) {
         exerror("%s(%s) - png_create_read_struct fail.\n", __func__, fname);
-        return -1;
+        return false;
     }
     png_infop info_ptr = png_create_info_struct(png_ptr);
     if (!info_ptr) {
         exerror("%s(%s) - png_create_info_struct fail.\n", __func__, fname);
         png_destroy_read_struct(&png_ptr, NULL, NULL);
-        return -1;
+        return false;
     }
     //png_set_error_fn(png_ptr, error_ptr, error_fn, warn_fn);
     png_byte* data = NULL;
@@ -117,18 +118,18 @@ int ExImage::loadPng(HANDLE hFile, const wchar* fname, bool query)
         this->clear();
         if (ptrs) free(ptrs);
         if (data) free(data);
-        return -1;
+        return false;
     }
     png_set_read_fn(png_ptr, (png_voidp)hFile, s_png_read_data);
     png_set_sig_bytes(png_ptr, dwRead);
 
     png_uint_32 width;
     png_uint_32 height;
-    int bit_depth;
-    int color_type;
-    int interlace_type;
-    int compression_type;
-    int filter_type;
+    int32 bit_depth;
+    int32 color_type;
+    int32 interlace_type;
+    int32 compression_type;
+    int32 filter_type;
 
     png_read_info(png_ptr, info_ptr);
     png_get_IHDR(png_ptr, info_ptr, &width, &height, &bit_depth, &color_type, &interlace_type, &compression_type, &filter_type);
@@ -206,38 +207,38 @@ int ExImage::loadPng(HANDLE hFile, const wchar* fname, bool query)
     png_uint_32 channels = png_get_channels(png_ptr, info_ptr); // bpp = channels*8
 
 #if 1 // compatible with cairo
-    int type = Ex_IMAGE_DIRECT_8888;
+    int32 type = Ex_IMAGE_DIRECT_8888;
 #else
-    int type = 0;
+    int32 type = 0;
     if (color_type == PNG_COLOR_TYPE_RGB_ALPHA) {
         type = Ex_IMAGE_DIRECT_8888;
     } else {
         type = Ex_IMAGE_DIRECT_888;
     }
 #endif
-    int r = -1;
+    bool r = false;
     if (query) {
         r = this->setInfo(width, height, type);
         goto png_cleanup;
     }
-    if ((r = this->init(width, height, type)) != 0) {
+    if ((r = this->init(width, height, type)) != true) {
         exerror("%s(%s) - image alloc fail.\n", __func__, fname);
         png_error(png_ptr, "image alloc fail");
         goto png_cleanup;
     }
 
     if (image_background) {
-        uint32 r = image_background->red;
-        uint32 g = image_background->green;
-        uint32 b = image_background->blue;
-        this->chroma = ExRGB(r, g, b);
+        uint32 bg_r = image_background->red;
+        uint32 bg_g = image_background->green;
+        uint32 bg_b = image_background->blue;
+        this->chroma = ExRGB(bg_r, bg_g, bg_b);
     }
     ptrs = (png_byte**)malloc(this->height * sizeof(png_byte*));
     if (ptrs == NULL) {
         exerror("%s(%s) - malloc ptrs fail.\n", __func__, fname);
         png_error(png_ptr, "malloc ptrs fail");
     }
-    for (int h = 0; h < this->height; h++) {
+    for (int32 h = 0; h < this->height; h++) {
         ptrs[h] = this->bits + this->bpl*h;
     }
     png_read_image(png_ptr, ptrs);
@@ -253,27 +254,27 @@ png_cleanup:
     return r;
 }
 #else // compat linux
-int ExImage::loadPng(int fd, const char* fname, bool query)
+bool ExImage::loadPng(int32 fd, const char* fname, bool query)
 {
     ssize_t rsize = 0;
-    int jmpret = 0;
+    int32 jmpret = 0;
 #if 0
     png_byte pbSig[8];
     rsize = read(fd, pbSig, 8);
     if (!png_check_sig(pbSig, 8)) {
-        return NULL;
+        return false;
     }
 #endif
     png_structp png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
     if (!png_ptr) {
         exerror("%s(%s) - png_create_read_struct fail.\n", __func__, fname);
-        return -1;
+        return false;
     }
     png_infop info_ptr = png_create_info_struct(png_ptr);
     if (!info_ptr) {
         exerror("%s(%s) - png_create_info_struct fail.\n", __func__, fname);
         png_destroy_read_struct(&png_ptr, NULL, NULL);
-        return -1;
+        return false;
     }
     //png_set_error_fn(png_ptr, error_ptr, error_fn, warn_fn);
     png_byte* data = NULL;
@@ -286,18 +287,18 @@ int ExImage::loadPng(int fd, const char* fname, bool query)
         this->clear();
         if (ptrs) free(ptrs);
         if (data) free(data);
-        return -1;
+        return false;
     }
     png_set_read_fn(png_ptr, (png_voidp)(int64)fd, s_png_read_data);
     png_set_sig_bytes(png_ptr, rsize);
 
     png_uint_32 width;
     png_uint_32 height;
-    int bit_depth;
-    int color_type;
-    int interlace_type;
-    int compression_type;
-    int filter_type;
+    int32 bit_depth;
+    int32 color_type;
+    int32 interlace_type;
+    int32 compression_type;
+    int32 filter_type;
 
     png_read_info(png_ptr, info_ptr);
     png_get_IHDR(png_ptr, info_ptr, &width, &height, &bit_depth, &color_type, &interlace_type, &compression_type, &filter_type);
@@ -381,38 +382,38 @@ int ExImage::loadPng(int fd, const char* fname, bool query)
     channels = channels;
 
 #if 1 // compatible with cairo
-    int type = Ex_IMAGE_DIRECT_8888;
+    int32 type = Ex_IMAGE_DIRECT_8888;
 #else
-    int type = 0;
+    int32 type = 0;
     if (color_type == PNG_COLOR_TYPE_RGB_ALPHA) {
         type = Ex_IMAGE_DIRECT_8888;
     } else {
         type = Ex_IMAGE_DIRECT_888;
     }
 #endif
-    int r = -1;
+    bool r = false;
     if (query) {
         r = this->setInfo(width, height, type);
         goto png_cleanup;
     }
-    if ((r = this->init(width, height, type)) != 0) {
+    if ((r = this->init(width, height, type)) != true) {
         exerror("%s(%s) - image alloc fail.\n", __func__, fname);
         png_error(png_ptr, "image alloc fail");
         goto png_cleanup;
     }
 
     if (image_background) {
-        uint32 r = image_background->red;
-        uint32 g = image_background->green;
-        uint32 b = image_background->blue;
-        this->chroma = ExRGB(r, g, b);
+        uint32 bg_r = image_background->red;
+        uint32 bg_g = image_background->green;
+        uint32 bg_b = image_background->blue;
+        this->chroma = ExRGB(bg_r, bg_g, bg_b);
     }
     ptrs = (png_byte**)malloc(this->height * sizeof(png_byte*));
     if (ptrs == NULL) {
         exerror("%s(%s) - malloc ptrs fail.\n", __func__, fname);
         png_error(png_ptr, "malloc ptrs fail");
     }
-    for (int h = 0; h < this->height; h++) {
+    for (int32 h = 0; h < this->height; h++) {
         ptrs[h] = this->bits + this->bpl*h;
     }
     png_read_image(png_ptr, ptrs);

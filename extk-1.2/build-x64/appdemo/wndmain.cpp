@@ -66,8 +66,12 @@ void WndMain::onDrawBkgd(ExCanvas* canvas, const ExWidget* widget, const ExRegio
     if (widget == this) {
         ExRegion rgn(*damage);
         rgn.subtract(ExBox(img_pt0.x, img_pt0.y, res.i.bg0.width + img_pt0.x, res.i.bg0.height + img_pt0.y));
-        for (int i = 0; i < rgn.n_boxes; i++)
+#if 1
+        for (int i = 0; i < rgn.n_boxes; i++) {
+            //canvas->gc->fillBox(&rgn.boxes[i], 0U);
             canvas->gc->fillBox(&rgn.boxes[i], ((uint64)widget) & 0xffffff);
+        }
+#endif
         if (res.i.bg0.bits) {
             for (int i = 0; i < damage->n_boxes; i++) {
                 const ExBox& bx = damage->boxes[i];
@@ -1079,7 +1083,8 @@ int WndMain::start() {
 #endif
         return Ex_Continue; }, this);
     //showWindow(0, WS_POPUP | WS_VISIBLE);
-    showWindow(0, WS_OVERLAPPEDWINDOW | WS_VISIBLE, env.wnd.x, env.wnd.y);
+    showWindow(0, WS_POPUP | WS_VISIBLE, env.wnd.x, env.wnd.y);
+    //showWindow(0, WS_OVERLAPPEDWINDOW | WS_VISIBLE, env.wnd.x, env.wnd.y);
     //SetWindowTextA(hwnd, "AppDemo-extk-1.1");
     SetWindowText(hwnd, res.s.title);
     if (env.wnd.show == SW_SHOWMAXIMIZED) {

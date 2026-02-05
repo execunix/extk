@@ -113,7 +113,7 @@ protected:
     ExWidget* childTail() {
         return childHead ? childHead->broPrev : NULL;
     }
-    char_t*     name;
+    char*       name;
     // ExLayoutInfo
     ExBox       extent;     // the origin is the nearest canvas. intersect with parent
     ExBox       select;     // read-only
@@ -164,8 +164,8 @@ public:
     void dumpBackToFront(ExWidget* end = NULL);
     void dumpFrontToBack(ExWidget* end = NULL);
 
-    uint32 init(ExWidget* parent, const char_t* name = NULL, const ExRect* area = NULL);
-    static ExWidget* create(ExWidget* parent, const char_t* name = NULL, const ExRect* area = NULL);
+    uint32 init(ExWidget* parent, const char* name = NULL, const ExRect* area = NULL);
+    static ExWidget* create(ExWidget* parent, const char* name = NULL, const ExRect* area = NULL);
     virtual uint32 destroy(); // the widget family hierarchy marks Ex_Destroyed, broadcast Ex_CbDestroyed
 #if 1 // deprecated - traditional legacy compatibility.
     virtual uint32 realize(); // visible widgets only, marks Ex_Realized and broadcast Ex_CbRealized.
@@ -200,8 +200,8 @@ public:
     ExWidget* getChildTail() { return childHead ? childHead->broPrev : NULL; }
     ExWidget* getBroPrev() { return (this != parent->getChildHead()) ? broPrev : NULL; }
     ExWidget* getBroNext() { return (this != parent->getChildTail()) ? broNext : NULL; }
-    const char_t* getName() const { return name ? name : "(null)"; }
-    void          setName(const char_t* text);
+    const char* getName() const { return name ? name : "(null)"; }
+    void        setName(const char* text);
     void* getData() const { return data; }
     void  setData(void* p) { data = p; }
     ExBox& getBox(ExBox& bx) const; // for event processing

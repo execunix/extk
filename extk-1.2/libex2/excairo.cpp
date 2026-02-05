@@ -467,7 +467,7 @@ cr_hint_metrics_t cr_font_options_get_hint_metrics(const cr_font_options_t* opti
     hint_metrics = cairo_font_options_get_hint_metrics(options);
     return static_cast<cr_hint_metrics_t>(hint_metrics);
 }
-void cr_select_font_face(cr_t* cr, const char_t* family, cr_font_slant_t slant, cr_font_weight_t weight)
+void cr_select_font_face(cr_t* cr, const char* family, cr_font_slant_t slant, cr_font_weight_t weight)
 {
     cairo_select_font_face(cr, family, static_cast<cairo_font_slant_t>(slant), static_cast<cairo_font_weight_t>(weight));
 }
@@ -517,7 +517,7 @@ cr_scaled_font_t* cr_get_scaled_font(cr_t* cr)
     return cairo_get_scaled_font(cr);
 }
 
-void cr_show_text(cr_t* cr, const char_t* utf8)
+void cr_show_text(cr_t* cr, const char* utf8)
 {
     cairo_show_text(cr, utf8);
 }
@@ -527,7 +527,7 @@ void cr_show_glyphs(cr_t* cr, const cr_glyph_t* glyphs, int32 num_glyphs)
     cairo_show_glyphs(cr, reinterpret_cast<const cairo_glyph_t*>(glyphs), num_glyphs);
 }
 
-void cr_text_path(cr_t* cr, const char_t* utf8)
+void cr_text_path(cr_t* cr, const char* utf8)
 {
     cairo_text_path(cr, utf8);
 }
@@ -537,7 +537,7 @@ void cr_glyph_path(cr_t* cr, const cr_glyph_t* glyphs, int32 num_glyphs)
     cairo_glyph_path(cr, reinterpret_cast<const cairo_glyph_t*>(glyphs), num_glyphs);
 }
 
-void cr_text_extents(cr_t* cr, const char_t* utf8, cr_text_extents_t* extents)
+void cr_text_extents(cr_t* cr, const char* utf8, cr_text_extents_t* extents)
 {
     cairo_text_extents(cr, utf8, reinterpret_cast<cairo_text_extents_t*>(extents));
 }
@@ -644,7 +644,7 @@ void cr_scaled_font_extents(cr_scaled_font_t* scaled_font, cr_font_extents_t* ex
     cairo_scaled_font_extents(scaled_font, reinterpret_cast<cairo_font_extents_t*>(extents));
 }
 
-void cr_scaled_font_text_extents(cr_scaled_font_t* scaled_font, const char_t* utf8, cr_text_extents_t* extents)
+void cr_scaled_font_text_extents(cr_scaled_font_t* scaled_font, const char* utf8, cr_text_extents_t* extents)
 {
     cairo_scaled_font_text_extents(scaled_font, utf8, reinterpret_cast<cairo_text_extents_t*>(extents));
 }
@@ -656,7 +656,7 @@ void cr_scaled_font_glyph_extents(cr_scaled_font_t* scaled_font, const cr_glyph_
 }
 
 cr_status_t cr_scaled_font_text_to_glyphs (cr_scaled_font_t* scaled_font, float64 x, float64 y,
-                    const char_t* utf8, int32 utf8_len, cr_glyph_t** glyphs, int32* num_glyphs)
+                    const char* utf8, int32 utf8_len, cr_glyph_t** glyphs, int32* num_glyphs)
 {
     return static_cast<cr_status_t>(cairo_scaled_font_text_to_glyphs(scaled_font, x, y,
                                         utf8, utf8_len, reinterpret_cast<cairo_glyph_t**>(glyphs), num_glyphs, NULL, NULL, NULL));
@@ -802,7 +802,7 @@ cr_status_t cr_status(cr_t* cr)
     return static_cast<cr_status_t>(cairo_status(cr));
 }
 
-const char_t* cr_status_to_string(cr_status_t status)
+const char* cr_status_to_string(cr_status_t status)
 {
     return cairo_status_to_string(static_cast<cairo_status_t>(status));
 }
@@ -873,7 +873,7 @@ cr_content_t cr_surface_get_content(cr_surface_t* surface)
     return static_cast<cr_content_t>(cairo_surface_get_content(surface));
 }
 
-cr_status_t cr_surface_write_to_png(cr_surface_t* surface, const char_t* filename)
+cr_status_t cr_surface_write_to_png(cr_surface_t* surface, const char* filename)
 {
     return static_cast<cr_status_t>(cairo_surface_write_to_png(surface, filename));
 }
@@ -1204,7 +1204,7 @@ void cr_debug_reset_static_data(void)
     cairo_debug_reset_static_data();
 }
 
-bool cr_write_to_png(cr_t* cr, const char_t* filename)
+bool cr_write_to_png(cr_t* cr, const char* filename)
 {
     cr_surface_t* crs = cairo_get_target(cr);
     cairo_status_t status = cairo_surface_write_to_png(crs, filename);
@@ -1232,11 +1232,11 @@ void ExCairo::Face::initFtLib()
     FT_Init_FreeType(&ftLib);
 }
 
-bool ExCairo::Face::load(const char_t* path, const char_t* name)
+bool ExCairo::Face::load(const char* path, const char* name)
 {
     exassert(ftLib != NULL);
 
-    char_t faceName[256];
+    char faceName[256];
     snprintf(faceName, 256, "%s/%s", path, name);
 
     if (FT_New_Face(ftLib, faceName, 0, &ftFace) != FT_Err_Ok) {
@@ -1333,7 +1333,7 @@ void ExCairo::fill_rect_rgba(float64 x, float64 y, float64 w, float64 h, const C
 
 void // static
 ExCairo::text_extent(cr_t* cr, cr_font_face_t* crf, float64 size,
-                     const char_t* utf8, cr_text_extents_t* te)
+                     const char* utf8, cr_text_extents_t* te)
 {
     cairo_set_font_face(cr, crf);
     cairo_set_font_size(cr, size);
@@ -1360,7 +1360,7 @@ ExCairo::text_align(const cr_font_extents_t& fe, const cr_text_extents_t& te, co
 }
 
 ExCairo::Point
-ExCairo::text_align(const char_t* utf8, const Rect& r, uint32 align)
+ExCairo::text_align(const char* utf8, const Rect& r, uint32 align)
 {
     cr_t* cr = canvas->cr;
     cr_text_extents_t te;
@@ -1368,7 +1368,7 @@ ExCairo::text_align(const char_t* utf8, const Rect& r, uint32 align)
     return text_align(canvas->fe, te, r, align);
 }
 
-void ExCairo::show_text(const char_t* utf8, const Color& c, const Rect& r, uint32 align)
+void ExCairo::show_text(const char* utf8, const Color& c, const Rect& r, uint32 align)
 {
     cr_t* cr = canvas->cr;
     ExCairo::Point p(text_align(utf8, r, align));
@@ -1377,7 +1377,7 @@ void ExCairo::show_text(const char_t* utf8, const Color& c, const Rect& r, uint3
     cairo_show_text(cr, utf8);
 }
 
-void ExCairo::show_text(const char_t* utf8, const Color& c, const Point& p)
+void ExCairo::show_text(const char* utf8, const Color& c, const Point& p)
 {
     cr_t* cr = canvas->cr;
     cairo_set_source_rgb(cr, c.r, c.g, c.b);
@@ -1385,7 +1385,7 @@ void ExCairo::show_text(const char_t* utf8, const Color& c, const Point& p)
     cairo_show_text(cr, utf8);
 }
 
-void ExCairo::show_text(const char_t* utf8, float64 r, float64 g, float64 b, float64 x, float64 y)
+void ExCairo::show_text(const char* utf8, float64 r, float64 g, float64 b, float64 x, float64 y)
 {
     cr_t* cr = canvas->cr;
     cairo_set_source_rgb(cr, r, g, b);

@@ -26,48 +26,32 @@ struct ExEvent {
 #ifdef __linux__
 struct ExEvent {
     void*       hwnd;
-    int         message;
-    int         wParam;
+    int32       message;
+    int32       wParam;
     int64       lParam;
-    int         lResult;
+    int32       lResult;
     uint32      tick;
     void*       emitter;
     void*       collector;
-    union MSG { // 32 bytes
-        void*   data[4];
-        uint64  u64[4];
+    union MSG {
+        void*   data[1];
+        uint64  u64[1];
         ExPoint pt;
         ExSize  sz;
-        MSG() { memset(u64, 0, sizeof(u64)); }
-        MSG(const MSG& m) { memcpy(u64, m.u64, sizeof(u64)); }
+        MSG() {}
+        // MSG& operator = (const MSG&) = default;
+        // MSG() { memset(u64, 0, sizeof(u64)); }
+        // MSG(const MSG& m) { memcpy(u64, m.u64, sizeof(u64)); }
         MSG& operator = (const MSG& m) { memcpy(u64, m.u64, sizeof(u64)); return *this; }
     } msg;
-
-    ExEvent()
-        : hwnd(0), message(0), wParam(0), lParam(0)
-        , lResult(0), tick(0), emitter(0), collector(0), msg() {}
-#if 0
-    // move constructor
-    ExEvent(ExEvent&& ev)
-        : hwnd(ev.hwnd), message(ev.message), wParam(ev.wParam), lParam(ev.lParam)
-        , lResult(ev.lResult), tick(ev.tick), emitter(ev.emitter), collector(ev.collector), msg(ev.msg) {}
-    ExEvent& operator = (ExEvent&& ev) {
-        hwnd = ev.hwnd; message = ev.message; wParam = ev.wParam; lParam = ev.lParam;
-        lResult = ev.lResult; tick = ev.tick; emitter = ev.emitter; collector = ev.collector; msg = ev.msg;
-        return *this;
+    ExEvent() {}
+    ExEvent(void* hwnd)
+        : hwnd(hwnd), message(0), wParam(0), lParam(0)
+        , lResult(0), tick(0), emitter(0), collector(0), msg() {
+        memset(msg.u64, 0, sizeof(msg.u64));
     }
-#endif
-    // copy constructor
-    ExEvent(const ExEvent& ev)
-        : hwnd(ev.hwnd), message(ev.message), wParam(ev.wParam), lParam(ev.lParam)
-        , lResult(ev.lResult), tick(ev.tick), emitter(ev.emitter), collector(ev.collector), msg(ev.msg) {}
-    ExEvent& operator = (const ExEvent& ev) {
-        hwnd = ev.hwnd; message = ev.message; wParam = ev.wParam; lParam = ev.lParam;
-        lResult = ev.lResult; tick = ev.tick; emitter = ev.emitter; collector = ev.collector; msg = ev.msg;
-        return *this;
-    }
-
-    ExEvent& set(int msg, int wpa, int64 lpa) {
+    ExEvent(const ExEvent&) = default;
+    ExEvent& set(int32 msg, int32 wpa, int64 lpa) {
         message = msg; wParam = wpa; lParam = lpa;
         return *this;
     }
@@ -78,13 +62,13 @@ struct ExEvent {
 //
 #ifdef WIN32
 bool ExEmitMessage(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
-bool ExEmitKeyEvent(ExWidget* widget, UINT message, int virtkey, long keydata);
-bool ExEmitPtrEvent(ExWidget* widget, UINT message, WPARAM wParam, int x, int y);
-bool ExEmitButPress(ExWidget* widget, int x, int y);
-bool ExEmitButRelease(ExWidget* widget, int x, int y);
+bool ExEmitKeyEvent(ExWidget* widget, UINT message, int32 virtkey, long keydata);
+bool ExEmitPtrEvent(ExWidget* widget, UINT message, WPARAM wParam, int32 x, int32 y);
+bool ExEmitButPress(ExWidget* widget, int32 x, int32 y);
+bool ExEmitButRelease(ExWidget* widget, int32 x, int32 y);
 #endif
 #ifdef __linux__
-bool ExEmitMessage(int type, int message, int wParam, int64 lParam);
+bool ExEmitMessage(int32 type, int32 message, int32 wParam, int64 lParam);
 #endif
 
 #endif//__exevent_h__

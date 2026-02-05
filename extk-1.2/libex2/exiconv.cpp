@@ -25,7 +25,7 @@ wcsconv::~wcsconv()
 wcsconv::wcsconv(const wchar* src)
 {
     size_t len = wcslen(src);
-    mbs = (mbyte*)malloc((len + 1) * sizeof(wchar));
+    mbs = (char*)malloc((len + 1) * sizeof(wchar));
     if (mbs == NULL) {
         return;
     }
@@ -41,7 +41,7 @@ wcsconv::wcsconv(const wchar* src)
     mbs[len] = 0;
 }
 
-wcsconv::wcsconv(const mbyte* src)
+wcsconv::wcsconv(const char* src)
 {
     size_t len = strlen(src);
     wcs = (wchar*)malloc((len + 1) * sizeof(wchar));
@@ -72,7 +72,7 @@ wcs2mbs::~wcs2mbs()
 wcs2mbs::wcs2mbs(const wchar* wcs) : mbs(NULL)
 {
     size_t len = wcslen(wcs);
-    mbs = (mbyte*)malloc((len + 1) * sizeof(wchar));
+    mbs = (char*)malloc((len + 1) * sizeof(wchar));
     if (mbs == NULL) {
         mbs = _strdup("(emem)");
         return;
@@ -98,7 +98,7 @@ mbs2wcs::~mbs2wcs()
     }
 }
 
-mbs2wcs::mbs2wcs(const mbyte* mbs) : wcs(NULL)
+mbs2wcs::mbs2wcs(const char* mbs) : wcs(NULL)
 {
     size_t len = strlen(mbs);
     wcs = (wchar*)malloc((len + 1) * sizeof(wchar));

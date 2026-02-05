@@ -13,7 +13,7 @@
 #define BMP_BPL(w,bpp)  ((((w)*(bpp)+7)/8 + (sizeof(uint32)-1)) & ~(sizeof(uint32)-1))
 
 #ifdef WIN32
-bool ExImage::loadBmp(HANDLE hFile, const char_t* fname, bool query)
+bool ExImage::loadBmp(HANDLE hFile, const char* fname, bool query)
 {
     BITMAPFILEHEADER bf;
     BITMAPINFOHEADER bi;
@@ -126,7 +126,7 @@ bmp_cleanup:
     return false;
 }
 #else // compat linux
-bool ExImage::loadBmp(int32 fd, const char_t* fname, bool query)
+bool ExImage::loadBmp(int32 fd, const char* fname, bool query)
 {
     BITMAPFILEHEADER bf;
     BITMAPINFOHEADER bi;

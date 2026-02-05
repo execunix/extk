@@ -8,12 +8,11 @@
 #include "exwatch.h"
 
 #include <set>
-#include <assert.h>
 
 // ExWatch::TimerSet
 //
 bool ExWatch::TickCompare::operator () (const ExTimer* l, const ExTimer* r) const {
-    assert(l->watch != NULL && l->watch == r->watch);
+    exassert(l->watch != NULL && l->watch == r->watch);
     uint32 tick_base = l->watch->tickCount;
     int32 ldiff = l->value - tick_base;
     int32 rdiff = r->value - tick_base;
@@ -46,22 +45,22 @@ void ExWatch::TimerSet::active(ExTimer* timer) {
     }
 }
 
-int ExWatch::TimerSet::invoke(uint32 tick_count) {
-    int waittick;
+uint32 ExWatch::TimerSet::invoke(uint32 tick_count) {
+    int32 waittick;
     while (!empty()) {
         ExTimer* timer = *begin();
         waittick = timer->value - tick_count;
         if (waittick > 0) {
             if (waittick > 60000)
                 waittick = 60000;
-            return waittick; // wait until next tick
+            return (uint32)waittick; // wait until next tick
         }
         erase(begin());
         timer->fActived = 0;
-        assert(timer->callback.func);
+        exassert(timer->callback.func);
         void* object = timer->object ? timer->object : timer;
         ExCbInfo cbinfo(Ex_CbTimer, 0, NULL, timer);
-        int r = timer->callback(object, &cbinfo);
+        uint32 r = timer->callback(object, &cbinfo);
         if (r & Ex_Halt) {
             timer->watch->setHalt(r);
             return 60000;
@@ -90,8 +89,8 @@ int ExWatch::TimerSet::invoke(uint32 tick_count) {
 static HANDLE hTimer = INVALID_HANDLE_VALUE;
 
 static VOID CALLBACK cbTimer(PVOID lpParameter, BOOLEAN timeout) {
-    assert(lpParameter == &exTimerList);
-    assert(timeout);
+    exassert(lpParameter == &exTimerList);
+    exassert(timeout);
     exWatchMain->enter();
     uint32 waittick = GetTickCount(); // update tick
     exTimerList.invoke(waittick);
@@ -101,20 +100,20 @@ static VOID CALLBACK cbTimer(PVOID lpParameter, BOOLEAN timeout) {
     exWatchMain->leave();
 }
 
-int ExFiniTimer() {
-    assert(hTimer != INVALID_HANDLE_VALUE);
+bool ExFiniTimer() {
+    exassert(hTimer != INVALID_HANDLE_VALUE);
     DeleteTimerQueueTimer(NULL, hTimer, INVALID_HANDLE_VALUE);
     hTimer = INVALID_HANDLE_VALUE;
     exTimerList.clearList();
-    return 0;
+    return true;
 }
 
-int ExInitTimer(DWORD duetime, DWORD period) {
-    assert(hTimer == INVALID_HANDLE_VALUE);
+bool ExInitTimer(DWORD duetime, DWORD period) {
+    exassert(hTimer == INVALID_HANDLE_VALUE);
     if (!CreateTimerQueueTimer(&hTimer, NULL, cbTimer, &exTimerList,
                                duetime, period, WT_EXECUTEDEFAULT/*WT_EXECUTEINTIMERTHREAD*/))
-        return -1;
-    return 0;
+        return false;
+    return true;
 }
 #endif
 
@@ -131,11 +130,11 @@ void ExTimer::start(uint32 initial) {
     watch->timerset.active(this);
 }
 
-int ExTimer::enter() const {
+bool ExTimer::enter() const {
     return watch->enter();
 }
 
-int ExTimer::leave() const {
+bool ExTimer::leave() const {
     return watch->leave();
 }
 

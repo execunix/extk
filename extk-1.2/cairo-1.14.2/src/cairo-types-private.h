@@ -72,7 +72,6 @@ typedef struct _cairo_font_face_backend     cairo_font_face_backend_t;
 typedef struct _cairo_gstate cairo_gstate_t;
 typedef struct _cairo_gstate_backend cairo_gstate_backend_t;
 typedef struct _cairo_glyph_text_info cairo_glyph_text_info_t;
-typedef struct _cairo_glyph_ucs2_info cairo_glyph_ucs2_info_t;
 typedef struct _cairo_hash_entry cairo_hash_entry_t;
 typedef struct _cairo_hash_table cairo_hash_table_t;
 typedef struct _cairo_image_surface cairo_image_surface_t;
@@ -202,15 +201,6 @@ struct _cairo_glyph_text_info {
     int utf8_len;
 
     const cairo_text_cluster_t *clusters;
-    int num_clusters;
-    cairo_text_cluster_flags_t cluster_flags;
-};
-
-struct _cairo_glyph_ucs2_info {
-    const UCS2 *ucs2; // extk
-    int ucs2_len;
-
-    const cairo_ucs2_cluster_t *clusters;
     int num_clusters;
     cairo_text_cluster_flags_t cluster_flags;
 };

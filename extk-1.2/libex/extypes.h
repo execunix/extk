@@ -36,8 +36,8 @@ class ExWidget;
 class ExWindow;
 class ExCanvas;
 
-#define Ex_BitFalse (0)
-#define Ex_BitTrue (-1)
+#define Ex_BitFalse (0U)
+#define Ex_BitTrue (0xffffffffU)
 
 // Event constants definition
 //
@@ -54,14 +54,21 @@ The callback's return code indicates what's to be done with the event:
     Ex_Break
         The event is consumed and no other callbacks are invoked.
 */
-enum ExCallbackRet {
-    Ex_Continue = 0x00,
-    Ex_Discard = 0x01, // mask discard enum callback
-    Ex_Remove = 0x01, // mask remove the callback (for just one-shot)
-    Ex_Break = 0x02, // mask break
-    Ex_End = 0x03, // (Ex_Remove | Ex_Break)
-    Ex_Halt = 0x80, // all stop and exit
+enum class ExCallbackRet : uint32 {
+    Continue = 0x00U,
+    Discard = 0x01U, // mask discard enum callback
+    Remove = 0x01U, // mask remove the callback (for just one-shot)
+    Break = 0x02U, // mask break
+    End = 0x03U, // (Ex_Remove | Ex_Break)
+    Halt = 0x80U, // all stop and exit
 };
+
+const uint32 Ex_Continue = static_cast<uint32>(ExCallbackRet::Continue);
+const uint32 Ex_Discard = static_cast<uint32>(ExCallbackRet::Discard);
+const uint32 Ex_Remove = static_cast<uint32>(ExCallbackRet::Remove);
+const uint32 Ex_Break = static_cast<uint32>(ExCallbackRet::Break);
+const uint32 Ex_End = static_cast<uint32>(ExCallbackRet::End);
+const uint32 Ex_Halt = static_cast<uint32>(ExCallbackRet::Halt);
 
 enum ExLayoutSubType {
     Ex_LayoutInit,
@@ -172,7 +179,7 @@ enum ExCallbackType {
     Ex_CbException,
     Ex_CbInput,
     Ex_CbTimer,
-    Ex_CbUser = 0x100
+    Ex_CbUser = 0x100U
 };
 
 #if 0 // deprecated
@@ -243,9 +250,12 @@ enum ExSortType {
 
 // templates
 //
-template <typename T> inline T& exmin(T& a, T& b) { return a < b ? a : b; }
-template <typename T> inline T& exmax(T& a, T& b) { return a > b ? a : b; }
+template <typename T> inline T& exmin(T& a, T& b) { return (a < b) ? a : b; }
+template <typename T> inline T& exmax(T& a, T& b) { return (a > b) ? a : b; }
 template <typename T> inline void exswap(T& a, T& b) { T c(a); a = b; b = c; }
+
+template <typename T> constexpr ssize_t ssizeof() { return static_cast<ssize_t>(sizeof(T)); }
+template <typename T> constexpr ssize_t ssizeof(const T&) { return static_cast<ssize_t>(sizeof(T)); }
 
 // functions
 //

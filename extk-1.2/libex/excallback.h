@@ -13,37 +13,37 @@
 // Callback Info
 //
 struct ExCbInfo {
-    int         type;
-    int         subtype;
+    uint32      type;
+    uint32      subtype;
     ExEvent*    event; // A pointer to a ExEvent structure that describes the event
                        //   that caused this callback to be invoked.
     void*       data;  // A pointer to callback-specific data.
 
-    ExCbInfo(int t, int s = 0, ExEvent* e = NULL, void* d = NULL)
+    ExCbInfo(uint32 t, uint32 s = 0, ExEvent* e = NULL, void* d = NULL)
         : type(t), subtype(s), event(e), data(d) {}
     // pointer
-    ExCbInfo* set(int t, int s, ExEvent* e, void* d = NULL) {
+    ExCbInfo* set(uint32 t, uint32 s, ExEvent* e, void* d = NULL) {
         type = t; subtype = s; event = e; data = d;
         return this;
     }
-    ExCbInfo* set(int t, int s) {
+    ExCbInfo* set(uint32 t, uint32 s) {
         type = t; subtype = s;
         return this;
     }
-    ExCbInfo* set(int t) {
+    ExCbInfo* set(uint32 t) {
         type = t;
         return this;
     }
     // reference
-    ExCbInfo& operator () (int t, int s, ExEvent* e, void* d = NULL) {
+    ExCbInfo& operator () (uint32 t, uint32 s, ExEvent* e, void* d = NULL) {
         type = t; subtype = s; event = e; data = d;
         return *this;
     }
-    ExCbInfo& operator () (int t, int s) {
+    ExCbInfo& operator () (uint32 t, uint32 s) {
         type = t; subtype = s;
         return *this;
     }
-    ExCbInfo& operator () (int t) {
+    ExCbInfo& operator () (uint32 t) {
         type = t;
         return *this;
     }
@@ -118,14 +118,14 @@ struct ExPolyFunc {
 
 // Callback functions
 //
-struct ExCallback : public ExPolyFunc<int, void*, void*> {
+struct ExCallback : public ExPolyFunc<uint32, void*, void*> {
     template <typename A, typename B, typename C>
-    ExCallback(A* d, int (STDCALL A::*f)(B*, C*))  // look like data->func(...)
+    ExCallback(A* d, uint32 (STDCALL A::*f)(B*, C*))  // look like data->func(...)
         : ExPolyFunc(d) {
         func = reinterpret_cast<ThisFunc>(f);
     }
     template <typename A, typename B, typename C>
-    ExCallback(int (STDCALL *f)(A*, B*, C*), A* d) // look like func(data, ...)
+    ExCallback(uint32 (STDCALL *f)(A*, B*, C*), A* d) // look like func(data, ...)
         : ExPolyFunc(d) {
         vfunc = reinterpret_cast<FuncPtr>(f);
         #if EX2CONF_DISABLE_STDCALL
@@ -202,7 +202,7 @@ private:
         // inherit void push_back(const Callback& cb);
         // inherit void push_front(const Callback& cb);
         void push(const Callback& cb); // lifo
-        int invoke(void* object, void* cbinfo);
+        uint32 invoke(void* object, void* cbinfo);
     };
     #if 1
     CallbackList cblist;
@@ -214,22 +214,22 @@ public:
     ExCallbackList() : cblist() {}
 public: // operations
     #if EX2CONF_LAMBDA_CALLBACK
-    void add(int (STDCALL *f)(void*, void*, ExCbInfo*), void* d, uint8 prio = 5) {
+    void add(uint32 (STDCALL *f)(void*, void*, ExCbInfo*), void* d, uint8 prio = 5) {
         cblist.push(Callback(ExCallback(f, d), prio));
     }
     #endif
     template <typename A, typename B, typename C>
-    void add(int (STDCALL *f)(A*, B*, C*), A* d, uint8 prio = 5) {
+    void add(uint32 (STDCALL *f)(A*, B*, C*), A* d, uint8 prio = 5) {
         cblist.push(Callback(ExCallback(f, d), prio));
     }
     template <typename A, typename B, typename C>
-    void add(A* d, int (STDCALL A::*f)(B*, C*), uint8 prio = 5) {
+    void add(A* d, uint32 (STDCALL A::*f)(B*, C*), uint8 prio = 5) {
         cblist.push(Callback(ExCallback(d, f), prio));
     }
     void remove(const ExCallback& cb) {
         cblist.remove2(cb);
     }
-    int invoke(void* object, void* cbinfo) {
+    uint32 invoke(void* object, void* cbinfo) {
         return cblist.invoke(object, cbinfo);
     }
     size_t size() const { return cblist.size(); }
@@ -240,11 +240,11 @@ public: // operations
 class ExListenerList {
 private:
     struct Listener : public ExCallback {
-        int type;
+        uint32 type;
         uint8 prio;
         uint8 flag;
         uint16 mask;
-        Listener(const ExCallback& cb, int t, uint8 p)
+        Listener(const ExCallback& cb, uint32 t, uint8 p)
             : ExCallback(cb), type(t), prio(p), flag(0), mask(0) {
         }
     };
@@ -255,34 +255,34 @@ private:
         ListenerList() : std::list<Listener>(), influx(0), change(0) {}
     public:
         // inherit size_t size();
-        bool remove2(int type, uint8 prio);
+        bool remove2(uint32 type, uint8 prio);
         // inherit void remove(const Listener& cb);
         // inherit void push_back(const Listener& cb);
         // inherit void push_front(const Listener& cb);
         void push(const Listener& cb); // lifo
-        int invoke(int type, void* object, void* cbinfo);
+        uint32 invoke(uint32 type, void* object, void* cbinfo);
     };
     ListenerList cblist;
 public:
     ExListenerList() : cblist() {}
 public: // operations
     #if EX2CONF_LAMBDA_CALLBACK
-    void add(int (STDCALL *f)(void*, void*, ExCbInfo*), void* d, int type, uint8 prio = 5) {
+    void add(uint32 (STDCALL *f)(void*, void*, ExCbInfo*), void* d, uint32 type, uint8 prio = 5) {
         cblist.push(Listener(ExCallback(f, d), type, prio));
     }
     #endif
     template <typename A, typename B, typename C>
-    void add(int (STDCALL *f)(A*, B*, C*), A* d, int type, uint8 prio = 5) {
+    void add(uint32 (STDCALL *f)(A*, B*, C*), A* d, uint32 type, uint8 prio = 5) {
         cblist.push(Listener(ExCallback(f, d), type, prio));
     }
     template <typename A, typename B, typename C>
-    void add(A* d, int (STDCALL A::*f)(B*, C*), int type, uint8 prio = 5) {
+    void add(A* d, uint32 (STDCALL A::*f)(B*, C*), uint32 type, uint8 prio = 5) {
         cblist.push(Listener(ExCallback(d, f), type, prio));
     }
-    void remove(int type, uint8 prio = 5) {
+    void remove(uint32 type, uint8 prio = 5) {
         cblist.remove2(type, prio);
     }
-    int invoke(int type, void* object, void* cbinfo) {
+    uint32 invoke(uint32 type, void* object, void* cbinfo) {
         return cblist.invoke(type, object, cbinfo);
     }
     size_t size() const { return cblist.size(); }
@@ -290,14 +290,14 @@ public: // operations
 
 // ExNotify
 //
-struct ExNotify : public ExPolyFunc<int, void*> {
+struct ExNotify : public ExPolyFunc<uint32, void*> {
     template <typename A, typename B>
-    ExNotify(A* d, int (STDCALL A::*f)(B*))  // look like data->func(...)
+    ExNotify(A* d, uint32 (STDCALL A::*f)(B*))  // look like data->func(...)
         : ExPolyFunc(d) {
         func = reinterpret_cast<ThisFunc>(f);
     }
     template <typename A, typename B>
-    ExNotify(int (STDCALL *f)(A*, B*), A* d) // look like func(data, ...)
+    ExNotify(uint32 (STDCALL *f)(A*, B*), A* d) // look like func(data, ...)
         : ExPolyFunc(d) {
         vfunc = reinterpret_cast<FuncPtr>(f);
         #if EX2CONF_DISABLE_STDCALL

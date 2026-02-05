@@ -195,7 +195,7 @@
 # define CAIRO_MUTEX_IMPL_UNLOCK(mutex) LeaveCriticalSection (&(mutex))
 # define CAIRO_MUTEX_IMPL_INIT(mutex) InitializeCriticalSection (&(mutex))
 # define CAIRO_MUTEX_IMPL_FINI(mutex) DeleteCriticalSection (&(mutex))
-# define CAIRO_MUTEX_IMPL_NIL_INITIALIZER { 0, NULL, NULL, 0, 0 } // extk
+# define CAIRO_MUTEX_IMPL_NIL_INITIALIZER { NULL, 0, 0, NULL, NULL, 0 }
 
 #elif defined __OS2__ /******************************************************/
 

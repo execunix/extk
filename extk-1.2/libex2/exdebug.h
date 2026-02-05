@@ -11,16 +11,16 @@
 
 extern int32 dprint_charset; // default 949
 extern int32 dprint_verbose; // default 999 (0:quiet)
-extern int32 (*ex_dprint_appinfo)(mbyte* mbs, int32 len); // default "[*] "
-extern int32 (*ex_dprint_handler)(int32 lvl, const mbyte* mbs);
+extern int32 (*ex_dprint_appinfo)(char* mbs, int32 len); // default "[*] "
+extern int32 (*ex_dprint_handler)(int32 lvl, const char* mbs);
 
 int32 debug_vprintf(int32 lvl, const wchar* fmt, va_list arg);
-int32 debug_vprintf(int32 lvl, const mbyte* fmt, va_list arg);
+int32 debug_vprintf(int32 lvl, const char* fmt, va_list arg);
 
 void debug_print(int32 lvl, const wchar* fmt, ...);
-void debug_print(int32 lvl, const mbyte* fmt, ...);
+void debug_print(int32 lvl, const char* fmt, ...);
 void debug_print(const wchar* fmt, ...);
-void debug_print(const mbyte* fmt, ...);
+void debug_print(const char* fmt, ...);
 
 #if defined(_MSC_VER) && (_MSC_VER < 1400) // M$ eVC4
 #define dprint0 0 && (*(int32(*)(...))0)
@@ -64,10 +64,10 @@ void debug_print(const mbyte* fmt, ...);
  * in error_handler() to generate a stack trace for when the user causes
  * exlib to detect an error.
  */
-extern int32 (*ex_error_handler)(const mbyte* mbs);
+extern int32 (*ex_error_handler)(const char* mbs);
 int32 exerror(const wchar* fmt, ...);
-int32 exerror(const mbyte* fmt, ...);
+int32 exerror(const char* fmt, ...);
 
-const char_t* exstrerr();
+const char* exstrerr();
 
 #endif//__exdebug_h__

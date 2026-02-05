@@ -109,8 +109,6 @@ typedef            float float32_t;
 typedef        float32_t float32;
 typedef           double float64_t;
 typedef        float64_t float64;
-typedef      long double float64x_t;
-typedef       float64x_t float64x;
 #ifdef ARCH_X86_64
 typedef       __float128 float128_t;
 typedef       float128_t float128;
@@ -123,8 +121,6 @@ typedef         uint32_t ucs4_t;
 typedef         uint16_t ucs2_t;
 typedef          wchar_t ucs4_t;
 #endif
-typedef             char char_t;
-typedef           char_t mbyte;
 typedef          wchar_t wchar;
 
 #ifdef __cplusplus

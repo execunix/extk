@@ -9,7 +9,6 @@
 #include <sys/unistd.h>
 #include <sys/eventfd.h>
 #include <sys/epoll.h>
-#include <assert.h>
 
 #undef dprint1
 #define dprint1(...) printf("ExWatch@" __VA_ARGS__)
@@ -34,12 +33,12 @@ void ExWatch::IomuxMap::fini() {
     }
 }
 
-void ExWatch::IomuxMap::init(int max) {
+void ExWatch::IomuxMap::init(size_t max) {
     maxevents = max;
     epfd = epoll_create(maxevents);
-    assert(epfd != -1);
+    exassert(epfd != -1);
     events = (epoll_event*)malloc(sizeof(epoll_event) * maxevents);
-    assert(events != NULL);
+    exassert(events != NULL);
 }
 
 #if EX2CONF_ENABLE_IOMUX_LOCK
@@ -52,48 +51,30 @@ void ExWatch::IomuxMap::leave_mux() const {
 }
 #endif
 
-const ExWatch::Iomux* ExWatch::IomuxMap::search(int fd) const {
+const ExWatch::Iomux* ExWatch::IomuxMap::search(int32 fd) const {
     const Iomux* iomux = NULL;
-    #if EX2CONF_ENABLE_IOMUX_LOCK
-    watch->wakeup();
-    enter_mux();
-    #endif
     const_iterator i = find(fd);
     if (i != end())
         iomux = i->second;
-    #if EX2CONF_ENABLE_IOMUX_LOCK
-    leave_mux();
-    #endif
     return iomux;
 }
 
-int ExWatch::IomuxMap::probe(const ExCallback& callback, void* cbinfo) {
-    int r = Ex_Continue;
-    #if EX2CONF_ENABLE_IOMUX_LOCK
-    watch->wakeup();
-    enter_mux();
-    #endif
+uint32 ExWatch::IomuxMap::probe(const ExCallback& callback, void* cbinfo) {
+    uint32 r = Ex_Continue;
     for (iterator i = begin(); i != end(); ++i) {
         Iomux* iomux = i->second;
         r = callback(iomux, cbinfo);
         if (r != Ex_Continue)
             break;
     }
-    #if EX2CONF_ENABLE_IOMUX_LOCK
-    leave_mux();
-    #endif
     return r;
 }
 
-int ExWatch::IomuxMap::add(int fd, uint32 events, const ExNotify& notify) {
-    int r = -1;
-    #if EX2CONF_ENABLE_IOMUX_LOCK
-    watch->wakeup();
-    enter_mux();
-    #endif
-    if (size() < (size_t)maxevents) {
+bool ExWatch::IomuxMap::add(int32 fd, uint32 events, const ExNotify& notify) {
+    int32 r = -1;
+    if (size() < maxevents) {
         Iomux* iomux = new Iomux();
-        assert(iomux != NULL);
+        exassert(iomux != NULL);
         std::pair<iterator, bool> pr;
         pr = insert(value_type(fd, iomux));
         if (pr.second == false) {
@@ -107,79 +88,56 @@ int ExWatch::IomuxMap::add(int fd, uint32 events, const ExNotify& notify) {
         iomux->event.data.ptr = iomux;
         r = epoll_ctl(epfd, EPOLL_CTL_ADD, fd, &iomux->event);
     } else {
-        dprint1("IomuxMap::add: maxevents=%d\n", maxevents);
+        dprint1("IomuxMap::add: maxevents=%lu\n", maxevents);
     }
-    #if EX2CONF_ENABLE_IOMUX_LOCK
-    leave_mux();
-    #endif
-    return r;
+    return (r == 0);
 }
 
-int ExWatch::IomuxMap::mod(int fd, uint32 events, const ExNotify& notify) {
-    int r = -1;
-    #if EX2CONF_ENABLE_IOMUX_LOCK
-    watch->wakeup();
-    enter_mux();
-    #endif
+bool ExWatch::IomuxMap::mod(int32 fd, uint32 events, const ExNotify& notify) {
+    int32 r = -1;
     iterator i = find(fd);
     if (i != end()) {
         Iomux* iomux = i->second;
-        assert(iomux->fd == fd);
+        exassert(iomux->fd == fd);
         iomux->notify = notify;
         iomux->event.events = events;
-        assert(iomux->event.data.ptr == iomux);
+        exassert(iomux->event.data.ptr == iomux);
         r = epoll_ctl(epfd, EPOLL_CTL_MOD, fd, &iomux->event);
     } else {
         dprint1("IomuxMap::mod: invalid fd=%d\n", fd);
     }
-    #if EX2CONF_ENABLE_IOMUX_LOCK
-    leave_mux();
-    #endif
-    return r;
+    return (r == 0);
 }
 
-int ExWatch::IomuxMap::del(int fd) {
-    int r = -1;
-    #if EX2CONF_ENABLE_IOMUX_LOCK
-    watch->wakeup();
-    enter_mux();
-    #endif
+bool ExWatch::IomuxMap::del(int32 fd) {
+    int32 r = -1;
     iterator i = find(fd);
     if (i != end()) {
         Iomux* iomux = i->second;
-        assert(iomux->fd == fd);
-        assert(iomux->event.data.ptr == iomux);
+        exassert(iomux->fd == fd);
+        exassert(iomux->event.data.ptr == iomux);
         r = epoll_ctl(epfd, EPOLL_CTL_DEL, fd, &iomux->event);
         erase(i);
         delete iomux;
     } else {
         dprint1("IomuxMap::del: invalid fd=%d\n", fd);
     }
-    #if EX2CONF_ENABLE_IOMUX_LOCK
-    leave_mux();
-    #endif
-    return r;
+    return (r == 0);
 }
 
-int ExWatch::IomuxMap::invoke(int waittick) {
+uint32 ExWatch::IomuxMap::invoke(uint32 waittick) {
     watch->leave();
-    #if EX2CONF_ENABLE_IOMUX_LOCK
-    enter_mux();
-    #endif
     //pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
-    int cnt = epoll_wait(epfd, events, maxevents, waittick);
+    int32 cnt = epoll_wait(epfd, events, (int)maxevents, (int)waittick);
     //pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
-    #if EX2CONF_ENABLE_IOMUX_LOCK
-    leave_mux();
-    #endif
     watch->enter();
     watch->tickCount = getTickCount(); // update tick
-    for (int i = 0; i < cnt; i++) {
+    for (int32 i = 0; i < cnt; i++) {
         Iomux* iomux = (Iomux*)events[i].data.ptr;
         epoll_event ev;
         ev.data.fd = iomux->fd;
         ev.events = events[i].events;
-        int r = iomux->notify(&ev);
+        uint32 r = iomux->notify(&ev);
         if (r & Ex_Halt) {
             return watch->setHalt(r);
         }
@@ -199,11 +157,11 @@ uint32 ExWatch::getTickCount() {
 
 uint32 ExWatch::tickAppLaunch = ExWatch::getTickCount();
 
-pthread_key_t ExWatch::tls_key = 0;
+pthread_key_t ExWatch::tls_key = (pthread_key_t)-1;
 
 void ExWatch::tls_specific(const char* name)
 {
-    if (!tls_key)
+    if (tls_key == (pthread_key_t)-1)
         pthread_key_create(&tls_key, NULL);
     pthread_setspecific(tls_key, malloc(256));
     strcpy((char*)pthread_getspecific(tls_key), name);
@@ -211,24 +169,24 @@ void ExWatch::tls_specific(const char* name)
 
 void* ExWatch::start(void* arg) {
     ExWatch* watch = (ExWatch*)arg;
-    int r = watch->proc();
-    assert(r == 0);
+    uint32 r = watch->proc();
+    exassert(r == 0);
     return NULL;
 }
 
-int ExWatch::fini() {
-    int r = 0;
+bool ExWatch::fini() {
+    int32 r = 0;
     if (tid != 0) {
         #if 1
         setHalt(Ex_Halt);
         #else
         r = pthread_cancel(tid);
-        assert(r == 0);
+        exassert(r == 0);
         #endif
         leave();
         r = pthread_join(tid, NULL);
         enter();
-        assert(r == 0);
+        exassert(r == 0);
         tid = 0;
     }
     iomuxmap.fini();
@@ -237,17 +195,17 @@ int ExWatch::fini() {
         close(efd);
         efd = -1;
     }
-    return r;
+    return (r == 0);
 }
 
-int ExWatch::init(int max_iomux, size_t stacksize) {
-    int r = 0;
+bool ExWatch::init(size_t max_iomux, size_t stacksize) {
+    int32 r = 0;
 
-    assert(tid == 0);
+    exassert(tid == 0);
     iomuxmap.init(max_iomux);
 
-    efd = eventfd(0, 0);
-    assert(efd != -1);
+    efd = eventfd(0U, 0);
+    exassert(efd != -1);
     ioAdd(this, &ExWatch::onEvent, efd);
 
     tickCount = getTickCount(); // update tick
@@ -256,59 +214,59 @@ int ExWatch::init(int max_iomux, size_t stacksize) {
     pthread_attr_init(&attr);
     pthread_attr_setstacksize(&attr, stacksize);
     r = pthread_create(&tid, &attr, start, this);
-    assert(r == 0);
+    exassert(r == 0);
     pthread_attr_destroy(&attr);
 
-    return r;
+    return (r == 0);
 }
 
-int ExWatch::enter() const {
-    int r = pthread_mutex_lock(&mutex);
+bool ExWatch::enter() const {
+    int32 r = pthread_mutex_lock(&mutex);
     ; // tbd - check cond
-    return r;
+    return (r == 0);
 }
 
-int ExWatch::leave() const {
-    int r = pthread_mutex_unlock(&mutex);
+bool ExWatch::leave() const {
+    int32 r = pthread_mutex_unlock(&mutex);
     ; // tbd - check cond
-    return r;
+    return (r == 0);
 }
 
-int ExWatch::wakeup() const {
+bool ExWatch::wakeup() const {
     if (tid != pthread_self()) {
-        setEvent(1);
-        return 1;
+        setEvent(1UL);
+        return true;
     }
-    return 0;
+    return false;
 }
 
-int ExWatch::setHalt(int r)
+uint32 ExWatch::setHalt(uint32 r)
 {
-    assert((halt | r) & Ex_Halt);
+    exassert((halt | r) & Ex_Halt);
     if (!(halt & 0x80000000)) {
         halt |= 0x80000000;
-        setEvent(1);
+        setEvent(1UL);
     }
-    return halt |= r;
+    return (halt |= r);
 }
 
-int ExWatch::getEvent(uint64* u) const {
-    int r = 0;
-    assert(efd != -1);
-    r = read(efd, u, sizeof(uint64));
-    assert(r == sizeof(uint64));
-    return r == sizeof(uint64) ? 0 : -1;
+bool ExWatch::getEvent(uint64* u64) const {
+    ssize_t r = 0;
+    exassert(efd != -1);
+    r = read(efd, u64, sizeof(u64));
+    exassert(r == ssizeof(u64));
+    return (r == ssizeof(u64));
 }
 
-int ExWatch::setEvent(uint64 u) const {
-    int r = 0;
-    assert(efd != -1);
-    r = write(efd, &u, sizeof(uint64));
-    assert(r == sizeof(uint64));
-    return r == sizeof(uint64) ? 0 : -1;
+bool ExWatch::setEvent(uint64 u64) const {
+    ssize_t r = 0;
+    exassert(efd != -1);
+    r = write(efd, &u64, sizeof(u64));
+    exassert(r == ssizeof(u64));
+    return (r == ssizeof(u64));
 }
 
-int ExWatch::proc() {
+uint32 ExWatch::proc() {
     pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
     tls_specific(name);
     dprint("%s: tickAppLaunch=%d tickCount=%d\n", name, tickAppLaunch, tickCount);
@@ -317,7 +275,7 @@ int ExWatch::proc() {
     if (hookStart)
         hookStart(this, &cbinfo(HookStart));
     while (getHalt() == 0) {
-        int waittick = timerset.invoke(tickCount);
+        uint32 waittick = timerset.invoke(tickCount);
         if (getHalt() != 0)
             break;
         if (hookTimer)
@@ -332,19 +290,19 @@ int ExWatch::proc() {
     if (hookClean)
         hookClean(this, &cbinfo(HookClean));
     leave();
-    return 0;
+    return 0U;
 }
 
-int ExWatch::onEvent(epoll_event* ev) {
+uint32 ExWatch::onEvent(epoll_event* ev) {
     dprint0("%s: fd=%d ev=%d\n", __func__, ev->data.fd, ev->events);
-    assert(efd == ev->data.fd);
-    uint64 u64;
-    if (getEvent(&u64) == 0)
+    exassert(efd == ev->data.fd);
+    uint64 u64 = 0UL;
+    if (getEvent(&u64))
         dprint0("%s: got event %lu\n", __func__, u64);
     else
         dprint1("%s: got event fail.\n", __func__);
 
-    return 0;
+    return 0U;
 }
 
 #endif // __linux__

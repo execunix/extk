@@ -118,8 +118,8 @@ typedef ExThread::Cond  ExThreadCond;
 
 // module exports
 //
-extern const wchar* exModulePath;
-extern const wchar* exModuleName;
+extern const char* exModulePath;
+extern const char* exModuleName;
 
 extern ExThread exMainThread;
 

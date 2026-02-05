@@ -208,7 +208,7 @@ uint32 ExWatch::tickAppLaunch = ExWatch::getTickCount();
 
 DWORD ExWatch::tls_key = TLS_OUT_OF_INDEXES;
 
-void ExWatch::tls_specific(const char_t* name)
+void ExWatch::tls_specific(const char* name)
 {
     if (tls_key == TLS_OUT_OF_INDEXES) {
         tls_key = TlsAlloc();

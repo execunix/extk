@@ -859,7 +859,7 @@ _cairo_win32_scaled_font_ucs4_to_index (void		*abstract_font,
 					uint32_t	 ucs4)
 {
     cairo_win32_scaled_font_t *scaled_font = abstract_font;
-    UCS2 unicode[2];
+    wchar_t unicode[2];
     WORD glyph_index;
     HDC hdc = NULL;
     cairo_status_t status;

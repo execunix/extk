@@ -159,20 +159,6 @@ _cairo_surface_wrapper_show_text_glyphs (cairo_surface_wrapper_t *wrapper,
 					 cairo_scaled_font_t	    *scaled_font,
 					 const cairo_clip_t	    *clip);
 
-cairo_private cairo_status_t
-_cairo_surface_wrapper_show_ucs2_glyphs (cairo_surface_wrapper_t *wrapper,
-					 cairo_operator_t	     op,
-					 const cairo_pattern_t	    *source,
-					 const UCS2		    *ucs2, // extk
-					 int			     ucs2_len,
-					 const cairo_glyph_t	    *glyphs,
-					 int			     num_glyphs,
-					 const cairo_text_cluster_t *clusters,
-					 int			     num_clusters,
-					 cairo_text_cluster_flags_t  cluster_flags,
-					 cairo_scaled_font_t	    *scaled_font,
-					 const cairo_clip_t	    *clip);
-
 cairo_private cairo_surface_t *
 _cairo_surface_wrapper_create_similar (cairo_surface_wrapper_t *wrapper,
 				       cairo_content_t	content,

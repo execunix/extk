@@ -104,14 +104,6 @@ _cairo_fixed_from_int (int i)
 #define CAIRO_MAGIC_NUMBER_FIXED_16_16 (103079215104.0)
 
 #if CAIRO_FIXED_BITS <= 32
-#ifdef realtype_32bit // extk
-/* For 32-bit fixed point numbers */
-static inline cairo_fixed_t
-_cairo_fixed_from_double(double d)
-{
-    return (cairo_fixed_t)(d * 256.f);
-}
-#else
 #define CAIRO_MAGIC_NUMBER_FIXED ((1LL << (52 - CAIRO_FIXED_FRAC_BITS)) * 1.5)
 
 /* For 32-bit fixed point numbers */
@@ -130,7 +122,6 @@ _cairo_fixed_from_double (double d)
     return u.i[0];
 #endif
 }
-#endif // extk
 
 #else
 # error Please define a magic number for your fixed point type!
@@ -265,13 +256,6 @@ _cairo_fixed_to_16_16 (cairo_fixed_t f)
 #endif
 }
 
-#ifdef realtype_32bit // extk
-static inline cairo_fixed_16_16_t
-_cairo_fixed_16_16_from_double(double d)
-{
-    return (cairo_fixed_16_16_t)(d * 65536.f);
-}
-#else
 static inline cairo_fixed_16_16_t
 _cairo_fixed_16_16_from_double (double d)
 {
@@ -287,7 +271,6 @@ _cairo_fixed_16_16_from_double (double d)
     return u.i[0];
 #endif
 }
-#endif // extk
 
 static inline int
 _cairo_fixed_16_16_floor (cairo_fixed_16_16_t f)

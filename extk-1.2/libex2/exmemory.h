@@ -26,7 +26,7 @@ ExShmemDestroy()
     Remove a block of shared memory
 */
 
-void* ExShmemCreate(size_t size, const char_t* name);
+void* ExShmemCreate(size_t size, const char* name);
 int32 ExShmemDestroy(void* addr);
 
 // tbd - add open/close api
@@ -104,12 +104,12 @@ exmemdup(const void* mem, size_t n_bytes) {
     return dup;
 }
 
-inline mbyte*
-exstrdup(const mbyte* mbs) {
+inline char*
+exstrdup(const char* mbs) {
     if (mbs == NULL) {
         return NULL;
     }
-    return (mbyte*)exmemdup(mbs, strlen(mbs) + 1);
+    return (char*)exmemdup(mbs, strlen(mbs) + 1);
 }
 
 inline wchar*

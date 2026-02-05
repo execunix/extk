@@ -35,7 +35,7 @@ uint32 ex_key_timer_instant_repeat = 0;
 
 // class ExApp
 //
-const char_t* ExApp::appName = "ExApp";
+const char*  ExApp::appName = "ExApp";
 ExWindow*    ExApp::mainWnd = NULL;
 #ifdef WIN32
 HINSTANCE    ExApp::hInstance = 0;
@@ -156,7 +156,7 @@ void* ExModalBlock(ExModalCtrl* ctrl, long flags)
         if (exWatchDisp->getHalt()) // is halt ?
             break; // stop event loop
         while ((ctrl->flags & 0x80000000) &&
-            exEventFunc(event) > 0) { // is message available ?
+            exEventFunc(event) == true) { // is message available ?
             if (event.msg.message == WM_ExEvWake)
                 break;
             if (event.msg.message == WM_QUIT) { // WM_DESTROY => PostQuitMessage
@@ -189,7 +189,7 @@ void ExMainLoop()
     ExEvent& event = ExApp::event;
 
     while (exWatchDisp->getHalt() == 0 &&
-           exEventFunc(event) > 0) { // is message available ?
+           exEventFunc(event) == true) { // is message available ?
 #ifdef WIN32
         if (event.msg.message == WM_ExEvWake)
             continue;

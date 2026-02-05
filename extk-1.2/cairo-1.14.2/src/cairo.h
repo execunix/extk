@@ -50,17 +50,11 @@
 # define CAIRO_END_DECLS
 #endif
 
-//#define realtype_32bit // extk
-#ifndef realtype_32bit
+//#define floatt_f32 // extk
+#ifndef floatt_f32
 typedef double floatt;
 #else
 typedef float floatt;
-#endif
-
-#if defined(_MSC_VER)
-typedef wchar_t UCS2;
-#else
-typedef int16_t UCS2;
 #endif
 
 #ifndef cairo_public
@@ -1136,22 +1130,11 @@ typedef struct {
     int        num_glyphs;
 } cairo_text_cluster_t;
 
-typedef struct {
-    int        num_ucs2s; // extk
-    int        num_glyphs;
-} cairo_ucs2_cluster_t;
-
 cairo_public cairo_text_cluster_t *
 cairo_text_cluster_allocate (int num_clusters);
 
-cairo_public cairo_ucs2_cluster_t *
-cairo_ucs2_cluster_allocate (int num_clusters);
-
 cairo_public void
 cairo_text_cluster_free (cairo_text_cluster_t *clusters);
-
-cairo_public void
-cairo_ucsw_cluster_free (cairo_ucs2_cluster_t *clusters);
 
 /**
  * cairo_text_cluster_flags_t:
@@ -1480,9 +1463,6 @@ cairo_public void
 cairo_show_text (cairo_t *cr, const char *utf8);
 
 cairo_public void
-cairo_show_ucs2 (cairo_t *cr, const UCS2 *ucs2); // extk
-
-cairo_public void
 cairo_show_glyphs (cairo_t *cr, const cairo_glyph_t *glyphs, int num_glyphs);
 
 cairo_public void
@@ -1496,20 +1476,7 @@ cairo_show_text_glyphs (cairo_t			   *cr,
 			cairo_text_cluster_flags_t  cluster_flags);
 
 cairo_public void
-cairo_show_ucs2_glyphs (cairo_t			   *cr,
-			const UCS2		   *ucs2, // extk
-			int			    ucs2_len,
-			const cairo_glyph_t	   *glyphs,
-			int			    num_glyphs,
-			const cairo_text_cluster_t *clusters,
-			int			    num_clusters,
-			cairo_text_cluster_flags_t  cluster_flags);
-
-cairo_public void
 cairo_text_path  (cairo_t *cr, const char *utf8);
-
-cairo_public void
-cairo_ucs2_path  (cairo_t *cr, const UCS2 *ucs2); // extk
 
 cairo_public void
 cairo_glyph_path (cairo_t *cr, const cairo_glyph_t *glyphs, int num_glyphs);
@@ -1517,11 +1484,6 @@ cairo_glyph_path (cairo_t *cr, const cairo_glyph_t *glyphs, int num_glyphs);
 cairo_public void
 cairo_text_extents (cairo_t              *cr,
 		    const char    	 *utf8,
-		    cairo_text_extents_t *extents);
-
-cairo_public void
-cairo_ucs2_extents (cairo_t              *cr,
-		    const UCS2    	 *ucs2, // extk
 		    cairo_text_extents_t *extents);
 
 cairo_public void
@@ -1652,11 +1614,6 @@ cairo_scaled_font_text_extents (cairo_scaled_font_t  *scaled_font,
 				cairo_text_extents_t *extents);
 
 cairo_public void
-cairo_scaled_font_ucs2_extents (cairo_scaled_font_t  *scaled_font,
-				const UCS2  	     *ucs2, // extk
-				cairo_text_extents_t *extents);
-
-cairo_public void
 cairo_scaled_font_glyph_extents (cairo_scaled_font_t   *scaled_font,
 				 const cairo_glyph_t   *glyphs,
 				 int                   num_glyphs,
@@ -1671,18 +1628,6 @@ cairo_scaled_font_text_to_glyphs (cairo_scaled_font_t        *scaled_font,
 				  cairo_glyph_t	            **glyphs,
 				  int		             *num_glyphs,
 				  cairo_text_cluster_t      **clusters,
-				  int		             *num_clusters,
-				  cairo_text_cluster_flags_t *cluster_flags);
-
-cairo_public cairo_status_t
-cairo_scaled_font_ucs2_to_glyphs (cairo_scaled_font_t        *scaled_font,
-				  double		      x,
-				  double		      y,
-				  const UCS2	             *ucs2, // extk
-				  int		              ucs2_len,
-				  cairo_glyph_t	            **glyphs,
-				  int		             *num_glyphs,
-				  cairo_ucs2_cluster_t      **clusters,
 				  int		             *num_clusters,
 				  cairo_text_cluster_flags_t *cluster_flags);
 
@@ -1885,15 +1830,6 @@ typedef cairo_status_t (*cairo_user_scaled_font_text_to_glyphs_func_t) (cairo_sc
 									cairo_glyph_t	          **glyphs,
 									int		           *num_glyphs,
 									cairo_text_cluster_t      **clusters,
-									int		           *num_clusters,
-									cairo_text_cluster_flags_t *cluster_flags);
-
-typedef cairo_status_t (*cairo_user_scaled_font_ucs2_to_glyphs_func_t) (cairo_scaled_font_t        *scaled_font,
-									const UCS2	           *ucs2, // extk
-									int		            ucs2_len,
-									cairo_glyph_t	          **glyphs,
-									int		           *num_glyphs,
-									cairo_ucs2_cluster_t      **clusters,
 									int		           *num_clusters,
 									cairo_text_cluster_flags_t *cluster_flags);
 
@@ -2579,9 +2515,6 @@ cairo_surface_show_page (cairo_surface_t *surface);
 
 cairo_public cairo_bool_t
 cairo_surface_has_show_text_glyphs (cairo_surface_t *surface);
-
-cairo_public cairo_bool_t
-cairo_surface_has_show_ucs2_glyphs (cairo_surface_t *surface);
 
 /* Image-surface functions */
 

@@ -93,7 +93,7 @@ SOFTWARE.
             (rgn)->boxes[0] = (rgn)->extent;                                           \
         } else {                                                                       \
             ExBox* tmpboxes = (ExBox*)malloc(sizeof(ExBox) * nbxes);                   \
-            for (int i = 0; i < (rgn)->n_boxes; i++)                                   \
+            for (int32 i = 0; i < (rgn)->n_boxes; i++)                                 \
                 tmpboxes[i] = (rgn)->boxes[i];                                         \
             free((rgn)->boxes);                                                        \
             (rgn)->boxes = tmpboxes;                                                   \

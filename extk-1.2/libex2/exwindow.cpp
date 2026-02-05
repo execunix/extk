@@ -84,7 +84,7 @@ ExWindow::ExWindow()
     paintFunc = ExFlushFunc(this, &ExWindow::onWmPaint);
 }
 
-uint32 ExWindow::init(const char_t* name, int32 w, int32 h) {
+uint32 ExWindow::init(const char* name, int32 w, int32 h) {
     ExRect rc(0, 0, w, h);
     ExWidget::init(NULL/*parent*/, name, &rc);
     renderFlags |= Ex_RenderRebuild;
@@ -92,7 +92,7 @@ uint32 ExWindow::init(const char_t* name, int32 w, int32 h) {
 }
 
 ExWindow* // static
-ExWindow::create(const char_t* name, int32 w, int32 h) {
+ExWindow::create(const char* name, int32 w, int32 h) {
     ExWindow* window = new ExWindow();
     exassert(window != NULL);
     window->flags |= Ex_FreeMemory;

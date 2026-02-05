@@ -227,8 +227,8 @@ void ExWidget::dumpFrontToBack(ExWidget* end) {
     }
 }
 
-void ExWidget::setName(const char_t* text) {
-    char_t buf[20];
+void ExWidget::setName(const char* text) {
+    char buf[20];
     if (name != NULL)
         free(name);
     if (text == NULL) {
@@ -280,7 +280,7 @@ ExRect& ExWidget::calcRect(ExRect& rc) const {
     return rc;
 }
 
-uint32 ExWidget::init(ExWidget* parent, const char_t* name, const ExRect* area) {
+uint32 ExWidget::init(ExWidget* parent, const char* name, const ExRect* area) {
     this->setName(name);
     if (parent) parent->attachTail(this);
     if (area) this->area = *area;
@@ -291,7 +291,7 @@ uint32 ExWidget::init(ExWidget* parent, const char_t* name, const ExRect* area) 
 }
 
 ExWidget* // static
-ExWidget::create(ExWidget* parent, const char_t* name, const ExRect* area) {
+ExWidget::create(ExWidget* parent, const char* name, const ExRect* area) {
     ExWidget* widget = new ExWidget();
     exassert(widget != NULL);
     widget->flags |= Ex_FreeMemory;

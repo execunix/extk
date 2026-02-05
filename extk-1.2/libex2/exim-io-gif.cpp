@@ -9,13 +9,13 @@
 #endif
 
 #ifdef WIN32
-bool ExImage::loadGif(HANDLE hFile, const char_t* fname, bool query)
+bool ExImage::loadGif(HANDLE hFile, const char* fname, bool query)
 {
     // tbd
     return false;
 }
 #else // compat linux
-bool ExImage::loadGif(int32 fd, const char_t* fname, bool query)
+bool ExImage::loadGif(int32 fd, const char* fname, bool query)
 {
     // tbd
     return false;

@@ -125,21 +125,21 @@ public:
     explicit ExGdiFont() : ExObject(), hfont(NULL) {}
     explicit ExGdiFont(HFONT h) : ExObject(), hfont(NULL) { Attach(h); }
     explicit ExGdiFont(const LOGFONT* logfont) : ExObject(), hfont(NULL) { Create(logfont); }
-    explicit ExGdiFont(int32 height, int32 weight, const char_t* facename);
+    explicit ExGdiFont(int32 height, int32 weight, const char* facename);
 public:
     operator HFONT () const { return (this ? hfont : NULL); }
     HFONT Detach() { HFONT h = hfont; hfont = NULL; return h; }
     int32 Attach(HFONT h) { if (!h) return -1; hfont = h; return 0; }
     int32 Destroy() { if (!hfont) return -1; return DeleteObject(Detach()) ? 0 : 1; }
     int32 Create(const LOGFONT* logfont) { return Attach(CreateFontIndirect(logfont)); }
-    int32 CreateFont(int32 height, int32 weight, const char_t* facename);
+    int32 CreateFont(int32 height, int32 weight, const char* facename);
     int32 GetLogFont(LOGFONT* logfont);
 public:
     Ex_DECLARE_TYPEINFO(ExGdiFont, ExObject);
 };
 
 inline
-ExGdiFont::ExGdiFont(int32 height, int32 weight, const char_t* facename)
+ExGdiFont::ExGdiFont(int32 height, int32 weight, const char* facename)
     : ExObject(), hfont(NULL) {
     CreateFont(height, weight, facename);
 }

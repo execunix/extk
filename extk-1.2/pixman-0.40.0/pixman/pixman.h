@@ -79,6 +79,13 @@ SOFTWARE.
 #define PIXMAN_END_DECLS
 #endif
 
+//#define floatt_f32 // extk
+#ifndef floatt_f32
+typedef double floatt;
+#else
+typedef float floatt;
+#endif
+
 PIXMAN_BEGIN_DECLS
 
 /*

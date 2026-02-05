@@ -11,9 +11,9 @@
 
 Res res;
 
-static bool img_init(ExImage* img, const char_t* name)
+static bool img_init(ExImage* img, const char* name)
 {
-    char_t pathname[256];
+    char pathname[256];
     sprintf_s(pathname, 256, "%s/%s", res.path, name);
     bool result = img->load(pathname);
     if (result != true) {

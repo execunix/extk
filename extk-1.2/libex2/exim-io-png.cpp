@@ -85,7 +85,7 @@ bool ExImage::savePng(int32 fd)
 #endif
 
 #ifdef WIN32
-bool ExImage::loadPng(HANDLE hFile, const char_t* fname, bool query)
+bool ExImage::loadPng(HANDLE hFile, const char* fname, bool query)
 {
     DWORD dwRead = 0;
     int32 jmpret = 0;
@@ -254,7 +254,7 @@ png_cleanup:
     return r;
 }
 #else // compat linux
-bool ExImage::loadPng(int32 fd, const char_t* fname, bool query)
+bool ExImage::loadPng(int32 fd, const char* fname, bool query)
 {
     ssize_t rsize = 0;
     int32 jmpret = 0;

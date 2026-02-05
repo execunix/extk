@@ -31,7 +31,7 @@ struct ExRender {
         void draw(ExWidget* w);
         Draw(ExCanvas*, ExWidget*);
     };
-    static void render(ExCanvas* canvas, ExWidget* widget, int flags);
+    static void render(ExCanvas* canvas, ExWidget* widget, uint32 flags);
     static void renderOwnGC(ExCanvas* canvas, ExWidget* widget);
 };
 

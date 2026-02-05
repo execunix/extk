@@ -25,7 +25,7 @@ typedef struct {
 } Shmem;
 
 void*
-ExShmemCreate(size_t size, const char_t* name) {
+ExShmemCreate(size_t size, const char* name) {
     uchar* addr;
     HANDLE hmap;
     Shmem* shmem;
@@ -66,14 +66,14 @@ ExShmemDestroy(void* addr) {
 
 void
 exmemory_apitest() {
-    mbyte src_buf[256];
-    mbyte dst_buf[256];
+    char src_buf[256];
+    char dst_buf[256];
     exmemset4(src_buf, 0, 256);
     exmemcpy4(dst_buf, src_buf, 256);
     exmemmov4(dst_buf, src_buf, 256);
     exmemcmp4(dst_buf, src_buf, 256);
     exmemsum4(dst_buf, 256 - 4);
-    mbyte* mbs = exstrdup("exstrdup");
+    char* mbs = exstrdup("exstrdup");
     free(mbs);
     wchar* wcs = exwcsdup(L"exwcsdup");
     free(wcs);

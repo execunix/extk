@@ -82,8 +82,8 @@ SOFTWARE.
 #undef  CLAMP
 #define CLAMP(x, low, high)     (((x) > (high)) ? (high) : (((x) < (low)) ? (low) : (x)))
 
-typedef void (*OverlapFunc)(ExRegion*, ExBox*, ExBox*, ExBox*, ExBox*, int16, int16);
-typedef void (*NonOverlapFunc)(ExRegion*, ExBox*, ExBox*, int16, int16);
+typedef void (*OverlapFunc)(ExRegion*, ExBox*, ExBox*, ExBox*, ExBox*, int32, int32);
+typedef void (*NonOverlapFunc)(ExRegion*, ExBox*, ExBox*, int32, int32);
 
 static void miRegionOp(ExRegion*, ExRegion*, const ExRegion*, OverlapFunc, NonOverlapFunc, NonOverlapFunc);
 
@@ -199,7 +199,7 @@ miSetExtents(ExRegion* rgn)
     exassert(extent->x1 < extent->x2);
 }
 
-void ExRegion::move(int16 dx, int16 dy)
+void ExRegion::move(int32 dx, int32 dy)
 {
     if (!dx && !dy)
         return;
@@ -260,14 +260,14 @@ miCompress(ExRegion* r,
     s->copy(*r);
     while (dx) {
         if (dx & shift) {
-            ZShiftRegion(r, -(int16)shift);
+            ZShiftRegion(r, -(int32)shift);
             ZOpRegion(r, s);
             dx -= shift;
             if (!dx)
                 break;
         }
         t->copy(*s);
-        ZShiftRegion(s, -(int16)shift);
+        ZShiftRegion(s, -(int32)shift);
         ZOpRegion(s, t);
         shift <<= 1;
     }
@@ -276,7 +276,7 @@ miCompress(ExRegion* r,
 #undef ZShiftRegion
 #undef ZOpRegion
 
-void ExRegion::shrink(int16 dx, int16 dy)
+void ExRegion::shrink(int32 dx, int32 dy)
 {
     if (!dx && !dy)
         return;
@@ -317,11 +317,11 @@ miIntersectOlap(ExRegion* rgn,
                 ExBox*    r1End,
                 ExBox*    r2,
                 ExBox*    r2End,
-                int16     y1,
-                int16     y2)
+                int32     y1,
+                int32     y2)
 {
-    int16 x1;
-    int16 x2;
+    int32 x1;
+    int32 x2;
     ExBox* nextRect;
 
     nextRect = &rgn->boxes[rgn->n_boxes];
@@ -404,7 +404,7 @@ miCoalesce(ExRegion* rgn,       /* Region to coalesce */
     ExBox* endBox;              /* End of region */
     int32 curNumRects;          /* Number of rectangles in current band */
     int32 prevNumRects;         /* Number of rectangles in previous band */
-    int16 bandY1;               /* Y1 coordinate for current band */
+    int32 bandY1;               /* Y1 coordinate for current band */
 
     endBox = &rgn->boxes[rgn->n_boxes];
 
@@ -531,15 +531,15 @@ miRegionOp(ExRegion*       newrgn,          /* New region */
     ExBox* r2;                  /* Pointer into 2nd region */
     ExBox* r1End;               /* End of 1st region */
     ExBox* r2End;               /* End of 2nd region */
-    int16 ybot;                 /* Bottom of intersection */
-    int16 ytop;                 /* Top of intersection */
+    int32 ybot;                 /* Bottom of intersection */
+    int32 ytop;                 /* Top of intersection */
     ExBox* oldRects;            /* Old boxes for newrgn */
     int32 prevBand;             /* Index of start of previous band in newrgn */
     int32 curBand;              /* Index of start of current band in newrgn */
     ExBox* r1BandEnd;           /* End of current band in r1 */
     ExBox* r2BandEnd;           /* End of current band in r2 */
-    int16 top;                  /* Top of non-overlapping band */
-    int16 bot;                  /* Bottom of non-overlapping band */
+    int32 top;                  /* Top of non-overlapping band */
+    int32 bot;                  /* Bottom of non-overlapping band */
 
     /*
      * Initialization:
@@ -746,8 +746,8 @@ static void
 miUnionNonOlap(ExRegion* rgn,
                ExBox*    r,
                ExBox*    rEnd,
-               int16     y1,
-               int16     y2)
+               int32     y1,
+               int32     y2)
 {
     ExBox* nextRect;
 
@@ -783,8 +783,8 @@ miUnionOlap(ExRegion* rgn,
             ExBox*    r1End,
             ExBox*    r2,
             ExBox*    r2End,
-            int16     y1,
-            int16     y2)
+            int32     y1,
+            int32     y2)
 {
     ExBox* nextRect;
 
@@ -891,8 +891,8 @@ static void
 miSubtractNonOlap1(ExRegion* rgn,
                    ExBox*    r,
                    ExBox*    rEnd,
-                   int16     y1,
-                   int16     y2)
+                   int32     y1,
+                   int32     y2)
 {
     ExBox* nextRect;
 
@@ -927,11 +927,11 @@ miSubtractOlap(ExRegion* rgn,
                ExBox*    r1End,
                ExBox*    r2,
                ExBox*    r2End,
-               int16     y1,
-               int16     y2)
+               int32     y1,
+               int32     y2)
 {
     ExBox* nextRect;
-    int16 x1;
+    int32 x1;
 
     x1 = r1->x1;
     exassert(y1 < y2);
@@ -1073,7 +1073,7 @@ bool ExRegion::equal(const ExRegion& rgn) const
     return true;
 }
 
-bool ExRegion::contain(int16 x, int16 y) const
+bool ExRegion::contain(int32 x, int32 y) const
 {
     int32 i;
 
@@ -1093,7 +1093,7 @@ ExOverlap ExRegion::contain(const ExBox& box) const
     ExBox* bx;
     ExBox* bxEnd;
     bool partIn, partOut;
-    int16 rx, ry;
+    int32 rx, ry;
 
     rx = box.x1;
     ry = box.y1;
@@ -1156,8 +1156,8 @@ enumUnsortedSpansIntersect(ExRegion*     region,
                            void*         data)
 {
     int32 i;
-    int16 left, right, y;
-    int16 clipped_left, clipped_right;
+    int32 left, right, y;
+    int32 clipped_left, clipped_right;
     ExBox* bx;
     ExBox* bxEnd;
 
@@ -1201,8 +1201,8 @@ void ExRegion::enumSpansintersect(const ExSpan* spans,
                                   ExSpanFunc    spanfunc,
                                   void*         data)
 {
-    int16 left, right, y;
-    int16 clipped_left, clipped_right;
+    int32 left, right, y;
+    int32 clipped_left, clipped_right;
     ExBox* bx;
     ExBox* bxEnd;
     const ExSpan* span;

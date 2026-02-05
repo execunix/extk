@@ -19,14 +19,14 @@ static jmp_buf jpg_setjmp_buffer;
 
 static void jpg_error_exit(j_common_ptr cinfo)
 {
-    char_t buffer[JMSG_LENGTH_MAX];
+    char buffer[JMSG_LENGTH_MAX];
     (*cinfo->err->format_message)(cinfo, buffer);
     dprint1("jpg_error: %s\n", buffer);
     longjmp(jpg_setjmp_buffer, 1);
 }
 
 #ifdef WIN32
-bool ExImage::loadJpg(HANDLE hFile, const char_t* fname, bool query)
+bool ExImage::loadJpg(HANDLE hFile, const char* fname, bool query)
 {
     struct jpeg_decompress_struct cinfo;
     struct jpeg_error_mgr jerr;
@@ -94,7 +94,7 @@ jpg_cleanup:
     return r;
 }
 #else // compat linux
-bool ExImage::loadJpg(int32 fd, const char_t* fname, bool query)
+bool ExImage::loadJpg(int32 fd, const char* fname, bool query)
 {
     struct jpeg_decompress_struct cinfo;
     struct jpeg_error_mgr jerr;

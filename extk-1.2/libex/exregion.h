@@ -23,14 +23,14 @@ enum ExFillRule {
     Ex_WindingRule,
 };
 
-ExRegion* ExRegionPolygon(const ExPoint* pts, int n_pts, ExFillRule fillrule);
+ExRegion* ExRegionPolygon(const ExPoint* pts, int32 n_pts, ExFillRule fillrule);
 #endif
 
 // ExRegion
 //
 struct ExRegion {
-    int size;
-    int n_boxes;
+    int32 size;
+    int32 n_boxes;
     ExBox* boxes;
     ExBox extent;
 
@@ -67,7 +67,7 @@ struct ExRegion {
     }
 
     ExRegion& operator = (const ExRegion& srcrgn) { copy(srcrgn); return *this; }
-    //operator int () const { return n_boxes; }
+    //operator int32 () const { return n_boxes; }
 
     void clear();
     void copy(const ExRegion& srcrgn);
@@ -80,35 +80,35 @@ struct ExRegion {
         box = extent;
     }
     /**
-     * ExRegion::getRects(ExBox** boxes, int* n_boxes):
+     * ExRegion::getRects(ExBox** boxes, int32* n_boxes):
      * @boxes: return location for an array of rectangles
      * @n_boxes: length of returned array
      * Obtains the area covered by the region as a list of rectangles.
      * The array returned in @rectangles must be freed with free().
      */
-    void getRects(ExBox** boxes, int* n_boxes) const;
+    void getRects(ExBox** boxes, int32* n_boxes) const;
     void setRect(const ExBox& box);
     void setEmpty() {
         n_boxes = 0;
     }
     /**
-     * ExRegion::move(int16 dx, int16 dy)
+     * ExRegion::move(int32 dx, int32 dy)
      * @dx: the distance to move the region horizontally
      * @dy: the distance to move the region vertically
      * Moves a region the specified distance.
      */
-    void move(int16 dx, int16 dy);
+    void move(int32 dx, int32 dy);
     void move(const ExPoint& pt) {
         move(pt.x, pt.y);
     }
     /**
-     * ExRegion::shrink(int16 dx, int16 dy)
+     * ExRegion::shrink(int32 dx, int32 dy)
      * @dx: the number of pixels to shrink the region horizontally
      * @dy: the number of pixels to shrink the region vertically
      * Resizes a region by the specified amount.
      * Positive values shrink the region. Negative values expand it.
      */
-    void shrink(int16 dx, int16 dy);
+    void shrink(int32 dx, int32 dy);
     void shrink(const ExPoint& pt) {
         shrink(pt.x, pt.y);
     }
@@ -172,13 +172,13 @@ struct ExRegion {
     bool operator == (const ExRegion& rgn) const { return equal(rgn); }
     bool operator == (const ExBox& box) const { return (n_boxes == 1 && extent == box); }
     /**
-     * ExRegion::contain(int16 x, int16 y)
+     * ExRegion::contain(int32 x, int32 y)
      * @x: the x coordinate of a point
      * @y: the y coordinate of a point
      * Finds out if a point is in a region.
      * Returns: %TRUE if the point is in @region.
      */
-    bool contain(int16 x, int16 y) const;
+    bool contain(int32 x, int32 y) const;
     /**
      * ExRegion::contain(const ExBox& box)
      * @box: a #ExBox.
@@ -198,7 +198,7 @@ struct ExRegion {
      * Calls a function on each span in the intersection of @this and @spans.
      */
     void enumSpansintersect(const ExSpan* spans,
-                            int           n_spans,
+                            int32         n_spans,
                             bool          sorted,
                             ExSpanFunc    spanfunc,
                             void*         data);

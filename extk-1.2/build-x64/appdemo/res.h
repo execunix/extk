@@ -9,7 +9,7 @@
 #include <ex.h>
 
 struct Res {
-    char_t path[256];
+    char path[256];
 
     struct Fonts {
         ExCairo::Face gothic;
@@ -43,7 +43,7 @@ struct Res {
     } i;
 
     struct Strings {
-        const char_t* title;
+        const char* title;
     } s;
 
 };

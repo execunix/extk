@@ -46,8 +46,8 @@
 #define Ex_PTR_TO_SIZE(p)                   ((size_t)(p))
 #define Ex_SIZE_TO_PTR(s)                   ((void*)(size_t)(s))
 #define Ex_NUM_ELEMENTS(a)                  (sizeof(a)/sizeof((a)[0]))
-#define Ex_STRUCT_OFFSET(type, member)      ((long)((char*)&((type*)0)->member))
-#define Ex_STRUCT_MEMBER_P(ptr, offset)     ((void*)((char*)(ptr) + (long)(offset)))
+#define Ex_STRUCT_OFFSET(type, member)      ((long)((int8*)&((type*)0)->member))
+#define Ex_STRUCT_MEMBER_P(ptr, offset)     ((void*)((int8*)(ptr) + (long)(offset)))
 #define Ex_STRUCT_MEMBER(member_type, p, o) (*(member_type*)Ex_STRUCT_MEMBER_P((p), (o)))
 
 #endif//__exmacro_h__

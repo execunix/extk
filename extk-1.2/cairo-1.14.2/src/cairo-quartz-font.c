@@ -794,7 +794,6 @@ static const cairo_scaled_font_backend_t _cairo_quartz_scaled_font_backend = {
     _cairo_quartz_scaled_font_fini,
     _cairo_quartz_scaled_glyph_init,
     NULL, /* text_to_glyphs */
-    NULL, /* ucs2_to_glyphs */
     _cairo_quartz_ucs4_to_index,
     _cairo_quartz_load_truetype_table,
     NULL, /* map_glyphs_to_unicode */

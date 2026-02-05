@@ -25,7 +25,7 @@ extern uint32 ex_key_timer_instant_repeat;
 //
 class ExApp {
 public:
-    static const char_t* appName;
+    static const char*  appName;
     static ExWindow*    mainWnd;
 #ifdef WIN32
     static HINSTANCE    hInstance;

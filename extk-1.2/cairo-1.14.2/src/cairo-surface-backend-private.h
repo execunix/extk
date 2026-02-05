@@ -184,29 +184,12 @@ struct _cairo_surface_backend {
     cairo_bool_t
     (*has_show_text_glyphs)	(void			    *surface);
 
-    cairo_bool_t
-    (*has_show_ucs2_glyphs)	(void			    *surface);
-
     cairo_warn cairo_int_status_t
     (*show_text_glyphs)		(void			    *surface,
 				 cairo_operator_t	     op,
 				 const cairo_pattern_t	    *source,
 				 const char		    *utf8,
 				 int			     utf8_len,
-				 cairo_glyph_t		    *glyphs,
-				 int			     num_glyphs,
-				 const cairo_text_cluster_t *clusters,
-				 int			     num_clusters,
-				 cairo_text_cluster_flags_t  cluster_flags,
-				 cairo_scaled_font_t	    *scaled_font,
-				 const cairo_clip_t               *clip);
-
-    cairo_warn cairo_int_status_t
-    (*show_ucs2_glyphs)		(void			    *surface,
-				 cairo_operator_t	     op,
-				 const cairo_pattern_t	    *source,
-				 const UCS2		    *ucs2, // extk
-				 int			     ucs2_len,
 				 cairo_glyph_t		    *glyphs,
 				 int			     num_glyphs,
 				 const cairo_text_cluster_t *clusters,

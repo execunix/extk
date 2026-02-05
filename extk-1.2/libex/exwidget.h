@@ -32,9 +32,9 @@ typedef std::list<ExWidget*> ExWidgetList;
         Menus/Windows (co-ords irrelevant)
 */
 enum ExWidgetClassFlags {
-    Ex_RECTANGULAR  = 1 << 0,
-    Ex_CONTAINER    = 1 << 1,
-    Ex_DISJOINT     = 1 << 2,
+    Ex_RECTANGULAR  = 1U << 0,
+    Ex_CONTAINER    = 1U << 1,
+    Ex_DISJOINT     = 1U << 2,
 };
 
 /*
@@ -79,27 +79,27 @@ enum ExWidgetClassFlags {
         When calling the widget destroy function, the memory is also freed automatically.
 */
 enum ExWidgetFlags {
-    Ex_Destroyed        = 1 << 0,   // RO
-    Ex_Realized         = 1 << 1,   // RO
-    Ex_HasOwnGC         = 1 << 2,   // RW
-    Ex_AutoHighlight    = 1 << 3,   // RW
-    Ex_Highlighted      = 1 << 4,   // RW
-    Ex_FocusRender      = 1 << 5,   // RW
-    Ex_Focused          = 1 << 6,   // RO
-    Ex_Selectable       = 1 << 7,   // RW
-    Ex_PtrEntered       = 1 << 8,   // RO
-    Ex_ButPressed       = 1 << 9,   // RO
-    Ex_Visible          = 1 << 10,  // RO
-    Ex_Blocked          = 1 << 11,  // RW
-    Ex_Ghost            = 1 << 12,  // RW
-    Ex_Set              = 1 << 13,  // RW
-    Ex_Toggle           = 1 << 14,  // RW
-    Ex_Opaque           = 1 << 15,  // RW
-    Ex_Damaged          = 1 << 27,  // RO
-    Ex_Exposed          = 1 << 28,  // RO
-    Ex_Rebuild          = 1 << 29,  // RO tbd - used only by OwnGC.
-    Ex_SkipLayout       = 1 << 30,  // RO tbd
-    Ex_FreeMemory       = 1 << 31,  // RW
+    Ex_Destroyed        = 1U << 0,  // RO
+    Ex_Realized         = 1U << 1,  // RO
+    Ex_HasOwnGC         = 1U << 2,  // RW
+    Ex_AutoHighlight    = 1U << 3,  // RW
+    Ex_Highlighted      = 1U << 4,  // RW
+    Ex_FocusRender      = 1U << 5,  // RW
+    Ex_Focused          = 1U << 6,  // RO
+    Ex_Selectable       = 1U << 7,  // RW
+    Ex_PtrEntered       = 1U << 8,  // RO
+    Ex_ButPressed       = 1U << 9,  // RO
+    Ex_Visible          = 1U << 10, // RO
+    Ex_Blocked          = 1U << 11, // RW
+    Ex_Ghost            = 1U << 12, // RW
+    Ex_Set              = 1U << 13, // RW
+    Ex_Toggle           = 1U << 14, // RW
+    Ex_Opaque           = 1U << 15, // RW
+    Ex_Damaged          = 1U << 27, // RO
+    Ex_Exposed          = 1U << 28, // RO
+    Ex_Rebuild          = 1U << 29, // RO tbd - used only by OwnGC.
+    Ex_SkipLayout       = 1U << 30, // RO tbd
+    Ex_FreeMemory       = 1U << 31, // RW
 };
 
 // class ExWidget
@@ -122,16 +122,16 @@ protected:
     ExRegion    damageRgn;  // the origin is the nearest canvas.
     ExRegion    exposeRgn;  // the origin is the nearest canvas. visible or repair
     ExRegion    opaqueRgn;  // the origin is the widget's left-top.
-    int         flags;      // Common flags used by all widgets.
-    int         _ra_1;      // reserved for align
+    uint32      flags;      // Common flags used by all widgets.
+    uint32      _ra_1;      // reserved for align
     void*       data;       // This resource is used internally by FrameWorks as well as by compound widgets.
 public:
     ExDrawFunc  drawFunc;   // Function for draw
     ExRect      area;       // relative to the parent
-    int         id;         // identity, index, etc.
-    int         value;      // estimate, evaluate, etc.
-    int         shape;      // flags for the widget shape
-    int         state;      // flags for the widget state
+    int32       id;         // identity, index, etc.
+    int32       value;      // estimate, evaluate, etc.
+    int32       shape;      // flags for the widget shape
+    int32       state;      // flags for the widget state
     void*       style;      // Storing style struct
     union {                 // Storing arbitrary user data : 256 bytes
         mutable uint64 u64[32];
@@ -164,32 +164,32 @@ public:
     void dumpBackToFront(ExWidget* end = NULL);
     void dumpFrontToBack(ExWidget* end = NULL);
 
-    int init(ExWidget* parent, const char* name = NULL, const ExRect* area = NULL);
+    uint32 init(ExWidget* parent, const char* name = NULL, const ExRect* area = NULL);
     static ExWidget* create(ExWidget* parent, const char* name = NULL, const ExRect* area = NULL);
-    virtual int destroy(); // the widget family hierarchy marks Ex_Destroyed, broadcast Ex_CbDestroyed
+    virtual uint32 destroy(); // the widget family hierarchy marks Ex_Destroyed, broadcast Ex_CbDestroyed
 #if 1 // deprecated - traditional legacy compatibility.
-    virtual int realize(); // visible widgets only, marks Ex_Realized and broadcast Ex_CbRealized.
-    virtual int unrealize(); // visible widgets only, unmarks Ex_Realized and broadcast Ex_CbUnrealized
+    virtual uint32 realize(); // visible widgets only, marks Ex_Realized and broadcast Ex_CbRealized.
+    virtual uint32 unrealize(); // visible widgets only, unmarks Ex_Realized and broadcast Ex_CbUnrealized
 #endif
 protected:
-    virtual int getClassFlags(int masks = Ex_BitTrue) const {
+    virtual uint32 getClassFlags(uint32 masks = Ex_BitTrue) const {
         return (masks & (Ex_RECTANGULAR | Ex_CONTAINER));
     }
     virtual void reconstruct() {
         this->~ExWidget(); // nonvirtual explicit destructor calls
         new (this) ExWidget(); // nonvirtual explicit constructor calls
     }
-    void addRenderFlags(int value); // Ex_RenderRebuild
+    void addRenderFlags(uint32 value); // Ex_RenderRebuild
     void addUpdateRegion(const ExRegion& rgn);
     void subUpdateRegion(const ExRegion& rgn);
     void resetArea();
 public:
-    virtual int setVisible(bool show);
+    virtual void setVisible(bool show);
     bool isVisible();
-    int vanish(ExWindow* window);
-    int layout(ExRect& ar);
-    int damage();
-    int damage(const ExBox& clip);
+    uint32 vanish(ExWindow* window);
+    uint32 layout(ExRect& ar);
+    uint32 damage();
+    uint32 damage(const ExBox& clip);
     bool isOpaque() const { return getFlags(Ex_Opaque) || !opaqueRgn.empty(); }
     bool isExtentContainPoint(const ExPoint& pt);
     bool isSelectContainPoint(const ExPoint& pt);
@@ -222,57 +222,57 @@ public:
     void toBack() { if (parent) parent->attachHead(this); }
     void toFront() { if (parent) parent->attachTail(this); }
 public: // widget flags operation
-    int getFlags(int masks) const {
+    uint32 getFlags(uint32 masks) const {
         return (masks & flags);
     }
-    int setFlags(int masks, int value = Ex_BitTrue) {
+    uint32 setFlags(uint32 masks, uint32 value = Ex_BitTrue) {
         return (flags = ((~masks & flags) | (masks & value)));
     }
 protected: // widget callback internal
     struct Listener : public ExCallback {
-        int type;
+        uint32 type;
         uint8 prio;
         uint8 flag;
         uint16 mask; // tbd - ???
-        Listener(const ExCallback& cb, int t, uint8 p)
+        Listener(const ExCallback& cb, uint32 t, uint8 p)
             : ExCallback(cb), type(t), prio(p), flag(0), mask(0) {
         }
     };
     class ListenerList : public std::list<Listener> {
-        ushort influx, change; // for recurs
+        uint16 influx, change; // for recurs
     public:
         ListenerList() : std::list<Listener>(), influx(0), change(0) {}
     public:
         // inherit size_type size();
-        bool remove(int type, uint8 prio);
+        bool remove(uint32 type, uint8 prio);
         // inherit void remove(const Listener& cb);
         // inherit void push_back(const Listener& cb);
         // inherit void push_front(const Listener& cb);
         void push(const Listener& cb);
-        int invoke(ExWatch* watch, int type, ExObject* object, ExCbInfo* cbinfo);
+        uint32 invoke(ExWatch* watch, uint32 type, ExObject* object, ExCbInfo* cbinfo);
     };
     ListenerList listenerList;
 public: // widget callback operation
-    void addListener(int(STDCALL *f)(void*, ExWidget*, ExCbInfo*), void* d, int type, uint8 prio = 5) {
+    void addListener(uint32(STDCALL *f)(void*, ExWidget*, ExCbInfo*), void* d, uint32 type, uint8 prio = 5) {
         listenerList.push(Listener(ExCallback(f, d), type, prio));
     }
     template <typename A, class W/*inherit ExWidget*/>
-    void addListener(int(STDCALL *f)(A*, W*, ExCbInfo*), A* d, int type, uint8 prio = 5) {
+    void addListener(uint32(STDCALL *f)(A*, W*, ExCbInfo*), A* d, uint32 type, uint8 prio = 5) {
         listenerList.push(Listener(ExCallback(f, d), type, prio));
     }
     template <typename A, class W/*inherit ExWidget*/>
-    void addListener(A* d, int(STDCALL A::*f)(W*, ExCbInfo*), int type, uint8 prio = 5) {
+    void addListener(A* d, uint32(STDCALL A::*f)(W*, ExCbInfo*), uint32 type, uint8 prio = 5) {
         listenerList.push(Listener(ExCallback(d, f), type, prio));
     }
-    void removeListener(int type, uint8 prio = 5) { // tbd
+    void removeListener(uint32 type, uint8 prio = 5) { // tbd
         listenerList.remove(type, prio);
     }
-    int invokeListener(int type) {
+    uint32 invokeListener(uint32 type) {
         ExCbInfo cbinfo(type);
         return listenerList.invoke(exWatchDisp, type, this, &cbinfo);
         //return listenerList.invoke(type, this, &ExCbInfo(type)); // -fpermissive
     }
-    int invokeListener(int type, ExCbInfo* cbinfo) {
+    uint32 invokeListener(uint32 type, ExCbInfo* cbinfo) {
         return listenerList.invoke(exWatchDisp, type, this, cbinfo);
     }
 protected:
@@ -296,11 +296,11 @@ protected:
         void draw(ExWidget* w);
         Draw(ExCanvas*, ExWidget*);
     };
-    static void render(ExCanvas* canvas, ExWidget* widget, int flags);
+    static void render(ExCanvas* canvas, ExWidget* widget, uint32 flags);
     #endif
 public:
     void dumpImage(ExCanvas* canvas); // for dumping images to a temporary canvas
-    //int dumpImage(ExCanvas* canvas, const ExRegion& updateRgn);
+    //uint32 dumpImage(ExCanvas* canvas, const ExRegion& updateRgn);
 public:
     static ExWidget* enumBackToFront(ExWidget* begin, ExWidget* end, const ExCallback& cb, ExCbInfo* cbinfo);
     static ExWidget* enumFrontToBack(ExWidget* begin, ExWidget* end, const ExCallback& cb, ExCbInfo* cbinfo);

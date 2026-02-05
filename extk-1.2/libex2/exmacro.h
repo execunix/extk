@@ -16,13 +16,13 @@
 #define Ex_PASTE_DEFS(identifier1,identifier2)  Ex_PASTE_ARGS(identifier1, identifier2)
 
 #if 0//defined(__GNUC__)
-# define __func__       ((const mbyte*)(__PRETTY_FUNCTION__))
+# define __func__       ((const char*)(__PRETTY_FUNCTION__))
 # define __funcw__      ((const wchar*)(__PRETTY_FUNCTIONW__))
 #elif defined(__STDC_VERSION__) && __STDC_VERSION__ >= 19901L
-# define __func__       ((const mbyte*)(__func__))
+# define __func__       ((const char*)(__func__))
 # define __funcw__      ((const wchar*)Ex_WSTRINGIFY(__func__))
 #else
-# define __func__       ((const mbyte*)(__FUNCTION__))
+# define __func__       ((const char*)(__FUNCTION__))
 # define __funcw__      ((const wchar*)Ex_WSTRINGIFY(__FUNCTION__))
 #endif
 

@@ -65,11 +65,11 @@ protected:
         uint32 invoke(uint32 waittick = INFINITE);
     };
 public:
-    const char_t* name; // for debug
+    const char* name; // for debug
     static uint32 getTickCount();
     static uint32 tickAppLaunch;
     static DWORD tls_key;
-    static void tls_specific(const char_t* name); // tbd
+    static void tls_specific(const char* name); // tbd
 protected:
     static DWORD WINAPI start(_In_ LPVOID arg);
     IomuxMap        iomuxmap;
@@ -92,7 +92,7 @@ public:
         fini();
         CloseHandle(mutex);
     }
-    explicit ExWatch(const char_t* name) : name(name)
+    explicit ExWatch(const char* name) : name(name)
         , iomuxmap(this), timerset(), idThread(0), hThread(NULL), hev(NULL), halt(0)
         , tickCount(0), hookStart(), hookTimer(), hookIomux(), hookClean() {
         mutex = CreateMutex(NULL, FALSE, NULL);

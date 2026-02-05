@@ -26,18 +26,18 @@ static void jpg_error_exit(j_common_ptr cinfo)
 }
 
 #ifdef WIN32
-int ExImage::loadJpg(HANDLE hFile, const wchar* fname, bool query)
+bool ExImage::loadJpg(HANDLE hFile, const char* fname, bool query)
 {
     struct jpeg_decompress_struct cinfo;
     struct jpeg_error_mgr jerr;
     JSAMPARRAY buffer;
-    int row_stride;
+    int32 row_stride;
     FILE* infile;
-    int r = -1;
+    bool r = false;
 
-    if ((infile = _wfopen(fname, L"rb")) == NULL) {
-        exerror(L"%s(%s) - open fail.\n", __funcw__, fname);
-        return -1;
+    if ((infile = fopen(fname, "rb")) == NULL) {
+        exerror("%s(%s) - open fail.\n", __func__, fname);
+        return false;
     }
     cinfo.err = jpeg_std_error(&jerr);
     jerr.error_exit = jpg_error_exit;
@@ -45,7 +45,7 @@ int ExImage::loadJpg(HANDLE hFile, const wchar* fname, bool query)
         jpeg_destroy_decompress(&cinfo);
         fclose(infile);
         this->clear();
-        return -1;
+        return false;
     }
     jpeg_create_decompress(&cinfo);
     jpeg_stdio_src(&cinfo, infile);
@@ -59,14 +59,14 @@ int ExImage::loadJpg(HANDLE hFile, const wchar* fname, bool query)
     cinfo.scale_denom = 2;
     jpeg_calc_output_dimensions(&cinfo);
     if (cinfo.progressive_mode) {
-        exerror(L"%s(%s) - progressive_mode.\n", __funcw__, fname);
+        exerror("%s(%s) - progressive_mode.\n", __func__, fname);
         goto jpg_cleanup;
     }
     if (query) {
         r = this->setInfo(cinfo.output_width, cinfo.output_height, Ex_IMAGE_DIRECT_8888);
         goto jpg_cleanup;
     }
-    if ((r = this->init(cinfo.output_width, cinfo.output_height, Ex_IMAGE_DIRECT_8888)) != 0) {
+    if ((r = this->init(cinfo.output_width, cinfo.output_height, Ex_IMAGE_DIRECT_8888)) != true) {
         goto jpg_cleanup;
     }
     jpeg_start_decompress(&cinfo);
@@ -94,18 +94,18 @@ jpg_cleanup:
     return r;
 }
 #else // compat linux
-int ExImage::loadJpg(int fd, const char* fname, bool query)
+bool ExImage::loadJpg(int32 fd, const char* fname, bool query)
 {
     struct jpeg_decompress_struct cinfo;
     struct jpeg_error_mgr jerr;
     JSAMPARRAY buffer;
-    int row_stride;
+    int32 row_stride;
     FILE* infile;
-    int r = -1;
+    bool r = false;
 
     if ((infile = fopen(fname, "rb")) == NULL) {
         exerror("%s(%s) - open fail.\n", __func__, fname);
-        return -1;
+        return false;
     }
     cinfo.err = jpeg_std_error(&jerr);
     jerr.error_exit = jpg_error_exit;
@@ -113,7 +113,7 @@ int ExImage::loadJpg(int fd, const char* fname, bool query)
         jpeg_destroy_decompress(&cinfo);
         fclose(infile);
         this->clear();
-        return -1;
+        return false;
     }
     jpeg_create_decompress(&cinfo);
     jpeg_stdio_src(&cinfo, infile);
@@ -134,7 +134,7 @@ int ExImage::loadJpg(int fd, const char* fname, bool query)
         r = this->setInfo(cinfo.output_width, cinfo.output_height, Ex_IMAGE_DIRECT_8888);
         goto jpg_cleanup;
     }
-    if ((r = this->init(cinfo.output_width, cinfo.output_height, Ex_IMAGE_DIRECT_8888)) != 0) {
+    if ((r = this->init(cinfo.output_width, cinfo.output_height, Ex_IMAGE_DIRECT_8888)) != true) {
         goto jpg_cleanup;
     }
     jpeg_start_decompress(&cinfo);

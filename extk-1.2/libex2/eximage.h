@@ -224,7 +224,7 @@ public:
 public:
     static ExImage* create(int32 width, int32 height, uint32 type);
     bool init(int32 width, int32 height, uint32 type);
-    bool load(const char_t* fname, bool query = false);
+    bool load(const char* fname, bool query = false);
     size_t getBitsSize() { return (size_t)(bpl * height); }
     bool makeTrans(uint32 transColor) { return false; } // tbd
     bool makeGhost() { return false; } // tbd
@@ -255,16 +255,16 @@ public:
 protected:
     bool setInfo(int32 width, int32 height, uint32 type);
 #ifdef WIN32
-    bool loadBmp(HANDLE hFile, const char_t* fname, bool query);
-    bool loadGif(HANDLE hFile, const char_t* fname, bool query);
-    bool loadJpg(HANDLE hFile, const char_t* fname, bool query);
-    bool loadPng(HANDLE hFile, const char_t* fname, bool query);
+    bool loadBmp(HANDLE hFile, const char* fname, bool query);
+    bool loadGif(HANDLE hFile, const char* fname, bool query);
+    bool loadJpg(HANDLE hFile, const char* fname, bool query);
+    bool loadPng(HANDLE hFile, const char* fname, bool query);
     bool savePng(HANDLE hFile);
 #else // compat linux
-    bool loadBmp(int32 fd, const char_t* fname, bool query);
-    bool loadGif(int32 fd, const char_t* fname, bool query);
-    bool loadJpg(int32 fd, const char_t* fname, bool query);
-    bool loadPng(int32 fd, const char_t* fname, bool query);
+    bool loadBmp(int32 fd, const char* fname, bool query);
+    bool loadGif(int32 fd, const char* fname, bool query);
+    bool loadJpg(int32 fd, const char* fname, bool query);
+    bool loadPng(int32 fd, const char* fname, bool query);
     bool savePng(int32 fd);
 #endif
     void preMultiply();

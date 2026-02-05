@@ -13,25 +13,25 @@
 // ExPoint
 //
 struct ExPoint {
-    int16 x;
-    int16 y;
+    int32 x;
+    int32 y;
     ExPoint() {}
-    ExPoint(int16 i) : x(i), y(i) {}
-    ExPoint(int16 x, int16 y) : x(x), y(y) {}
+    ExPoint(int32 i) : x(i), y(i) {}
+    ExPoint(int32 x, int32 y) : x(x), y(y) {}
     ExPoint(const ExPoint& pt) = default;
     ExPoint& operator = (const ExPoint& pt) = default;
 #ifdef WIN32
-    ExPoint(const POINT& pt) : x((int16)pt.x), y((int16)pt.y) {}
-    ExPoint& operator = (const POINT& pt) { x = (int16)pt.x; y = (int16)pt.y; return *this; }
+    ExPoint(const POINT& pt) : x((int32)pt.x), y((int32)pt.y) {}
+    ExPoint& operator = (const POINT& pt) { x = (int32)pt.x; y = (int32)pt.y; return *this; }
 #endif
 
-    void rotccw(ExPoint* dst) const { int16 t = x; dst->x = y; dst->y = -t; }
-    void rotcw(ExPoint* dst) const { int16 t = x; dst->x = -y; dst->y = t; }
+    void rotccw(ExPoint* dst) const { int32 t = x; dst->x = y; dst->y = -t; }
+    void rotcw(ExPoint* dst) const { int32 t = x; dst->x = -y; dst->y = t; }
     void rotccw() { this->rotccw(this); }
     void rotcw() { this->rotcw(this); }
     void neg() { x = -x; y = -y; }
-    ExPoint& set(int16 x, int16 y) { this->x = x; this->y = y; return *this; }
-    bool equal(int16 x, int16 y) const { return (this->x == x && this->y == y); }
+    ExPoint& set(int32 x, int32 y) { this->x = x; this->y = y; return *this; }
+    bool equal(int32 x, int32 y) const { return (this->x == x && this->y == y); }
     bool operator == (const ExPoint& pt) const { return (x == pt.x && y == pt.y); }
     bool operator != (const ExPoint& pt) const { return (x != pt.x || y != pt.y); }
     ExPoint& operator += (const ExPoint& pt) { x += pt.x; y += pt.y; return *this; }
@@ -51,35 +51,35 @@ struct ExPoint {
 };
 
 inline ExPoint
-operator * (const ExPoint& pt, int16 i) {
+operator * (const ExPoint& pt, int32 i) {
     return ExPoint(pt.x * i, pt.y * i);
 }
 
 inline ExPoint
-operator / (const ExPoint& pt, int16 i) {
+operator / (const ExPoint& pt, int32 i) {
     return ExPoint(pt.x / i, pt.y / i); // permit devide by 0 exception
 }
 
 // ExSize
 //
 struct ExSize {
-    int16 w;
-    int16 h;
+    int32 w;
+    int32 h;
     ExSize() {}
-    ExSize(int16 i) : w(i), h(i) {}
-    ExSize(int16 w, int16 h) : w(w), h(h) {}
+    ExSize(int32 i) : w(i), h(i) {}
+    ExSize(int32 w, int32 h) : w(w), h(h) {}
     ExSize(const ExSize& sz) = default;
     ExSize& operator = (const ExSize& sz) = default;
 #ifdef WIN32
-    ExSize(const SIZE& sz) : w((int16)sz.cx), h((int16)sz.cy) {}
-    ExSize& operator = (const SIZE& sz) { w = (int16)sz.cx; h = (int16)sz.cy; return *this; }
+    ExSize(const SIZE& sz) : w((int32)sz.cx), h((int32)sz.cy) {}
+    ExSize& operator = (const SIZE& sz) { w = (int32)sz.cx; h = (int32)sz.cy; return *this; }
 #endif
 
     void clamp() { if (w < 0) w = 0; if (h < 0) h = 0; }
-    ExSize& set(int16 w, int16 h) { this->w = w; this->h = h; return *this; }
+    ExSize& set(int32 w, int32 h) { this->w = w; this->h = h; return *this; }
     bool zero() const { return (this->w == 0 && this->h == 0); }
     bool empty() const { return (this->w <= 0 || this->h <= 0); }
-    bool equal(int16 w, int16 h) const { return (this->w == w && this->h == h); }
+    bool equal(int32 w, int32 h) const { return (this->w == w && this->h == h); }
     bool operator == (const ExSize& sz) const { return (w == sz.w && h == sz.h); }
     bool operator != (const ExSize& sz) const { return (w != sz.w || h != sz.h); }
     ExSize& operator += (const ExSize& sz) { w += sz.w; h += sz.h; return *this; }
@@ -91,12 +91,12 @@ struct ExSize {
 };
 
 inline ExSize
-operator * (const ExSize& sz, int16 i) {
+operator * (const ExSize& sz, int32 i) {
     return ExSize(sz.w * i, sz.h * i); // permit negative size
 }
 
 inline ExSize
-operator / (const ExSize& sz, int16 i) {
+operator / (const ExSize& sz, int32 i) {
     return ExSize(sz.w / i, sz.h / i); // permit devide by 0 exception
 }
 
@@ -152,111 +152,109 @@ ExSize::operator -= (const ExPoint& pt) {
 //
 struct ExRect {
     union {
-        struct { int16 x, y, w, h; }; // x, y, width, height
+        struct { int32 x, y, w, h; }; // x, y, width, height
         struct { ExPoint pt; ExSize sz; } u;
-        uint64 u64;
     };
     ExRect() {}
-    ExRect(int16 i) : x(i), y(i), w(i), h(i) {}
-    ExRect(int16 x, int16 y, int16 w, int16 h) : x(x), y(y), w(w), h(h) {}
+    ExRect(int32 i) : x(i), y(i), w(i), h(i) {}
+    ExRect(int32 x, int32 y, int32 w, int32 h) : x(x), y(y), w(w), h(h) {}
     ExRect(const ExPoint& pt, const ExSize& sz) : x(pt.x), y(pt.y), w(sz.w), h(sz.h) {}
-    ExRect(const ExRect& rc) : u64(rc.u64) {}
+    ExRect(const ExRect& rc) { u = rc.u; }
     ExRect(const ExBox& bx);
-    ExRect& operator = (const ExRect& rc) { u64 = rc.u64; return *this; }
+    ExRect& operator = (const ExRect& rc) { u = rc.u; return *this; }
     ExRect& operator = (const ExBox& bx);
 #ifdef WIN32
     ExRect(const RECT& rc);
     ExRect& operator = (const RECT& rc);
 #endif
 
-    int16 left() const { return x; }
-    int16 top() const { return y; }
-    int16 right() const { return x + w; }
-    int16 bottom() const { return y + h; }
-    int16 width() const { return w; }
-    int16 height() const { return h; }
+    int32 left() const { return x; }
+    int32 top() const { return y; }
+    int32 right() const { return x + w; }
+    int32 bottom() const { return y + h; }
+    int32 width() const { return w; }
+    int32 height() const { return h; }
     ExPoint center() const { return ExPoint(x + w / 2, y + h / 2); }
-    void center(int16* px, int16* py) const { *px = (x + w / 2); *py = (y + h / 2); }
+    void center(int32* px, int32* py) const { *px = (x + w / 2); *py = (y + h / 2); }
     void center(ExPoint& pt) const { center(&pt.x, &pt.y); }
-    void offset(int16 l, int16 t, int16 r, int16 b) { x += l; y += t; w += (r - l); h += (b - t); }
-    void inset(int16 dx, int16 dy) { x += dx; y += dy; w -= dx * 2; h -= dy * 2; } // should check valid
+    void offset(int32 l, int32 t, int32 r, int32 b) { x += l; y += t; w += (r - l); h += (b - t); }
+    void inset(int32 dx, int32 dy) { x += dx; y += dy; w -= dx * 2; h -= dy * 2; } // should check valid
     void inset(const ExPoint& pt) { inset(pt.x, pt.y); }
-    void move(int16 dx, int16 dy) { x += dx; y += dy; }
+    void move(int32 dx, int32 dy) { x += dx; y += dy; }
     void move(const ExPoint& pt) { move(pt.x, pt.y); }
     void init0() { x = y = w = h = 0; }
-    ExRect& set(int16 x, int16 y, int16 w, int16 h) { this->x = x; this->y = y; this->w = w; this->h = h; return *this; }
+    ExRect& set(int32 x, int32 y, int32 w, int32 h) { this->x = x; this->y = y; this->w = w; this->h = h; return *this; }
     ExRect& set(const ExPoint& pt, const ExSize& sz) { x = pt.x; y = pt.y; w = sz.w; h = sz.h; return *this; }
     bool valid() const { return (0 < w && 0 < h); }
     bool empty() const { return !valid(); }
-    bool equal(int16 x, int16 y, int16 w, int16 h) const { return operator == (ExRect(x, y, w, h)); }
+    bool equal(int32 x, int32 y, int32 w, int32 h) const { return operator == (ExRect(x, y, w, h)); }
     bool operator == (const ExRect& rc) const { return (x == rc.x && y == rc.y && w == rc.w && h == rc.h); }
     bool operator != (const ExRect& rc) const { return (x != rc.x || y != rc.y || w != rc.w || h != rc.h); }
 
     bool contain(const ExPoint& pt) const;
     bool contain(const ExRect& rc) const;
-    bool contain(int16 x, int16 y) const { return contain(ExPoint(x, y)); }
-    bool contain(int16 x, int16 y, int16 w, int16 h) const;
+    bool contain(int32 x, int32 y) const { return contain(ExPoint(x, y)); }
+    bool contain(int32 x, int32 y, int32 w, int32 h) const;
 };
 
 // ExBox
 //
 struct ExBox {
     union {
-        struct { int16 x1, y1, x2, y2; }; // box segment for clip region
-        struct { int16 l, t, r, b; }; // left, top, right, bottom
+        struct { int32 x1, y1, x2, y2; }; // box segment for clip region
+        struct { int32 l, t, r, b; }; // left, top, right, bottom
         struct { ExPoint ul, lr; } u; // upper-left corner, lower-right corner
-        uint64 u64;
     };
     ExBox() {}
-    ExBox(int16 i) : l(i), t(i), r(i), b(i) {}
-    ExBox(int16 l, int16 t, int16 r, int16 b) : l(l), t(t), r(r), b(b) {}
+    ExBox(int32 i) : l(i), t(i), r(i), b(i) {}
+    ExBox(int32 l, int32 t, int32 r, int32 b) : l(l), t(t), r(r), b(b) {}
     ExBox(const ExPoint& ul, const ExPoint& lr) : l(ul.x), t(ul.y), r(lr.x), b(lr.y) {}
     ExBox(const ExRect& rc) : l(rc.x), t(rc.y), r(rc.right()), b(rc.bottom()) {}
-    ExBox(const ExBox& bx) : u64(bx.u64) {}
-    ExBox& operator = (const ExBox& bx) { u64 = bx.u64; return *this; }
+    ExBox(const ExBox& bx) { u = bx.u; }
+    ExBox& operator = (const ExBox& bx) { u = bx.u; return *this; }
     ExBox& operator = (const ExRect& rc);
 #ifdef WIN32
     ExBox(const RECT& rc);
     ExBox& operator = (const RECT& rc);
 #endif
 
-    int16 left() const { return l; }
-    int16 top() const { return t; }
-    int16 right() const { return r; }
-    int16 bottom() const { return b; }
-    int16 width() const { return r - l; }
-    int16 height() const { return b - t; }
+    int32 left() const { return l; }
+    int32 top() const { return t; }
+    int32 right() const { return r; }
+    int32 bottom() const { return b; }
+    int32 width() const { return r - l; }
+    int32 height() const { return b - t; }
     ExSize size() const { return ExSize(r - l, b - t); }
     ExPoint center() const { return ExPoint((l + r) / 2, (t + b) / 2); }
-    void center(int16* px, int16* py) const { *px = (l + r) / 2; *py = (t + b) / 2; }
+    void center(int32* px, int32* py) const { *px = (l + r) / 2; *py = (t + b) / 2; }
     void center(ExPoint& pt) const { center(&pt.x, &pt.y); }
-    void offset(int16 l, int16 t, int16 r, int16 b) { x1 += l; y1 += t; x2 += r; y2 += b; }
-    void inset(int16 dx, int16 dy) { l += dx; t += dy; r -= dx; b -= dy; } // should check valid or sort
+    void offset(int32 l, int32 t, int32 r, int32 b) { x1 += l; y1 += t; x2 += r; y2 += b; }
+    void inset(int32 dx, int32 dy) { l += dx; t += dy; r -= dx; b -= dy; } // should check valid or sort
     void inset(const ExPoint& pt) { inset(pt.x, pt.y); }
-    void move(int16 dx, int16 dy) { l += dx; t += dy; r += dx; b += dy; }
+    void move(int32 dx, int32 dy) { l += dx; t += dy; r += dx; b += dy; }
     void move(const ExPoint& pt) { move(pt.x, pt.y); }
     void init0() { l = t = r = b = 0; }
-    void sort() { if (l > r) exswap<int16>(l, r); if (t > b) exswap<int16>(t, b); }
-    ExBox& set(int16 l, int16 t, int16 r, int16 b) { this->l = l; this->t = t; this->r = r; this->b = b; return *this; }
+    void sort() { if (l > r) exswap<int32>(l, r); if (t > b) exswap<int32>(t, b); }
+    ExBox& set(int32 l, int32 t, int32 r, int32 b) { this->l = l; this->t = t; this->r = r; this->b = b; return *this; }
     ExBox& set(const ExPoint& ul, const ExPoint& lr) { l = ul.x; t = ul.y; r = lr.x; b = lr.y; return *this; }
     bool valid() const { return (l < r && t < b); }
     bool empty() const { return !valid(); }
-    bool equal(int16 l, int16 t, int16 r, int16 b) const { return operator == (ExBox(l, t, r, b)); }
+    bool equal(int32 l, int32 t, int32 r, int32 b) const { return operator == (ExBox(l, t, r, b)); }
     bool operator == (const ExBox& bx) const { return (l == bx.l && t == bx.t && r == bx.r && b == bx.b); }
     bool operator != (const ExBox& bx) const { return (l != bx.l || t != bx.t || r != bx.r || b != bx.b); }
 
     bool contain(const ExPoint& pt) const;
     bool contain(const ExBox& bx) const;
-    bool contain(int16 x, int16 y) const { return contain(ExPoint(x, y)); }
-    bool contain(int16 l, int16 t, int16 r, int16 b) const { return contain(ExBox(l, t, r, b)); }
+    bool contain(int32 x, int32 y) const { return contain(ExPoint(x, y)); }
+    bool contain(int32 l, int32 t, int32 r, int32 b) const { return contain(ExBox(l, t, r, b)); }
     static bool isIntersect(const ExBox& b1, const ExBox& b2);
     bool intersect(const ExBox& bx);
     bool intersect(const ExBox& b1, const ExBox& b2);
-    bool intersect(int16 l, int16 t, int16 r, int16 b) {
+    bool intersect(int32 l, int32 t, int32 r, int32 b) {
         return intersect(ExBox(l, t, r, b));
     }
     void join(const ExBox& bx);
-    void join(int16 l, int16 t, int16 r, int16 b) {
+    void join(int32 l, int32 t, int32 r, int32 b) {
         join(ExBox(l, t, r, b));
     }
 };
@@ -291,33 +289,33 @@ ExBox::operator = (const ExRect& rc) {
 #ifdef WIN32
 inline
 ExRect::ExRect(const RECT& rc)
-    : x((int16)rc.left)
-    , y((int16)rc.top)
-    , w((int16)(rc.right - rc.left))
-    , h((int16)(rc.bottom - rc.top)) {}
+    : x((int32)rc.left)
+    , y((int32)rc.top)
+    , w((int32)(rc.right - rc.left))
+    , h((int32)(rc.bottom - rc.top)) {}
 
 inline
 ExBox::ExBox(const RECT& rc)
-    : l((int16)rc.left)
-    , t((int16)rc.top)
-    , r((int16)rc.right)
-    , b((int16)rc.bottom) {}
+    : l((int32)rc.left)
+    , t((int32)rc.top)
+    , r((int32)rc.right)
+    , b((int32)rc.bottom) {}
 
 inline ExRect&
 ExRect::operator = (const RECT& rc) {
-    x = (uint16)rc.left;
-    y = (uint16)rc.top;
-    w = (uint16)(rc.right - rc.left);
-    h = (uint16)(rc.bottom - rc.top);
+    x = (int32)rc.left;
+    y = (int32)rc.top;
+    w = (int32)(rc.right - rc.left);
+    h = (int32)(rc.bottom - rc.top);
     return *this;
 }
 
 inline ExBox&
 ExBox::operator = (const RECT& rc) {
-    l = (uint16)rc.left;
-    t = (uint16)rc.top;
-    r = (uint16)rc.right;
-    b = (uint16)rc.bottom;
+    l = (int32)rc.left;
+    t = (int32)rc.top;
+    r = (int32)rc.right;
+    b = (int32)rc.bottom;
     return *this;
 }
 #endif
@@ -349,7 +347,7 @@ ExRect::contain(const ExRect& rc) const {
 }
 
 inline bool
-ExRect::contain(int16 x, int16 y, int16 w, int16 h) const {
+ExRect::contain(int32 x, int32 y, int32 w, int32 h) const {
     return ExBox(*this).contain(x, y, x + w, y + h);
 }
 
@@ -357,7 +355,7 @@ ExRect::contain(int16 x, int16 y, int16 w, int16 h) const {
 //
 #if 0 // deprecated
 inline bool
-ExContainPoint(int16 left, int16 top, int16 right, int16 bottom, int16 x, int16 y) {
+ExContainPoint(int32 left, int32 top, int32 right, int32 bottom, int32 x, int32 y) {
     return ExBox(left, top, right, bottom).contain(x, y);
 }
 
@@ -372,22 +370,22 @@ ExContainPoint(const RECT& rc, const POINT& pt) {
 // ExArc
 //
 struct ExArc {
-    int16 x, y;
-    uint16 w, h;
-    int16 angle1, angle2;
+    int32 x, y;
+    uint32 w, h;
+    int32 angle1, angle2;
 
     ExArc() {}
-    ExArc(short x, short y) : x(x), y(y), w(0), h(0), angle1(0), angle2(0) {}
+    ExArc(short x, short y) : x(x), y(y), w(0U), h(0U), angle1(0), angle2(0) {}
     // tbd
 };
 
 // ExSpan
 //
 struct ExSpan {
-    int16 x, y, w;
+    int32 x, y, w;
 
     ExSpan() {}
-    ExSpan(int16 x, int16 y, int16 w) : x(x), y(y), w(w) {}
+    ExSpan(int32 x, int32 y, int32 w) : x(x), y(y), w(w) {}
     // tbd
 };
 

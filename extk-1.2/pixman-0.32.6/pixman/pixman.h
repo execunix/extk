@@ -79,8 +79,8 @@ SOFTWARE.
 #define PIXMAN_END_DECLS
 #endif
 
-//#define realtype_32bit // extk
-#ifndef realtype_32bit
+//#define floatt_f32 // extk
+#ifndef floatt_f32
 typedef double floatt;
 #else
 typedef float floatt;

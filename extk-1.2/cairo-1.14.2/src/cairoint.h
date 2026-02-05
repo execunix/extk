@@ -486,14 +486,7 @@ typedef struct _cairo_scaled_font_subset {
      * Value of glyphs array is scaled_font_glyph_index.
      */
     unsigned long *glyphs;
-    #if 1 // extk
-    union {
     char          **utf8;
-    UCS2          **ucs2; // extk
-    };
-    #else
-    char          **utf8;
-    #endif
     char          **glyph_names;
     int           *to_latin_char;
     unsigned long *latin_to_subset_glyph_index;
@@ -527,18 +520,6 @@ struct _cairo_scaled_font_backend {
 		       cairo_glyph_t	         **glyphs,
 		       int		          *num_glyphs,
 		       cairo_text_cluster_t      **clusters,
-		       int		          *num_clusters,
-		       cairo_text_cluster_flags_t *cluster_flags);
-
-    cairo_warn cairo_int_status_t
-    (*ucs2_to_glyphs) (void                       *scaled_font,
-		       double		           x,
-		       double		           y,
-		       const UCS2	          *ucs2, // extk
-		       int		           utf8_len,
-		       cairo_glyph_t	         **glyphs,
-		       int		          *num_glyphs,
-		       cairo_ucs2_cluster_t      **clusters,
 		       int		          *num_clusters,
 		       cairo_text_cluster_flags_t *cluster_flags);
 
@@ -910,15 +891,6 @@ _cairo_validate_text_clusters (const char		   *utf8,
 			       const cairo_glyph_t	   *glyphs,
 			       int			    num_glyphs,
 			       const cairo_text_cluster_t  *clusters,
-			       int			    num_clusters,
-			       cairo_text_cluster_flags_t   cluster_flags);
-
-cairo_private cairo_status_t
-_cairo_validate_ucs2_clusters (const UCS2		   *ucs2, // extk
-			       int			    ucs2_len,
-			       const cairo_glyph_t	   *glyphs,
-			       int			    num_glyphs,
-			       const cairo_ucs2_cluster_t  *clusters,
 			       int			    num_clusters,
 			       cairo_text_cluster_flags_t   cluster_flags);
 
@@ -1446,20 +1418,6 @@ _cairo_surface_show_text_glyphs (cairo_surface_t	    *surface,
 				 const cairo_clip_t		    *clip);
 
 cairo_private cairo_status_t
-_cairo_surface_show_ucs2_glyphs (cairo_surface_t	    *surface,
-				 cairo_operator_t	     op,
-				 const cairo_pattern_t	    *source,
-				 const UCS2		    *ucs2, // extk
-				 int			     ucs2_len,
-				 cairo_glyph_t		    *glyphs,
-				 int			     num_glyphs,
-				 const cairo_text_cluster_t *clusters,
-				 int			     num_clusters,
-				 cairo_text_cluster_flags_t  cluster_flags,
-				 cairo_scaled_font_t	    *scaled_font,
-				 const cairo_clip_t		    *clip);
-
-cairo_private cairo_status_t
 _cairo_surface_acquire_source_image (cairo_surface_t         *surface,
 				     cairo_image_surface_t  **image_out,
 				     void                   **image_extra);
@@ -1881,20 +1839,8 @@ cairo_private int
 _cairo_utf8_get_char_validated (const char *p,
 				uint32_t   *unicode);
 
-static __inline int // extk
-_cairo_ucs2_get_char_validated (const UCS2 *p, uint32_t *unicode) {
-    if (unicode) *unicode = *p;
-    return 1/*ucs2len*/;
-}
-
 cairo_private cairo_status_t
 _cairo_utf8_to_ucs4 (const char *str,
-		     int	 len,
-		     uint32_t  **result,
-		     int	*items_written);
-
-cairo_private cairo_status_t
-_cairo_ucs2_to_ucs4 (const UCS2 *str, // extk
 		     int	 len,
 		     uint32_t  **result,
 		     int	*items_written);
@@ -1902,12 +1848,6 @@ _cairo_ucs2_to_ucs4 (const UCS2 *str, // extk
 cairo_private int
 _cairo_ucs4_to_utf8 (uint32_t    unicode,
 		     char       *utf8);
-
-static __inline int // extk
-_cairo_ucs4_to_ucs2 (uint32_t unicode, UCS2 *ucs2) {
-    if (ucs2) *ucs2 = unicode;
-    return 1/*ucs2len*/;
-}
 
 #if CAIRO_HAS_WIN32_FONT || CAIRO_HAS_QUARTZ_FONT || CAIRO_HAS_PDF_OPERATORS
 # define CAIRO_HAS_UTF8_TO_UTF16 1

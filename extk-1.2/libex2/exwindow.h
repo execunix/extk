@@ -55,8 +55,8 @@ protected: // now allow new & delete
 public:
     virtual ~ExWindow();
     explicit ExWindow();
-    uint32 init(const char_t* name, int32 w, int32 h);
-    static ExWindow* create(const char_t* name, int32 w, int32 h);
+    uint32 init(const char* name, int32 w, int32 h);
+    static ExWindow* create(const char* name, int32 w, int32 h);
     virtual uint32 destroy();
 #ifdef WIN32
     bool showWindow(DWORD dwExStyle, DWORD dwStyle, int32 x = CW_USEDEFAULT, int32 y = CW_USEDEFAULT);

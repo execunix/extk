@@ -50,6 +50,13 @@
 # define CAIRO_END_DECLS
 #endif
 
+//#define floatt_f32 // extk
+#ifndef floatt_f32
+typedef double floatt;
+#else
+typedef float floatt;
+#endif
+
 #ifndef cairo_public
 # if defined (_MSC_VER) && ! defined (CAIRO_WIN32_STATIC_BUILD)
 #  define cairo_public/* __declspec(dllimport)*/ // extk

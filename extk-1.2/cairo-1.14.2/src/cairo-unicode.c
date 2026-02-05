@@ -297,48 +297,6 @@ _cairo_utf8_to_ucs4 (const char *str,
     return CAIRO_STATUS_SUCCESS;
 }
 
-cairo_status_t
-_cairo_ucs2_to_ucs4 (const UCS2 *str, // extk
-		     int	 len,
-		     uint32_t  **result,
-		     int	*items_written)
-{
-    uint32_t *str32 = NULL;
-    int n_chars, i;
-    const UCS2 *in;
-
-    in = str;
-    n_chars = 0;
-    while ((len < 0 || str + len - in > 0) && *in)
-    {
-	n_chars++;
-	if (n_chars == INT_MAX)
-	    return _cairo_error (CAIRO_STATUS_INVALID_STRING);
-
-	in++;
-    }
-
-    if (result) {
-	str32 = _cairo_malloc_ab (n_chars + 1, sizeof (uint32_t));
-	if (!str32)
-	    return _cairo_error (CAIRO_STATUS_NO_MEMORY);
-
-	in = str;
-	for (i=0; i < n_chars; i++) {
-	    str32[i] = *in;
-	    in++;
-	}
-	str32[i] = 0;
-
-	*result = str32;
-    }
-
-    if (items_written)
-	*items_written = n_chars;
-
-    return CAIRO_STATUS_SUCCESS;
-}
-
 /**
  * _cairo_ucs4_to_utf8:
  * @unicode: a UCS-4 character

@@ -738,11 +738,7 @@ _compute_transform (cairo_ft_font_transform_t *sf,
       y_scale = 1.0;
 
     if (unscaled && (unscaled->face->face_flags & FT_FACE_FLAG_SCALABLE) == 0) {
-#ifdef realtype_32bit // extk
-	double min_distance = FLT_MAX;
-#else
 	double min_distance = DBL_MAX;
-#endif
 	cairo_bool_t magnify = TRUE;
 	int i;
 	double best_x_size = 0;
@@ -2481,9 +2477,7 @@ _cairo_ft_load_truetype_table (void	       *abstract_font,
 {
     cairo_ft_scaled_font_t *scaled_font = abstract_font;
     cairo_ft_unscaled_font_t *unscaled = scaled_font->unscaled;
-#if HAVE_FT_LOAD_SFNT_TABLE // extk
     FT_Face face;
-#endif
     cairo_status_t status = CAIRO_INT_STATUS_UNSUPPORTED;
 
     /* We don't support the FreeType feature of loading a table
@@ -2694,7 +2688,6 @@ static const cairo_scaled_font_backend_t _cairo_ft_scaled_font_backend = {
     _cairo_ft_scaled_font_fini,
     _cairo_ft_scaled_glyph_init,
     NULL,			/* text_to_glyphs */
-    NULL,			/* ucs2_to_glyphs */
     _cairo_ft_ucs4_to_index,
     _cairo_ft_load_truetype_table,
     _cairo_ft_index_to_ucs4,

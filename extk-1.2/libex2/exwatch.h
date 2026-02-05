@@ -84,11 +84,11 @@ protected:
         uint32 invoke(uint32 waittick = 60000);
     };
 public:
-    const char_t* name; // for debug
+    const char* name; // for debug
     static uint32 getTickCount();
     static uint32 tickAppLaunch;
     static pthread_key_t tls_key;
-    static void tls_specific(const char_t* name); // tbd
+    static void tls_specific(const char* name); // tbd
 protected:
     static void* start(void* arg);
     IomuxMap        iomuxmap;
@@ -112,7 +112,7 @@ public:
         pthread_cond_destroy(&cond);
         pthread_mutex_destroy(&mutex);
     }
-    explicit ExWatch(const char_t* name) : name(name)
+    explicit ExWatch(const char* name) : name(name)
         , iomuxmap(this), timerset(), tid(0), efd(-1), halt(0)
         , tickCount(0), hookStart(), hookTimer(), hookIomux(), hookClean() {
         pthread_mutex_init(&mutex, NULL);

@@ -2515,24 +2515,6 @@ cairo_surface_has_show_text_glyphs (cairo_surface_t	    *surface)
 }
 slim_hidden_def (cairo_surface_has_show_text_glyphs);
 
-cairo_bool_t
-cairo_surface_has_show_ucs2_glyphs (cairo_surface_t	    *surface)
-{
-    if (unlikely (surface->status))
-	return FALSE;
-
-    if (unlikely (surface->finished)) {
-	_cairo_surface_set_error (surface, CAIRO_STATUS_SURFACE_FINISHED);
-	return FALSE;
-    }
-
-    if (surface->backend->has_show_ucs2_glyphs)
-	return surface->backend->has_show_ucs2_glyphs (surface);
-    else
-	return surface->backend->show_ucs2_glyphs != NULL;
-}
-slim_hidden_def (cairo_surface_has_show_ucs2_glyphs);
-
 /* Note: the backends may modify the contents of the glyph array as long as
  * they do not return %CAIRO_INT_STATUS_UNSUPPORTED. This makes it possible to
  * avoid copying the array again and again, and edit it in-place.
@@ -2632,105 +2614,6 @@ _cairo_surface_show_text_glyphs (cairo_surface_t	    *surface,
 	    status = surface->backend->show_text_glyphs (surface, op,
 							 source,
 							 utf8, utf8_len,
-							 glyphs, num_glyphs,
-							 clusters, num_clusters, cluster_flags,
-							 scaled_font,
-							 clip);
-	}
-    }
-
-    if (status != CAIRO_INT_STATUS_NOTHING_TO_DO) {
-	surface->is_clear = FALSE;
-	surface->serial++;
-    }
-
-    return _cairo_surface_set_error (surface, status);
-}
-
-cairo_status_t
-_cairo_surface_show_ucs2_glyphs (cairo_surface_t	    *surface,
-				 cairo_operator_t	     op,
-				 const cairo_pattern_t	    *source,
-				 const UCS2		    *ucs2, // extk
-				 int			     ucs2_len,
-				 cairo_glyph_t		    *glyphs,
-				 int			     num_glyphs,
-				 const cairo_text_cluster_t *clusters,
-				 int			     num_clusters,
-				 cairo_text_cluster_flags_t  cluster_flags,
-				 cairo_scaled_font_t	    *scaled_font,
-				 const cairo_clip_t		*clip)
-{
-    cairo_int_status_t status;
-
-    TRACE ((stderr, "%s\n", __FUNCTION__));
-    if (unlikely (surface->status))
-	return surface->status;
-    if (unlikely (surface->finished))
-	return _cairo_surface_set_error (surface, _cairo_error (CAIRO_STATUS_SURFACE_FINISHED));
-
-    if (num_glyphs == 0 && ucs2_len == 0)
-	return CAIRO_STATUS_SUCCESS;
-
-    if (_cairo_clip_is_all_clipped (clip))
-	return CAIRO_STATUS_SUCCESS;
-
-    status = _pattern_has_error (source);
-    if (unlikely (status))
-	return status;
-
-    if (nothing_to_do (surface, op, source))
-	return CAIRO_STATUS_SUCCESS;
-
-    status = _cairo_surface_begin_modification (surface);
-    if (unlikely (status))
-	return status;
-
-    status = CAIRO_INT_STATUS_UNSUPPORTED;
-
-    /* The logic here is duplicated in _cairo_analysis_surface show_glyphs and
-     * show_text_glyphs.  Keep in synch. */
-    if (clusters) {
-	/* A real show_text_glyphs call.  Try show_text_glyphs backend
-	 * method first */
-	if (surface->backend->show_text_glyphs != NULL) {
-	    status = surface->backend->show_ucs2_glyphs (surface, op,
-							 source,
-							 ucs2, ucs2_len,
-							 glyphs, num_glyphs,
-							 clusters, num_clusters, cluster_flags,
-							 scaled_font,
-							 clip);
-	}
-	if (status == CAIRO_INT_STATUS_UNSUPPORTED &&
-	    surface->backend->show_glyphs)
-	{
-	    status = surface->backend->show_glyphs (surface, op,
-						    source,
-						    glyphs, num_glyphs,
-						    scaled_font,
-						    clip);
-	}
-    } else {
-	/* A mere show_glyphs call.  Try show_glyphs backend method first */
-	if (surface->backend->show_glyphs != NULL) {
-	    status = surface->backend->show_glyphs (surface, op,
-						    source,
-						    glyphs, num_glyphs,
-						    scaled_font,
-						    clip);
-	} else if (surface->backend->show_text_glyphs != NULL) {
-	    /* Intentionally only try show_text_glyphs method for show_glyphs
-	     * calls if backend does not have show_glyphs.  If backend has
-	     * both methods implemented, we don't fallback from show_glyphs to
-	     * show_text_glyphs, and hence the backend can assume in its
-	     * show_text_glyphs call that clusters is not NULL (which also
-	     * implies that UTF-8 is not NULL, unless the text is
-	     * zero-length).
-	     */
-	    status = surface->backend->show_ucs2_glyphs (surface, op,
-							 source,
-							 ucs2, ucs2_len,
 							 glyphs, num_glyphs,
 							 clusters, num_clusters, cluster_flags,
 							 scaled_font,

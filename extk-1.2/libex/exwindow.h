@@ -15,8 +15,8 @@
 // Window constants definition
 //
 enum ExRenderFlags {
-    Ex_RenderRebuild = 1 << 3,
-    Ex_RenderDamaged = 1 << 4,
+    Ex_RenderRebuild = 1U << 3,
+    Ex_RenderDamaged = 1U << 4,
 };
 
 // class ExWindow
@@ -28,8 +28,8 @@ protected:
     DWORD       dwStyle;
     DWORD       dwExStyle;
 #endif
-    int         notifyFlags;    // tbd - remove
-    int         renderFlags;    // tbd - remove
+    uint32      notifyFlags;    // tbd - remove
+    uint32      renderFlags;    // tbd - remove
     //ExRegion    exposeAcc;  // tbd - replace Ex_RenderRebuild
     //ExRegion    opaqueAcc;
 public:
@@ -55,16 +55,16 @@ protected: // now allow new & delete
 public:
     virtual ~ExWindow();
     explicit ExWindow();
-    int init(const char* name, int w, int h);
-    static ExWindow* create(const char* name, int w, int h);
-    virtual int destroy();
+    uint32 init(const char* name, int32 w, int32 h);
+    static ExWindow* create(const char* name, int32 w, int32 h);
+    virtual uint32 destroy();
 #ifdef WIN32
-    int showWindow(DWORD dwExStyle, DWORD dwStyle, int x = CW_USEDEFAULT, int y = CW_USEDEFAULT);
-    int showWindow(); // ShowWindow(hwnd, SW_SHOWNORMAL); flush();
-    int hideWindow(); // ShowWindow(hwnd, SW_HIDE);
+    bool showWindow(DWORD dwExStyle, DWORD dwStyle, int32 x = CW_USEDEFAULT, int32 y = CW_USEDEFAULT);
+    bool showWindow(); // ShowWindow(hwnd, SW_SHOWNORMAL); flush();
+    bool hideWindow(); // ShowWindow(hwnd, SW_HIDE);
 #endif
 protected:
-    virtual int getClassFlags(int masks = Ex_BitTrue) const {
+    virtual uint32 getClassFlags(uint32 masks = Ex_BitTrue) const {
         return (masks & (Ex_RECTANGULAR | Ex_CONTAINER | Ex_DISJOINT));
     }
     virtual void reconstruct() {
@@ -79,11 +79,11 @@ public:
     HWND getHwnd() const { return this ? hwnd : NULL; }
 #endif
     ExWidget* giveFocus(ExWidget* newFocus);
-    ExWidget* moveFocus(int dir); // sample
+    ExWidget* moveFocus(uint32 dir); // sample
 public:
-    int render(); // call drawfunc for back buffer
-    int flush(); // App Callback: GetDC-render-ReleaseDC
-    int paint(); // WM_PAINT: BeginPaint-render-EndPaint
+    uint32 render(); // call drawfunc for back buffer
+    uint32 flush(); // App Callback: GetDC-render-ReleaseDC
+    uint32 paint(); // WM_PAINT: BeginPaint-render-EndPaint
 protected: // window callback internal
     struct Callback : public ExCallback {
         uint8 prio;
@@ -97,7 +97,7 @@ protected: // window callback internal
         }
     };
     class CallbackList : public std::list<Callback> {
-        ushort influx, change; // for recurs
+        uint16 influx, change; // for recurs
     public:
         CallbackList() : std::list<Callback>(), influx(0), change(0) {}
     public:
@@ -107,56 +107,56 @@ protected: // window callback internal
         // inherit void push_back(const Callback& cb);
         // inherit void push_front(const Callback& cb);
         void push(const Callback& cb);
-        int invoke(ExWatch* watch, ExObject* object, ExCbInfo* cbinfo);
+        uint32 invoke(ExWatch* watch, ExObject* object, ExCbInfo* cbinfo);
     };
     CallbackList filterList;
     CallbackList handlerList;
 public: // window message callback operation (event filter and handler)
-    void addFilter(int(STDCALL *f)(void*, ExWindow*, ExCbInfo*), void* d, uint8 prio = 5) {
+    void addFilter(uint32(STDCALL *f)(void*, ExWindow*, ExCbInfo*), void* d, uint8 prio = 5) {
         filterList.push(Callback(ExCallback(f, d), prio));
     }
     template <typename A, class W/*inherit ExWidget*/>
-    void addFilter(int(STDCALL *f)(A*, W*, ExCbInfo*), A* d, uint8 prio = 5) {
+    void addFilter(uint32(STDCALL *f)(A*, W*, ExCbInfo*), A* d, uint8 prio = 5) {
         filterList.push(Callback(ExCallback(f, d), prio));
     }
     template <typename A, class W/*inherit ExWidget*/>
-    void addFilter(A* d, int(STDCALL A::*f)(W*, ExCbInfo*), uint8 prio = 5) {
+    void addFilter(A* d, uint32(STDCALL A::*f)(W*, ExCbInfo*), uint8 prio = 5) {
         filterList.push(Callback(ExCallback(d, f), prio));
     }
     void removeFilter(const ExCallback& cb) {
         filterList.remove2(cb);
     }
-    int invokeFilter(ExCbInfo* cbinfo) {
+    uint32 invokeFilter(ExCbInfo* cbinfo) {
         return filterList.invoke(exWatchDisp, this, cbinfo);
     }
 
-    void addHandler(int(STDCALL *f)(void*, ExWindow*, ExCbInfo*), void* d, uint8 prio = 5) {
+    void addHandler(uint32(STDCALL *f)(void*, ExWindow*, ExCbInfo*), void* d, uint8 prio = 5) {
         handlerList.push(Callback(ExCallback(f, d), prio));
     }
     template <typename A, class W/*inherit ExWidget*/>
-    void addHandler(int(STDCALL *f)(A*, W*, ExCbInfo*), A* d, uint8 prio = 5) {
+    void addHandler(uint32(STDCALL *f)(A*, W*, ExCbInfo*), A* d, uint8 prio = 5) {
         handlerList.push(Callback(ExCallback(f, d), prio));
     }
     template <typename A, class W/*inherit ExWidget*/>
-    void addHandler(A* d, int(STDCALL A::*f)(W*, ExCbInfo*), uint8 prio = 5) {
+    void addHandler(A* d, uint32(STDCALL A::*f)(W*, ExCbInfo*), uint8 prio = 5) {
         handlerList.push(Callback(ExCallback(d, f), prio));
     }
     void removeHandler(const ExCallback& cb) {
         handlerList.remove2(cb);
     }
-    int invokeHandler(ExCbInfo* cbinfo) {
+    uint32 invokeHandler(ExCbInfo* cbinfo) {
         return handlerList.invoke(exWatchDisp, this, cbinfo);
     }
 public:
     void STDCALL onExFlush(ExWindow* window, const ExRegion* updateRgn);
     void STDCALL onWmPaint(ExWindow* window, const ExRegion* updateRgn);
-    int STDCALL onRepeatBut(ExTimer* timer, ExCbInfo* cbinfo);
-    int STDCALL onRepeatKey(ExTimer* timer, ExCbInfo* cbinfo);
+    uint32 STDCALL onRepeatBut(ExTimer* timer, ExCbInfo* cbinfo);
+    uint32 STDCALL onRepeatKey(ExTimer* timer, ExCbInfo* cbinfo);
 protected:
-    virtual int basicWndProc(ExCbInfo* cbinfo);
+    virtual uint32 basicWndProc(ExCbInfo* cbinfo);
 #ifdef WIN32
     static LRESULT CALLBACK sysWndProc(HWND, UINT, WPARAM, LPARAM);
-    static LPCTSTR getClassName() { return L"ExWindow"; }
+    static LPCSTR getClassName() { return "ExWindow"; }
     static ATOM classInit(HINSTANCE hInstance);
 #endif
 public:

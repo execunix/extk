@@ -232,7 +232,7 @@ ExBmpBlt(HDC dhdc, int32 dx, int32 dy, ExGdiBmp* sbmp)
 // class ExGdiFont
 
 int32
-ExGdiFont::CreateFont(int32 height, int32 weight, const char_t* facename)
+ExGdiFont::CreateFont(int32 height, int32 weight, const char* facename)
 {
     LOGFONT logfont;
     memset(&logfont, 0, sizeof(logfont));

@@ -13,13 +13,13 @@
 #endif
 
 static int32
-dprint_appinfo(mbyte* mbs, int32 len)
+dprint_appinfo(char* mbs, int32 len)
 {
     return snprintf(mbs, len, "%s", "[*] ");
 }
 
 static int32
-dprint_handler(int32 lvl, const mbyte* mbs)
+dprint_handler(int32 lvl, const char* mbs)
 {
 #ifdef WIN32
     OutputDebugStringA(mbs);
@@ -35,13 +35,13 @@ dprint_handler(int32 lvl, const mbyte* mbs)
 
 int32 dprint_charset = 949;
 int32 dprint_verbose = 999;
-int32 (*ex_dprint_appinfo)(mbyte* mbs, int32 len) = &dprint_appinfo;
-int32 (*ex_dprint_handler)(int32 lvl, const mbyte* mbs) = &dprint_handler;
+int32 (*ex_dprint_appinfo)(char* mbs, int32 len) = &dprint_appinfo;
+int32 (*ex_dprint_handler)(int32 lvl, const char* mbs) = &dprint_handler;
 
 int32 debug_vprintf(int32 lvl, const wchar* fmt, va_list arg)
 {
     int32 r = 0, n;
-    mbyte mbs[1024];
+    char mbs[1024];
     wchar wcs[1024];
 
     if (dprint_verbose < (lvl < 0 ? -lvl : lvl))
@@ -72,10 +72,10 @@ int32 debug_vprintf(int32 lvl, const wchar* fmt, va_list arg)
     return n;
 }
 
-int32 debug_vprintf(int32 lvl, const mbyte* fmt, va_list arg)
+int32 debug_vprintf(int32 lvl, const char* fmt, va_list arg)
 {
     int32 r = 0, n;
-    mbyte mbs[1024];
+    char mbs[1024];
 
     if (dprint_verbose < (lvl < 0 ? -lvl : lvl))
         return r;
@@ -105,7 +105,7 @@ void debug_print(int32 lvl, const wchar* fmt, ...)
     va_end(arg);
 }
 
-void debug_print(int32 lvl, const mbyte* fmt, ...)
+void debug_print(int32 lvl, const char* fmt, ...)
 {
     va_list arg;
     va_start(arg, fmt);
@@ -121,7 +121,7 @@ void debug_print(const wchar* fmt, ...)
     va_end(arg);
 }
 
-void debug_print(const mbyte* fmt, ...)
+void debug_print(const char* fmt, ...)
 {
     va_list arg;
     va_start(arg, fmt);
@@ -149,7 +149,7 @@ errno_t __cdecl _get_errno(__out int32* _Value)
     return _err_no_int;
 }
 
-const mbyte* strerror(int32 errval)
+const char* strerror(int32 errval)
 { // tbd
     return "syserr";
 }
@@ -161,7 +161,7 @@ const wchar* _wcserror(int32 errval)
 #endif // _WIN32_WCE
 
 static int32
-error_handler(const mbyte* mbs)
+error_handler(const char* mbs)
 {
     dprint1("err: %s", mbs);
 #ifdef WIN32
@@ -170,12 +170,12 @@ error_handler(const mbyte* mbs)
     return 0;
 }
 
-int32 (*ex_error_handler)(const mbyte* mbs) = &error_handler;
+int32 (*ex_error_handler)(const char* mbs) = &error_handler;
 
 int32 exerror(const wchar* fmt, ...)
 {
     int32 r, n;
-    mbyte mbs[1024];
+    char mbs[1024];
     wchar wcs[1024];
     va_list arg;
 
@@ -199,10 +199,10 @@ int32 exerror(const wchar* fmt, ...)
     return r;
 }
 
-int32 exerror(const mbyte* fmt, ...)
+int32 exerror(const char* fmt, ...)
 {
     int32 r, n;
-    mbyte mbs[1024];
+    char mbs[1024];
     va_list arg;
 
     va_start(arg, fmt);
@@ -216,7 +216,7 @@ int32 exerror(const mbyte* fmt, ...)
     return r;
 }
 
-const char_t* exstrerr()
+const char* exstrerr()
 {
     return strerror(errno);
 }

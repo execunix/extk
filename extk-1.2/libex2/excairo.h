@@ -449,7 +449,7 @@ void cr_font_options_set_hint_style(cr_font_options_t* options, cr_hint_style_t 
 cr_hint_style_t cr_font_options_get_hint_style(const cr_font_options_t* options);
 void cr_font_options_set_hint_metrics(cr_font_options_t* options, cr_hint_metrics_t hint_metrics);
 cr_hint_metrics_t cr_font_options_get_hint_metrics(const cr_font_options_t* options);
-void cr_select_font_face(cr_t* cr, const char_t* family, cr_font_slant_t slant, cr_font_weight_t weight);
+void cr_select_font_face(cr_t* cr, const char* family, cr_font_slant_t slant, cr_font_weight_t weight);
 void cr_set_font_size(cr_t* cr, float64 size);
 void cr_set_font_matrix(cr_t* cr, const cr_matrix_t* matrix);
 void cr_get_font_matrix(cr_t* cr, cr_matrix_t* matrix);
@@ -459,11 +459,11 @@ void cr_set_font_face(cr_t* cr, cr_font_face_t* font_face);
 cr_font_face_t* cr_get_font_face(cr_t* cr);
 void cr_set_scaled_font(cr_t* cr, const cr_scaled_font_t* scaled_font);
 cr_scaled_font_t* cr_get_scaled_font(cr_t* cr);
-void cr_show_text(cr_t* cr, const char_t* utf8);
+void cr_show_text(cr_t* cr, const char* utf8);
 void cr_show_glyphs(cr_t* cr, const cr_glyph_t* glyphs, int32 num_glyphs);
-void cr_text_path(cr_t* cr, const char_t* utf8);
+void cr_text_path(cr_t* cr, const char* utf8);
 void cr_glyph_path(cr_t* cr, const cr_glyph_t* glyphs, int32 num_glyphs);
-void cr_text_extents(cr_t* cr, const char_t* utf8, cr_text_extents_t* extents);
+void cr_text_extents(cr_t* cr, const char* utf8, cr_text_extents_t* extents);
 void cr_glyph_extents(cr_t* cr, const cr_glyph_t* glyphs, int32 num_glyphs, cr_text_extents_t* extents);
 void cr_font_extents(cr_t* cr, cr_font_extents_t* extents);
 
@@ -484,10 +484,10 @@ cr_font_type_t cr_scaled_font_get_type(cr_scaled_font_t* scaled_font);
 void* cr_scaled_font_get_user_data(cr_scaled_font_t* scaled_font, const cr_user_data_key_t* key);
 cr_status_t cr_scaled_font_set_user_data(cr_scaled_font_t* scaled_font, const cr_user_data_key_t* key, void* user_data, cr_destroy_func_t destroy);
 void cr_scaled_font_extents(cr_scaled_font_t* scaled_font, cr_font_extents_t* extents);
-void cr_scaled_font_text_extents(cr_scaled_font_t* scaled_font, const char_t* utf8, cr_text_extents_t* extents);
+void cr_scaled_font_text_extents(cr_scaled_font_t* scaled_font, const char* utf8, cr_text_extents_t* extents);
 void cr_scaled_font_glyph_extents(cr_scaled_font_t* scaled_font, const cr_glyph_t* glyphs, int32 num_glyphs, cr_text_extents_t* extents);
 cr_status_t cr_scaled_font_text_to_glyphs (cr_scaled_font_t* scaled_font, float64 x, float64 y,
-                            const char_t* utf8, int32 utf8_len, cr_glyph_t** glyphs, int32* num_glyphs);
+                            const char* utf8, int32 utf8_len, cr_glyph_t** glyphs, int32* num_glyphs);
 cr_font_face_t* cr_scaled_font_get_font_face(cr_scaled_font_t* scaled_font);
 void cr_scaled_font_get_font_matrix(cr_scaled_font_t* scaled_font, cr_matrix_t* font_matrix);
 void cr_scaled_font_get_ctm(cr_scaled_font_t* scaled_font, cr_matrix_t* ctm);
@@ -517,7 +517,7 @@ void cr_append_path(cr_t* cr, const cr_path_t* path);
 void cr_path_destroy(cr_path_t* path);
 
 cr_status_t cr_status(cr_t* cr);
-const char_t* cr_status_to_string(cr_status_t status);
+const char* cr_status_to_string(cr_status_t status);
 
 cr_surface_t* cr_surface_create_similar(cr_surface_t* other, cr_content_t content, int32 width, int32 height);
 cr_surface_t* cr_surface_create_similar_image(cr_surface_t* other, cr_format_t format, int32 width, int32 height);
@@ -532,7 +532,7 @@ uint32 cr_surface_get_reference_count(cr_surface_t* surface);
 cr_status_t cr_surface_status(cr_surface_t* surface);
 cr_surface_type_t cr_surface_get_type(cr_surface_t* surface);
 cr_content_t cr_surface_get_content(cr_surface_t* surface);
-cr_status_t cr_surface_write_to_png(cr_surface_t* surface, const char_t* filename);
+cr_status_t cr_surface_write_to_png(cr_surface_t* surface, const char* filename);
 void* cr_surface_get_user_data(cr_surface_t* surface, const cr_user_data_key_t* key);
 cr_status_t cr_surface_set_user_data(cr_surface_t* surface, const cr_user_data_key_t* key, void* user_data, cr_destroy_func_t destroy);
 cr_surface_t* cr_image_surface_create(cr_format_t format, int32 width, int32 height);
@@ -602,7 +602,7 @@ cr_status_t cr_region_xor_rectangle(cr_region_t* dst, const cr_rectangle_int_t* 
 
 void cr_debug_reset_static_data(void);
 
-bool cr_write_to_png(cr_t* cr, const char_t* filename);
+bool cr_write_to_png(cr_t* cr, const char* filename);
 
 class ExCairo {
 public:
@@ -613,7 +613,7 @@ public:
         static void finiFtLib();
         static void initFtLib();
 
-        bool load(const char_t* path, const char_t* name);
+        bool load(const char* path, const char* name);
         void free();
     };
 
@@ -727,7 +727,7 @@ public:
     void fill_rect_rgba(float64 x, float64 y, float64 w, float64 h, const Color& c);
 
     static void text_extent(cr_t* cr, cr_font_face_t* crf, float64 size,
-                            const char_t* utf8, cr_text_extents_t* te);
+                            const char* utf8, cr_text_extents_t* te);
 
     enum {
         Left    = 1 << 0,
@@ -740,13 +740,13 @@ public:
     static Point text_align(const cr_font_extents_t& fe, const cr_text_extents_t& te,
                             const Rect& r, uint32 align = 0);
 
-    Point text_align(const char_t* utf8, const Rect& r, uint32 align = 0);
+    Point text_align(const char* utf8, const Rect& r, uint32 align = 0);
 
-    void show_text(const char_t* utf8, const Color& c, const Rect& r, uint32 align = 0);
+    void show_text(const char* utf8, const Color& c, const Rect& r, uint32 align = 0);
 
-    void show_text(const char_t* utf8, const Color& c, const Point& p);
+    void show_text(const char* utf8, const Color& c, const Point& p);
 
-    void show_text(const char_t* utf8, float64 r, float64 g, float64 b, float64 x, float64 y);
+    void show_text(const char* utf8, float64 r, float64 g, float64 b, float64 x, float64 y);
 
     void set_font(cr_font_face_t* font, float64 size);
 };

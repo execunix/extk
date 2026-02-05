@@ -1094,112 +1094,6 @@ CLEANUP_COMPOSITE:
     return status;
 }
 
-static cairo_int_status_t
-_cairo_recording_surface_show_ucs2_glyphs (void				*abstract_surface,
-					   cairo_operator_t		 op,
-					   const cairo_pattern_t	*source,
-					   const UCS2			*ucs2, // extk
-					   int				 ucs2_len,
-					   cairo_glyph_t		*glyphs,
-					   int				 num_glyphs,
-					   const cairo_ucs2_cluster_t	*clusters,
-					   int				 num_clusters,
-					   cairo_text_cluster_flags_t	 cluster_flags,
-					   cairo_scaled_font_t		*scaled_font,
-					   const cairo_clip_t		*clip)
-{
-    cairo_status_t status;
-    cairo_recording_surface_t *surface = abstract_surface;
-    cairo_command_show_ucs2_glyphs_t *command;
-    cairo_composite_rectangles_t composite;
-
-    TRACE ((stderr, "%s: surface=%d\n", __FUNCTION__, surface->base.unique_id));
-
-    status = _cairo_composite_rectangles_init_for_glyphs (&composite,
-							  &surface->base,
-							  op, source,
-							  scaled_font,
-							  glyphs, num_glyphs,
-							  clip,
-							  NULL);
-    if (unlikely (status))
-	return status;
-
-    command = malloc (sizeof (cairo_command_show_ucs2_glyphs_t));
-    if (unlikely (command == NULL)) {
-	status = _cairo_error (CAIRO_STATUS_NO_MEMORY);
-	goto CLEANUP_COMPOSITE;
-    }
-
-    status = _command_init (surface,
-			    &command->header, CAIRO_COMMAND_SHOW_TEXT_GLYPHS,
-			    op, &composite);
-    if (unlikely (status))
-	goto CLEANUP_COMMAND;
-
-    status = _cairo_pattern_init_snapshot (&command->source.base, source);
-    if (unlikely (status))
-	goto CLEANUP_COMMAND;
-
-    command->ucs2 = NULL;
-    command->ucs2_len = ucs2_len;
-    command->glyphs = NULL;
-    command->num_glyphs = num_glyphs;
-    command->clusters = NULL;
-    command->num_clusters = num_clusters;
-
-    if (ucs2_len) {
-	command->ucs2 = malloc (ucs2_len * sizeof(UCS2));
-	if (unlikely (command->ucs2 == NULL)) {
-	    status = _cairo_error (CAIRO_STATUS_NO_MEMORY);
-	    goto CLEANUP_ARRAYS;
-	}
-	memcpy (command->ucs2, ucs2, ucs2_len * sizeof(UCS2));
-    }
-    if (num_glyphs) {
-	command->glyphs = _cairo_malloc_ab (num_glyphs, sizeof (glyphs[0]));
-	if (unlikely (command->glyphs == NULL)) {
-	    status = _cairo_error (CAIRO_STATUS_NO_MEMORY);
-	    goto CLEANUP_ARRAYS;
-	}
-	memcpy (command->glyphs, glyphs, sizeof (glyphs[0]) * num_glyphs);
-    }
-    if (num_clusters) {
-	command->clusters = _cairo_malloc_ab (num_clusters, sizeof (clusters[0]));
-	if (unlikely (command->clusters == NULL)) {
-	    status = _cairo_error (CAIRO_STATUS_NO_MEMORY);
-	    goto CLEANUP_ARRAYS;
-	}
-	memcpy (command->clusters, clusters, sizeof (clusters[0]) * num_clusters);
-    }
-
-    command->cluster_flags = cluster_flags;
-
-    command->scaled_font = cairo_scaled_font_reference (scaled_font);
-
-    status = _cairo_recording_surface_commit (surface, &command->header);
-    if (unlikely (status))
-	goto CLEANUP_SCALED_FONT;
-
-    _cairo_composite_rectangles_fini (&composite);
-    return CAIRO_STATUS_SUCCESS;
-
-  CLEANUP_SCALED_FONT:
-    cairo_scaled_font_destroy (command->scaled_font);
-  CLEANUP_ARRAYS:
-    free (command->ucs2);
-    free (command->glyphs);
-    free (command->clusters);
-
-    _cairo_pattern_fini (&command->source.base);
-  CLEANUP_COMMAND:
-    _cairo_clip_destroy (command->header.clip);
-    free (command);
-CLEANUP_COMPOSITE:
-    _cairo_composite_rectangles_fini (&composite);
-    return status;
-}
-
 static void
 _command_init_copy (cairo_recording_surface_t *surface,
 		    cairo_command_header_t *dst,
@@ -1416,13 +1310,11 @@ _cairo_recording_surface_copy__glyphs (cairo_recording_surface_t *surface,
 
     if (command->utf8_len) {
 	command->utf8 = malloc (command->utf8_len);
-	//command->ucs2 = malloc (command->ucs2_len * sizeof(UCS2));
 	if (unlikely (command->utf8 == NULL)) {
 	    status = _cairo_error (CAIRO_STATUS_NO_MEMORY);
 	    goto err_arrays;
 	}
 	memcpy (command->utf8, src->show_text_glyphs.utf8, command->utf8_len);
-	//memcpy (command->ucs2, src->show_text_glyphs.ucs2, command->ucs2_len * sizeof(UCS2));
     }
     if (command->num_glyphs) {
 	command->glyphs = _cairo_malloc_ab (command->num_glyphs,
@@ -1976,23 +1868,6 @@ _cairo_recording_surface_replay_internal (cairo_recording_surface_t	*surface,
 	    }
 	    break;
 
-	case CAIRO_COMMAND_SHOW_UCS2_GLYPHS:
-	    status = _cairo_surface_wrapper_show_ucs2_glyphs (&wrapper,
-							      command->header.op,
-							      &command->show_ucs2_glyphs.source.base,
-							      command->show_ucs2_glyphs.ucs2, command->show_ucs2_glyphs.ucs2_len,
-							      command->show_ucs2_glyphs.glyphs, command->show_ucs2_glyphs.num_glyphs,
-							      command->show_ucs2_glyphs.clusters, command->show_ucs2_glyphs.num_clusters,
-							      command->show_ucs2_glyphs.cluster_flags,
-							      command->show_ucs2_glyphs.scaled_font,
-							      command->header.clip);
-	    if (type == CAIRO_RECORDING_CREATE_REGIONS) {
-		_cairo_recording_surface_merge_source_attributes (surface,
-								  command->header.op,
-								  &command->show_ucs2_glyphs.source.base);
-	    }
-	    break;
-
 	default:
 	    ASSERT_NOT_REACHED;
 	}
@@ -2097,18 +1972,6 @@ _cairo_recording_surface_replay_one (cairo_recording_surface_t	*surface,
 							  command->show_text_glyphs.clusters, command->show_text_glyphs.num_clusters,
 							  command->show_text_glyphs.cluster_flags,
 							  command->show_text_glyphs.scaled_font,
-							  command->header.clip);
-	break;
-
-    case CAIRO_COMMAND_SHOW_UCS2_GLYPHS:
-	status = _cairo_surface_wrapper_show_ucs2_glyphs (&wrapper,
-							  command->header.op,
-							  &command->show_ucs2_glyphs.source.base,
-							  command->show_ucs2_glyphs.ucs2, command->show_ucs2_glyphs.ucs2_len,
-							  command->show_ucs2_glyphs.glyphs, command->show_ucs2_glyphs.num_glyphs,
-							  command->show_ucs2_glyphs.clusters, command->show_ucs2_glyphs.num_clusters,
-							  command->show_ucs2_glyphs.cluster_flags,
-							  command->show_ucs2_glyphs.scaled_font,
 							  command->header.clip);
 	break;
 

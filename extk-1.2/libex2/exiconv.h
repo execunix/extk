@@ -16,28 +16,28 @@ class wcsconv {
 public:
     union {
         wchar* wcs;
-        mbyte* mbs;
+        char* mbs;
     };
     ~wcsconv();
     wcsconv(const wchar* src);
-    wcsconv(const mbyte* src);
+    wcsconv(const char* src);
     operator wchar* () { return wcs; }
-    operator mbyte* () { return mbs; }
+    operator char* () { return mbs; }
 };
 
 class wcs2mbs {
 public:
-    mbyte* mbs;
+    char* mbs;
     ~wcs2mbs();
     wcs2mbs(const wchar* wcs);
-    operator const mbyte* () const { return mbs; }
+    operator const char* () const { return mbs; }
 };
 
 class mbs2wcs {
 public:
     wchar* wcs;
     ~mbs2wcs();
-    mbs2wcs(const mbyte* mbs);
+    mbs2wcs(const char* mbs);
     operator const wchar* () const { return wcs; }
 };
 
