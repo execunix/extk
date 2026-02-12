@@ -4,11 +4,11 @@
  */
 
 #include "eximage.h"
-#include <pngpriv.h>
 #include <stdio.h>
 #ifdef __linux__
 #include <fcntl.h>
 #endif
+#include <png.h>
 
 #if defined(_MSC_VER)
 #pragma comment(lib, "libpng.lib")
@@ -18,7 +18,7 @@ static void
 s_png_read_data(png_structp png_ptr, png_bytep data, png_size_t length)
 {
 #ifdef WIN32
-    HANDLE hFile = png_ptr->io_ptr;
+    HANDLE hFile = (HANDLE)png_get_io_ptr(png_ptr);
     DWORD dwRead = 0;
     ReadFile(hFile, data, (DWORD)length, &dwRead, NULL);
     if (dwRead != length) {
@@ -26,7 +26,7 @@ s_png_read_data(png_structp png_ptr, png_bytep data, png_size_t length)
         png_error(png_ptr, "read error");
     }
 #else // compat linux
-    int32 fd = (int64)png_ptr->io_ptr;
+    int32 fd = (int32)png_get_io_ptr(png_ptr);
     if (read(fd, data, length) != (ssize_t)length) {
         exerror("%s - read error.\n", __func__);
         png_error(png_ptr, "read error");
@@ -38,7 +38,7 @@ static void
 s_png_write_data(png_structp png_ptr, png_bytep data, png_size_t length)
 {
 #ifdef WIN32
-    HANDLE hFile = png_ptr->io_ptr;
+    HANDLE hFile = (HANDLE)png_get_io_ptr(png_ptr);
     DWORD dwWritten = 0;
     WriteFile(hFile, data, (DWORD)length, &dwWritten, NULL);
     if (dwWritten != length) {
@@ -46,7 +46,7 @@ s_png_write_data(png_structp png_ptr, png_bytep data, png_size_t length)
         png_error(png_ptr, "write error");
     }
 #else // compat linux
-    int32 fd = (int64)png_ptr->io_ptr;
+    int32 fd = (int32)png_get_io_ptr(png_ptr);
     if (write(fd, data, length) != (ssize_t)length) {
         exerror("%s - write error.\n", __func__);
         png_error(png_ptr, "write error");
@@ -58,10 +58,10 @@ static void
 s_png_flush(png_structp png_ptr)
 {
 #ifdef WIN32
-    HANDLE hFile = png_ptr->io_ptr;
+    HANDLE hFile = (HANDLE)png_get_io_ptr(png_ptr);
     FlushFileBuffers(hFile);
 #else // compat linux
-    int32 fd = (int64)png_ptr->io_ptr;
+    int32 fd = (int32)png_get_io_ptr(png_ptr);
     fsync(fd);
 #endif
 }

@@ -52,7 +52,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>../../libpng-1.5.6;../extk/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../libpng-1.6.37;../extk/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_CRT_SECURE_NO_DEPRECATE;WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -65,7 +65,9 @@
       <OutputFile>$(OutDir)libpng.lib</OutputFile>
     </Lib>
     <PostBuildEvent>
-      <Command>xcopy ..\..\libpng-1.5.6\png*.h ..\extk\include\ /d /y
+      <Command>xcopy ..\..\libpng-1.6.37\png.h ..\extk\include\ /d /y
+xcopy ..\..\libpng-1.6.37\pngconf.h ..\extk\include\ /d /y
+xcopy ..\..\libpng-1.6.37\pnglibconf.h ..\extk\include\ /d /y
 xcopy "$(OutDir)$(TargetFileName)" "..\extk\$(OutDir)" /d /y
 </Command>
     </PostBuildEvent>
@@ -73,7 +75,7 @@ xcopy "$(OutDir)$(TargetFileName)" "..\extk\$(OutDir)" /d /y
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
       <Optimization>MinSpace</Optimization>
-      <AdditionalIncludeDirectories>../../libpng-1.5.6;../extk/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../libpng-1.6.37;../extk/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_CRT_SECURE_NO_DEPRECATE;WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -86,36 +88,38 @@ xcopy "$(OutDir)$(TargetFileName)" "..\extk\$(OutDir)" /d /y
       <OutputFile>$(OutDir)libpng.lib</OutputFile>
     </Lib>
     <PostBuildEvent>
-      <Command>xcopy ..\..\libpng-1.5.6\png*.h ..\extk\include\ /d /y
+      <Command>xcopy ..\..\libpng-1.6.37\png.h ..\extk\include\ /d /y
+xcopy ..\..\libpng-1.6.37\pngconf.h ..\extk\include\ /d /y
+xcopy ..\..\libpng-1.6.37\pnglibconf.h ..\extk\include\ /d /y
 xcopy "$(OutDir)$(TargetFileName)" "..\extk\$(OutDir)" /d /y
 </Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\libpng-1.5.6\png.c" />
-    <ClCompile Include="..\..\libpng-1.5.6\pngerror.c" />
-    <ClCompile Include="..\..\libpng-1.5.6\pngget.c" />
-    <ClCompile Include="..\..\libpng-1.5.6\pngmem.c" />
-    <ClCompile Include="..\..\libpng-1.5.6\pngpread.c" />
-    <ClCompile Include="..\..\libpng-1.5.6\pngread.c" />
-    <ClCompile Include="..\..\libpng-1.5.6\pngrio.c" />
-    <ClCompile Include="..\..\libpng-1.5.6\pngrtran.c" />
-    <ClCompile Include="..\..\libpng-1.5.6\pngrutil.c" />
-    <ClCompile Include="..\..\libpng-1.5.6\pngset.c" />
-    <ClCompile Include="..\..\libpng-1.5.6\pngtrans.c" />
-    <ClCompile Include="..\..\libpng-1.5.6\pngwio.c" />
-    <ClCompile Include="..\..\libpng-1.5.6\pngwrite.c" />
-    <ClCompile Include="..\..\libpng-1.5.6\pngwtran.c" />
-    <ClCompile Include="..\..\libpng-1.5.6\pngwutil.c" />
+    <ClCompile Include="..\..\libpng-1.6.37\png.c" />
+    <ClCompile Include="..\..\libpng-1.6.37\pngerror.c" />
+    <ClCompile Include="..\..\libpng-1.6.37\pngget.c" />
+    <ClCompile Include="..\..\libpng-1.6.37\pngmem.c" />
+    <ClCompile Include="..\..\libpng-1.6.37\pngpread.c" />
+    <ClCompile Include="..\..\libpng-1.6.37\pngread.c" />
+    <ClCompile Include="..\..\libpng-1.6.37\pngrio.c" />
+    <ClCompile Include="..\..\libpng-1.6.37\pngrtran.c" />
+    <ClCompile Include="..\..\libpng-1.6.37\pngrutil.c" />
+    <ClCompile Include="..\..\libpng-1.6.37\pngset.c" />
+    <ClCompile Include="..\..\libpng-1.6.37\pngtrans.c" />
+    <ClCompile Include="..\..\libpng-1.6.37\pngwio.c" />
+    <ClCompile Include="..\..\libpng-1.6.37\pngwrite.c" />
+    <ClCompile Include="..\..\libpng-1.6.37\pngwtran.c" />
+    <ClCompile Include="..\..\libpng-1.6.37\pngwutil.c" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\libpng-1.5.6\png.h" />
-    <ClInclude Include="..\..\libpng-1.5.6\pngconf.h" />
-    <ClInclude Include="..\..\libpng-1.5.6\pngdebug.h" />
-    <ClInclude Include="..\..\libpng-1.5.6\pnginfo.h" />
-    <ClInclude Include="..\..\libpng-1.5.6\pnglibconf.h" />
-    <ClInclude Include="..\..\libpng-1.5.6\pngpriv.h" />
-    <ClInclude Include="..\..\libpng-1.5.6\pngstruct.h" />
+    <ClInclude Include="..\..\libpng-1.6.37\png.h" />
+    <ClInclude Include="..\..\libpng-1.6.37\pngconf.h" />
+    <ClInclude Include="..\..\libpng-1.6.37\pngdebug.h" />
+    <ClInclude Include="..\..\libpng-1.6.37\pnginfo.h" />
+    <ClInclude Include="..\..\libpng-1.6.37\pnglibconf.h" />
+    <ClInclude Include="..\..\libpng-1.6.37\pngpriv.h" />
+    <ClInclude Include="..\..\libpng-1.6.37\pngstruct.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />

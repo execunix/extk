@@ -15,72 +15,72 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\libpng-1.5.6\png.c">
+    <ClCompile Include="..\..\libpng-1.6.37\png.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\libpng-1.5.6\pngerror.c">
+    <ClCompile Include="..\..\libpng-1.6.37\pngerror.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\libpng-1.5.6\pngget.c">
+    <ClCompile Include="..\..\libpng-1.6.37\pngget.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\libpng-1.5.6\pngmem.c">
+    <ClCompile Include="..\..\libpng-1.6.37\pngmem.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\libpng-1.5.6\pngpread.c">
+    <ClCompile Include="..\..\libpng-1.6.37\pngpread.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\libpng-1.5.6\pngread.c">
+    <ClCompile Include="..\..\libpng-1.6.37\pngread.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\libpng-1.5.6\pngrio.c">
+    <ClCompile Include="..\..\libpng-1.6.37\pngrio.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\libpng-1.5.6\pngrtran.c">
+    <ClCompile Include="..\..\libpng-1.6.37\pngrtran.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\libpng-1.5.6\pngrutil.c">
+    <ClCompile Include="..\..\libpng-1.6.37\pngrutil.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\libpng-1.5.6\pngset.c">
+    <ClCompile Include="..\..\libpng-1.6.37\pngset.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\libpng-1.5.6\pngtrans.c">
+    <ClCompile Include="..\..\libpng-1.6.37\pngtrans.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\libpng-1.5.6\pngwio.c">
+    <ClCompile Include="..\..\libpng-1.6.37\pngwio.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\libpng-1.5.6\pngwrite.c">
+    <ClCompile Include="..\..\libpng-1.6.37\pngwrite.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\libpng-1.5.6\pngwtran.c">
+    <ClCompile Include="..\..\libpng-1.6.37\pngwtran.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\libpng-1.5.6\pngwutil.c">
+    <ClCompile Include="..\..\libpng-1.6.37\pngwutil.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\libpng-1.5.6\png.h">
+    <ClInclude Include="..\..\libpng-1.6.37\png.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\libpng-1.5.6\pngconf.h">
+    <ClInclude Include="..\..\libpng-1.6.37\pngconf.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\libpng-1.5.6\pngdebug.h">
+    <ClInclude Include="..\..\libpng-1.6.37\pngdebug.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\libpng-1.5.6\pnginfo.h">
+    <ClInclude Include="..\..\libpng-1.6.37\pnginfo.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\libpng-1.5.6\pnglibconf.h">
+    <ClInclude Include="..\..\libpng-1.6.37\pnglibconf.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\libpng-1.5.6\pngpriv.h">
+    <ClInclude Include="..\..\libpng-1.6.37\pngpriv.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\libpng-1.5.6\pngstruct.h">
+    <ClInclude Include="..\..\libpng-1.6.37\pngstruct.h">
       <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>
