@@ -10,10 +10,12 @@
 
 #ifdef WIN32
 // float-32 divide 8bit value
-#define FD8V(v) ((v) / 255.f)
+inline float32 FD8V(const int32 v) { return (static_cast<float32>(v) / 255.F); }
+inline float32 FD8V(const uint32 v) { return (static_cast<float32>(v) / 255.F); }
 #else // compat linux
 // float-64 divide 8bit value
-#define FD8V(v) ((v) / 255.)
+inline float64 FD8V(const int32 v) { return (static_cast<float64>(v) / 255.); }
+inline float64 FD8V(const uint32 v) { return (static_cast<float64>(v) / 255.); }
 #endif
 
 #pragma pack(push, 1)
@@ -614,56 +616,56 @@ public:
         static void initFtLib();
 
         bool load(const char* path, const char* name);
-        void free();
+        void destroy();
     };
 
     struct Color {
         float64 a, r, g, b;
 
-        Color() {}
-        Color(float64 f) : a(f), r(f), g(f), b(f) {}
-        Color(float64 r, float64 g, float64 b) : a(1.), r(r), g(g), b(b) {}
-        Color(float64 r, float64 g, float64 b, float64 a) : a(a), r(r), g(g), b(b) {}
+        Color() noexcept {}
+        Color(float64 f) noexcept : a(f), r(f), g(f), b(f) {}
+        Color(float64 r, float64 g, float64 b) noexcept : a(1.), r(r), g(g), b(b) {}
+        Color(float64 r, float64 g, float64 b, float64 a) noexcept : a(a), r(r), g(g), b(b) {}
 
-        void set(float64 r, float64 g, float64 b) {
+        void set(float64 r, float64 g, float64 b) noexcept {
             this->r = r; this->g = g; this->b = b; this->a = 1.;
         }
-        void set(float64 r, float64 g, float64 b, float64 a) {
+        void set(float64 r, float64 g, float64 b, float64 a) noexcept {
             this->r = r; this->g = g; this->b = b; this->a = a;
         }
-        void setv(uint8 r, uint8 g, uint8 b) {
+        void setv(int32 r, int32 g, int32 b) noexcept {
             this->r = FD8V(r); this->g = FD8V(g); this->b = FD8V(b); this->a = 1.;
         }
-        void setv(uint8 r, uint8 g, uint8 b, uint8 a) {
+        void setv(int32 r, int32 g, int32 b, int32 a) noexcept {
             this->r = FD8V(r); this->g = FD8V(g); this->b = FD8V(b); this->a = FD8V(a);
         }
-        void setv(uint32 rgb) {
-            setv(rgb >> 16, rgb >> 8, rgb);
+        void setv(uint32 rgb) noexcept {
+            set(FD8V((rgb >> 16) & 0xFFU), FD8V((rgb >> 8) & 0xFFU), FD8V((rgb >> 0) & 0xFFU));
         }
     };
 
     struct Point {
         float64 x, y;
 
-        Point() {}
-        Point(float64 f) : x(f), y(f) {}
-        Point(float64 x, float64 y) : x(x), y(y) {}
-        Point(int32 x, int32 y) : x((float64)x), y((float64)y) {}
+        Point() noexcept {}
+        Point(float64 f) noexcept : x(f), y(f) {}
+        Point(float64 x, float64 y) noexcept : x(x), y(y) {}
+        Point(int32 x, int32 y) noexcept : x((float64)x), y((float64)y) {}
 
-        void set(float64 x, float64 y) { this->x = x; this->y = y; }
-        void set(int32 x, int32 y) { this->x = (float64)x; this->y = (float64)y; }
+        void set(float64 x, float64 y) noexcept { this->x = x; this->y = y; }
+        void set(int32 x, int32 y) noexcept { this->x = (float64)x; this->y = (float64)y; }
     };
 
     struct Size {
         float64 w, h;
 
-        Size() {}
-        Size(float64 f) : w(f), h(f) {}
-        Size(float64 w, float64 h) : w(w), h(h) {}
-        Size(int32 w, int32 h) : w((float64)w), h((float64)h) {}
+        Size() noexcept {}
+        Size(float64 f) noexcept : w(f), h(f) {}
+        Size(float64 w, float64 h) noexcept : w(w), h(h) {}
+        Size(int32 w, int32 h) noexcept : w((float64)w), h((float64)h) {}
 
-        void set(float64 w, float64 h) { this->w = w; this->h = h; }
-        void set(int32 w, int32 h) { this->w = (float64)w; this->h = (float64)h; }
+        void set(float64 w, float64 h) noexcept { this->w = w; this->h = h; }
+        void set(int32 w, int32 h) noexcept { this->w = (float64)w; this->h = (float64)h; }
     };
 
     struct Rect {
@@ -672,18 +674,18 @@ public:
             struct { Point pt; Size sz; } u;
         };
 
-        Rect() {}
-        Rect(ExRect rc) : x((float64)rc.x), y((float64)rc.y), w((float64)rc.w), h((float64)rc.h) {}
-        Rect(int32 x, int32 y, int32 w, int32 h) : x((float64)x), y((float64)y), w((float64)w), h((float64)h) {}
-        Rect(float64 x, float64 y, float64 w, float64 h) : x(x), y(y), w(w), h(h) {}
+        Rect() noexcept {}
+        Rect(ExRect rc) noexcept : x((float64)rc.x), y((float64)rc.y), w((float64)rc.w), h((float64)rc.h) {}
+        Rect(int32 x, int32 y, int32 w, int32 h) noexcept : x((float64)x), y((float64)y), w((float64)w), h((float64)h) {}
+        Rect(float64 x, float64 y, float64 w, float64 h) noexcept : x(x), y(y), w(w), h(h) {}
 
-        void set(ExRect rc) {
+        void set(ExRect rc) noexcept {
             this->x = (float64)rc.x; this->y = (float64)rc.y; this->w = (float64)rc.w; this->h = (float64)rc.h;
         }
-        void set(int32 x, int32 y, int32 w, int32 h) {
+        void set(int32 x, int32 y, int32 w, int32 h) noexcept {
             this->x = (float64)x; this->y = (float64)y; this->w = (float64)w; this->h = (float64)h;
         }
-        void set(float64 x, float64 y, float64 w, float64 h) {
+        void set(float64 x, float64 y, float64 w, float64 h) noexcept {
             this->x = x; this->y = y; this->w = w; this->h = h;
         }
         Point p2() const { return Point(x + w, y + h); }
@@ -695,21 +697,21 @@ public:
             struct { Point p1, p2; } u;
         };
 
-        Box() {}
-        Box(ExBox bx) : l((float64)bx.l), t((float64)bx.t), r((float64)bx.r), b((float64)bx.b) {}
-        Box(int32 l, int32 t, int32 r, int32 b) : l((float64)l), t((float64)t), r((float64)r), b((float64)b) {}
-        Box(float64 l, float64 t, float64 r, float64 b) : l(l), t(t), r(r), b(b) {}
+        Box() noexcept {}
+        Box(ExBox bx) noexcept : l((float64)bx.l), t((float64)bx.t), r((float64)bx.r), b((float64)bx.b) {}
+        Box(int32 l, int32 t, int32 r, int32 b) noexcept : l((float64)l), t((float64)t), r((float64)r), b((float64)b) {}
+        Box(float64 l, float64 t, float64 r, float64 b) noexcept : l(l), t(t), r(r), b(b) {}
 
         float64 width() const { return r - l; }
         float64 height() const { return b - t; }
 
-        void set(ExBox bx) {
+        void set(ExBox bx) noexcept {
             this->l = (float64)bx.l; this->t = (float64)bx.t; this->r = (float64)bx.r; this->b = (float64)bx.b;
         }
-        void set(int32 l, int32 t, int32 r, int32 b) {
+        void set(int32 l, int32 t, int32 r, int32 b) noexcept {
             this->l = (float64)l; this->t = (float64)t; this->r = (float64)r; this->b = (float64)b;
         }
-        void set(float64 l, float64 t, float64 r, float64 b) {
+        void set(float64 l, float64 t, float64 r, float64 b) noexcept {
             this->l = l; this->t = t; this->r = r; this->b = b;
         }
     };
@@ -718,10 +720,11 @@ protected:
     const ExCanvas* const canvas;
     void set_region(const ExRegion* srcrgn);
 public:
-    ~ExCairo();
-    ExCairo(const ExCanvas* canvas, const ExRegion* damage);
+    ~ExCairo() noexcept;
+    ExCairo(const ExCanvas* const canvas, const ExRegion* const damage) noexcept;
 public:
-    operator cr_t* const () const;
+    operator cr_t* ();
+    cr_t* cr();
 
     void fill_rect_rgba(const Rect& r, const Color& c);
     void fill_rect_rgba(float64 x, float64 y, float64 w, float64 h, const Color& c);
@@ -729,20 +732,19 @@ public:
     static void text_extent(cr_t* cr, cr_font_face_t* crf, float64 size,
                             const char* utf8, cr_text_extents_t* te);
 
-    enum {
-        Left    = 1 << 0,
-        Right   = 2 << 0,
-        Center  = 0 << 0,
-        Top     = 1 << 2,
-        Bottom  = 2 << 2,
-        VCenter = 0 << 2,
-    };
+    static const uint32 Left    = (1U << 0);
+    static const uint32 Right   = (2U << 0);
+    static const uint32 Center  = (0U << 0);
+    static const uint32 Top     = (1U << 2);
+    static const uint32 Bottom  = (2U << 2);
+    static const uint32 VCenter = (0U << 2);
+
     static Point text_align(const cr_font_extents_t& fe, const cr_text_extents_t& te,
-                            const Rect& r, uint32 align = 0);
+                            const Rect& r, uint32 align = 0U);
 
-    Point text_align(const char* utf8, const Rect& r, uint32 align = 0);
+    Point text_align(const char* utf8, const Rect& r, uint32 align = 0U);
 
-    void show_text(const char* utf8, const Color& c, const Rect& r, uint32 align = 0);
+    void show_text(const char* utf8, const Color& c, const Rect& r, uint32 align = 0U);
 
     void show_text(const char* utf8, const Color& c, const Point& p);
 

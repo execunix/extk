@@ -6,8 +6,8 @@
 #include "excairo.h"
 #include "excanvas.h"
 #include <ft2build.h>
-#include <cairo/cairo-ft.h>
-#include <cairo/cairo.h>
+#include <cairo-ft.h>
+#include <cairo.h>
 #include FT_FREETYPE_H
 
 cr_t* cr_create(cr_surface_t* target)
@@ -1252,7 +1252,7 @@ bool ExCairo::Face::load(const char* path, const char* name)
     return true;
 }
 
-void ExCairo::Face::free()
+void ExCairo::Face::destroy()
 {
     exassert(ftLib != NULL);
 
@@ -1268,12 +1268,12 @@ void ExCairo::Face::free()
 
 // ExCairo
 //
-ExCairo::~ExCairo()
+ExCairo::~ExCairo() noexcept
 {
     cairo_restore(canvas->cr);
 }
 
-ExCairo::ExCairo(const ExCanvas* canvas, const ExRegion* damage) : canvas(canvas)
+ExCairo::ExCairo(const ExCanvas* const canvas, const ExRegion* const damage) noexcept : canvas(canvas)
 {
     cairo_save(canvas->cr);
     set_region(damage);

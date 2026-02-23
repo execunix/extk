@@ -25,26 +25,26 @@
 #ifdef WIN32
 #define NOMINMAX
 #include <windows.h>
-//#include <stddef.h>
-#include <limits.h>
+#include <stddef.h>
 #include <malloc.h>
 #include <memory.h>
 #include <float.h>
-#else // linux
-#include <stdint.h>
+#endif
+#ifdef __linux__
 #include <unistd.h>
+#endif
 #include <limits.h>
-#endif
+#include <stdint.h>
 #include <string.h>
+#include <signal.h>
+#include <stdlib.h>
+#include <stdio.h>
 #include <wchar.h>
-#include <cstdlib>
-#include <cstdio>
-#include <algorithm>
-#ifdef WIN32
-#include <pixman.h>
-#else // linux
+#ifdef __linux__
 #include <math.h>
+#include <sys/time.h>
 #endif
+#include <algorithm>
 
 #ifndef STDCALL
 #if defined(_MSC_VER)
@@ -109,6 +109,8 @@ typedef            float float32_t;
 typedef        float32_t float32;
 typedef           double float64_t;
 typedef        float64_t float64;
+typedef      long double float64x_t;
+typedef       float64x_t float64x;
 #ifdef ARCH_X86_64
 typedef       __float128 float128_t;
 typedef       float128_t float128;

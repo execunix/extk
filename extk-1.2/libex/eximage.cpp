@@ -4,7 +4,7 @@
  */
 
 #include "eximage.h"
-#include <cairo/cairo.h>
+#include <cairo.h>
 #ifdef __linux__
 #include <strings.h>
 #include <fcntl.h>

@@ -6,7 +6,7 @@
 #include "excanvas.h"
 #include "exwindow.h"
 #include <ft2build.h>
-#include <cairo/cairo-ft.h>
+#include <cairo-ft.h>
 #include "exapp.h"
 
 // class ExCanvas

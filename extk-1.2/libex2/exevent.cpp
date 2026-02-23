@@ -51,7 +51,7 @@ bool ExEmitButRelease(ExWidget* widget, int32 x, int32 y) {
 #endif
 
 #ifdef __linux__
-bool ExEmitMessage(int32 type, int32 message, int32 wParam, int32 lParam) {
+bool ExEmitMessage(const int32 type, const int32 message, const int32 wParam, const int64 lParam) {
     return false;
 }
 #endif

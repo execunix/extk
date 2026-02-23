@@ -7,6 +7,7 @@
 #define __exdebug_h__
 
 #include "exconfig.h"
+#include "exmacro.h"
 #include <stdarg.h>
 
 extern int32 dprint_charset; // default 949
@@ -53,6 +54,16 @@ void debug_print(const char* fmt, ...);
 #define exassert(expr) ( static_cast<bool>(expr) ? void(0) : debug_print(0, \
         "Assertion failed %s:%d (%s)\n", __FILE__, __LINE__, #expr))
 #endif//DEBUG
+
+#if __cplusplus >= 201103L // assertion c++11
+inline void exassert2(bool expr, const char* msg = "THROW") {
+    if (expr == false) {
+        dprint1("Assertion failed: %s\n", msg);
+        __builtin_trap();
+        throw msg;
+    }
+}
+#endif
 
 #define exassertstatic(expr) \
         typedef struct { \

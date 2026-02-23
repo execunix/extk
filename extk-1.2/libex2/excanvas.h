@@ -38,7 +38,11 @@ public:
     Ex_DECLARE_TYPEINFO(ExCanvas, ExObject);
 };
 
-inline ExCairo::operator cr_t* const () const {
+inline ExCairo::operator cr_t* () {
+    return canvas->cr;
+}
+
+inline cr_t* ExCairo::cr() {
     return canvas->cr;
 }
 

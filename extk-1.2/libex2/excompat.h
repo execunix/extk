@@ -10,25 +10,16 @@
 
 #ifdef __linux__
 typedef void* ATOM;
+typedef void* HANDLE;
 typedef void* HWND;
 typedef void* HRGN;
 typedef void* HDC;
 typedef uint UINT;
-typedef uint DWORD;
-typedef uint WPARAM;
-typedef uint LPARAM;
-typedef long LRESULT;
+typedef ulong DWORD;
+typedef int64 WPARAM;
+typedef int64 LPARAM;
+typedef int64 LRESULT;
 typedef void* HINSTANCE;
-typedef char* LPSTR;
-typedef wchar* LPTSTR;
-typedef const char* LPCSTR;
-typedef const wchar* LPCTSTR;
-#define CALLBACK
-#define CW_USEDEFAULT -1
-#define DestroyWindow(...) ((void)0)
-#define CreateWindowEx(...) NULL
-#define ShowWindow(...) 1
-#define UpdateWindow(...) 1
 #endif
 
 #endif//__excompat_h__

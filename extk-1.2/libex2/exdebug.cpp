@@ -24,7 +24,7 @@ dprint_handler(int32 lvl, const char* mbs)
 #ifdef WIN32
     OutputDebugStringA(mbs);
 #else
-    #if 1
+    #if 0
     printf("%s", mbs);
     #else
     dprintf(STDOUT_FILENO/*stdout*/, "%s", mbs); // tbd

@@ -82,9 +82,9 @@ Returns:
     0	no messages are available
     1	a message is available
 */
-bool ExEventPeek(ExEvent& event);
+bool ExEventPeek(ExEvent* event);
 
-typedef bool (*ExEventFunc)(ExEvent& event);
+typedef bool (*ExEventFunc)(ExEvent* event);
 extern ExEventFunc exEventFunc;
 
 void ExMainLoop();

@@ -6,7 +6,7 @@
 #include "excairo.h"
 #include "eximage.h"
 #include "exapp.h"
-#include <cairo/cairo.h>
+#include <cairo.h>
 
 #define logdraw dprint0
 #define logdra0 dprint0

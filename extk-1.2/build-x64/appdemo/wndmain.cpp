@@ -72,6 +72,7 @@ void WndMain::onDrawBkgd(ExCanvas* canvas, const ExWidget* widget, const ExRegio
             canvas->gc->fillBox(&rgn.boxes[i], ((uint64)widget) & 0xffffff);
         }
 #endif
+#if 1
         if (res.i.bg0.bits) {
             for (int i = 0; i < damage->n_boxes; i++) {
                 const ExBox& bx = damage->boxes[i];
@@ -79,6 +80,7 @@ void WndMain::onDrawBkgd(ExCanvas* canvas, const ExWidget* widget, const ExRegio
                                     &res.i.bg0, bx.l - img_pt0.x, bx.t - img_pt0.y);
             }
         }
+#endif
     } else if (widget == &wgtBkgd) {
         if (!res.i.bg1.bits) return;
         if (widget->isOpaque()) {
@@ -696,16 +698,18 @@ uint32 WndMain::onFilter(WndMain* w, ExCbInfo* cbinfo) {
         return Ex_Continue;
     }
     if (cbinfo->event->message == WM_ACTIVATE) {
+        #if 0 // DWM frame extend test
         // extend the frame into the client area
-        MARGINS margins;
-        margins.cxLeftWidth = 8; // 0;
-        margins.cxRightWidth = 8;
-        margins.cyBottomHeight = 20;
-        margins.cyTopHeight = 20;
+        MARGINS margins = { -1, -1, -1, -1 };
+        //margins.cxLeftWidth = 8; // 0;
+        //margins.cxRightWidth = 8;
+        //margins.cyBottomHeight = 20;
+        //margins.cyTopHeight = 20;
         HRESULT hr = DwmExtendFrameIntoClientArea(hwnd, &margins);
         if (!SUCCEEDED(hr)) {
             dprint("%s: %s fail.\n", __func__, "DwmExtendFrameIntoClientArea");
         }
+        #endif
         //cbinfo->event->lResult = 0;
         return Ex_Continue;
     }
@@ -1085,6 +1089,13 @@ int WndMain::start() {
     //showWindow(0, WS_POPUP | WS_VISIBLE);
     showWindow(0, WS_POPUP | WS_VISIBLE, env.wnd.x, env.wnd.y);
     //showWindow(0, WS_OVERLAPPEDWINDOW | WS_VISIBLE, env.wnd.x, env.wnd.y);
+#if 1
+    // 창을 Layered Window로 변경
+    LONG lStyle = GetWindowLong(hwnd, GWL_EXSTYLE);
+    SetWindowLong(hwnd, GWL_EXSTYLE, lStyle | WS_EX_LAYERED);
+    // 전체 창을 반투명하게 (예: 128 → 50% 투명)
+    SetLayeredWindowAttributes(hwnd, 0, 234, LWA_ALPHA);
+#endif
     //SetWindowTextA(hwnd, "AppDemo-extk-1.1");
     SetWindowText(hwnd, res.s.title);
     if (env.wnd.show == SW_SHOWMAXIMIZED) {

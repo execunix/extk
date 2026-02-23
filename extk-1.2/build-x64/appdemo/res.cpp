@@ -79,10 +79,10 @@ bool initRes()
 
 bool finiRes()
 {
-    res.f.gothic.free();
-    res.f.gothic_B.free();
-    res.f.square.free();
-    res.f.square_B.free();
+    res.f.gothic.destroy();
+    res.f.gothic_B.destroy();
+    res.f.square.destroy();
+    res.f.square_B.destroy();
 
     ExCairo::Face::finiFtLib();
 
