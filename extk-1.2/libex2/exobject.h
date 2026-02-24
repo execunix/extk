@@ -18,8 +18,11 @@ public:
         : name(name), base(base) {}
     operator const char* () const { return name; }
     bool isBase(const ExTypeInfo* type) const {
-        for (const ExTypeInfo* t = this; t; t = t->base)
-            if (t == type) return true;
+        for (const ExTypeInfo* t = this; t; t = t->base) {
+            if (t == type) {
+                return true;
+            }
+        }
         return false;
     }
 };
@@ -28,8 +31,8 @@ public:
  */
 class ExObject {
 protected:
-    virtual ~ExObject() {}
-    explicit ExObject() {}
+    virtual ~ExObject() noexcept {}
+    explicit ExObject() noexcept {}
 public:
     const char* getTypeName() const {
         return *getDynamicTypeInfo();

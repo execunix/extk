@@ -84,6 +84,26 @@ ExWindow::ExWindow()
     paintFunc = ExFlushFunc(this, &ExWindow::onWmPaint);
 }
 
+ExWidget* ExWindow::getCapture() const
+{
+    return wgtCapture;
+}
+
+ExWidget* ExWindow::getEntered() const
+{
+    return wgtEntered;
+}
+
+ExWidget* ExWindow::getPressed() const
+{
+    return wgtPressed;
+}
+
+ExWidget* ExWindow::getFocused() const
+{
+    return wgtFocused;
+}
+
 uint32 ExWindow::init(const char* name, int32 w, int32 h) {
     ExRect rc(0, 0, w, h);
     ExWidget::init(NULL/*parent*/, name, &rc);

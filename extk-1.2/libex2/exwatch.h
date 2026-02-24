@@ -6,11 +6,14 @@
 #ifndef __exwatch_h__
 #define __exwatch_h__
 
-#ifdef __linux__
-
 #include "excallback.h"
+#include "exobject.h"
+#ifdef WIN32
+#include "exthread.h"
+#else // __linux__
 #include <sys/epoll.h>
 #include <pthread.h>
+#endif
 #include <map>
 #include <set>
 
@@ -20,7 +23,7 @@ class ExTimer;
 
 // Watch thread
 //
-class ExWatch {
+class ExWatch : public ExObject {
 protected:
     // TimerSet
     struct TickCompare { // less traits
@@ -36,11 +39,44 @@ protected:
         uint32 invoke(uint32 tick_count);
     };
     // IomuxMap
+    #ifdef WIN32
+    struct Iomux {
+        HANDLE          handle;
+        ExNotify        notify;
+        //mutable enum : int32 { NONE, ADD, MOD, DEL, RUN } status;
+        Iomux(HANDLE handle) : handle(handle), notify() {}
+    };
+    class IomuxMap : protected std::map<HANDLE, Iomux> {
+    protected:
+        ExWatch*        watch;
+        int32           dirty;
+        HANDLE          handles[MAXIMUM_WAIT_OBJECTS];
+    public:
+        ~IomuxMap() {
+            fini();
+        }
+        IomuxMap(ExWatch* watch) : std::map<HANDLE, Iomux>(), watch(watch), dirty(0) {
+            memset(handles, 0, sizeof(handles));
+        }
+    public:
+        void fini();
+        void init(size_t max);
+        // inherit void clear();
+        // inherit iterator find(int32 fd);
+        DWORD setup();
+        const Iomux* search(HANDLE handle) const;
+        uint32 probe(const ExCallback& callback, void* cbinfo);
+        bool add(HANDLE handle, const ExNotify& notify);
+        bool mod(HANDLE handle, const ExNotify& notify);
+        bool del(HANDLE handle);
+        uint32 invoke(uint32 waittick = INFINITE);
+    };
+    #else // __linux__
     struct Iomux {
         int32           fd;
         ExNotify        notify;
         epoll_event     event;
-        //mutable enum { NONE, ADD, MOD, DEL, RUN } status;
+        //mutable enum : int32 { NONE, ADD, MOD, DEL, RUN } status;
         Iomux() : notify() {}
     };
     class IomuxMap : protected std::map<int32, Iomux*> {
@@ -61,7 +97,7 @@ protected:
             pthread_mutex_destroy(&mutex);
             #endif
         }
-        IomuxMap(ExWatch* watch) : std::map<int32, Iomux*>(), watch(watch), epfd(-1), events(NULL), maxevents(0) {
+        IomuxMap(ExWatch* watch) : std::map<int32, Iomux*>(), watch(watch), epfd(-1), events(NULL), maxevents(0U) {
             #if EX2CONF_ENABLE_IOMUX_LOCK
             pthread_mutex_init(&mutex, NULL);
             pthread_cond_init(&cond, NULL);
@@ -83,85 +119,136 @@ protected:
         bool del(int32 fd);
         uint32 invoke(uint32 waittick = 60000);
     };
+    #endif
 public:
     const char* name; // for debug
     static uint32 getTickCount();
     static uint32 tickAppLaunch;
+    #ifdef WIN32
+    static DWORD tls_key;
+    #else // __linux__
     static pthread_key_t tls_key;
+    #endif
     static void tls_specific(const char* name); // tbd
 protected:
+    #ifdef WIN32
+    static DWORD WINAPI start(_In_ LPVOID arg);
+    #else // __linux__
     static void* start(void* arg);
+    #endif
     IomuxMap        iomuxmap;
     TimerSet        timerset;
+    #ifdef WIN32
+    DWORD           idThread;
+    HANDLE          hThread;
+    HANDLE          hev;
+    #else // __linux__
     pthread_t       tid;
     int32           efd;    // event fd
+    #endif
     uint32          halt;
     uint32          tickCount;
+    #ifdef WIN32
+    mutable HANDLE  mutex;
+    #else // __linux__
     mutable pthread_mutex_t mutex;
     mutable pthread_cond_t  cond;
+    #endif
 public:
-    enum { HookStart, HookTimer, HookIomux, HookClean };
+    enum : int32 { HookReady, HookStart, HookTimer, HookIomux, HookClean };
+    int32           hookPhase; // for misra rules
     ExCallback      hookStart;
     ExCallback      hookTimer;
     ExCallback      hookIomux;
     ExCallback      hookClean;
 
 public:
+    #ifdef WIN32
+    virtual ~ExWatch() {
+        fini();
+        CloseHandle(mutex);
+    }
+    explicit ExWatch(const char* name) : name(name)
+        , iomuxmap(this), timerset(), idThread(0), hThread(NULL), hev(NULL), halt(0), tickCount(0)
+        , hookPhase(HookReady), hookStart(), hookTimer(), hookIomux(), hookClean() {
+        mutex = CreateMutex(NULL, FALSE, NULL);
+        tickCount = tickAppLaunch;
+    }
+    #else // __linux__
     virtual ~ExWatch() {
         fini();
         pthread_cond_destroy(&cond);
         pthread_mutex_destroy(&mutex);
     }
     explicit ExWatch(const char* name) : name(name)
-        , iomuxmap(this), timerset(), tid(0), efd(-1), halt(0)
-        , tickCount(0), hookStart(), hookTimer(), hookIomux(), hookClean() {
+        , iomuxmap(this), timerset(), tid(0), efd(-1), halt(0), tickCount(0)
+        , hookPhase(HookReady), hookStart(), hookTimer(), hookIomux(), hookClean() {
         pthread_mutex_init(&mutex, NULL);
         pthread_cond_init(&cond, NULL);
         tickCount = tickAppLaunch;
     }
+    #endif
     bool fini();
     bool init(size_t max_iomux = 256UL, size_t stacksize = 1048576UL);
     bool enter() const;
     bool leave() const;
     bool wakeup() const;
     uint32 setHalt(uint32 r = Ex_Halt);
-    uint32 getHalt() const { return halt; }
+    uint32 getHalt() const;
     uint32 getTick() const { return tickCount; }
 protected:
     bool setEvent(uint64 u64) const;
     bool getEvent(uint64* u64) const;
     uint32 STDCALL proc();
-    uint32 STDCALL onEvent(epoll_event* ev);
+    #ifdef WIN32
+    uint32 STDCALL onEvent(HANDLE handle);
+    #else // __linux__
+    uint32 STDCALL onEvent(const epoll_event* ev);
+    #endif
 public:
+    #ifdef WIN32
+    #if EX2CONF_LAMBDA_CALLBACK
+    bool ioAdd(uint32 (STDCALL *f)(void*, HANDLE handle), void* d, HANDLE handle) {
+        return iomuxmap.add(handle, ExNotify(f, d));
+    }
+    #endif
     template <typename A>
-    bool ioAdd(A* d, uint32 (STDCALL A::*f)(epoll_event*), int32 fd, uint32 events = EPOLLIN | EPOLLERR) {
+    bool ioAdd(A* d, uint32 (STDCALL A::* f)(HANDLE handle), HANDLE handle) {
+        return iomuxmap.add(handle, ExNotify(d, f));
+    }
+    template <typename A>
+    bool ioMod(A* d, uint32(STDCALL A::* f)(HANDLE handle), HANDLE handle) {
+        return iomuxmap.mod(handle, ExNotify(d, f));
+    }
+    bool ioDel(HANDLE handle) {
+        return (getHalt() == 0U) ? iomuxmap.del(handle) : false;
+    }
+    #else // __linux__
+    template <typename A>
+    bool ioAdd(A* d, uint32 (STDCALL A::*f)(const epoll_event*), int32 fd, uint32 events = EPOLLIN | EPOLLERR) {
         return iomuxmap.add(fd, events, ExNotify(d, f));
     }
     template <typename A>
-    bool ioMod(A* d, uint32 (STDCALL A::*f)(epoll_event*), int32 fd, uint32 events = EPOLLIN | EPOLLERR) {
+    bool ioMod(A* d, uint32 (STDCALL A::*f)(const epoll_event*), int32 fd, uint32 events = EPOLLIN | EPOLLERR) {
         return iomuxmap.mod(fd, events, ExNotify(d, f));
     }
     bool ioDel(int32 fd) {
         return (getHalt() == 0U) ? iomuxmap.del(fd) : false;
     }
-#if 0
+    #endif
 protected:
+#if 0 // tbd
     // export api for inheritance
     void timerset_clearAll() { timerset.clearAll(); }
     void iomuxmap_fini() { iomuxmap.fini(); }
     void iomuxmap_init(uint32 max) { iomuxmap.init(max); }
     uint32 timerset_invoke(uint32 tick_count) { return timerset.invoke(tick_count); }
     uint32 iomuxmap_invoke(uint32 waittick = 60000) { return iomuxmap.invoke(waittick); }
-#endif
-protected:
+#endif // tbd
     friend class ExTimer;
+public:
+    Ex_DECLARE_TYPEINFO(ExWatch, ExObject);
 };
-
-#else // __linux__
-
-#include "exwatch_w32.h"
-
-#endif
 
 extern ExWatch* exWatchMain;
 extern ExWatch* exWatchLast;

@@ -102,13 +102,13 @@
                                         ((ExGValue(a) >> 1) + (ExGValue(b) >> 1)), \
                                         ((ExBValue(a) >> 1) + (ExBValue(b) >> 1)) ))
 
-#define Ex_IMAGE_DIRECT_8888    0x20    /* AAAAAAAARRRRRRRRGGGGGGGGBBBBBBBB */
-#define Ex_IMAGE_DIRECT_888     0x21    /* RRRRRRRRGGGGGGGGBBBBBBBB */
-#define Ex_IMAGE_DIRECT_565     0x22    /* RRRRRGGGGGGBBBBB */
-#define Ex_IMAGE_DIRECT_555     0x23    /* xRRRRRGGGGGBBBBB	*/
-#define Ex_IMAGE_DIRECT_444     0x24    /* xxxxRRRRGGGGBBBB	*/
-#define Ex_IMAGE_DIRECT_4444    0x25    /* AAAARRRRGGGGBBBB	*/
-#define Ex_IMAGE_DIRECT_1555    0x26    /* ARRRRRGGGGGBBBBB */
+static const uint32 Ex_IMAGE_DIRECT_8888 = 0x20; /* AAAAAAAARRRRRRRRGGGGGGGGBBBBBBBB */
+static const uint32 Ex_IMAGE_DIRECT_888  = 0x21; /* RRRRRRRRGGGGGGGGBBBBBBBB */
+static const uint32 Ex_IMAGE_DIRECT_565  = 0x22; /* RRRRRGGGGGGBBBBB */
+static const uint32 Ex_IMAGE_DIRECT_555  = 0x23; /* xRRRRRGGGGGBBBBB	*/
+static const uint32 Ex_IMAGE_DIRECT_444  = 0x24; /* xxxxRRRRGGGGBBBB	*/
+static const uint32 Ex_IMAGE_DIRECT_4444 = 0x25; /* AAAARRRRGGGGBBBB	*/
+static const uint32 Ex_IMAGE_DIRECT_1555 = 0x26; /* ARRRRRGGGGGBBBBB */
 
 
 /* Macro to calculate 16.16 percentage a of b */
@@ -217,8 +217,8 @@ public:
     uint8*      bits;           /* image bitmap data */
     cr_surface_t* crs;
 public:
-    virtual ~ExImage();
-    explicit ExImage() : ExObject(), type(0U), bpp(0), bpl(0)
+    virtual ~ExImage() noexcept;
+    explicit ExImage() noexcept: ExObject(), type(0U), bpp(0), bpl(0)
         , width(0), height(0), format(0U), chroma(0U)
         , flags(0U), bits(NULL), crs(NULL) {}
 public:
@@ -226,7 +226,7 @@ public:
     bool init(int32 width, int32 height, uint32 type);
     bool load(const char* fname, bool query = false);
     size_t getBitsSize() { return (size_t)(bpl * height); }
-    bool makeTrans(uint32 transColor) { return false; } // tbd
+    bool makeTrans(uint32 /*transColor*/) { return false; } // tbd
     bool makeGhost() { return false; } // tbd
     void clear();
     void fillBoxAlphaEx(const ExBox* box, uint8 alpha, uint8 a_out);
@@ -270,16 +270,18 @@ protected:
     void preMultiply();
 public:
     static int32 getBitsPerPixel(uint32 type) {
+        int32 bpp;
         switch (type) {
-            case Ex_IMAGE_DIRECT_8888: return 32;
-            case Ex_IMAGE_DIRECT_888: return 24;
-            case Ex_IMAGE_DIRECT_565: return 16;
-            case Ex_IMAGE_DIRECT_555: return 15;
-            case Ex_IMAGE_DIRECT_444: return 12;
-            case Ex_IMAGE_DIRECT_4444: return 16;
-            case Ex_IMAGE_DIRECT_1555: return 16;
+            case Ex_IMAGE_DIRECT_8888: { bpp = 32; break; }
+            case Ex_IMAGE_DIRECT_888:  { bpp = 24; break; }
+            case Ex_IMAGE_DIRECT_565:  { bpp = 16; break; }
+            case Ex_IMAGE_DIRECT_555:  { bpp = 15; break; }
+            case Ex_IMAGE_DIRECT_444:  { bpp = 12; break; }
+            case Ex_IMAGE_DIRECT_4444: { bpp = 16; break; }
+            case Ex_IMAGE_DIRECT_1555: { bpp = 16; break; }
+            default: { bpp = 0; break; }
         }
-        return 0;
+        return bpp;
     }
     static int32 getBytesPerLine(int32 w, int32 bpp) {
         return ((w * bpp + 31) & ~31) / 8;

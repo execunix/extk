@@ -18,6 +18,7 @@ typedef struct {
 // class ExSignal
 //
 class ExSignal {
+#ifdef WIN32
 protected:
     HANDLE hSignal;
 public:
@@ -29,6 +30,7 @@ public:
     bool isSignaled() {
         return (WaitForSingleObject(hSignal, 0) != WAIT_TIMEOUT);
     }
+#endif // WIN32
 };
 
 // class ExThread
@@ -36,6 +38,7 @@ public:
 class ExThread {
 public:
     class Mutex {
+    #ifdef WIN32
     protected:
         CRITICAL_SECTION cs;
     public:
@@ -45,8 +48,10 @@ public:
         void lock() { EnterCriticalSection(&cs); }
         void unlock() { LeaveCriticalSection(&cs); }
         uint tryLock() { return TryEnterCriticalSection(&cs); }
+    #endif // WIN32
     };
     class Cond {
+    #ifdef WIN32
     protected:
         std::list<HANDLE> hevs;
         Mutex mutex;
@@ -58,6 +63,7 @@ public:
         void broadcast();
         bool timedWait(Mutex* enteredMutex, ExTimeVal* absTime);
         void wait(Mutex* enteredMutex) { timedWait(enteredMutex, NULL); }
+    #endif // WIN32
     };
     struct Proc : public ExPolyFunc<int, ExThread*> {
         template <typename A>
@@ -78,6 +84,7 @@ public:
         Detached = 0,
         Joinable = 1,
     };
+#ifdef WIN32
     enum Prio {
         PrioLow = THREAD_PRIORITY_BELOW_NORMAL,
         PrioNormal = THREAD_PRIORITY_NORMAL,
@@ -108,6 +115,7 @@ public:
 public:
     static void exit(DWORD dwExitCode);
     static ExThread* self();
+#endif // WIN32
 };
 
 typedef ExThread::Mutex ExThreadMutex;
@@ -123,6 +131,7 @@ extern const char* exModuleName;
 
 extern ExThread exMainThread;
 
+#ifdef WIN32
 inline bool ExIsMainThread() {
     return (ExThreadSelf() == &exMainThread);
 }
@@ -139,6 +148,7 @@ inline void ExWakeupMainThread() {
     if (!ExIsMainThread())
         PostThreadMessage(exMainThread.idThread, WM_ExEvWake, 0, 0); // wakeup
 }
+#endif // WIN32
 
 void ExLeave();
 void ExEnter();

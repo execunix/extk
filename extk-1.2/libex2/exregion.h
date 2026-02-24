@@ -39,8 +39,9 @@ struct ExRegion {
      * Destroys a #ExRegion.
      */
     ~ExRegion() {
-        if (boxes != &extent)
+        if (boxes != &extent) {
             free(boxes);
+        }
     }
     /**
      * ExRegion()
@@ -54,8 +55,9 @@ struct ExRegion {
      */
     explicit ExRegion(const ExBox& box)
         : size(1), n_boxes(0), boxes(&extent), extent(box) {
-        if (!box.empty())
+        if (!box.empty()) {
             n_boxes = 1;
+        }
     }
     /**
      * ExRegion(const ExRegion& region)
@@ -126,8 +128,9 @@ struct ExRegion {
      * The resulting area is the set of pixels contained in either @this or @box.
      */
     void combine(const ExBox& box) {
-        if (!box.empty())
+        if (!box.empty()) {
             combine(ExRegion(box));
+        }
     }
     /**
      * ExRegion::intersect(const ExRegion& srcrgn)
@@ -147,8 +150,9 @@ struct ExRegion {
      */
     void subtract(const ExRegion& srcrgn);
     void subtract(const ExBox& box) {
-        if (!box.empty())
+        if (!box.empty()) {
             subtract(ExRegion(box));
+        }
     }
     /**
      * ExRegion::x_or(const ExRegion& srcrgn)

@@ -30,17 +30,17 @@ void collectWidget() {
 }
 
 // test sample
-static void STDCALL s_fill(void* data, ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage) {
+static void STDCALL s_fill(void* data, const ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage) {
 #if 1
     if (!(canvas && canvas->cr))
         return;
     ExCairo cr(canvas, damage);
     ExCairo::Box bx(widget->calcBox());
 
-    //bx.l += 1.f;
-    //bx.t += 1.f;
-    //bx.r -= 1.f;
-    //bx.b -= 1.f;
+    //bx.l += 1.F;
+    //bx.t += 1.F;
+    //bx.r -= 1.F;
+    //bx.b -= 1.F;
 
     cairo_new_path(cr);
     cairo_move_to(cr, bx.l, bx.t);
@@ -575,7 +575,7 @@ void ExWidget::buildRegion() { // simple ver for gpu
     exposeRgn.setRect(extent);
 }
 
-void ExWidget::dumpImage(ExCanvas* canvas) {
+void ExWidget::dumpImage(const ExCanvas* canvas) {
     exassert(getFlags(Ex_Visible) && !extent.empty());
     if (drawFunc && !exposeRgn.empty()) {
         drawFunc(canvas, this, &exposeRgn);
@@ -592,7 +592,7 @@ void ExWidget::dumpImage(ExCanvas* canvas) {
 }
 
 #if 0 // deprecated...
-uint32 ExWidget::dumpImage(ExCanvas* canvas, const ExRegion& updateRgn) { // tbd
+uint32 ExWidget::dumpImage(const ExCanvas* canvas, const ExRegion& updateRgn) { // tbd
     uint32 call_cnt = 0;
     logdraw("%s(%s) enter update:%d\n", __func__, getName(), updateRgn.n_boxes);
     ExWidget* w = this;

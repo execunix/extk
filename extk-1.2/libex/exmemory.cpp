@@ -5,12 +5,12 @@
 
 #include "exmemory.h"
 
-void* ExHeapAlloc(size_t size)
+void* ExHeapAllocate(size_t size)
 {
     return malloc(size);
 }
 
-void ExHeapFree(void* ptr)
+void ExHeapDeallocate(void* ptr)
 {
     free(ptr);
 }

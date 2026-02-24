@@ -53,12 +53,48 @@ public:
     }
     #endif
     template <typename A, typename B>
+    void init(ExWatch* watch, uint32 (STDCALL *f)(A*, const B*, const ExCbInfo*), A* d, B* obj) {
+        setup(watch, ExCallback(f, d), obj);
+    }
+    template <typename A, typename B>
+    void init(ExWatch* watch, uint32 (STDCALL *f)(A*, const B*, ExCbInfo*), A* d, B* obj) {
+        setup(watch, ExCallback(f, d), obj);
+    }
+    template <typename A, typename B>
+    void init(ExWatch* watch, uint32 (STDCALL *f)(A*, B*, const ExCbInfo*), A* d, B* obj) {
+        setup(watch, ExCallback(f, d), obj);
+    }
+    template <typename A, typename B>
     void init(ExWatch* watch, uint32 (STDCALL *f)(A*, B*, ExCbInfo*), A* d, B* obj) {
         setup(watch, ExCallback(f, d), obj);
     }
     template <typename A, typename B>
+    void init(ExWatch* watch, A* d, uint32 (STDCALL A::*f)(const B*, const ExCbInfo*), B* obj) {
+        setup(watch, ExCallback(d, f), obj);
+    }
+    template <typename A, typename B>
+    void init(ExWatch* watch, A* d, uint32 (STDCALL A::*f)(const B*, ExCbInfo*), B* obj) {
+        setup(watch, ExCallback(d, f), obj);
+    }
+    template <typename A, typename B>
+    void init(ExWatch* watch, A* d, uint32 (STDCALL A::*f)(B*, const ExCbInfo*), B* obj) {
+        setup(watch, ExCallback(d, f), obj);
+    }
+    template <typename A, typename B>
     void init(ExWatch* watch, A* d, uint32 (STDCALL A::*f)(B*, ExCbInfo*), B* obj) {
         setup(watch, ExCallback(d, f), obj);
+    }
+    template <typename A>
+    void init(ExWatch* watch, A* d, uint32 (STDCALL A::*f)(const ExTimer*, const ExCbInfo*)) {
+        setup(watch, ExCallback(d, f));
+    }
+    template <typename A>
+    void init(ExWatch* watch, A* d, uint32 (STDCALL A::*f)(const ExTimer*, ExCbInfo*)) {
+        setup(watch, ExCallback(d, f));
+    }
+    template <typename A>
+    void init(ExWatch* watch, A* d, uint32 (STDCALL A::*f)(ExTimer*, const ExCbInfo*)) {
+        setup(watch, ExCallback(d, f));
     }
     template <typename A>
     void init(ExWatch* watch, A* d, uint32 (STDCALL A::*f)(ExTimer*, ExCbInfo*)) {

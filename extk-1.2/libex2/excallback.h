@@ -120,6 +120,21 @@ struct ExPolyFunc {
 //
 struct ExCallback : public ExPolyFunc<uint32, void*, void*> {
     template <typename A, typename B, typename C>
+    ExCallback(A* d, uint32 (STDCALL A::*f)(const B*, const C*))  // look like data->func(...)
+        : ExPolyFunc(d) {
+        func = reinterpret_cast<ThisFunc>(f);
+    }
+    template <typename A, typename B, typename C>
+    ExCallback(A* d, uint32 (STDCALL A::*f)(const B*, C*))  // look like data->func(...)
+        : ExPolyFunc(d) {
+        func = reinterpret_cast<ThisFunc>(f);
+    }
+    template <typename A, typename B, typename C>
+    ExCallback(A* d, uint32 (STDCALL A::*f)(B*, const C*))  // look like data->func(...)
+        : ExPolyFunc(d) {
+        func = reinterpret_cast<ThisFunc>(f);
+    }
+    template <typename A, typename B, typename C>
     ExCallback(A* d, uint32 (STDCALL A::*f)(B*, C*))  // look like data->func(...)
         : ExPolyFunc(d) {
         func = reinterpret_cast<ThisFunc>(f);
@@ -138,14 +153,27 @@ struct ExCallback : public ExPolyFunc<uint32, void*, void*> {
         : ExPolyFunc() {}
 };
 
-struct ExDrawFunc : public ExPolyFunc<void, ExCanvas*, const ExWidget*, const ExRegion*> {
+struct ExDrawFunc : public ExPolyFunc<void, const ExCanvas*, const ExWidget*, const ExRegion*> {
     template <typename A, class W/*inherit ExWidget*/>
-    ExDrawFunc(A* d, void (STDCALL A::*f)(ExCanvas*, const W*, const ExRegion*))
+    ExDrawFunc(A* d, void (STDCALL A::*f)(const ExCanvas*, const W*, const ExRegion*))
         : ExPolyFunc(d) {
         func = reinterpret_cast<ThisFunc>(f);
     }
     template <typename A, class W/*inherit ExWidget*/>
-    ExDrawFunc(void (STDCALL *f)(A*, ExCanvas*, const W*, const ExRegion*), A* d)
+    ExDrawFunc(A* d, void (STDCALL A::* f)(ExCanvas*, const W*, const ExRegion*))
+        : ExPolyFunc(d) {
+        func = reinterpret_cast<ThisFunc>(f);
+    }
+    template <typename A, class W/*inherit ExWidget*/>
+    ExDrawFunc(void (STDCALL *f)(A*, const ExCanvas*, const W*, const ExRegion*), A* d)
+        : ExPolyFunc(d) {
+        vfunc = reinterpret_cast<FuncPtr>(f);
+        #if EX2CONF_DISABLE_STDCALL
+        invoker = &funcptr;
+        #endif
+    }
+    template <typename A, class W/*inherit ExWidget*/>
+    ExDrawFunc(void (STDCALL* f)(A*, ExCanvas*, const W*, const ExRegion*), A* d)
         : ExPolyFunc(d) {
         vfunc = reinterpret_cast<FuncPtr>(f);
         #if EX2CONF_DISABLE_STDCALL
@@ -214,16 +242,16 @@ public:
     ExCallbackList() : cblist() {}
 public: // operations
     #if EX2CONF_LAMBDA_CALLBACK
-    void add(uint32 (STDCALL *f)(void*, void*, ExCbInfo*), void* d, uint8 prio = 5) {
+    void add(uint32 (STDCALL *f)(void*, const void*, const ExCbInfo*), void* d, uint8 prio = 5U) {
         cblist.push(Callback(ExCallback(f, d), prio));
     }
     #endif
     template <typename A, typename B, typename C>
-    void add(uint32 (STDCALL *f)(A*, B*, C*), A* d, uint8 prio = 5) {
+    void add(uint32 (STDCALL *f)(A*, const B*, const C*), A* d, uint8 prio = 5U) {
         cblist.push(Callback(ExCallback(f, d), prio));
     }
     template <typename A, typename B, typename C>
-    void add(A* d, uint32 (STDCALL A::*f)(B*, C*), uint8 prio = 5) {
+    void add(A* d, uint32 (STDCALL A::*f)(const B*, const C*), uint8 prio = 5U) {
         cblist.push(Callback(ExCallback(d, f), prio));
     }
     void remove(const ExCallback& cb) {
@@ -267,19 +295,19 @@ public:
     ExListenerList() : cblist() {}
 public: // operations
     #if EX2CONF_LAMBDA_CALLBACK
-    void add(uint32 (STDCALL *f)(void*, void*, ExCbInfo*), void* d, uint32 type, uint8 prio = 5) {
+    void add(uint32 (STDCALL *f)(void*, void*, ExCbInfo*), void* d, uint32 type, uint8 prio = 5U) {
         cblist.push(Listener(ExCallback(f, d), type, prio));
     }
     #endif
     template <typename A, typename B, typename C>
-    void add(uint32 (STDCALL *f)(A*, B*, C*), A* d, uint32 type, uint8 prio = 5) {
+    void add(uint32 (STDCALL *f)(A*, B*, C*), A* d, uint32 type, uint8 prio = 5U) {
         cblist.push(Listener(ExCallback(f, d), type, prio));
     }
     template <typename A, typename B, typename C>
-    void add(A* d, uint32 (STDCALL A::*f)(B*, C*), uint32 type, uint8 prio = 5) {
+    void add(A* d, uint32 (STDCALL A::*f)(B*, C*), uint32 type, uint8 prio = 5U) {
         cblist.push(Listener(ExCallback(d, f), type, prio));
     }
-    void remove(uint32 type, uint8 prio = 5) {
+    void remove(uint32 type, uint8 prio = 5U) {
         cblist.remove2(type, prio);
     }
     uint32 invoke(uint32 type, void* object, void* cbinfo) {

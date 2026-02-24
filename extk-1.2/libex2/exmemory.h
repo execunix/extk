@@ -33,16 +33,16 @@ int32 ExShmemDestroy(void* addr);
 
 #endif // WIN32
 
-void* ExHeapAlloc(size_t size);
-void ExHeapFree(void* ptr);
+void* ExHeapAllocate(size_t size);
+void ExHeapDeallocate(void* ptr);
 
 template <typename T> struct ExHeapManager {
-    static T* alloc(size_t num_entry) {
-        void* ptr = ExHeapAlloc(num_entry * sizeof(T));
+    static T* allocate(size_t num_entry) {
+        void* ptr = ExHeapAllocate(num_entry * sizeof(T));
         return static_cast<T*>(ptr);
     }
-    static void free(void* ptr) {
-        ExHeapFree(ptr);
+    static void deallocate(void* ptr) {
+        ExHeapDeallocate(ptr);
     }
 };
 
@@ -97,7 +97,7 @@ exmemmove(void* dst_ptr, const void* src_ptr, size_t n_bytes) {
 
 inline void*
 exmemdup(const void* mem, size_t n_bytes) {
-    void* dup = ExHeapAlloc(n_bytes);
+    void* dup = ExHeapAllocate(n_bytes);
     if (dup) {
         memcpy(dup, mem, n_bytes);
     }
@@ -194,5 +194,10 @@ exmemsum(const void* data, size_t n_bytes) {
     }
     return sum;
 }
+
+extern char* exstrcpy(char* __restrict __dest, const char* __restrict __src);
+extern char* exstrncpy(char* __restrict __dest, const char* __restrict __src, size_t __n);
+extern int exstrcmp(const char* __s1, const char* __s2);
+extern int exstrncmp(const char* __s1, const char* __s2, size_t __n);
 
 #endif//__exmemory_h__

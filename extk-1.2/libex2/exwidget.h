@@ -78,29 +78,51 @@ enum ExWidgetClassFlags {
     Ex_FreeMemory
         When calling the widget destroy function, the memory is also freed automatically.
 */
-enum ExWidgetFlags {
-    Ex_Destroyed        = 1U << 0,  // RO
-    Ex_Realized         = 1U << 1,  // RO
-    Ex_HasOwnGC         = 1U << 2,  // RW
-    Ex_AutoHighlight    = 1U << 3,  // RW
-    Ex_Highlighted      = 1U << 4,  // RW
-    Ex_FocusRender      = 1U << 5,  // RW
-    Ex_Focused          = 1U << 6,  // RO
-    Ex_Selectable       = 1U << 7,  // RW
-    Ex_PtrEntered       = 1U << 8,  // RO
-    Ex_ButPressed       = 1U << 9,  // RO
-    Ex_Visible          = 1U << 10, // RO
-    Ex_Blocked          = 1U << 11, // RW
-    Ex_Ghost            = 1U << 12, // RW
-    Ex_Set              = 1U << 13, // RW
-    Ex_Toggle           = 1U << 14, // RW
-    Ex_Opaque           = 1U << 15, // RW
-    Ex_Damaged          = 1U << 27, // RO
-    Ex_Exposed          = 1U << 28, // RO
-    Ex_Rebuild          = 1U << 29, // RO tbd - used only by OwnGC.
-    Ex_SkipLayout       = 1U << 30, // RO tbd
-    Ex_FreeMemory       = 1U << 31, // RW
+enum class ExWidgetFlags : uint32 {
+    Destroyed        = 1U << 0,  // RO
+    Realized         = 1U << 1,  // RO
+    HasOwnGC         = 1U << 2,  // RW
+    AutoHighlight    = 1U << 3,  // RW
+    Highlighted      = 1U << 4,  // RW
+    FocusRender      = 1U << 5,  // RW
+    Focused          = 1U << 6,  // RO
+    Selectable       = 1U << 7,  // RW
+    PtrEntered       = 1U << 8,  // RO
+    ButPressed       = 1U << 9,  // RO
+    Visible          = 1U << 10, // RO
+    Blocked          = 1U << 11, // RW
+    Ghost            = 1U << 12, // RW
+    Set              = 1U << 13, // RW
+    Toggle           = 1U << 14, // RW
+    Opaque           = 1U << 15, // RW
+    Damaged          = 1U << 27, // RO
+    Exposed          = 1U << 28, // RO
+    Rebuild          = 1U << 29, // RO tbd - used only by OwnGC.
+    SkipLayout       = 1U << 30, // RO tbd
+    FreeMemory       = 1U << 31, // RW
 };
+
+const uint32 Ex_Destroyed     = static_cast<uint32>(ExWidgetFlags::Destroyed);
+const uint32 Ex_Realized      = static_cast<uint32>(ExWidgetFlags::Realized);
+const uint32 Ex_HasOwnGC      = static_cast<uint32>(ExWidgetFlags::HasOwnGC);
+const uint32 Ex_AutoHighlight = static_cast<uint32>(ExWidgetFlags::AutoHighlight);
+const uint32 Ex_Highlighted   = static_cast<uint32>(ExWidgetFlags::Highlighted);
+const uint32 Ex_FocusRender   = static_cast<uint32>(ExWidgetFlags::FocusRender);
+const uint32 Ex_Focused       = static_cast<uint32>(ExWidgetFlags::Focused);
+const uint32 Ex_Selectable    = static_cast<uint32>(ExWidgetFlags::Selectable);
+const uint32 Ex_PtrEntered    = static_cast<uint32>(ExWidgetFlags::PtrEntered);
+const uint32 Ex_ButPressed    = static_cast<uint32>(ExWidgetFlags::ButPressed);
+const uint32 Ex_Visible       = static_cast<uint32>(ExWidgetFlags::Visible);
+const uint32 Ex_Blocked       = static_cast<uint32>(ExWidgetFlags::Blocked);
+const uint32 Ex_Ghost         = static_cast<uint32>(ExWidgetFlags::Ghost);
+const uint32 Ex_Set           = static_cast<uint32>(ExWidgetFlags::Set);
+const uint32 Ex_Toggle        = static_cast<uint32>(ExWidgetFlags::Toggle);
+const uint32 Ex_Opaque        = static_cast<uint32>(ExWidgetFlags::Opaque);
+const uint32 Ex_Damaged       = static_cast<uint32>(ExWidgetFlags::Damaged);
+const uint32 Ex_Exposed       = static_cast<uint32>(ExWidgetFlags::Exposed);
+const uint32 Ex_Rebuild       = static_cast<uint32>(ExWidgetFlags::Rebuild);
+const uint32 Ex_SkipLayout    = static_cast<uint32>(ExWidgetFlags::SkipLayout);
+const uint32 Ex_FreeMemory    = static_cast<uint32>(ExWidgetFlags::FreeMemory);
 
 // class ExWidget
 //
@@ -253,18 +275,51 @@ protected: // widget callback internal
     };
     ListenerList listenerList;
 public: // widget callback operation
-    void addListener(uint32(STDCALL *f)(void*, ExWidget*, ExCbInfo*), void* d, uint32 type, uint8 prio = 5) {
+    void addListener(uint32(STDCALL *f)(void*, const ExWidget*, const ExCbInfo*), void* d, uint32 type, uint8 prio = 5U) {
+        listenerList.push(Listener(ExCallback(f, d), type, prio));
+    }
+    void addListener(uint32(STDCALL *f)(void*, const ExWidget*, ExCbInfo*), void* d, uint32 type, uint8 prio = 5U) {
+        listenerList.push(Listener(ExCallback(f, d), type, prio));
+    }
+    void addListener(uint32(STDCALL *f)(void*, ExWidget*, const ExCbInfo*), void* d, uint32 type, uint8 prio = 5U) {
+        listenerList.push(Listener(ExCallback(f, d), type, prio));
+    }
+    void addListener(uint32(STDCALL *f)(void*, ExWidget*, ExCbInfo*), void* d, uint32 type, uint8 prio = 5U) {
         listenerList.push(Listener(ExCallback(f, d), type, prio));
     }
     template <typename A, class W/*inherit ExWidget*/>
-    void addListener(uint32(STDCALL *f)(A*, W*, ExCbInfo*), A* d, uint32 type, uint8 prio = 5) {
+    void addListener(uint32(STDCALL *f)(A*, const W*, const ExCbInfo*), A* d, uint32 type, uint8 prio = 5U) {
         listenerList.push(Listener(ExCallback(f, d), type, prio));
     }
     template <typename A, class W/*inherit ExWidget*/>
-    void addListener(A* d, uint32(STDCALL A::*f)(W*, ExCbInfo*), uint32 type, uint8 prio = 5) {
+    void addListener(uint32(STDCALL *f)(A*, const W*, ExCbInfo*), A* d, uint32 type, uint8 prio = 5U) {
+        listenerList.push(Listener(ExCallback(f, d), type, prio));
+    }
+    template <typename A, class W/*inherit ExWidget*/>
+    void addListener(uint32(STDCALL *f)(A*, W*, const ExCbInfo*), A* d, uint32 type, uint8 prio = 5U) {
+        listenerList.push(Listener(ExCallback(f, d), type, prio));
+    }
+    template <typename A, class W/*inherit ExWidget*/>
+    void addListener(uint32(STDCALL *f)(A*, W*, ExCbInfo*), A* d, uint32 type, uint8 prio = 5U) {
+        listenerList.push(Listener(ExCallback(f, d), type, prio));
+    }
+    template <typename A, class W/*inherit ExWidget*/>
+    void addListener(A* d, uint32(STDCALL A::*f)(const W*, const ExCbInfo*), uint32 type, uint8 prio = 5U) {
         listenerList.push(Listener(ExCallback(d, f), type, prio));
     }
-    void removeListener(uint32 type, uint8 prio = 5) { // tbd
+    template <typename A, class W/*inherit ExWidget*/>
+    void addListener(A* d, uint32(STDCALL A::*f)(const W*, ExCbInfo*), uint32 type, uint8 prio = 5U) {
+        listenerList.push(Listener(ExCallback(d, f), type, prio));
+    }
+    template <typename A, class W/*inherit ExWidget*/>
+    void addListener(A* d, uint32(STDCALL A::*f)(W*, const ExCbInfo*), uint32 type, uint8 prio = 5U) {
+        listenerList.push(Listener(ExCallback(d, f), type, prio));
+    }
+    template <typename A, class W/*inherit ExWidget*/>
+    void addListener(A* d, uint32(STDCALL A::*f)(W*, ExCbInfo*), uint32 type, uint8 prio = 5U) {
+        listenerList.push(Listener(ExCallback(d, f), type, prio));
+    }
+    void removeListener(uint32 type, uint8 prio = 5U) { // tbd
         listenerList.remove(type, prio);
     }
     uint32 invokeListener(uint32 type) {
@@ -294,13 +349,13 @@ protected:
         ExCanvas* canvas;
         ExRegion& updateRgn;
         void draw(ExWidget* w);
-        Draw(ExCanvas*, ExWidget*);
+        Draw(const ExCanvas*, const ExWidget*);
     };
-    static void render(ExCanvas* canvas, ExWidget* widget, uint32 flags);
+    static void render(const ExCanvas* canvas, const ExWidget* widget, uint32 flags);
     #endif
 public:
-    void dumpImage(ExCanvas* canvas); // for dumping images to a temporary canvas
-    //uint32 dumpImage(ExCanvas* canvas, const ExRegion& updateRgn);
+    void dumpImage(const ExCanvas* canvas); // for dumping images to a temporary canvas
+    //uint32 dumpImage(const ExCanvas* canvas, const ExRegion& updateRgn);
 public:
     static ExWidget* enumBackToFront(ExWidget* begin, ExWidget* end, const ExCallback& cb, ExCbInfo* cbinfo);
     static ExWidget* enumFrontToBack(ExWidget* begin, ExWidget* end, const ExCallback& cb, ExCbInfo* cbinfo);

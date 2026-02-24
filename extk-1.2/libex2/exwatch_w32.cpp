@@ -3,136 +3,105 @@
  * SPDX-License-Identifier:     GPL-2.0+
  */
 
-#ifdef WIN32
-
 #include "exwatch.h"
-#include "extimer.h"
+#ifdef WIN32
+//#include "extimer.h"
 
 #define EVENTPROC_HAVETHREAD
 
 // Iomux
 //
 void ExWatch::IomuxMap::fini() {
-    count = 0;
     dirty = 0;
     clear();
 }
 
-void ExWatch::IomuxMap::init() {
-    ;
+void ExWatch::IomuxMap::init(size_t max) {
+    max = max;
 }
 
-int32 ExWatch::IomuxMap::setup() {
+DWORD ExWatch::IomuxMap::setup() {
+    size_t ret = size();
     if (dirty) {
         dirty = 0;
-        int32 cnt = 0;
-        iterator i = begin();
-        while (i != end()) {
-            Iomux& input = *i;
-            if (input.fRemoved) {
-                i = erase(i);
-            } else {
-                handles[cnt++] = input.handle;
-                ++i;
-            }
+        int32 cnt = 0U;
+        for (const_iterator i = begin(); i != end(); ++i) {
+            const Iomux& iomux = i->second;
+            handles[cnt++] = iomux.handle;
         }
         exassert(cnt < MAXIMUM_WAIT_OBJECTS);
-        exassert(cnt == count);
     }
-    return count;
+    return static_cast<DWORD>(ret);
 }
 
 const ExWatch::Iomux* ExWatch::IomuxMap::search(HANDLE handle) const {
-    for (const_iterator i = begin(); i != end(); ++i) {
-        const ExWatch::Iomux& input = *i;
-        if (input.handle == handle &&
-            !input.fRemoved) {
-            return &input;
-        }
+    const Iomux* iomux = NULL;
+    const_iterator i = find(handle);
+    if (i != end()) {
+        iomux = &i->second;
     }
-    return NULL;
+    return iomux;
 }
 
 uint32 ExWatch::IomuxMap::probe(const ExCallback& callback, void* cbinfo) {
     uint32 r = Ex_Continue;
     for (iterator i = begin(); i != end(); ++i) {
-        ExWatch::Iomux& input = *i;
-        if (!input.fRemoved) {
-            uint32 r = callback(&input, cbinfo);
-            if (r != Ex_Continue)
-                break;
+        Iomux* iomux = &i->second;
+        r = callback(iomux, cbinfo);
+        if (r != Ex_Continue) {
+            break;
         }
     }
     return r;
 }
 
-bool ExWatch::IomuxMap::add(HANDLE handle, const ExNotify& notify, int32 pos) {
-    const ExWatch::Iomux* input = search(handle);
-    if (input != NULL) { // Remove duplicate handle.
-        input->fRemoved = 1;
-        count--;
+bool ExWatch::IomuxMap::add(HANDLE handle, const ExNotify& notify) {
+    int32 r = -1;
+    if (size() < MAXIMUM_WAIT_OBJECTS) {
+        Iomux* iomux = nullptr;
+        std::pair<iterator, bool> pr;
+        pr = insert(value_type(handle, Iomux(handle)));
+        iomux = &pr.first->second;
+        if (pr.second == false) {
+            dprint1("IomuxMap::add: duplicate handle:%p\n", handle);
+        }
+        exassert(iomux->handle == handle);
+        iomux->notify = notify;
+        dirty++;
+        r = 0;
+    } else {
+        dprint1("IomuxMap::add: size:%zu\n", size());
     }
-    if (count >= MAXIMUM_WAIT_OBJECTS) {
-        exerror("%s fail. count=%d\n", __func__, count);
-        return false;
-    }
-    int32 cnt = 0;
-    iterator i = begin();
-    for (; i != end(); ++i) {
-        if (!(*i).fRemoved && pos == cnt)
-            break;
-        ++cnt;
-    }
-    count++;
-    dirty++;
-    watch->wakeup();
-    ExWatch::Iomux iomux;
-    iomux.handle = handle;
-    iomux.notify = notify;
-    i = std::list<ExWatch::Iomux>::insert(i, iomux);
-    // Iomux* ptr = &*i;
-    return true;
+    return (r == 0);
 }
 
-bool ExWatch::IomuxMap::add(HANDLE handle, const ExNotify& notify) {
-    const ExWatch::Iomux* input = search(handle);
-    if (input != NULL) { // Remove duplicate handle.
-        input->fRemoved = 1;
-        count--;
+bool ExWatch::IomuxMap::mod(HANDLE handle, const ExNotify& notify) {
+    int32 r = -1;
+    iterator i = find(handle);
+    if (i != end()) {
+        Iomux* iomux = &i->second;
+        exassert(iomux->handle == handle);
+        iomux->notify = notify;
+        r = 0;
+    } else {
+        dprint1("IomuxMap::mod: invalid handle:%p\n", handle);
     }
-    if (count >= MAXIMUM_WAIT_OBJECTS) {
-        exerror("%s fail. count=%d\n", __func__, count);
-        return false;
-    }
-    count++;
-    dirty++;
-    watch->wakeup();
-    ExWatch::Iomux iomux;
-    iomux.handle = handle;
-    iomux.notify = notify;
-    push_back(iomux);
-    // Iomux* ptr = &back();
-    return true;
+    return (r == 0);
 }
 
 bool ExWatch::IomuxMap::del(HANDLE handle) {
-    for (iterator i = begin(); i != end(); ++i) {
-        ExWatch::Iomux* input = &*i;
-        if (input->handle == handle) {
-            if (input->fRemoved) {
-                exerror("%s warn. already removed\n", __func__);
-                return false;
-            }
-            input->fRemoved = 1;
-            watch->wakeup();
-            exassert(count > 0);
-            count--;
-            dirty++;
-            return true;
-        }
+    int32 r = -1;
+    iterator i = find(handle);
+    if (i != end()) {
+        Iomux* iomux = &i->second;
+        exassert(iomux->handle == handle);
+        erase(i);
+        dirty++;
+        r = 0;
+    } else {
+        dprint1("IomuxMap::del: invalid handle:%p\n", handle);
     }
-    exerror("%s fail. invalid input\n", __func__);
-    return false;
+    return (r == 0);
 }
 
 uint32 ExWatch::IomuxMap::invoke(uint32 waittick) {
@@ -164,35 +133,36 @@ uint32 ExWatch::IomuxMap::invoke(uint32 waittick) {
         return 1U; // got message from gwes
     }
 #endif
-    if (dwWaitRet >= WAIT_OBJECT_0 &&
-        dwWaitRet < (WAIT_OBJECT_0 + nCount)) {
+    if ((dwWaitRet >= WAIT_OBJECT_0) &&
+        (dwWaitRet < (WAIT_OBJECT_0 + nCount))) {
         dprint("IomuxMap: dwWaitRet=%p nCount=%d\n", dwWaitRet, nCount);
-        uint32 cnt = 1U;
-        iterator i = begin();
-        for (DWORD n = 0; n < nCount; n++) {
-            exassert(i != end());
-            ExWatch::Iomux& input = *i++; // proc input handler
-            exassert(input.handle == pHandles[n]);
-            if (input.fRemoved)
+        uint32 cnt = 0U;
+        for (DWORD n = 0U; n < nCount; n++) {
+            const Iomux* iomux = search(pHandles[n]);
+            if (iomux == nullptr) { // is removed ?
+                dprint("IomuxMap: handle:%p removed\n", iomux->handle);
                 continue; // discard
-            if (input.handle != pHandles[dwWaitRet - WAIT_OBJECT_0] &&
-                WaitForSingleObject(input.handle, 0) != WAIT_OBJECT_0)
-                continue;
-            exassert(input.notify.func);
-            uint32 r = input.notify(input.handle);
+            }
+            // check handle is signaled
+            if ((n != (dwWaitRet - WAIT_OBJECT_0)) &&
+                (WaitForSingleObject(iomux->handle, 0U) != WAIT_OBJECT_0)) {
+                continue; // not signaled
+            }
+            // proc iomux handler
+            exassert(iomux->notify.func);
+            uint32 r = iomux->notify(iomux->handle);
             if (r & Ex_Halt) {
                 return watch->setHalt(r);
             }
-            if ((r & Ex_Remove) && !input.fRemoved) {
-                input.fRemoved = 1;
-                count--;
+            if ((r & Ex_Remove) != 0U) {
+                del(iomux->handle);
                 dirty++;
             }
             cnt++;
         }
         return cnt; // got input signal
     }
-    exerror("IomuxMap: dwWaitRet=%p GetLastError=0x%p\n", dwWaitRet, GetLastError());
+    exerror("IomuxMap: dwWaitRet:%p GetLastError:0x%p\n", dwWaitRet, GetLastError());
     return 0U; // error
 }
 
@@ -252,9 +222,9 @@ bool ExWatch::fini() {
     return (r == 0);
 }
 
-bool ExWatch::init(size_t stacksize) {
+bool ExWatch::init(size_t max_iomux, size_t stacksize) {
     exassert(hThread == NULL);
-    iomuxmap.init();
+    iomuxmap.init(max_iomux);
 
     hev = CreateEvent(NULL, FALSE, FALSE, NULL);
     exassert(hev != NULL);
@@ -274,8 +244,9 @@ bool ExWatch::enter() const {
 #ifdef DEBUG
     for (int32 i = 0; i < 100; i++) {
         dwWaitRet = WaitForSingleObject(mutex, 3000);
-        if (dwWaitRet == WAIT_OBJECT_0)
+        if (dwWaitRet == WAIT_OBJECT_0) {
             break;
+        }
         exerror("ExWatch::enter(TID=%p) %s %d\n", GetCurrentThreadId(),
                 dwWaitRet == WAIT_TIMEOUT ? "WAIT_TIMEOUT" : "WAIT_FAILED", i);
     }
@@ -308,6 +279,11 @@ uint32 ExWatch::setHalt(uint32 r)
     return (halt |= r);
 }
 
+uint32 ExWatch::getHalt() const
+{
+    return halt;
+}
+
 bool ExWatch::getEvent(uint64* u64) const {
     u64 = u64;
     BOOL ret = ResetEvent(hev);
@@ -325,36 +301,43 @@ uint32 ExWatch::proc() {
     dprint("%s: tickAppLaunch=%d tickCount=%d\n", name, tickAppLaunch, tickCount);
     ExCbInfo cbinfo(0);
     enter();
-    if (hookStart)
+    if (hookStart) {
         hookStart(this, &cbinfo(HookStart));
-    while (getHalt() == 0) {
+    }
+    while (getHalt() == 0U) {
         uint32 waittick = timerset.invoke(tickCount);
-        if (getHalt() != 0) // is halt ?
+        if (getHalt() != 0U) { // is halt ?
             break; // stop event loop
-        if (hookTimer)
+        }
+        if (hookTimer) {
             hookTimer(this, &cbinfo(HookTimer));
+        }
         // blocked
         iomuxmap.invoke(waittick); // The only waiting point.
-        if (getHalt() != 0) // is halt ?
+        if (getHalt() != 0U) { // is halt ?
             break; // stop event loop
-        if (hookIomux)
+        }
+        if (hookIomux) {
             hookIomux(this, &cbinfo(HookIomux));
+        }
     }
-    if (hookClean)
+    if (hookClean) {
         hookClean(this, &cbinfo(HookClean));
+    }
     leave();
     return 0U;
 }
 
 uint32 ExWatch::onEvent(HANDLE handle) {
-    dprint0("%s: handle=%p\n", __func__, handle);
+    dprint0("%s: handle:%p\n", __func__, handle);
 
     #if 0 // for manual reset
     uint64 u64 = 0UL;
-    if (getEvent(&u64))
+    if (getEvent(&u64)) {
         dprint0("%s: got event %lu\n", __func__, u64);
-    else
+    } else {
         dprint1("%s: got event fail.\n", __func__);
+    }
     #endif
 
     #if 0 // tbd - cond wait and signal

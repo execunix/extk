@@ -14,11 +14,13 @@
 
 ExThread exMainThread;
 
+#ifdef WIN32
+
 static DWORD exThreadSelfTls = TLS_OUT_OF_INDEXES;
 static DWORD exCondEventTls = TLS_OUT_OF_INDEXES;
 
 static void
-ExThreadFiniWin32Impl() 
+ExThreadFiniWin32Impl()
 {
     if (TLS_OUT_OF_INDEXES != exCondEventTls)
         TlsFree(exCondEventTls);
@@ -313,3 +315,4 @@ ExInitProcess()
     ExThreadInitWin32Impl();
 }
 
+#endif // WIN32

@@ -26,7 +26,7 @@ s_png_read_data(png_structp png_ptr, png_bytep data, png_size_t length)
         png_error(png_ptr, "read error");
     }
 #else // compat linux
-    int32 fd = (int32)png_get_io_ptr(png_ptr);
+    int32 fd = (int64)png_get_io_ptr(png_ptr);
     if (read(fd, data, length) != (ssize_t)length) {
         exerror("%s - read error.\n", __func__);
         png_error(png_ptr, "read error");
@@ -46,7 +46,7 @@ s_png_write_data(png_structp png_ptr, png_bytep data, png_size_t length)
         png_error(png_ptr, "write error");
     }
 #else // compat linux
-    int32 fd = (int32)png_get_io_ptr(png_ptr);
+    int32 fd = (int64)png_get_io_ptr(png_ptr);
     if (write(fd, data, length) != (ssize_t)length) {
         exerror("%s - write error.\n", __func__);
         png_error(png_ptr, "write error");
@@ -61,7 +61,7 @@ s_png_flush(png_structp png_ptr)
     HANDLE hFile = (HANDLE)png_get_io_ptr(png_ptr);
     FlushFileBuffers(hFile);
 #else // compat linux
-    int32 fd = (int32)png_get_io_ptr(png_ptr);
+    int32 fd = (int64)png_get_io_ptr(png_ptr);
     fsync(fd);
 #endif
 }
@@ -207,9 +207,9 @@ bool ExImage::loadPng(HANDLE hFile, const char* fname, bool query)
     png_uint_32 channels = png_get_channels(png_ptr, info_ptr); // bpp = channels*8
 
 #if 1 // compatible with cairo
-    int32 type = Ex_IMAGE_DIRECT_8888;
+    uint32 type = Ex_IMAGE_DIRECT_8888;
 #else
-    int32 type = 0;
+    uint32 type = 0U;
     if (color_type == PNG_COLOR_TYPE_RGB_ALPHA) {
         type = Ex_IMAGE_DIRECT_8888;
     } else {
@@ -382,9 +382,9 @@ bool ExImage::loadPng(int32 fd, const char* fname, bool query)
     channels = channels;
 
 #if 1 // compatible with cairo
-    int32 type = Ex_IMAGE_DIRECT_8888;
+    uint32 type = Ex_IMAGE_DIRECT_8888;
 #else
-    int32 type = 0;
+    uint32 type = 0U;
     if (color_type == PNG_COLOR_TYPE_RGB_ALPHA) {
         type = Ex_IMAGE_DIRECT_8888;
     } else {

@@ -5,12 +5,12 @@
 
 #include "exmemory.h"
 
-void* ExHeapAlloc(size_t size)
+void* ExHeapAllocate(size_t size)
 {
     return malloc(size);
 }
 
-void ExHeapFree(void* ptr)
+void ExHeapDeallocate(void* ptr)
 {
     free(ptr);
 }
@@ -63,6 +63,26 @@ ExShmemDestroy(void* addr) {
 }
 
 #endif
+
+char* exstrcpy(char* __restrict __dest, const char* __restrict __src)
+{
+    return strcpy(__dest, __src);
+}
+
+char* exstrncpy(char* __restrict __dest, const char* __restrict __src, size_t __n)
+{
+    return strncpy(__dest, __src, __n);
+}
+
+extern int exstrcmp(const char* __s1, const char* __s2)
+{
+    return strcmp(__s1, __s2);
+}
+
+extern int exstrncmp(const char* __s1, const char* __s2, size_t __n)
+{
+    return strncmp(__s1, __s2, __n);
+}
 
 void
 exmemory_apitest() {

@@ -601,13 +601,13 @@ int WndMain::initIomux() {
         hWakeupNoti = CreateEvent(NULL, FALSE, FALSE, "AppDemo"); // tbd
         exWatchLast->ioAdd([](void* d, HANDLE handle)->uint32 {
             dprint("hWakeupNoti signaled...\n");
-            return 0; }, (void*)NULL, hWakeupNoti, NULL);
+            return 0; }, (void*)NULL, hWakeupNoti);
 
         hStorageNoti = FindFirstChangeNotification("\\", TRUE, FILE_NOTIFY_CHANGE_DIR_NAME);
         exWatchLast->ioAdd([](void* d, HANDLE handle)->uint32 {
             dprint("hStorageNoti root fs changed...\n");
             FindNextChangeNotification(hStorageNoti);
-            return 0; }, (void*)NULL, hStorageNoti, NULL);
+            return 0; }, (void*)NULL, hStorageNoti);
 
         static ExTimer signalInputTimer;
         signalInputTimer.init(NULL, [](void* d, ExTimer* t, ExCbInfo*)->uint32 {

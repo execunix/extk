@@ -90,9 +90,6 @@
     <ClInclude Include="..\..\libex2\exwatch.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\libex2\exwatch_w32.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\libex2\exiconv.h">
       <Filter>Source Files</Filter>
     </ClInclude>

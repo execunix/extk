@@ -64,11 +64,11 @@ enum class ExCallbackRet : uint32 {
 };
 
 const uint32 Ex_Continue = static_cast<uint32>(ExCallbackRet::Continue);
-const uint32 Ex_Discard = static_cast<uint32>(ExCallbackRet::Discard);
-const uint32 Ex_Remove = static_cast<uint32>(ExCallbackRet::Remove);
-const uint32 Ex_Break = static_cast<uint32>(ExCallbackRet::Break);
-const uint32 Ex_End = static_cast<uint32>(ExCallbackRet::End);
-const uint32 Ex_Halt = static_cast<uint32>(ExCallbackRet::Halt);
+const uint32 Ex_Discard  = static_cast<uint32>(ExCallbackRet::Discard);
+const uint32 Ex_Remove   = static_cast<uint32>(ExCallbackRet::Remove);
+const uint32 Ex_Break    = static_cast<uint32>(ExCallbackRet::Break);
+const uint32 Ex_End      = static_cast<uint32>(ExCallbackRet::End);
+const uint32 Ex_Halt     = static_cast<uint32>(ExCallbackRet::Halt);
 
 enum ExLayoutSubType {
     Ex_LayoutInit,
@@ -147,7 +147,7 @@ enum ExLayoutSubType {
     Ex_CbException
         TBD...
 */
-enum ExCallbackType {
+enum class ExCallbackType : uint32 {
     Ex_CbUnknown,
     Ex_CbDestroyed,
     Ex_CbUnrealized,
@@ -181,6 +181,39 @@ enum ExCallbackType {
     Ex_CbTimer,
     Ex_CbUser = 0x100U
 };
+
+const uint32 Ex_CbUnknown    = static_cast<uint32>(ExCallbackType::Ex_CbUnknown);
+const uint32 Ex_CbDestroyed  = static_cast<uint32>(ExCallbackType::Ex_CbDestroyed);
+const uint32 Ex_CbUnrealized = static_cast<uint32>(ExCallbackType::Ex_CbUnrealized);
+const uint32 Ex_CbRealized   = static_cast<uint32>(ExCallbackType::Ex_CbRealized);
+const uint32 Ex_CbBlocked    = static_cast<uint32>(ExCallbackType::Ex_CbBlocked);
+const uint32 Ex_CbFilter     = static_cast<uint32>(ExCallbackType::Ex_CbFilter);
+const uint32 Ex_CbHandler    = static_cast<uint32>(ExCallbackType::Ex_CbHandler);
+const uint32 Ex_CbHotkey     = static_cast<uint32>(ExCallbackType::Ex_CbHotkey);
+const uint32 Ex_CbDeploy     = static_cast<uint32>(ExCallbackType::Ex_CbDeploy);
+const uint32 Ex_CbExtent     = static_cast<uint32>(ExCallbackType::Ex_CbExtent);
+const uint32 Ex_CbLayout     = static_cast<uint32>(ExCallbackType::Ex_CbLayout);
+const uint32 Ex_CbResize     = static_cast<uint32>(ExCallbackType::Ex_CbResize);
+const uint32 Ex_CbOutBound   = static_cast<uint32>(ExCallbackType::Ex_CbOutBound);
+const uint32 Ex_CbDND        = static_cast<uint32>(ExCallbackType::Ex_CbDND);
+const uint32 Ex_CbPtrMove    = static_cast<uint32>(ExCallbackType::Ex_CbPtrMove);
+const uint32 Ex_CbPtrEnter   = static_cast<uint32>(ExCallbackType::Ex_CbPtrEnter);
+const uint32 Ex_CbPtrLeave   = static_cast<uint32>(ExCallbackType::Ex_CbPtrLeave);
+const uint32 Ex_CbButPress   = static_cast<uint32>(ExCallbackType::Ex_CbButPress);
+const uint32 Ex_CbButRepeat  = static_cast<uint32>(ExCallbackType::Ex_CbButRepeat);
+const uint32 Ex_CbButRelease = static_cast<uint32>(ExCallbackType::Ex_CbButRelease);
+const uint32 Ex_CbKeyPress   = static_cast<uint32>(ExCallbackType::Ex_CbKeyPress);
+const uint32 Ex_CbKeyRepeat  = static_cast<uint32>(ExCallbackType::Ex_CbKeyRepeat);
+const uint32 Ex_CbKeyRelease = static_cast<uint32>(ExCallbackType::Ex_CbKeyRelease);
+const uint32 Ex_CbActivate   = static_cast<uint32>(ExCallbackType::Ex_CbActivate);
+const uint32 Ex_CbGotFocus   = static_cast<uint32>(ExCallbackType::Ex_CbGotFocus);
+const uint32 Ex_CbLostFocus  = static_cast<uint32>(ExCallbackType::Ex_CbLostFocus);
+const uint32 Ex_CbEnumEnter  = static_cast<uint32>(ExCallbackType::Ex_CbEnumEnter);
+const uint32 Ex_CbEnumLeave  = static_cast<uint32>(ExCallbackType::Ex_CbEnumLeave);
+const uint32 Ex_CbException  = static_cast<uint32>(ExCallbackType::Ex_CbException);
+const uint32 Ex_CbInput      = static_cast<uint32>(ExCallbackType::Ex_CbInput);
+const uint32 Ex_CbTimer      = static_cast<uint32>(ExCallbackType::Ex_CbTimer);
+const uint32 Ex_CbUser       = static_cast<uint32>(ExCallbackType::Ex_CbUser);
 
 #if 0 // deprecated
 /*
@@ -254,8 +287,12 @@ template <typename T> inline T& exmin(T& a, T& b) { return (a < b) ? a : b; }
 template <typename T> inline T& exmax(T& a, T& b) { return (a > b) ? a : b; }
 template <typename T> inline void exswap(T& a, T& b) { T c(a); a = b; b = c; }
 
+#if 0 // ssizeof
+#define ssizeof(x) (static_cast<ssize_t>(sizeof(x)))
+#else
 template <typename T> constexpr ssize_t ssizeof() { return static_cast<ssize_t>(sizeof(T)); }
 template <typename T> constexpr ssize_t ssizeof(const T&) { return static_cast<ssize_t>(sizeof(T)); }
+#endif
 
 // functions
 //

@@ -15,7 +15,7 @@
 struct ExPoint {
     int32 x;
     int32 y;
-    ExPoint() {}
+    ExPoint() noexcept {}
     ExPoint(int32 i) : x(i), y(i) {}
     ExPoint(int32 x, int32 y) : x(x), y(y) {}
     ExPoint(const ExPoint& pt) = default;
@@ -65,7 +65,7 @@ operator / (const ExPoint& pt, int32 i) {
 struct ExSize {
     int32 w;
     int32 h;
-    ExSize() {}
+    ExSize() noexcept {}
     ExSize(int32 i) : w(i), h(i) {}
     ExSize(int32 w, int32 h) : w(w), h(h) {}
     ExSize(const ExSize& sz) = default;
@@ -75,7 +75,7 @@ struct ExSize {
     ExSize& operator = (const SIZE& sz) { w = (int32)sz.cx; h = (int32)sz.cy; return *this; }
 #endif
 
-    void clamp() { if (w < 0) w = 0; if (h < 0) h = 0; }
+    void clamp() { if (w < 0) { w = 0; } if (h < 0) { h = 0; } }
     ExSize& set(int32 w, int32 h) { this->w = w; this->h = h; return *this; }
     bool zero() const { return (this->w == 0 && this->h == 0); }
     bool empty() const { return (this->w <= 0 || this->h <= 0); }
@@ -155,7 +155,7 @@ struct ExRect {
         struct { int32 x, y, w, h; }; // x, y, width, height
         struct { ExPoint pt; ExSize sz; } u;
     };
-    ExRect() {}
+    ExRect() noexcept {}
     ExRect(int32 i) : x(i), y(i), w(i), h(i) {}
     ExRect(int32 x, int32 y, int32 w, int32 h) : x(x), y(y), w(w), h(h) {}
     ExRect(const ExPoint& pt, const ExSize& sz) : x(pt.x), y(pt.y), w(sz.w), h(sz.h) {}
@@ -205,7 +205,7 @@ struct ExBox {
         struct { int32 l, t, r, b; }; // left, top, right, bottom
         struct { ExPoint ul, lr; } u; // upper-left corner, lower-right corner
     };
-    ExBox() {}
+    ExBox() noexcept {}
     ExBox(int32 i) : l(i), t(i), r(i), b(i) {}
     ExBox(int32 l, int32 t, int32 r, int32 b) : l(l), t(t), r(r), b(b) {}
     ExBox(const ExPoint& ul, const ExPoint& lr) : l(ul.x), t(ul.y), r(lr.x), b(lr.y) {}
@@ -234,7 +234,7 @@ struct ExBox {
     void move(int32 dx, int32 dy) { l += dx; t += dy; r += dx; b += dy; }
     void move(const ExPoint& pt) { move(pt.x, pt.y); }
     void init0() { l = t = r = b = 0; }
-    void sort() { if (l > r) exswap<int32>(l, r); if (t > b) exswap<int32>(t, b); }
+    void sort() { if (l > r) { exswap<int32>(l, r); } if (t > b) { exswap<int32>(t, b); } }
     ExBox& set(int32 l, int32 t, int32 r, int32 b) { this->l = l; this->t = t; this->r = r; this->b = b; return *this; }
     ExBox& set(const ExPoint& ul, const ExPoint& lr) { l = ul.x; t = ul.y; r = lr.x; b = lr.y; return *this; }
     bool valid() const { return (l < r && t < b); }
@@ -374,7 +374,7 @@ struct ExArc {
     uint32 w, h;
     int32 angle1, angle2;
 
-    ExArc() {}
+    ExArc() noexcept {}
     ExArc(short x, short y) : x(x), y(y), w(0U), h(0U), angle1(0), angle2(0) {}
     // tbd
 };
@@ -384,7 +384,7 @@ struct ExArc {
 struct ExSpan {
     int32 x, y, w;
 
-    ExSpan() {}
+    ExSpan() noexcept {}
     ExSpan(int32 x, int32 y, int32 w) : x(x), y(y), w(w) {}
     // tbd
 };
@@ -395,7 +395,7 @@ struct ExTile {
     ExBox box;
     ExTile* next;
 
-    ExTile() {}
+    ExTile() noexcept {}
     ExTile(const ExRect& rc) : box(rc), next(NULL) {}
     ExTile(const ExBox& bx) : box(bx), next(NULL) {}
     // tbd
