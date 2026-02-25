@@ -48,7 +48,7 @@ void functional_test() {
     std::function<uint32 STDCALL(void*, ExWidget*, ExCbInfo*)> fn3 = func;
     //ExCallback cb2(fn2, NULL);
     //ExCallback cb3(fn3, NULL);
-    ExCallback::Func fn4 = [](void* data, void* widget, void* cbinfo)->uint32 {
+    ExCallback::FuncPtr fn4 = [](void* data, void* widget, void* cbinfo)->uint32 {
         return 0U; };
     ExCallback cb4(fn4, NULL);
 }

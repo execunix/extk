@@ -38,14 +38,17 @@ public:
         : ExObject(), watch(NULL), value(0), repeat(0), callback(), fActived(0)
         , object(NULL), u64 { 0ull, } {}
 protected:
-    void setup(ExWatch* watch, const ExCallback& callback, const ExObject* object = NULL) {
+    void setup(ExWatch* watch, const ExCallback& callback, const void* object = NULL) {
         this->watch = watch ? watch : exWatchLast;
         this->callback = callback;
         this->object = object;
     }
 public:
     void init(ExWatch* watch, const ExCallback& callback, const void* object = NULL) {
-        setup(watch, callback, (const ExObject*)object);
+        setup(watch, callback, object);
+    }
+    void init(ExWatch* watch, uint32(*f)(void*, ExObject*, ExCbInfo*), void* d, const void* obj = NULL) { // lambda
+        setup(watch, ExCallback(f, d), obj);
     }
     template <typename A, typename B, typename C>
     void init(ExWatch* watch, uint32 (STDCALL *f)(A*, B*, C*), A* d, B* obj = NULL) {

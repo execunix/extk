@@ -207,38 +207,41 @@ protected:
     #endif
 public:
     #ifdef WIN32
-    template <typename A>
-    bool ioAdd(uint32 (STDCALL *f)(A*, HANDLE handle), A* d, HANDLE handle) {
+    bool ioAdd(uint32 (*f)(void*, const HANDLE), void* d, const HANDLE handle) { // lambda
         return iomuxmap.add(handle, ExNotify(f, d));
     }
+    bool ioMod(uint32 (*f)(void*, const HANDLE), void* d, const HANDLE handle) { // lambda
+        return iomuxmap.mod(handle, ExNotify(f, d));
+    }
     template <typename A>
-    bool ioAdd(A* d, uint32 (STDCALL A::*f)(HANDLE handle), HANDLE handle) {
+    bool ioAdd(A* d, uint32 (STDCALL A::*f)(const HANDLE), const HANDLE handle) {
         return iomuxmap.add(handle, ExNotify(d, f));
     }
     template <typename A>
-    bool ioMod(A* d, uint32 (STDCALL A::*f)(HANDLE handle), HANDLE handle) {
+    bool ioMod(A* d, uint32 (STDCALL A::*f)(const HANDLE), const HANDLE handle) {
         return iomuxmap.mod(handle, ExNotify(d, f));
     }
-    bool ioDel(HANDLE handle) {
+    bool ioDel(const HANDLE handle) {
         return (getHalt() == 0U) ? iomuxmap.del(handle) : false;
     }
     #else // __linux__
+    bool ioAdd(uint32 (*f)(void*, const epoll_event*), void* d, const int32 fd, const uint32 events = EPOLLIN | EPOLLERR) { // lambda
+        return iomuxmap.add(fd, events, ExNotify(f, d));
+    }
+    bool ioMod(uint32 (*f)(void*, const epoll_event*), void* d, const int32 fd, const uint32 events = EPOLLIN | EPOLLERR) { // lambda
+        return iomuxmap.mod(fd, events, ExNotify(f, d));
+    }
     template <typename A, typename T>
-    bool ioAdd(uint32 (STDCALL *f)(A*, T*), A* d, int32 fd, uint32 events = EPOLLIN | EPOLLERR) {
+    bool ioAdd(A* d, uint32 (STDCALL A::*f)(T*), const int32 fd, const uint32 events = EPOLLIN | EPOLLERR) {
         static_assert(std::is_base_of<epoll_event, T>::value, "T must be derived from epoll_event");
         return iomuxmap.add(fd, events, ExNotify(d, f));
     }
     template <typename A, typename T>
-    bool ioAdd(A* d, uint32 (STDCALL A::*f)(T*), int32 fd, uint32 events = EPOLLIN | EPOLLERR) {
-        static_assert(std::is_base_of<epoll_event, T>::value, "T must be derived from epoll_event");
-        return iomuxmap.add(fd, events, ExNotify(d, f));
-    }
-    template <typename A, typename T>
-    bool ioMod(A* d, uint32 (STDCALL A::*f)(T*), int32 fd, uint32 events = EPOLLIN | EPOLLERR) {
+    bool ioMod(A* d, uint32 (STDCALL A::*f)(T*), const int32 fd, const uint32 events = EPOLLIN | EPOLLERR) {
         static_assert(std::is_base_of<epoll_event, T>::value, "T must be derived from epoll_event");
         return iomuxmap.mod(fd, events, ExNotify(d, f));
     }
-    bool ioDel(int32 fd) {
+    bool ioDel(const int32 fd) {
         return (getHalt() == 0U) ? iomuxmap.del(fd) : false;
     }
     #endif

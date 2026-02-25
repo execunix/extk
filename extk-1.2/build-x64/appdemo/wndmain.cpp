@@ -530,8 +530,7 @@ uint32 WndMain::onActBtns(ExWidget* widget, ExCbInfo* cbinfo) {
             static ExTimer setCursor;
             if (setCursor.u32[0] == 0) {
                 setCursor.u32[0] = 1;
-                uint32(*func1)(void*, ExTimer*, ExCbInfo*) = []
-                (void* data, ExTimer* timer, ExCbInfo* cbinfo)->uint32 {
+                uint32(*func1)(void*, ExTimer*, ExCbInfo*) = [](void* data, ExTimer* timer, ExCbInfo* cbinfo)->uint32 {
                     POINT pt;
                     setCursor.u32[1]++;
                     int n = setCursor.u32[1] & 1 ? -5 : 5;
@@ -597,33 +596,32 @@ static HANDLE hStorageNoti;
 
 int WndMain::initIomux() {
     static ExTimer launchInputTimer;
-    uint32(*func0)(void*, ExTimer*, ExCbInfo*) = []
-    (void* d, ExTimer* t, ExCbInfo*)->uint32 {
+    launchInputTimer.init(NULL, [](void* d, ExObject* o, ExCbInfo*)->uint32 {
         dprint("launchInputTimer: %d\n", exWatchDisp->getTick());
 
         hWakeupNoti = CreateEvent(NULL, FALSE, FALSE, "AppDemo"); // tbd
-        exWatchLast->ioAdd([](void* d, HANDLE handle)->uint32 {
+        exWatchLast->ioAdd([](void* d, const HANDLE handle)->uint32 {
             dprint("hWakeupNoti signaled...\n");
-            return 0; }, (void*)NULL, hWakeupNoti);
+            return 0U; }, (void*)NULL, hWakeupNoti);
 
         hStorageNoti = FindFirstChangeNotification("\\", TRUE, FILE_NOTIFY_CHANGE_DIR_NAME);
-        exWatchLast->ioAdd([](void* d, HANDLE handle)->uint32 {
+        exWatchLast->ioAdd([](void* d, const HANDLE handle)->uint32 {
             dprint("hStorageNoti root fs changed...\n");
             FindNextChangeNotification(hStorageNoti);
-            return 0; }, (void*)NULL, hStorageNoti);
+            return 0U; }, (void*)NULL, hStorageNoti);
 
         static ExTimer signalInputTimer;
-        uint32(*func1)(void*, ExTimer*, ExCbInfo*) = []
-        (void* d, ExTimer* t, ExCbInfo*)->uint32 {
+        //uint32(*func1)(void*, ExTimer*, ExCbInfo*) = ;
+        signalInputTimer.init(NULL, [](void* d, ExObject* o, ExCbInfo*)->uint32 {
+            ExTimer* t = (ExTimer*)o;
             (t->u32[0])++;
             // emulate initial state.
-            if (!((t->u32[0]) % 5))
+            if (!((t->u32[0]) % 5)) {
                 SetEvent(hWakeupNoti);
-            return Ex_Continue; };
-        signalInputTimer.init(NULL, ExCallback(func1, (void*)0));
+            }
+            return Ex_Continue; }, (void*)0);
         signalInputTimer.start(1, 1000);
-        return Ex_Continue; };
-    launchInputTimer.init(NULL, ExCallback(func0, (void*)0));
+        return Ex_Continue; }, (void*)0);
     launchInputTimer.start(1000);
     return 0;
 }
