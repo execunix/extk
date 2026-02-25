@@ -45,6 +45,7 @@
 #include <sys/time.h>
 #endif
 #include <algorithm>
+#include <type_traits>
 
 #ifndef STDCALL
 #if defined(_MSC_VER)
@@ -54,7 +55,6 @@
 #endif
 #endif /* STDCALL */
 
-#define EX2CONF_LAMBDA_CALLBACK 1
 #if defined(_MSC_VER) || defined(STDCPP_EABI)
 #define EX2CONF_DISABLE_STDCALL 0
 #else

@@ -149,7 +149,7 @@ void ExRender::Draw::draw(ExWidget* w) {
         if (c->getFlags(Ex_Visible)) {
 #if 1 // tbd
             if (c->getFlags(Ex_HasOwnGC)) {
-                c->drawFunc(NULL, c, &c->damageRgn);
+                c->drawFunc((ExCanvas*)NULL, c, &c->damageRgn);
                 // I don't know, but you know what canvas to draw on ...
                 // I will give you the opportunity to fill in the content of the canvas ...
             }

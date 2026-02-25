@@ -58,7 +58,7 @@ uint32 ExWatch::TimerSet::invoke(uint32 tick_count) {
         erase(begin());
         timer->fActived = 0;
         exassert(timer->callback.func);
-        void* object = timer->object ? timer->object : timer;
+        const void* object = timer->object ? timer->object : timer;
         ExCbInfo cbinfo(Ex_CbTimer, 0, NULL, timer);
         uint32 r = timer->callback(object, &cbinfo);
         if (r & Ex_Halt) {

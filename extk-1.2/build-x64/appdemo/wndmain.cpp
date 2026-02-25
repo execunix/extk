@@ -530,13 +530,15 @@ uint32 WndMain::onActBtns(ExWidget* widget, ExCbInfo* cbinfo) {
             static ExTimer setCursor;
             if (setCursor.u32[0] == 0) {
                 setCursor.u32[0] = 1;
-                setCursor.init(exWatchDisp, [](void* data, ExTimer* timer, ExCbInfo* cbinfo)->uint32 {
+                uint32(*func1)(void*, ExTimer*, ExCbInfo*) = []
+                (void* data, ExTimer* timer, ExCbInfo* cbinfo)->uint32 {
                     POINT pt;
                     setCursor.u32[1]++;
                     int n = setCursor.u32[1] & 1 ? -5 : 5;
                     GetCursorPos(&pt);
                     SetCursorPos(pt.x + n, pt.y + n);
-                    return 0; }, NULL);
+                    return 0U; };
+                setCursor.init(exWatchDisp, ExCallback(func1, (void*)0));
             }
             if (setCursor.u32[0] == 1) {
                 setCursor.u32[0] = 2;
@@ -595,7 +597,8 @@ static HANDLE hStorageNoti;
 
 int WndMain::initIomux() {
     static ExTimer launchInputTimer;
-    launchInputTimer.init(NULL, [](void* d, ExTimer* t, ExCbInfo*)->uint32 {
+    uint32(*func0)(void*, ExTimer*, ExCbInfo*) = []
+    (void* d, ExTimer* t, ExCbInfo*)->uint32 {
         dprint("launchInputTimer: %d\n", exWatchDisp->getTick());
 
         hWakeupNoti = CreateEvent(NULL, FALSE, FALSE, "AppDemo"); // tbd
@@ -610,14 +613,17 @@ int WndMain::initIomux() {
             return 0; }, (void*)NULL, hStorageNoti);
 
         static ExTimer signalInputTimer;
-        signalInputTimer.init(NULL, [](void* d, ExTimer* t, ExCbInfo*)->uint32 {
+        uint32(*func1)(void*, ExTimer*, ExCbInfo*) = []
+        (void* d, ExTimer* t, ExCbInfo*)->uint32 {
             (t->u32[0])++;
             // emulate initial state.
             if (!((t->u32[0]) % 5))
                 SetEvent(hWakeupNoti);
-            return Ex_Continue; }, NULL);
+            return Ex_Continue; };
+        signalInputTimer.init(NULL, ExCallback(func1, (void*)0));
         signalInputTimer.start(1, 1000);
-        return Ex_Continue; }, NULL);
+        return Ex_Continue; };
+    launchInputTimer.init(NULL, ExCallback(func0, (void*)0));
     launchInputTimer.start(1000);
     return 0;
 }
@@ -1009,13 +1015,17 @@ int WndMain::start() {
 
     timer.init(NULL, this, &WndMain::onTimer);
 
-    static ExTimer timerTest;
-    timerTest.init(NULL, [](void* d, ExWidget* w, ExCbInfo*)->uint32 {
+    uint32(*func1)(void*, ExWidget*, ExCbInfo*) = [](void* d, ExWidget* w, ExCbInfo*)->uint32 {
         dprint("timerTest: %s\n", w->getName());
-        return Ex_Continue; }, (void*)0, this); // test
-    timerTest.init(NULL, [](void* d, ExTimer* t, ExCbInfo*)->uint32 {
+        return Ex_Continue;
+    };
+    uint32(*func2)(void*, ExTimer*, ExCbInfo*) = [](void* d, ExTimer* t, ExCbInfo*)->uint32 {
         dprint("timerTest: %d %u %u\n", (t->u32[0])++, (ulong)*t, exWatchDisp->getTick());
-        return Ex_Continue; }, (void*)0);
+        return Ex_Continue;
+    };
+    static ExTimer timerTest;
+    timerTest.init(NULL, ExCallback(func1, (void*)0), this); // test
+    timerTest.init(NULL, ExCallback(func2, (void*)0));
     timerTest.start(1, 1000);
 
     toy_alpha = .2f;
