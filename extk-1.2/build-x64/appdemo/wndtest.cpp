@@ -7,7 +7,7 @@
 #include "wndtest.h"
 #include <assert.h>
 
-void WndTest::onDrawBkgd(ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage) {
+void WndTest::onDrawBkgd(ExCanvas* canvas, const ExVision* widget, const ExRegion* damage) {
     if (widget == this) {
         ExRegion rgn(*damage);
         for (int i = 0; i < rgn.n_boxes; i++)
@@ -15,7 +15,7 @@ void WndTest::onDrawBkgd(ExCanvas* canvas, const ExWidget* widget, const ExRegio
     }
 }
 
-void WndTest::onDrawBtns(ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage) {
+void WndTest::onDrawBtns(ExCanvas* canvas, const ExVision* widget, const ExRegion* damage) {
     ExCairo cr(canvas, damage);
     ExCairo::Rect rc(widget->calcRect());
     ExCairo::Point p2(rc.p2());

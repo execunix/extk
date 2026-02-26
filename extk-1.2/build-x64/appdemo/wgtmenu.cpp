@@ -93,7 +93,8 @@ uint32 WgtMenu::onTimerAni(Popup* popup, ExCbInfo* cbinfo) {
 
 }
 
-void WgtMenu::onDrawMenuPopBkgd(ExCanvas* canvas, const Popup* popup, const ExRegion* damage) {
+void WgtMenu::onDrawMenuPopBkgd(ExCanvas* canvas, const ExVision* widget, const ExRegion* damage) {
+    const Popup* popup = (const Popup*)widget;
     ExCairo cr(canvas, damage);
     ExCairo::Rect rc(popup->calcRect());
     ExCairo::Color fc; // fill color
@@ -103,7 +104,7 @@ void WgtMenu::onDrawMenuPopBkgd(ExCanvas* canvas, const Popup* popup, const ExRe
     // tbd - border
 }
 
-void WgtMenu::onDrawMenuPop(ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage) {
+void WgtMenu::onDrawMenuPop(ExCanvas* canvas, const ExVision* widget, const ExRegion* damage) {
     ExCairo cr(canvas, damage);
     ExCairo::Rect rc(widget->calcRect());
     ExCairo::Point p2(rc.p2());
@@ -149,7 +150,7 @@ void WgtMenu::onDrawMenuPop(ExCanvas* canvas, const ExWidget* widget, const ExRe
     cr.show_text(menu->text, tc, cr.text_align(canvas->fe, menu->extents, rc, ExCairo::Left));
 }
 
-void WgtMenu::onDrawMenuBarBkgd(ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage) {
+void WgtMenu::onDrawMenuBarBkgd(ExCanvas* canvas, const ExVision* widget, const ExRegion* damage) {
     ExCairo cr(canvas, damage);
     ExCairo::Rect rc(widget->calcRect());
     ExCairo::Color fc; // fill color
@@ -157,7 +158,7 @@ void WgtMenu::onDrawMenuBarBkgd(ExCanvas* canvas, const ExWidget* widget, const 
     cr.fill_rect_rgba(rc, fc);
 }
 
-void WgtMenu::onDrawMenuBar(ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage) {
+void WgtMenu::onDrawMenuBar(ExCanvas* canvas, const ExVision* widget, const ExRegion* damage) {
     ExCairo cr(canvas, damage);
     ExCairo::Rect rc(widget->calcRect());
     Menu* menu = (Menu*)widget->getData();

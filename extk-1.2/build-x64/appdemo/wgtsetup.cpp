@@ -7,7 +7,7 @@
 #include "wgtsetup.h"
 
 static void
-fillRect(void* data, ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage) {
+fillRect(void* data, ExCanvas* canvas, const ExVision* widget, const ExRegion* damage) {
     ExCairo cr(canvas, damage);
     ExCairo::Rect rc(widget->calcRect());
     ExCairo::Color fc; // fill color
@@ -17,7 +17,7 @@ fillRect(void* data, ExCanvas* canvas, const ExWidget* widget, const ExRegion* d
 }
 
 static void
-drawName(void* data, ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage) {
+drawName(void* data, ExCanvas* canvas, const ExVision* widget, const ExRegion* damage) {
     ExCairo cr(canvas, damage);
     ExCairo::Rect rc(widget->calcRect());
     ExCairo::Color fc; // fill color
@@ -70,7 +70,7 @@ void WgtPage3::init(ExWidget* parent, ExRect& rc) {
     button1.drawFunc = ExDrawFunc(drawName, (void*)50);
 }
 
-void WgtSetup::onDrawSetup(ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage) {
+void WgtSetup::onDrawSetup(ExCanvas* canvas, const ExVision* widget, const ExRegion* damage) {
     ExCairo cr(canvas, damage);
     ExCairo::Rect rc(widget->calcRect());
     ExCairo::Color fc; // fill color

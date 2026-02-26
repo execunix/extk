@@ -24,8 +24,8 @@ public:
     uint32 onLayout(WndTest* widget, ExCbInfo* cbinfo);
     uint32 onActMain(WndTest* widget, ExCbInfo* cbinfo);
     uint32 onActBtns(ExWidget* widget, ExCbInfo* cbinfo);
-    void onDrawBkgd(ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage);
-    void onDrawBtns(ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage);
+    void onDrawBkgd(ExCanvas* canvas, const ExVision* widget, const ExRegion* damage);
+    void onDrawBtns(ExCanvas* canvas, const ExVision* widget, const ExRegion* damage);
     uint32 onFilter(WndTest* w, ExCbInfo* cbinfo);
     uint32 onTimer(ExTimer* timer, ExCbInfo* cbinfo);
 };

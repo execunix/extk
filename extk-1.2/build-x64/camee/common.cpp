@@ -2,7 +2,7 @@
 #include "common.h"
 
 void
-onDrawBtns(void* data, ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage)
+onDrawBtns(void* data, ExCanvas* canvas, const ExVision* widget, const ExRegion* damage)
 {
     ExCairo cr(canvas, damage);
     ExCairo::Rect rc(widget->calcRect());

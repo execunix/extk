@@ -32,6 +32,7 @@ class ExGC;
 class ExImage;
 class ExTimer;
 class ExWatch;
+class ExVision;
 class ExWidget;
 class ExWindow;
 class ExCanvas;

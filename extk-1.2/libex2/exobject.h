@@ -14,7 +14,7 @@ class ExTypeInfo {
     const char* name;
     const ExTypeInfo* base;
 public:
-    explicit ExTypeInfo(const char* name, const ExTypeInfo* base)
+    explicit ExTypeInfo(const char* name, const ExTypeInfo* base) noexcept
         : name(name), base(base) {}
     operator const char* () const { return name; }
     bool isBase(const ExTypeInfo* type) const {

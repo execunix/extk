@@ -184,7 +184,7 @@ uint32 ExListenerList::ListenerList::invoke(uint32 type, const void* object, con
 
 // class ExWidget::ListenerList
 //
-bool ExWidget::ListenerList::remove(uint32 type, uint8 prio) {
+bool ExWidget::ListenerList::remove(const uint32 type, const uint8 prio) {
     for (iterator i = begin(); i != end(); ++i) {
         // Be careful not to remove items from this list within the callback.
         if ((*i).type == type &&
@@ -215,7 +215,7 @@ void ExWidget::ListenerList::push(const Listener& cb) {
     push_back(cb);
 }
 
-uint32 ExWidget::ListenerList::invoke(ExWatch* watch, uint32 type, ExObject* object, ExCbInfo* cbinfo) {
+uint32 ExWidget::ListenerList::invoke(ExWatch* watch, const uint32 type, const ExObject* object, const ExCbInfo* cbinfo) {
     uint32 r = Ex_Continue;
     influx++;
     for (iterator i = begin(); i != end();) {
@@ -305,7 +305,7 @@ void ExWindow::CallbackList::push(const Callback& cb) {
     push_back(cb);
 }
 
-uint32 ExWindow::CallbackList::invoke(ExWatch* watch, ExObject* object, ExCbInfo* cbinfo) {
+uint32 ExWindow::CallbackList::invoke(ExWatch* watch, const ExObject* object, const ExCbInfo* cbinfo) {
     uint32 r = Ex_Continue;
     influx++;
     for (iterator i = begin(); i != end();) {

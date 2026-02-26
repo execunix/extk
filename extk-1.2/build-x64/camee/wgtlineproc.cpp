@@ -6,7 +6,7 @@ void layout_horz(ExRect r, int n, double* f, ExWidget* w)
 {
 }
 
-void WgtLineProc::onDrawBkgd(ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage)
+void WgtLineProc::onDrawBkgd(ExCanvas* canvas, const ExVision* widget, const ExRegion* damage)
 {
     if (widget == this) {
         ExRegion rgn(*damage);
@@ -58,7 +58,7 @@ int WgtLineProc::onTimer(ExTimer* timer, ExCbInfo* cbinfo)
     return Ex_Continue;
 }
 
-void WgtLineProc::onDrawCamInfo(ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage)
+void WgtLineProc::onDrawCamInfo(ExCanvas* canvas, const ExVision* widget, const ExRegion* damage)
 {
     ExCairo cr(canvas, damage);
     ExCairo::Rect rc(widget->calcRect());
@@ -81,7 +81,7 @@ void WgtLineProc::onDrawCamInfo(ExCanvas* canvas, const ExWidget* widget, const 
     cr.show_text(buf, ExCairo::Color(1.f), pt);
 }
 
-void WgtLineProc::onDrawCamView(ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage)
+void WgtLineProc::onDrawCamView(ExCanvas* canvas, const ExVision* widget, const ExRegion* damage)
 {
     FFCtx* ff = ffctx[widget->id];
     assert(ff != NULL);

@@ -21,7 +21,7 @@ public:
         title[255] = 0;
     }
     uint32 onLayout(WgtTitle* widget, ExCbInfo* cbinfo);
-    void onDrawTitle(ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage);
+    void onDrawTitle(ExCanvas* canvas, const ExVision* widget, const ExRegion* damage);
 };
 
 class WndMain : public ExWindow {
@@ -56,10 +56,10 @@ public:
     uint32 onActMain(WndMain* widget, ExCbInfo* cbinfo);
     uint32 onActBkgd(WndMain* widget, ExCbInfo* cbinfo);
     uint32 onActBtns(ExWidget* widget, ExCbInfo* cbinfo);
-    void onDrawBkgd(ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage);
-    void onDrawTrap(ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage);
-    void onDrawBtns(ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage);
-    void onDrawPane(ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage);
+    void onDrawBkgd(ExCanvas* canvas, const ExVision* widget, const ExRegion* damage);
+    void onDrawTrap(ExCanvas* canvas, const ExVision* widget, const ExRegion* damage);
+    void onDrawBtns(ExCanvas* canvas, const ExVision* widget, const ExRegion* damage);
+    void onDrawPane(ExCanvas* canvas, const ExVision* widget, const ExRegion* damage);
     uint32 onRbtnDown(WndMain* w, ExCbInfo* cbinfo);
     uint32 onHandler(WndMain* w, ExCbInfo* cbinfo);
     uint32 onFilter(WndMain* w, ExCbInfo* cbinfo);
@@ -68,10 +68,10 @@ public:
     ExWidget toy;
     ExTimer timerToy;
     float toy_alpha, toy_delta, toy_scale;
-    void onDrawToy(ExCanvas* canvas, const WndMain* w, const ExRegion* damage);
+    void onDrawToy(ExCanvas* canvas, ExVision* widget, ExRegion* damage);
     uint32 onTimerToy(WndMain* w, ExCbInfo* cbinfo);
     void onFlushBackBuf(WndMain* w, const ExRegion* updateRgn);
-    void onDrawBackBuf(ExCanvas* canvas, const ExWidget* w, const ExRegion* damage);
+    void onDrawBackBuf(ExCanvas* canvas, const ExVision* w, const ExRegion* damage);
     uint32 onBackViewMove(WndMain* widget, ExCbInfo* cbinfo);
     uint32 onBackBufUpdater(ExTimer* timer, ExCbInfo* cbinfo);
 };

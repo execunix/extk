@@ -99,7 +99,7 @@ protected: // window callback internal
         uint8 prio;
         uint8 flag;
         uint16 mask; // tbd - ???
-        Callback(const ExCallback& cb, uint8 prio)
+        Callback(const ExCallback& cb, const uint8 prio)
             : ExCallback(cb), prio(prio), flag(0), mask(0) {
         }
         bool operator == (const Callback& cb) const {
@@ -117,94 +117,58 @@ protected: // window callback internal
         // inherit void push_back(const Callback& cb);
         // inherit void push_front(const Callback& cb);
         void push(const Callback& cb);
-        uint32 invoke(ExWatch* watch, ExObject* object, ExCbInfo* cbinfo);
+        uint32 invoke(ExWatch* watch, const ExObject* object, const ExCbInfo* cbinfo);
     };
     CallbackList filterList;
     CallbackList handlerList;
 public: // window message callback operation (event filter and handler)
-    void addFilter(uint32(*f)(void*, const ExWindow*, const ExCbInfo*), void* d, uint8 prio = 5U) {
+    void addFilter(uint32(*f)(void*, ExWindow*, ExCbInfo*), void* d, const uint8 prio = 5U) { // lambda
         filterList.push(Callback(ExCallback(f, d), prio));
     }
-    void addFilter(uint32(*f)(void*, ExWindow*, ExCbInfo*), void* d, uint8 prio = 5U) {
+    template <typename A, class W/*inherit ExWidget*/, typename C/*inherit ExCbInfo*/>
+    void addFilter(uint32(*f)(A*, W*, C*), A* d, const uint8 prio = 5U) {
+        static_assert(std::is_base_of<ExWidget, W>::value, "W must be derived from ExWidget");
+        static_assert(std::is_base_of<ExCbInfo, C>::value, "C must be derived from ExCbInfo");
         filterList.push(Callback(ExCallback(f, d), prio));
     }
-    template <typename A, class W/*inherit ExWidget*/>
-    void addFilter(uint32(*f)(A*, const W*, const ExCbInfo*), A* d, uint8 prio = 5U) {
-        filterList.push(Callback(ExCallback(f, d), prio));
-    }
-    template <typename A, class W/*inherit ExWidget*/>
-    void addFilter(uint32(*f)(A*, W*, ExCbInfo*), A* d, uint8 prio = 5U) {
-        filterList.push(Callback(ExCallback(f, d), prio));
-    }
-    template <typename A, class W/*inherit ExWidget*/>
-    void addFilter(A* d, uint32(A::*f)(const W*, const ExCbInfo*), uint8 prio = 5U) {
+    template <typename A, class W/*inherit ExWidget*/, typename C/*inherit ExCbInfo*/>
+    void addFilter(A* d, uint32(A::*f)(W*, C*), const uint8 prio = 5U) {
+        static_assert(std::is_base_of<ExWidget, W>::value, "W must be derived from ExWidget");
+        static_assert(std::is_base_of<ExCbInfo, C>::value, "C must be derived from ExCbInfo");
         filterList.push(Callback(ExCallback(d, f), prio));
     }
-    template <typename A, class W/*inherit ExWidget*/>
-    void addFilter(A* d, uint32(A::*f)(W*, ExCbInfo*), uint8 prio = 5U) {
-        filterList.push(Callback(ExCallback(d, f), prio));
-    }
-    void addFilter(const ExCallback& cb, uint8 prio = 5U) {
+    void addFilter(const ExCallback& cb, const uint8 prio = 5U) {
         filterList.push(Callback(cb, prio));
     }
     void removeFilter(const ExCallback& cb) {
         filterList.remove2(cb);
     }
-    uint32 invokeFilter(ExCbInfo* cbinfo) {
+    uint32 invokeFilter(const ExCbInfo* const cbinfo) {
         return filterList.invoke(exWatchDisp, this, cbinfo);
     }
 
-    void addHandler(uint32(*f)(void*, const ExWindow*, const ExCbInfo*), void* d, uint8 prio = 5U) {
+    void addHandler(uint32(*f)(void*, ExWindow*, ExCbInfo*), void* d, const uint8 prio = 5U) { // lambda
         handlerList.push(Callback(ExCallback(f, d), prio));
     }
-    void addHandler(uint32(*f)(void*, const ExWindow*, ExCbInfo*), void* d, uint8 prio = 5U) {
+    template <typename A, class W/*inherit ExWidget*/, typename C/*inherit ExCbInfo*/>
+    void addHandler(uint32(*f)(A*, W*, C*), A* d, const uint8 prio = 5U) {
+        static_assert(std::is_base_of<ExWidget, W>::value, "W must be derived from ExWidget");
+        static_assert(std::is_base_of<ExCbInfo, C>::value, "C must be derived from ExCbInfo");
         handlerList.push(Callback(ExCallback(f, d), prio));
     }
-    void addHandler(uint32(*f)(void*, ExWindow*, const ExCbInfo*), void* d, uint8 prio = 5U) {
-        handlerList.push(Callback(ExCallback(f, d), prio));
-    }
-    void addHandler(uint32(*f)(void*, ExWindow*, ExCbInfo*), void* d, uint8 prio = 5U) {
-        handlerList.push(Callback(ExCallback(f, d), prio));
-    }
-    template <typename A, class W/*inherit ExWidget*/>
-    void addHandler(uint32(*f)(A*, const W*, const ExCbInfo*), A* d, uint8 prio = 5U) {
-        handlerList.push(Callback(ExCallback(f, d), prio));
-    }
-    template <typename A, class W/*inherit ExWidget*/>
-    void addHandler(uint32(*f)(A*, const W*, ExCbInfo*), A* d, uint8 prio = 5U) {
-        handlerList.push(Callback(ExCallback(f, d), prio));
-    }
-    template <typename A, class W/*inherit ExWidget*/>
-    void addHandler(uint32(*f)(A*, W*, const ExCbInfo*), A* d, uint8 prio = 5U) {
-        handlerList.push(Callback(ExCallback(f, d), prio));
-    }
-    template <typename A, class W/*inherit ExWidget*/>
-    void addHandler(uint32(*f)(A*, W*, ExCbInfo*), A* d, uint8 prio = 5U) {
-        handlerList.push(Callback(ExCallback(f, d), prio));
-    }
-    template <typename A, class W/*inherit ExWidget*/>
-    void addHandler(A* d, uint32(A::*f)(const W*, const ExCbInfo*), uint8 prio = 5U) {
+    template <typename A, class W/*inherit ExWidget*/, typename C/*inherit ExCbInfo*/>
+    void addHandler(A* d, uint32(A::*f)(W*, C*), const uint8 prio = 5U) {
+        static_assert(std::is_base_of<ExWidget, W>::value, "W must be derived from ExWidget");
+        static_assert(std::is_base_of<ExCbInfo, C>::value, "C must be derived from ExCbInfo");
         handlerList.push(Callback(ExCallback(d, f), prio));
     }
-    template <typename A, class W/*inherit ExWidget*/>
-    void addHandler(A* d, uint32(A::*f)(const W*, ExCbInfo*), uint8 prio = 5U) {
-        handlerList.push(Callback(ExCallback(d, f), prio));
-    }
-    template <typename A, class W/*inherit ExWidget*/>
-    void addHandler(A* d, uint32(A::*f)(W*, const ExCbInfo*), uint8 prio = 5U) {
-        handlerList.push(Callback(ExCallback(d, f), prio));
-    }
-    template <typename A, class W/*inherit ExWidget*/>
-    void addHandler(A* d, uint32(A::*f)(W*, ExCbInfo*), uint8 prio = 5U) {
-        handlerList.push(Callback(ExCallback(d, f), prio));
-    }
-    void addHandler(const ExCallback& cb, uint8 prio = 5U) {
+    void addHandler(const ExCallback& cb, const uint8 prio = 5U) {
         handlerList.push(Callback(cb, prio));
     }
     void removeHandler(const ExCallback& cb) {
         handlerList.remove2(cb);
     }
-    uint32 invokeHandler(ExCbInfo* cbinfo) {
+    uint32 invokeHandler(const ExCbInfo* const cbinfo) {
         return handlerList.invoke(exWatchDisp, this, cbinfo);
     }
 public:

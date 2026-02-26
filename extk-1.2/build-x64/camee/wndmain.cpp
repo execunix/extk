@@ -39,7 +39,7 @@ int WgtTitle::onLayout(ExWidget* widget, ExCbInfo* cbinfo)
     return Ex_Continue;
 }
 
-void WgtTitle::onDrawTitle(ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage)
+void WgtTitle::onDrawTitle(ExCanvas* canvas, const ExVision* widget, const ExRegion* damage)
 {
     ExCairo cr(canvas, damage);
     ExCairo::Rect rc(widget->calcRect());
@@ -61,12 +61,12 @@ void WgtTitle::onDrawTitle(ExCanvas* canvas, const ExWidget* widget, const ExReg
     cr.show_text(title, ExCairo::Color(1.f), pt);
 }
 
-void WgtTitle::onDrawClock(ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage)
+void WgtTitle::onDrawClock(ExCanvas* canvas, const ExVision* widget, const ExRegion* damage)
 {
     ::onDrawBtns(NULL, canvas, widget, damage);
 }
 
-void WgtTitle::onDrawBtns(ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage)
+void WgtTitle::onDrawBtns(ExCanvas* canvas, const ExVision* widget, const ExRegion* damage)
 {
     ::onDrawBtns(NULL, canvas, widget, damage);
 }
@@ -138,7 +138,7 @@ onRealized(WndMain* data, ExWindow* w, ExCbInfo* cbinfo)
     return Ex_Continue;
 }
 
-void WndMain::onDrawBkgd(ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage)
+void WndMain::onDrawBkgd(ExCanvas* canvas, const ExVision* widget, const ExRegion* damage)
 {
     if (widget == this) {
 #if 1
@@ -398,7 +398,7 @@ int WndMain::onFocused(WndMain* widget, ExCbInfo* cbinfo)
     return Ex_Continue;
 }
 
-void WndMain::onDrawCamInfo(ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage)
+void WndMain::onDrawCamInfo(ExCanvas* canvas, const ExVision* widget, const ExRegion* damage)
 {
     ExCairo cr(canvas, damage);
     ExCairo::Rect rc(widget->calcRect());
@@ -421,7 +421,7 @@ void WndMain::onDrawCamInfo(ExCanvas* canvas, const ExWidget* widget, const ExRe
     cr.show_text(buf, ExCairo::Color(1.f), pt);
 }
 
-void WndMain::onDrawCamView(ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage)
+void WndMain::onDrawCamView(ExCanvas* canvas, const ExVision* widget, const ExRegion* damage)
 {
     FFCtx* ff = ffctx[widget->id];
     assert(ff != NULL);

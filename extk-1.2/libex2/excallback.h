@@ -19,7 +19,7 @@ struct ExCbInfo {
                        //   that caused this callback to be invoked.
     void*       data;  // A pointer to callback-specific data.
 
-    ExCbInfo(uint32 t, uint32 s = 0, ExEvent* e = NULL, void* d = NULL)
+    ExCbInfo(uint32 t, uint32 s = 0, ExEvent* e = NULL, void* d = NULL) noexcept
         : type(t), subtype(s), event(e), data(d) {}
     // pointer
     ExCbInfo* set(uint32 t, uint32 s, ExEvent* e, void* d = NULL) {
@@ -74,19 +74,19 @@ struct ExPolyFunc {
     }
     #endif
     // placement
-    ExPolyFunc(const ExPolyFunc& cb)
+    ExPolyFunc(const ExPolyFunc& cb) noexcept
         : data(cb.data), func(cb.func) {
         #if EX2CONF_DISABLE_STDCALL
         invoker = cb.invoker;
         #endif
     }
-    ExPolyFunc(void* data)
+    ExPolyFunc(void* data) noexcept
         : data(data), func(NULL) {
         #if EX2CONF_DISABLE_STDCALL
         invoker = &thisfunc; // default
         #endif
     }
-    ExPolyFunc()
+    ExPolyFunc() noexcept
         : data(NULL), func(NULL) {
         #if EX2CONF_DISABLE_STDCALL
         invoker = &thisfunc; // default
@@ -120,47 +120,49 @@ struct ExPolyFunc {
 //
 struct ExCallback : public ExPolyFunc<uint32, const void*, const void*> {
     template <typename A, typename B, typename C>
-    ExCallback(A* d, uint32 (A::*f)(B*, C*))  // look like data->func(...)
+    ExCallback(A* d, uint32 (A::*f)(B*, C*)) noexcept // look like data->func(...)
         : ExPolyFunc(d) {
         func = reinterpret_cast<ThisFunc>(f);
     }
     template <typename A, typename B, typename C>
-    ExCallback(uint32 (*f)(A*, B*, C*), A* d) // look like func(data, ...)
+    ExCallback(uint32 (*f)(A*, B*, C*), A* d) noexcept // look like func(data, ...)
         : ExPolyFunc(d) {
         vfunc = reinterpret_cast<FuncPtr>(f);
         #if EX2CONF_DISABLE_STDCALL
         invoker = &funcptr;
         #endif
     }
-    ExCallback(const ExCallback& cb)
+    ExCallback(const ExCallback& cb) noexcept
         : ExPolyFunc(cb) {}
-    ExCallback()
+    ExCallback() noexcept
         : ExPolyFunc() {}
 };
 
-struct ExDrawFunc : public ExPolyFunc<void, const ExCanvas*, const ExWidget*, const ExRegion*> {
+struct ExDrawFunc : public ExPolyFunc<void, const ExCanvas*, const ExVision*, const ExRegion*> {
     template <typename A, typename B, typename C, typename D>
-    ExDrawFunc(A* d, void (A::*f)(B*, C*, D*))
+    ExDrawFunc(A* d, void (A::*f)(B*, C*, D*)) noexcept
         : ExPolyFunc(d) {
+        using NonConstC = typename std::remove_const<C>::type;
+        static_assert(std::is_same<ExVision, NonConstC>::value, "C must be ExVision");
         static_assert(std::is_base_of<ExCanvas, B>::value, "B must be derived from ExCanvas");
-        static_assert(std::is_base_of<ExWidget, C>::value, "C must be derived from ExWidget");
         static_assert(std::is_base_of<ExRegion, D>::value, "D must be derived from ExRegion");
         func = reinterpret_cast<ThisFunc>(f);
     }
     template <typename A, typename B, typename C, typename D>
-    ExDrawFunc(void (*f)(A*, B*, C*, D*), A* d)
+    ExDrawFunc(void (*f)(A*, B*, C*, D*), A* d) noexcept
         : ExPolyFunc(d) {
+        using NonConstC = typename std::remove_const<C>::type;
+        static_assert(std::is_same<ExVision, NonConstC>::value, "C must be ExVision");
         static_assert(std::is_base_of<ExCanvas, B>::value, "B must be derived from ExCanvas");
-        static_assert(std::is_base_of<ExWidget, C>::value, "C must be derived from ExWidget");
         static_assert(std::is_base_of<ExRegion, D>::value, "D must be derived from ExRegion");
         vfunc = reinterpret_cast<FuncPtr>(f);
         #if EX2CONF_DISABLE_STDCALL
         invoker = &funcptr;
         #endif
     }
-    ExDrawFunc(const ExDrawFunc& df)
+    ExDrawFunc(const ExDrawFunc& df) noexcept
         : ExPolyFunc(df) {}
-    ExDrawFunc()
+    ExDrawFunc() noexcept
         : ExPolyFunc() {}
     #if 0 // inherit
     template <typename B, typename C, typename D>
@@ -176,21 +178,21 @@ struct ExDrawFunc : public ExPolyFunc<void, const ExCanvas*, const ExWidget*, co
 
 struct ExFlushFunc : public ExPolyFunc<void, const ExWidget*, const ExRegion*> {
     template <typename A, class W/*inherit ExWindow*/>
-    ExFlushFunc(A* d, void (A::*f)(W*, const ExRegion*))
+    ExFlushFunc(A* d, void (A::*f)(W*, const ExRegion*)) noexcept
         : ExPolyFunc(d) {
         func = reinterpret_cast<ThisFunc>(f);
     }
     template <typename A, class W/*inherit ExWindow*/>
-    ExFlushFunc(void (*f)(A*, W*, const ExRegion*), A* d)
+    ExFlushFunc(void (*f)(A*, W*, const ExRegion*), A* d) noexcept
         : ExPolyFunc(d) {
         vfunc = reinterpret_cast<FuncPtr>(f);
         #if EX2CONF_DISABLE_STDCALL
         invoker = &funcptr;
         #endif
     }
-    ExFlushFunc(const ExFlushFunc& ff)
+    ExFlushFunc(const ExFlushFunc& ff) noexcept
         : ExPolyFunc(ff) {}
-    ExFlushFunc()
+    ExFlushFunc() noexcept
         : ExPolyFunc() {}
 };
 
@@ -202,7 +204,7 @@ private:
         uint8 prio;
         uint8 flag;
         uint16 mask;
-        Callback(const ExCallback& cb, uint8 p)
+        Callback(const ExCallback& cb, uint8 p) noexcept
             : ExCallback(cb), prio(p), flag(0), mask(0) {
         }
     };
@@ -210,7 +212,7 @@ private:
         uint16 influx; // for recurs
         uint16 change;
     public:
-        CallbackList() : std::list<Callback>(), influx(0), change(0) {}
+        CallbackList() noexcept : std::list<Callback>(), influx(0), change(0) {}
     public:
         // inherit size_t size();
         bool remove2(const ExCallback& cb);
@@ -227,8 +229,11 @@ private:
     CallbackList handler_list;
     #endif
 public:
-    ExCallbackList() : cblist() {}
+    ExCallbackList() noexcept : cblist() {}
 public: // operations
+    void add(const ExCallback& cb, uint8 prio = 5U) { // for lambda or pre-constructed ExCallback
+        cblist.push(Callback(cb, prio));
+    }
     template <typename A, typename B, typename C>
     void add(uint32 (*f)(A*, B*, C*), A* d, uint8 prio = 5U) {
         cblist.push(Callback(ExCallback(f, d), prio));
@@ -236,9 +241,6 @@ public: // operations
     template <typename A, typename B, typename C>
     void add(A* d, uint32 (A::*f)(B*, C*), uint8 prio = 5U) {
         cblist.push(Callback(ExCallback(d, f), prio));
-    }
-    void add(const ExCallback& cb, uint8 prio = 5U) { // for lambda or pre-constructed ExCallback
-        cblist.push(Callback(cb, prio));
     }
     void remove(const ExCallback& cb) {
         cblist.remove2(cb);
@@ -259,7 +261,7 @@ private:
         uint8 prio;
         uint8 flag;
         uint16 mask;
-        Listener(const ExCallback& cb, uint32 t, uint8 p)
+        Listener(const ExCallback& cb, uint32 t, uint8 p) noexcept
             : ExCallback(cb), type(t), prio(p), flag(0), mask(0) {
         }
     };
@@ -267,7 +269,7 @@ private:
         uint16 influx; // for recurs
         uint16 change;
     public:
-        ListenerList() : std::list<Listener>(), influx(0), change(0) {}
+        ListenerList() noexcept : std::list<Listener>(), influx(0), change(0) {}
     public:
         // inherit size_t size();
         bool remove2(uint32 type, uint8 prio);
@@ -279,8 +281,11 @@ private:
     };
     ListenerList cblist;
 public:
-    ExListenerList() : cblist() {}
+    ExListenerList() noexcept : cblist() {}
 public: // operations
+    void add(const ExCallback& cb, uint32 type, uint8 prio = 5U) { // for lambda or pre-constructed ExCallback
+        cblist.push(Listener(cb, type, prio));
+    }
     template <typename A, typename B, typename C>
     void add(uint32 (*f)(A*, B*, C*), A* d, uint32 type, uint8 prio = 5U) {
         static_assert(std::is_base_of<ExObject, B>::value, "B must be derived from ExObject");
@@ -292,9 +297,6 @@ public: // operations
         static_assert(std::is_base_of<ExObject, B>::value, "B must be derived from ExObject");
         static_assert(std::is_base_of<ExCbInfo, C>::value, "C must be derived from ExCbInfo");
         cblist.push(Listener(ExCallback(d, f), type, prio));
-    }
-    void add(const ExCallback& cb, uint32 type, uint8 prio = 5U) { // for lambda or pre-constructed ExCallback
-        cblist.push(Listener(cb, type, prio));
     }
     void remove(uint32 type, uint8 prio = 5U) {
         cblist.remove2(type, prio);
@@ -315,21 +317,21 @@ public: // operations
 //
 struct ExNotify : public ExPolyFunc<uint32, const void*> {
     template <typename A, typename B>
-    ExNotify(A* d, uint32 (A::*f)(B*))  // look like data->func(...)
+    ExNotify(A* d, uint32 (A::*f)(B*)) noexcept // look like data->func(...)
         : ExPolyFunc(d) {
         func = reinterpret_cast<ThisFunc>(f);
     }
     template <typename A, typename B>
-    ExNotify(uint32 (*f)(A*, B*), A* d) // look like func(data, ...)
+    ExNotify(uint32 (*f)(A*, B*), A* d) noexcept // look like func(data, ...)
         : ExPolyFunc(d) {
         vfunc = reinterpret_cast<FuncPtr>(f);
         #if EX2CONF_DISABLE_STDCALL
         invoker = &funcptr;
         #endif
     }
-    ExNotify(const ExNotify& cb)
+    ExNotify(const ExNotify& cb) noexcept
         : ExPolyFunc(cb) {}
-    ExNotify()
+    ExNotify() noexcept
         : ExPolyFunc() {}
 };
 

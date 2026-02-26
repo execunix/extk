@@ -30,7 +30,7 @@ void collectWidget() {
 }
 
 // test sample
-static void s_fill(void* data, const ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage) {
+static void s_fill(void* data, const ExCanvas* canvas, const ExVision* widget, const ExRegion* damage) {
 #if 1
     if (!(canvas && canvas->cr))
         return;
@@ -70,19 +70,16 @@ static void s_fill(void* data, const ExCanvas* canvas, const ExWidget* widget, c
 #endif
 }
 
-// class ExWidget
+// class ExVision
 //
-ExWidget::~ExWidget() {
-    if (name)
+ExVision::~ExVision() noexcept {
+    if (name) {
         free(name);
+    }
 }
 
-ExWidget::ExWidget()
+ExVision::ExVision() noexcept
     : ExObject()
-    , parent(NULL)
-    , broNext(NULL)
-    , broPrev(NULL)
-    , childHead(NULL)
     , name(NULL)
     , extent(0)
     , select(0)
@@ -101,17 +98,60 @@ ExWidget::ExWidget()
     , shape(0)
     , state(0)
     , style(NULL)
+    , userdata {
 #if defined(_MSC_VER)
-    , userdata { 0ull, }
+        0ull,
 #else
-    , userdata { .u64 = { 0ull, } }
+        .u64 = { 0ull, }
 #endif
-    , listenerList() {
+    } {
 #ifdef DEBUG // test
     drawFunc = ExDrawFunc(&s_fill, (void*)NULL); // tbd
 #endif
     //flags |= Ex_Opaque; // test
     flags |= Ex_Visible; // default visible
+}
+
+void ExVision::setName(const char* text) {
+    char buf[20];
+    if (name != NULL) {
+        free(name);
+    }
+    if (text == NULL) {
+        snprintf(buf, 20, "%p", this);
+        text = buf;
+    }
+    name = strdup(text);
+}
+
+ExBox& ExVision::calcBox(ExBox& bx) const {
+    bx.l = origin.x;
+    bx.t = origin.y;
+    bx.r = bx.l + area.w;
+    bx.b = bx.t + area.h;
+    return bx;
+}
+
+ExRect& ExVision::calcRect(ExRect& rc) const {
+    rc.x = origin.x;
+    rc.y = origin.y;
+    rc.w = area.w;
+    rc.h = area.h;
+    return rc;
+}
+
+// class ExWidget
+//
+ExWidget::~ExWidget() noexcept {
+}
+
+ExWidget::ExWidget() noexcept
+    : ExVision()
+    , parent(NULL)
+    , broNext(NULL)
+    , broPrev(NULL)
+    , childHead(NULL)
+    , listenerList() {
 }
 
 void ExWidget::detachAll() {
@@ -227,17 +267,6 @@ void ExWidget::dumpFrontToBack(ExWidget* end) {
     }
 }
 
-void ExWidget::setName(const char* text) {
-    char buf[20];
-    if (name != NULL)
-        free(name);
-    if (text == NULL) {
-        snprintf(buf, 20, "%p", this);
-        text = buf;
-    }
-    name = strdup(text);
-}
-
 ExBox& ExWidget::getBox(ExBox& bx) const {
     ExPoint pt = area.u.pt;
     const ExWidget* w = this;
@@ -259,22 +288,6 @@ ExRect& ExWidget::getRect(ExRect& rc) const {
 
     rc.x = pt.x;
     rc.y = pt.y;
-    rc.w = area.w;
-    rc.h = area.h;
-    return rc;
-}
-
-ExBox& ExWidget::calcBox(ExBox& bx) const {
-    bx.l = origin.x;
-    bx.t = origin.y;
-    bx.r = bx.l + area.w;
-    bx.b = bx.t + area.h;
-    return bx;
-}
-
-ExRect& ExWidget::calcRect(ExRect& rc) const {
-    rc.x = origin.x;
-    rc.y = origin.y;
     rc.w = area.w;
     rc.h = area.h;
     return rc;

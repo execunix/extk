@@ -61,9 +61,9 @@ public:
     int onActMain(WgtLineProc* widget, ExCbInfo* cbinfo);
     int onActBkgd(WgtLineProc* widget, ExCbInfo* cbinfo);
     int onActBtns(ExWidget* widget, ExCbInfo* cbinfo);
-    void onDrawBkgd(ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage);
-    void onDrawCamInfo(ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage);
-    void onDrawCamView(ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage);
+    void onDrawBkgd(ExCanvas* canvas, const ExVision* widget, const ExRegion* damage);
+    void onDrawCamInfo(ExCanvas* canvas, const ExVision* widget, const ExRegion* damage);
+    void onDrawCamView(ExCanvas* canvas, const ExVision* widget, const ExRegion* damage);
     int onActCamInfo(ExWidget* widget, ExCbInfo* cbinfo);
     int onActCamView(ExWidget* widget, ExCbInfo* cbinfo);
     int onHandler(WgtLineProc* w, ExCbInfo* cbinfo);

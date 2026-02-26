@@ -124,17 +124,10 @@ const uint32 Ex_Rebuild       = static_cast<uint32>(ExWidgetFlags::Rebuild);
 const uint32 Ex_SkipLayout    = static_cast<uint32>(ExWidgetFlags::SkipLayout);
 const uint32 Ex_FreeMemory    = static_cast<uint32>(ExWidgetFlags::FreeMemory);
 
-// class ExWidget
+// class ExVision
 //
-class ExWidget : public ExObject {
+class ExVision : public ExObject {
 protected:
-    ExWidget* parent;
-    ExWidget* broNext;
-    ExWidget* broPrev;
-    ExWidget* childHead;
-    ExWidget* childTail() {
-        return childHead ? childHead->broPrev : NULL;
-    }
     char*       name;
     // ExLayoutInfo
     ExBox       extent;     // the origin is the nearest canvas. intersect with parent
@@ -163,8 +156,40 @@ public:
     // usage: Type* t = widget->userdata_of<Type>();
     template <typename T> T& userdata_of() const { T* t = (T*)userdata.u64; return *t; }
 public:
-    virtual ~ExWidget();
-    explicit ExWidget();
+    virtual ~ExVision() noexcept;
+    explicit ExVision() noexcept;
+public:
+    const char* getName() const { return name ? name : "(null)"; }
+    void        setName(const char* text);
+    void* getData() const { return data; }
+    void  setData(void* p) { data = p; }
+    bool isOpaque() const { return getFlags(Ex_Opaque) || !opaqueRgn.empty(); }
+    ExBox& calcBox(ExBox& bx) const; // for drawing on canvas
+    ExRect& calcRect(ExRect& rc) const; // for drawing on canvas
+    ExBox calcBox() const { ExBox bx; return calcBox(bx); }
+    ExRect calcRect() const { ExRect rc; return calcRect(rc); }
+public: // widget flags operation
+    uint32 getFlags(uint32 masks) const {
+        return (masks & flags);
+    }
+public:
+    Ex_DECLARE_TYPEINFO(ExVision, ExObject);
+};
+
+// class ExWidget
+//
+class ExWidget : public ExVision {
+protected:
+    ExWidget* parent;
+    ExWidget* broNext;
+    ExWidget* broPrev;
+    ExWidget* childHead;
+    ExWidget* childTail() {
+        return childHead ? childHead->broPrev : NULL;
+    }
+public:
+    virtual ~ExWidget() noexcept;
+    explicit ExWidget() noexcept;
 public:
     ExWindow* getWindow() const {
         for (const ExWidget* w = this; w; w = w->parent)
@@ -212,7 +237,6 @@ public:
     uint32 layout(ExRect& ar);
     uint32 damage();
     uint32 damage(const ExBox& clip);
-    bool isOpaque() const { return getFlags(Ex_Opaque) || !opaqueRgn.empty(); }
     bool isExtentContainPoint(const ExPoint& pt);
     bool isSelectContainPoint(const ExPoint& pt);
     virtual bool isSelectable(const ExPoint& pt) { return isSelectContainPoint(pt); } // tbd
@@ -222,18 +246,10 @@ public:
     ExWidget* getChildTail() { return childHead ? childHead->broPrev : NULL; }
     ExWidget* getBroPrev() { return (this != parent->getChildHead()) ? broPrev : NULL; }
     ExWidget* getBroNext() { return (this != parent->getChildTail()) ? broNext : NULL; }
-    const char* getName() const { return name ? name : "(null)"; }
-    void        setName(const char* text);
-    void* getData() const { return data; }
-    void  setData(void* p) { data = p; }
     ExBox& getBox(ExBox& bx) const; // for event processing
     ExRect& getRect(ExRect& rc) const; // for event processing
-    ExBox& calcBox(ExBox& bx) const; // for drawing on canvas
-    ExRect& calcRect(ExRect& rc) const; // for drawing on canvas
     ExBox getBox() const { ExBox bx; return getBox(bx); }
     ExRect getRect() const { ExRect rc; return getRect(rc); }
-    ExBox calcBox() const { ExBox bx; return calcBox(bx); }
-    ExRect calcRect() const { ExRect rc; return calcRect(rc); }
     //const ExBox& getExtent() const { return extent; } // tbd
     void setOpaqueRegion(const ExRegion& op);
     void setOpaque(bool set);
@@ -244,9 +260,6 @@ public:
     void toBack() { if (parent) parent->attachHead(this); }
     void toFront() { if (parent) parent->attachTail(this); }
 public: // widget flags operation
-    uint32 getFlags(uint32 masks) const {
-        return (masks & flags);
-    }
     uint32 setFlags(uint32 masks, uint32 value = Ex_BitTrue) {
         return (flags = ((~masks & flags) | (masks & value)));
     }
@@ -256,7 +269,7 @@ protected: // widget callback internal
         uint8 prio;
         uint8 flag;
         uint16 mask; // tbd - ???
-        Listener(const ExCallback& cb, uint32 t, uint8 p)
+        Listener(const ExCallback& cb, const uint32 t, const uint8 p)
             : ExCallback(cb), type(t), prio(p), flag(0), mask(0) {
         }
     };
@@ -266,68 +279,39 @@ protected: // widget callback internal
         ListenerList() : std::list<Listener>(), influx(0), change(0) {}
     public:
         // inherit size_type size();
-        bool remove(uint32 type, uint8 prio);
+        bool remove(const uint32 type, const uint8 prio);
         // inherit void remove(const Listener& cb);
         // inherit void push_back(const Listener& cb);
         // inherit void push_front(const Listener& cb);
         void push(const Listener& cb);
-        uint32 invoke(ExWatch* watch, uint32 type, ExObject* object, ExCbInfo* cbinfo);
+        uint32 invoke(ExWatch* watch, const uint32 type, const ExObject* object, const ExCbInfo* cbinfo);
     };
     ListenerList listenerList;
 public: // widget callback operation
-    void addListener(uint32(*f)(void*, const ExWidget*, const ExCbInfo*), void* d, uint32 type, uint8 prio = 5U) {
+    void addListener(uint32(*f)(void*, ExWidget*, ExCbInfo*), void* d, const uint32 type, const uint8 prio = 5U) { // lambda
         listenerList.push(Listener(ExCallback(f, d), type, prio));
     }
-    void addListener(uint32(*f)(void*, const ExWidget*, ExCbInfo*), void* d, uint32 type, uint8 prio = 5U) {
+    template <typename A, class W/*inherit ExWidget*/, typename C/*inherit ExCbInfo*/>
+    void addListener(uint32(*f)(A*, W*, C*), A* d, const uint32 type, const uint8 prio = 5U) {
+        static_assert(std::is_base_of<ExWidget, W>::value, "W must be derived from ExWidget");
+        static_assert(std::is_base_of<ExCbInfo, C>::value, "C must be derived from ExCbInfo");
         listenerList.push(Listener(ExCallback(f, d), type, prio));
     }
-    void addListener(uint32(*f)(void*, ExWidget*, const ExCbInfo*), void* d, uint32 type, uint8 prio = 5U) {
-        listenerList.push(Listener(ExCallback(f, d), type, prio));
-    }
-    void addListener(uint32(*f)(void*, ExWidget*, ExCbInfo*), void* d, uint32 type, uint8 prio = 5U) {
-        listenerList.push(Listener(ExCallback(f, d), type, prio));
-    }
-    template <typename A, class W/*inherit ExWidget*/>
-    void addListener(uint32(*f)(A*, const W*, const ExCbInfo*), A* d, uint32 type, uint8 prio = 5U) {
-        listenerList.push(Listener(ExCallback(f, d), type, prio));
-    }
-    template <typename A, class W/*inherit ExWidget*/>
-    void addListener(uint32(*f)(A*, const W*, ExCbInfo*), A* d, uint32 type, uint8 prio = 5U) {
-        listenerList.push(Listener(ExCallback(f, d), type, prio));
-    }
-    template <typename A, class W/*inherit ExWidget*/>
-    void addListener(uint32(*f)(A*, W*, const ExCbInfo*), A* d, uint32 type, uint8 prio = 5U) {
-        listenerList.push(Listener(ExCallback(f, d), type, prio));
-    }
-    template <typename A, class W/*inherit ExWidget*/>
-    void addListener(uint32(*f)(A*, W*, ExCbInfo*), A* d, uint32 type, uint8 prio = 5U) {
-        listenerList.push(Listener(ExCallback(f, d), type, prio));
-    }
-    template <typename A, class W/*inherit ExWidget*/>
-    void addListener(A* d, uint32(A::*f)(const W*, const ExCbInfo*), uint32 type, uint8 prio = 5U) {
+    template <typename A, class W/*inherit ExWidget*/, typename C/*inherit ExCbInfo*/>
+    void addListener(A* d, uint32(A::*f)(W*, C*), const uint32 type, const uint8 prio = 5U) {
+        static_assert(std::is_base_of<ExWidget, W>::value, "W must be derived from ExWidget");
+        static_assert(std::is_base_of<ExCbInfo, C>::value, "C must be derived from ExCbInfo");
         listenerList.push(Listener(ExCallback(d, f), type, prio));
     }
-    template <typename A, class W/*inherit ExWidget*/>
-    void addListener(A* d, uint32(A::*f)(const W*, ExCbInfo*), uint32 type, uint8 prio = 5U) {
-        listenerList.push(Listener(ExCallback(d, f), type, prio));
-    }
-    template <typename A, class W/*inherit ExWidget*/>
-    void addListener(A* d, uint32(A::*f)(W*, const ExCbInfo*), uint32 type, uint8 prio = 5U) {
-        listenerList.push(Listener(ExCallback(d, f), type, prio));
-    }
-    template <typename A, class W/*inherit ExWidget*/>
-    void addListener(A* d, uint32(A::*f)(W*, ExCbInfo*), uint32 type, uint8 prio = 5U) {
-        listenerList.push(Listener(ExCallback(d, f), type, prio));
-    }
-    void removeListener(uint32 type, uint8 prio = 5U) { // tbd
+    void removeListener(const uint32 type, const uint8 prio = 5U) { // tbd
         listenerList.remove(type, prio);
     }
-    uint32 invokeListener(uint32 type) {
+    uint32 invokeListener(const uint32 type) {
         ExCbInfo cbinfo(type);
         return listenerList.invoke(exWatchDisp, type, this, &cbinfo);
         //return listenerList.invoke(type, this, &ExCbInfo(type)); // -fpermissive
     }
-    uint32 invokeListener(uint32 type, ExCbInfo* cbinfo) {
+    uint32 invokeListener(const uint32 type, const ExCbInfo* cbinfo) {
         return listenerList.invoke(exWatchDisp, type, this, cbinfo);
     }
 protected:
@@ -351,7 +335,7 @@ protected:
         void draw(ExWidget* w);
         Draw(const ExCanvas*, const ExWidget*);
     };
-    static void render(const ExCanvas* canvas, const ExWidget* widget, uint32 flags);
+    static void render(const ExCanvas* canvas, const ExVision* widget, uint32 flags);
     #endif
 public:
     void dumpImage(const ExCanvas* canvas); // for dumping images to a temporary canvas
@@ -364,7 +348,7 @@ public:
     friend class ExWindow;
     friend class ExApp;
 public:
-    Ex_DECLARE_TYPEINFO(ExWidget, ExObject);
+    Ex_DECLARE_TYPEINFO(ExWidget, ExVision);
 };
 
 inline bool ExWidget::isExtentContainPoint(const ExPoint& pt) {

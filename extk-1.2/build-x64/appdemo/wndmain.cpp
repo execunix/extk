@@ -23,7 +23,7 @@ uint32 WgtTitle::onLayout(WgtTitle* widget, ExCbInfo* cbinfo) {
     return Ex_Continue;
 }
 
-void WgtTitle::onDrawTitle(ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage) {
+void WgtTitle::onDrawTitle(ExCanvas* canvas, const ExVision* widget, const ExRegion* damage) {
     ExCairo cr(canvas, damage);
     ExCairo::Rect rc(widget->calcRect());
 
@@ -58,11 +58,11 @@ onRealized(WndMain* data, ExWindow* w, ExCbInfo* cbinfo) {
 }
 
 static void
-onDrawBkgd(void* data, ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage) {
+onDrawBkgd(void* data, ExCanvas* canvas, const ExVision* widget, const ExRegion* damage) {
     dprint("onDrawBkgd()\n");
 }
 
-void WndMain::onDrawBkgd(ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage) {
+void WndMain::onDrawBkgd(ExCanvas* canvas, const ExVision* widget, const ExRegion* damage) {
     if (widget == this) {
         ExRegion rgn(*damage);
         rgn.subtract(ExBox(img_pt0.x, img_pt0.y, res.i.bg0.width + img_pt0.x, res.i.bg0.height + img_pt0.y));
@@ -99,7 +99,7 @@ void WndMain::onDrawBkgd(ExCanvas* canvas, const ExWidget* widget, const ExRegio
     }
 }
 
-void WndMain::onDrawTrap(ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage) {
+void WndMain::onDrawTrap(ExCanvas* canvas, const ExVision* widget, const ExRegion* damage) {
     static int id = 0;
     static uint32 color[7] = { 0xff, 0xff00, 0xff0000, 0xffff, 0xff00ff, 0xffff00, 0xffffff };
     for (int i = 0; i < damage->n_boxes; i++) {
@@ -112,7 +112,7 @@ void WndMain::onDrawTrap(ExCanvas* canvas, const ExWidget* widget, const ExRegio
 #define USE_PATTERN_BTN 1
 #define USE_ALPHA_BTN 1
 
-void WndMain::onDrawBtns(ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage) {
+void WndMain::onDrawBtns(ExCanvas* canvas, const ExVision* widget, const ExRegion* damage) {
     ExCairo cr(canvas, damage);
     ExCairo::Rect rc(widget->calcRect());
     ExCairo::Point p2(rc.p2());
@@ -185,7 +185,7 @@ void WndMain::onDrawBtns(ExCanvas* canvas, const ExWidget* widget, const ExRegio
 #endif//USE_PATTERN_BTN
 }
 
-void WndMain::onDrawPane(ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage) {
+void WndMain::onDrawPane(ExCanvas* canvas, const ExVision* widget, const ExRegion* damage) {
     ExCairo cr(canvas, damage);
     ExCairo::Rect rc(widget->calcRect());
     ExCairo::Point p2(rc.p2());
@@ -251,14 +251,14 @@ void WndMain::onDrawPane(ExCanvas* canvas, const ExWidget* widget, const ExRegio
 #endif//USE_PATTERN_BTN
 }
 
-void WndMain::onDrawToy(ExCanvas* canvas, const WndMain* w, const ExRegion* damage) {
+void WndMain::onDrawToy(ExCanvas* canvas, ExVision* widget, ExRegion* damage) {
     static const float fs = 16.; // font_size
     static const char* strtbl[2] = {
         "ExeCUnix Project for the Embedded Unix",
         "C.H Park <execunix@gmail.com>"
     };
 
-    const ExBox& bx = w->calcBox();
+    const ExBox& bx = widget->calcBox();
 
     cr_status_t status;
     cr_matrix_t font_matrix, ctm;
@@ -320,7 +320,7 @@ uint32 WndMain::onTimerToy(WndMain* wnd, ExCbInfo* cbinfo) {
     return Ex_Continue;
 }
 
-void WndMain::onDrawBackBuf(ExCanvas* canvas, const ExWidget* w, const ExRegion* damage) {
+void WndMain::onDrawBackBuf(ExCanvas* canvas, const ExVision* w, const ExRegion* damage) {
     if (w == &wgtBackViewer &&
         wndBackBuf.canvas->gc->crs) {
         ExCairo cr(canvas, damage);

@@ -188,7 +188,7 @@ void ExRender::renderOwnGC(ExCanvas* canvas, ExWidget* w) { // tbd
 }
 
 #if defined(EXAPITEST) // sample pseudo code
-void onDrawOwnGC(void* data, ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage) {
+void onDrawOwnGC(void* data, ExCanvas* canvas, const ExVision* widget, const ExRegion* damage) {
     if (canvas == NULL/*my_canvas*/) {
         // draw self & child to my canvas
         ExCanvas my_canvas;

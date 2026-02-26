@@ -56,7 +56,7 @@ public:
     ~WgtSetup() { fini();  }
     WgtSetup() : ExWidget() {}
 public:
-    void onDrawSetup(ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage);
+    void onDrawSetup(ExCanvas* canvas, const ExVision* widget, const ExRegion* damage);
     uint32 onTitleMove(ExWidget* widget, ExCbInfo* cbinfo);
     uint32 onActivate(ExWidget* widget, ExCbInfo* cbinfo);
     uint32 onFocused(ExWidget* widget, ExCbInfo* cbinfo);
