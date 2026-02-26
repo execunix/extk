@@ -53,7 +53,7 @@ void ExCallbackList::CallbackList::push(const Callback& cb) {
     push_back(cb);
 }
 
-uint32 ExCallbackList::CallbackList::invoke(void* object, void* cbinfo) {
+uint32 ExCallbackList::CallbackList::invoke(const void* object, const void* cbinfo) {
     uint32 r = Ex_Continue;
     influx++;
     for (iterator i = begin(); i != end();) {
@@ -133,7 +133,7 @@ void ExListenerList::ListenerList::push(const Listener& cb) {
     push_back(cb);
 }
 
-uint32 ExListenerList::ListenerList::invoke(uint32 type, void* object, void* cbinfo) {
+uint32 ExListenerList::ListenerList::invoke(uint32 type, const void* object, const void* cbinfo) {
     uint32 r = Ex_Continue;
     influx++;
     for (iterator i = begin(); i != end();) {

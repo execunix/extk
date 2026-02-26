@@ -75,19 +75,19 @@ public:
     ~WgtMenu() { fini();  }
     WgtMenu() : ExWidget(), menuBar(NULL), oldFocus(NULL), focused(NULL) {}
 public:
-    uint32 STDCALL onTimerAni(Popup* popup, ExCbInfo* cbinfo);
-    void STDCALL onDrawMenuPopBkgd(ExCanvas* canvas, const Popup* popup, const ExRegion* damage);
-    void STDCALL onDrawMenuPop(ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage);
-    void STDCALL onDrawMenuBarBkgd(ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage);
-    void STDCALL onDrawMenuBar(ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage);
-    //void STDCALL onDrawMenu(ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage);
-    uint32 STDCALL onLayoutHorz(ExWidget* widget, ExCbInfo* cbinfo);
-    uint32 STDCALL onLayoutVert(ExWidget* widget, ExCbInfo* cbinfo);
-    uint32 STDCALL onActivate(ExWidget* widget, ExCbInfo* cbinfo);
-    uint32 STDCALL onFocused(ExWidget* widget, ExCbInfo* cbinfo);
-    uint32 STDCALL onHandler(ExWidget* widget, ExCbInfo* cbinfo);
-    uint32 STDCALL onFilter(ExWidget* widget, ExCbInfo* cbinfo);
-    uint32 STDCALL onLayout(ExWidget* widget, ExCbInfo* cbinfo);
+    uint32 onTimerAni(Popup* popup, ExCbInfo* cbinfo);
+    void onDrawMenuPopBkgd(ExCanvas* canvas, const Popup* popup, const ExRegion* damage);
+    void onDrawMenuPop(ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage);
+    void onDrawMenuBarBkgd(ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage);
+    void onDrawMenuBar(ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage);
+    //void onDrawMenu(ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage);
+    uint32 onLayoutHorz(ExWidget* widget, ExCbInfo* cbinfo);
+    uint32 onLayoutVert(ExWidget* widget, ExCbInfo* cbinfo);
+    uint32 onActivate(ExWidget* widget, ExCbInfo* cbinfo);
+    uint32 onFocused(ExWidget* widget, ExCbInfo* cbinfo);
+    uint32 onHandler(ExWidget* widget, ExCbInfo* cbinfo);
+    uint32 onFilter(ExWidget* widget, ExCbInfo* cbinfo);
+    uint32 onLayout(ExWidget* widget, ExCbInfo* cbinfo);
     void moveMenuFocus(int dir);
     Menu* findMenu(const ExPoint& pt);
     void menuFocus(Menu* menu);

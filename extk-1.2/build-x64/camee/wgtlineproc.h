@@ -55,20 +55,20 @@ public:
     WgtLineProc() : ExWidget() {}
 public:
     int initInput();
-    int STDCALL onDestroyed(WgtLineProc* w, ExCbInfo* cbinfo);
-    int STDCALL onLayout(ExWidget* widget, ExCbInfo* cbinfo);
-    int STDCALL onFocused(WgtLineProc* widget, ExCbInfo* cbinfo);
-    int STDCALL onActMain(WgtLineProc* widget, ExCbInfo* cbinfo);
-    int STDCALL onActBkgd(WgtLineProc* widget, ExCbInfo* cbinfo);
-    int STDCALL onActBtns(ExWidget* widget, ExCbInfo* cbinfo);
-    void STDCALL onDrawBkgd(ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage);
-    void STDCALL onDrawCamInfo(ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage);
-    void STDCALL onDrawCamView(ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage);
-    int STDCALL onActCamInfo(ExWidget* widget, ExCbInfo* cbinfo);
-    int STDCALL onActCamView(ExWidget* widget, ExCbInfo* cbinfo);
-    int STDCALL onHandler(WgtLineProc* w, ExCbInfo* cbinfo);
-    int STDCALL onFilter(WgtLineProc* w, ExCbInfo* cbinfo);
-    int STDCALL onTimer(ExTimer* timer, ExCbInfo* cbinfo);
+    int onDestroyed(WgtLineProc* w, ExCbInfo* cbinfo);
+    int onLayout(ExWidget* widget, ExCbInfo* cbinfo);
+    int onFocused(WgtLineProc* widget, ExCbInfo* cbinfo);
+    int onActMain(WgtLineProc* widget, ExCbInfo* cbinfo);
+    int onActBkgd(WgtLineProc* widget, ExCbInfo* cbinfo);
+    int onActBtns(ExWidget* widget, ExCbInfo* cbinfo);
+    void onDrawBkgd(ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage);
+    void onDrawCamInfo(ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage);
+    void onDrawCamView(ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage);
+    int onActCamInfo(ExWidget* widget, ExCbInfo* cbinfo);
+    int onActCamView(ExWidget* widget, ExCbInfo* cbinfo);
+    int onHandler(WgtLineProc* w, ExCbInfo* cbinfo);
+    int onFilter(WgtLineProc* w, ExCbInfo* cbinfo);
+    int onTimer(ExTimer* timer, ExCbInfo* cbinfo);
 public:
     int build();
 };

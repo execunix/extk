@@ -3,5 +3,5 @@
 #include <ex.h>
 #include "res.h"
 
-void STDCALL onDrawBtns(void* data, ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage);
+void onDrawBtns(void* data, ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage);
 

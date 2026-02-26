@@ -20,8 +20,8 @@ public:
         strncpy(title, str, 255);
         title[255] = 0;
     }
-    uint32 STDCALL onLayout(WgtTitle* widget, ExCbInfo* cbinfo);
-    void STDCALL onDrawTitle(ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage);
+    uint32 onLayout(WgtTitle* widget, ExCbInfo* cbinfo);
+    void onDrawTitle(ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage);
 };
 
 class WndMain : public ExWindow {
@@ -48,30 +48,30 @@ public:
     int start();
     int initIomux();
     bool initBtn(ExWidget* parent, ExWidget* btn, const char* name);
-    void STDCALL onExFlush(WndMain* w, const ExRegion* updateRgn) { ExWindow::onExFlush(w, updateRgn); } // apitest
-    void STDCALL onWmPaint(WndMain* w, const ExRegion* updateRgn) { ExWindow::onWmPaint(w, updateRgn); } // apitest
-    uint32 STDCALL onDestroyed(WndMain* w, ExCbInfo* cbinfo);
-    uint32 STDCALL onLayout(WndMain* widget, ExCbInfo* cbinfo);
-    uint32 STDCALL onFocused(WndMain* widget, ExCbInfo* cbinfo);
-    uint32 STDCALL onActMain(WndMain* widget, ExCbInfo* cbinfo);
-    uint32 STDCALL onActBkgd(WndMain* widget, ExCbInfo* cbinfo);
-    uint32 STDCALL onActBtns(ExWidget* widget, ExCbInfo* cbinfo);
-    void STDCALL onDrawBkgd(ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage);
-    void STDCALL onDrawTrap(ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage);
-    void STDCALL onDrawBtns(ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage);
-    void STDCALL onDrawPane(ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage);
-    uint32 STDCALL onRbtnDown(WndMain* w, ExCbInfo* cbinfo);
-    uint32 STDCALL onHandler(WndMain* w, ExCbInfo* cbinfo);
-    uint32 STDCALL onFilter(WndMain* w, ExCbInfo* cbinfo);
-    uint32 STDCALL onTimer(ExTimer* timer, ExCbInfo* cbinfo);
+    void onExFlush(WndMain* w, const ExRegion* updateRgn) { ExWindow::onExFlush(w, updateRgn); } // apitest
+    void onWmPaint(WndMain* w, const ExRegion* updateRgn) { ExWindow::onWmPaint(w, updateRgn); } // apitest
+    uint32 onDestroyed(WndMain* w, ExCbInfo* cbinfo);
+    uint32 onLayout(WndMain* widget, ExCbInfo* cbinfo);
+    uint32 onFocused(WndMain* widget, ExCbInfo* cbinfo);
+    uint32 onActMain(WndMain* widget, ExCbInfo* cbinfo);
+    uint32 onActBkgd(WndMain* widget, ExCbInfo* cbinfo);
+    uint32 onActBtns(ExWidget* widget, ExCbInfo* cbinfo);
+    void onDrawBkgd(ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage);
+    void onDrawTrap(ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage);
+    void onDrawBtns(ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage);
+    void onDrawPane(ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage);
+    uint32 onRbtnDown(WndMain* w, ExCbInfo* cbinfo);
+    uint32 onHandler(WndMain* w, ExCbInfo* cbinfo);
+    uint32 onFilter(WndMain* w, ExCbInfo* cbinfo);
+    uint32 onTimer(ExTimer* timer, ExCbInfo* cbinfo);
     ExWidget* moveFocus(int dir);
     ExWidget toy;
     ExTimer timerToy;
     float toy_alpha, toy_delta, toy_scale;
-    void STDCALL onDrawToy(ExCanvas* canvas, const WndMain* w, const ExRegion* damage);
-    uint32 STDCALL onTimerToy(WndMain* w, ExCbInfo* cbinfo);
-    void STDCALL onFlushBackBuf(WndMain* w, const ExRegion* updateRgn);
-    void STDCALL onDrawBackBuf(ExCanvas* canvas, const ExWidget* w, const ExRegion* damage);
-    uint32 STDCALL onBackViewMove(WndMain* widget, ExCbInfo* cbinfo);
-    uint32 STDCALL onBackBufUpdater(ExTimer* timer, ExCbInfo* cbinfo);
+    void onDrawToy(ExCanvas* canvas, const WndMain* w, const ExRegion* damage);
+    uint32 onTimerToy(WndMain* w, ExCbInfo* cbinfo);
+    void onFlushBackBuf(WndMain* w, const ExRegion* updateRgn);
+    void onDrawBackBuf(ExCanvas* canvas, const ExWidget* w, const ExRegion* damage);
+    uint32 onBackViewMove(WndMain* widget, ExCbInfo* cbinfo);
+    uint32 onBackBufUpdater(ExTimer* timer, ExCbInfo* cbinfo);
 };

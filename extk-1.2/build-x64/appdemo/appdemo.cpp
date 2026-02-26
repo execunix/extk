@@ -9,19 +9,19 @@
 
 class TestClass {
 public:
-    uint32 STDCALL onCb1(ExObject* object, ExCbInfo* cbinfo) {
+    uint32 onCb1(ExObject* object, ExCbInfo* cbinfo) {
         dprint("onCb1\n");
         return 0U;
     }
-    virtual uint32 STDCALL onCb2(ExObject* object, ExCbInfo* cbinfo) {
+    virtual uint32 onCb2(ExObject* object, ExCbInfo* cbinfo) {
         dprint("onCb2\n");
         return 0U;
     }
-    static uint32 STDCALL onCb3(void* data, ExObject* object, ExCbInfo* cbinfo) {
+    static uint32 onCb3(void* data, ExObject* object, ExCbInfo* cbinfo) {
         dprint("onCb3\n");
         return 0U;
     }
-    static uint32 STDCALL onCb4(TestClass* data, ExObject* object, ExCbInfo* cbinfo) {
+    static uint32 onCb4(TestClass* data, ExObject* object, ExCbInfo* cbinfo) {
         dprint("onCb4\n");
         return 0U;
     }
@@ -29,13 +29,13 @@ public:
 
 class TestClass2 : public TestClass {
 public:
-    uint32 STDCALL onCb5(ExObject* object, TestClass* cbinfo) {
+    uint32 onCb5(ExObject* object, TestClass* cbinfo) {
         dprint("onCb5\n");
         return 0U;
     }
 };
 
-static uint32 STDCALL
+static uint32
 func(void* data, ExWidget* widget, ExCbInfo* cbinfo) {
     dprint("func: data=%p type=%d\n", data, cbinfo ? cbinfo->type : -1);
     return 0U;
@@ -45,7 +45,7 @@ func(void* data, ExWidget* widget, ExCbInfo* cbinfo) {
 void functional_test() {
     std::function<int(int, int)> fn1 = [](int a, int b) { return a + b; };
     std::function<uint32 (void*, ExWidget*, ExCbInfo*)> fn2 = func;
-    std::function<uint32 STDCALL(void*, ExWidget*, ExCbInfo*)> fn3 = func;
+    std::function<uint32 (void*, ExWidget*, ExCbInfo*)> fn3 = func;
     //ExCallback cb2(fn2, NULL);
     //ExCallback cb3(fn3, NULL);
     ExCallback::FuncPtr fn4 = [](void* data, void* widget, void* cbinfo)->uint32 {
@@ -391,7 +391,7 @@ int app_test() {
     return 0;
 }
 
-static uint32 STDCALL flushMainWnd(void* data, ExWatch* watch, ExCbInfo* cbinfo) {
+static uint32 flushMainWnd(void* data, ExWatch* watch, ExCbInfo* cbinfo) {
     if (cbinfo->type != ExWatch::HookTimer)
         return -1;
     if (ExApp::mainWnd != NULL) {

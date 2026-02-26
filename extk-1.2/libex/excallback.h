@@ -55,8 +55,8 @@ template <typename Ret, typename... Arg>
 struct ExPolyFunc {
     // any types
     class Any {};
-    typedef Ret (STDCALL Any::*ThisFunc)(Arg...);
-    typedef Ret (STDCALL *FuncPtr)(void*, Arg...);
+    typedef Ret (Any::*ThisFunc)(Arg...);
+    typedef Ret (*FuncPtr)(void*, Arg...);
     // variables
     void* data;
     union { // _stdcall mandatory
@@ -120,12 +120,12 @@ struct ExPolyFunc {
 //
 struct ExCallback : public ExPolyFunc<uint32, void*, void*> {
     template <typename A, typename B, typename C>
-    ExCallback(A* d, uint32 (STDCALL A::*f)(B*, C*))  // look like data->func(...)
+    ExCallback(A* d, uint32 (A::*f)(B*, C*))  // look like data->func(...)
         : ExPolyFunc(d) {
         func = reinterpret_cast<ThisFunc>(f);
     }
     template <typename A, typename B, typename C>
-    ExCallback(uint32 (STDCALL *f)(A*, B*, C*), A* d) // look like func(data, ...)
+    ExCallback(uint32 (*f)(A*, B*, C*), A* d) // look like func(data, ...)
         : ExPolyFunc(d) {
         vfunc = reinterpret_cast<FuncPtr>(f);
         #if EX2CONF_DISABLE_STDCALL
@@ -140,12 +140,12 @@ struct ExCallback : public ExPolyFunc<uint32, void*, void*> {
 
 struct ExDrawFunc : public ExPolyFunc<void, ExCanvas*, const ExWidget*, const ExRegion*> {
     template <typename A, class W/*inherit ExWidget*/>
-    ExDrawFunc(A* d, void (STDCALL A::*f)(ExCanvas*, const W*, const ExRegion*))
+    ExDrawFunc(A* d, void (A::*f)(ExCanvas*, const W*, const ExRegion*))
         : ExPolyFunc(d) {
         func = reinterpret_cast<ThisFunc>(f);
     }
     template <typename A, class W/*inherit ExWidget*/>
-    ExDrawFunc(void (STDCALL *f)(A*, ExCanvas*, const W*, const ExRegion*), A* d)
+    ExDrawFunc(void (*f)(A*, ExCanvas*, const W*, const ExRegion*), A* d)
         : ExPolyFunc(d) {
         vfunc = reinterpret_cast<FuncPtr>(f);
         #if EX2CONF_DISABLE_STDCALL
@@ -160,12 +160,12 @@ struct ExDrawFunc : public ExPolyFunc<void, ExCanvas*, const ExWidget*, const Ex
 
 struct ExFlushFunc : public ExPolyFunc<void, const ExWidget*, const ExRegion*> {
     template <typename A, class W/*inherit ExWindow*/>
-    ExFlushFunc(A* d, void (STDCALL A::*f)(W*, const ExRegion*))
+    ExFlushFunc(A* d, void (A::*f)(W*, const ExRegion*))
         : ExPolyFunc(d) {
         func = reinterpret_cast<ThisFunc>(f);
     }
     template <typename A, class W/*inherit ExWindow*/>
-    ExFlushFunc(void (STDCALL *f)(A*, W*, const ExRegion*), A* d)
+    ExFlushFunc(void (*f)(A*, W*, const ExRegion*), A* d)
         : ExPolyFunc(d) {
         vfunc = reinterpret_cast<FuncPtr>(f);
         #if EX2CONF_DISABLE_STDCALL
@@ -214,16 +214,16 @@ public:
     ExCallbackList() : cblist() {}
 public: // operations
     #if EX2CONF_LAMBDA_CALLBACK
-    void add(uint32 (STDCALL *f)(void*, void*, ExCbInfo*), void* d, uint8 prio = 5) {
+    void add(uint32 (*f)(void*, void*, ExCbInfo*), void* d, uint8 prio = 5) {
         cblist.push(Callback(ExCallback(f, d), prio));
     }
     #endif
     template <typename A, typename B, typename C>
-    void add(uint32 (STDCALL *f)(A*, B*, C*), A* d, uint8 prio = 5) {
+    void add(uint32 (*f)(A*, B*, C*), A* d, uint8 prio = 5) {
         cblist.push(Callback(ExCallback(f, d), prio));
     }
     template <typename A, typename B, typename C>
-    void add(A* d, uint32 (STDCALL A::*f)(B*, C*), uint8 prio = 5) {
+    void add(A* d, uint32 (A::*f)(B*, C*), uint8 prio = 5) {
         cblist.push(Callback(ExCallback(d, f), prio));
     }
     void remove(const ExCallback& cb) {
@@ -267,16 +267,16 @@ public:
     ExListenerList() : cblist() {}
 public: // operations
     #if EX2CONF_LAMBDA_CALLBACK
-    void add(uint32 (STDCALL *f)(void*, void*, ExCbInfo*), void* d, uint32 type, uint8 prio = 5) {
+    void add(uint32 (*f)(void*, void*, ExCbInfo*), void* d, uint32 type, uint8 prio = 5) {
         cblist.push(Listener(ExCallback(f, d), type, prio));
     }
     #endif
     template <typename A, typename B, typename C>
-    void add(uint32 (STDCALL *f)(A*, B*, C*), A* d, uint32 type, uint8 prio = 5) {
+    void add(uint32 (*f)(A*, B*, C*), A* d, uint32 type, uint8 prio = 5) {
         cblist.push(Listener(ExCallback(f, d), type, prio));
     }
     template <typename A, typename B, typename C>
-    void add(A* d, uint32 (STDCALL A::*f)(B*, C*), uint32 type, uint8 prio = 5) {
+    void add(A* d, uint32 (A::*f)(B*, C*), uint32 type, uint8 prio = 5) {
         cblist.push(Listener(ExCallback(d, f), type, prio));
     }
     void remove(uint32 type, uint8 prio = 5) {
@@ -292,12 +292,12 @@ public: // operations
 //
 struct ExNotify : public ExPolyFunc<uint32, void*> {
     template <typename A, typename B>
-    ExNotify(A* d, uint32 (STDCALL A::*f)(B*))  // look like data->func(...)
+    ExNotify(A* d, uint32 (A::*f)(B*))  // look like data->func(...)
         : ExPolyFunc(d) {
         func = reinterpret_cast<ThisFunc>(f);
     }
     template <typename A, typename B>
-    ExNotify(uint32 (STDCALL *f)(A*, B*), A* d) // look like func(data, ...)
+    ExNotify(uint32 (*f)(A*, B*), A* d) // look like func(data, ...)
         : ExPolyFunc(d) {
         vfunc = reinterpret_cast<FuncPtr>(f);
         #if EX2CONF_DISABLE_STDCALL

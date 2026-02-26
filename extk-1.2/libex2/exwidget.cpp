@@ -30,7 +30,7 @@ void collectWidget() {
 }
 
 // test sample
-static void STDCALL s_fill(void* data, const ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage) {
+static void s_fill(void* data, const ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage) {
 #if 1
     if (!(canvas && canvas->cr))
         return;

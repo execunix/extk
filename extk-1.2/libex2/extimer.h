@@ -37,37 +37,29 @@ public:
     explicit ExTimer()
         : ExObject(), watch(NULL), value(0), repeat(0), callback(), fActived(0)
         , object(NULL), u64 { 0ull, } {}
-protected:
+public:
     void setup(ExWatch* watch, const ExCallback& callback, const void* object = NULL) {
         this->watch = watch ? watch : exWatchLast;
         this->callback = callback;
         this->object = object;
     }
 public:
-    void init(ExWatch* watch, const ExCallback& callback, const void* object = NULL) {
-        setup(watch, callback, object);
-    }
-    void init(ExWatch* watch, uint32(*f)(void*, ExObject*, ExCbInfo*), void* d, const void* obj = NULL) { // lambda
+    void init(ExWatch* watch, uint32(*f)(void*, ExObject*, ExCbInfo*), void* d, const void* obj) { // lambda
         setup(watch, ExCallback(f, d), obj);
     }
+    void init(ExWatch* watch, uint32(*f)(void*, ExTimer*, ExCbInfo*), void* d) { // lambda
+        setup(watch, ExCallback(f, d), NULL);
+    }
     template <typename A, typename B, typename C>
-    void init(ExWatch* watch, uint32 (STDCALL *f)(A*, B*, C*), A* d, B* obj = NULL) {
+    void init(ExWatch* watch, uint32 (*f)(A*, B*, C*), A* d, B* obj = NULL) {
         static_assert(std::is_base_of<ExCbInfo, C>::value, "C must be derived from ExCbInfo");
         setup(watch, ExCallback(f, d), obj);
     }
     template <typename A, typename B, typename C>
-    void init(ExWatch* watch, A* d, uint32 (STDCALL A::*f)(B*, C*), B* obj = NULL) {
+    void init(ExWatch* watch, A* d, uint32 (A::*f)(B*, C*), B* obj = NULL) {
         static_assert(std::is_base_of<ExCbInfo, C>::value, "C must be derived from ExCbInfo");
         setup(watch, ExCallback(d, f), obj);
     }
-    //template <typename A>
-    //void init(ExWatch* watch, uint32 (STDCALL *f)(A*, ExTimer*, ExCbInfo*), A* d) {
-    //    setup(watch, ExCallback(d, f));
-    //}
-    //template <typename A>
-    //void init(ExWatch* watch, A* d, uint32 (STDCALL A::*f)(ExTimer*, ExCbInfo*)) {
-    //    setup(watch, ExCallback(d, f));
-    //}
     void stop(); // notes: clear fActived by remove from timerlist.
     void start(uint32 initial); // notes: set fActived by insert to timerlist.
     void start(uint32 initial, uint32 repeat) { this->repeat = repeat; start(initial); }

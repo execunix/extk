@@ -44,20 +44,20 @@ void WgtTitle::onDrawTitle(ExCanvas* canvas, const ExWidget* widget, const ExReg
     cr.show_text(title, ExCairo::Color(1.f), pt);
 }
 
-static uint32 STDCALL
+static uint32
 onUnrealized(void* data, ExWidget* w, ExCbInfo* cbinfo) {
     dprint("onUnrealized()\n");
     return Ex_Continue;
 }
 
-static uint32 STDCALL
+static uint32
 onRealized(WndMain* data, ExWindow* w, ExCbInfo* cbinfo) {
     dprint("onRealized()\n");
     //GetLocalTime(&app.tm);
     return Ex_Continue;
 }
 
-static void STDCALL
+static void
 onDrawBkgd(void* data, ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage) {
     dprint("onDrawBkgd()\n");
 }
@@ -448,7 +448,7 @@ uint32 WndMain::onActBkgd(WndMain* widget, ExCbInfo* cbinfo) {
     return Ex_Continue;
 }
 
-static uint32 STDCALL
+static uint32
 onEnum(void* data, ExWidget* widget, ExCbInfo* cbinfo) {
     if (cbinfo->type == Ex_CbEnumEnter) {
         dprint("enum: %s enter\n", widget->getName());
@@ -530,14 +530,13 @@ uint32 WndMain::onActBtns(ExWidget* widget, ExCbInfo* cbinfo) {
             static ExTimer setCursor;
             if (setCursor.u32[0] == 0) {
                 setCursor.u32[0] = 1;
-                uint32(*func1)(void*, ExTimer*, ExCbInfo*) = [](void* data, ExTimer* timer, ExCbInfo* cbinfo)->uint32 {
+                setCursor.init(exWatchDisp, [](void* data, ExTimer* timer, ExCbInfo* cbinfo)->uint32 {
                     POINT pt;
                     setCursor.u32[1]++;
                     int n = setCursor.u32[1] & 1 ? -5 : 5;
                     GetCursorPos(&pt);
                     SetCursorPos(pt.x + n, pt.y + n);
-                    return 0U; };
-                setCursor.init(exWatchDisp, ExCallback(func1, (void*)0));
+                    return 0U; }, (void*)0);
             }
             if (setCursor.u32[0] == 1) {
                 setCursor.u32[0] = 2;
@@ -596,7 +595,7 @@ static HANDLE hStorageNoti;
 
 int WndMain::initIomux() {
     static ExTimer launchInputTimer;
-    launchInputTimer.init(NULL, [](void* d, ExObject* o, ExCbInfo*)->uint32 {
+    launchInputTimer.init(NULL, [](void* d, ExTimer* t, ExCbInfo*)->uint32 {
         dprint("launchInputTimer: %d\n", exWatchDisp->getTick());
 
         hWakeupNoti = CreateEvent(NULL, FALSE, FALSE, "AppDemo"); // tbd
@@ -611,9 +610,7 @@ int WndMain::initIomux() {
             return 0U; }, (void*)NULL, hStorageNoti);
 
         static ExTimer signalInputTimer;
-        //uint32(*func1)(void*, ExTimer*, ExCbInfo*) = ;
-        signalInputTimer.init(NULL, [](void* d, ExObject* o, ExCbInfo*)->uint32 {
-            ExTimer* t = (ExTimer*)o;
+        signalInputTimer.init(NULL, [](void* d, ExTimer* t, ExCbInfo*)->uint32 {
             (t->u32[0])++;
             // emulate initial state.
             if (!((t->u32[0]) % 5)) {
@@ -907,7 +904,7 @@ uint32 WndMain::onBackBufUpdater(ExTimer* timer, ExCbInfo* cbinfo) {
 class FlushTest { // apitest
     int test;
 public:
-    void STDCALL onFlush(WndMain* w, const ExRegion* updateRgn) {}
+    void onFlush(WndMain* w, const ExRegion* updateRgn) {}
 };
 
 #define FLUSH_TEST() //do { flush(); Sleep(1000); } while (0)
@@ -1013,17 +1010,13 @@ int WndMain::start() {
 
     timer.init(NULL, this, &WndMain::onTimer);
 
-    uint32(*func1)(void*, ExWidget*, ExCbInfo*) = [](void* d, ExWidget* w, ExCbInfo*)->uint32 {
-        dprint("timerTest: %s\n", w->getName());
-        return Ex_Continue;
-    };
-    uint32(*func2)(void*, ExTimer*, ExCbInfo*) = [](void* d, ExTimer* t, ExCbInfo*)->uint32 {
-        dprint("timerTest: %d %u %u\n", (t->u32[0])++, (ulong)*t, exWatchDisp->getTick());
-        return Ex_Continue;
-    };
     static ExTimer timerTest;
-    timerTest.init(NULL, ExCallback(func1, (void*)0), this); // test
-    timerTest.init(NULL, ExCallback(func2, (void*)0));
+    timerTest.init(NULL, [](void* d, ExObject* w, ExCbInfo*)->uint32 {
+        dprint("timerTest: %s\n", ((ExWidget*)w)->getName());
+        return Ex_Continue; }, (void*)0, this); // test
+    timerTest.init(NULL, [](void* d, ExTimer* t, ExCbInfo*)->uint32 {
+        dprint("timerTest: %d %u %u\n", (t->u32[0])++, (ulong)*t, exWatchDisp->getTick());
+        return Ex_Continue; }, (void*)0);
     timerTest.start(1, 1000);
 
     toy_alpha = .2f;

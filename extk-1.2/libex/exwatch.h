@@ -130,15 +130,15 @@ public:
 protected:
     bool setEvent(uint64 u64) const;
     bool getEvent(uint64* u64) const;
-    uint32 STDCALL proc();
-    uint32 STDCALL onEvent(epoll_event* ev);
+    uint32 proc();
+    uint32 onEvent(epoll_event* ev);
 public:
     template <typename A>
-    bool ioAdd(A* d, uint32 (STDCALL A::*f)(epoll_event*), int32 fd, uint32 events = EPOLLIN | EPOLLERR) {
+    bool ioAdd(A* d, uint32 (A::*f)(epoll_event*), int32 fd, uint32 events = EPOLLIN | EPOLLERR) {
         return iomuxmap.add(fd, events, ExNotify(d, f));
     }
     template <typename A>
-    bool ioMod(A* d, uint32 (STDCALL A::*f)(epoll_event*), int32 fd, uint32 events = EPOLLIN | EPOLLERR) {
+    bool ioMod(A* d, uint32 (A::*f)(epoll_event*), int32 fd, uint32 events = EPOLLIN | EPOLLERR) {
         return iomuxmap.mod(fd, events, ExNotify(d, f));
     }
     bool ioDel(int32 fd) {

@@ -6,7 +6,7 @@
 #include "framework.h"
 #include "wgtsetup.h"
 
-static void STDCALL
+static void
 fillRect(void* data, ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage) {
     ExCairo cr(canvas, damage);
     ExCairo::Rect rc(widget->calcRect());
@@ -16,7 +16,7 @@ fillRect(void* data, ExCanvas* canvas, const ExWidget* widget, const ExRegion* d
     cr.fill_rect_rgba(rc, fc);
 }
 
-static void STDCALL
+static void
 drawName(void* data, ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage) {
     ExCairo cr(canvas, damage);
     ExCairo::Rect rc(widget->calcRect());

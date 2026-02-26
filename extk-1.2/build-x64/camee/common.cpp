@@ -1,7 +1,7 @@
 #include "framework.h"
 #include "common.h"
 
-void STDCALL
+void
 onDrawBtns(void* data, ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage)
 {
     ExCairo cr(canvas, damage);

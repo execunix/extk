@@ -55,8 +55,8 @@ template <typename Ret, typename... Arg>
 struct ExPolyFunc {
     // any types
     class Any {};
-    typedef Ret (STDCALL Any::*ThisFunc)(Arg...);
-    typedef Ret (STDCALL *FuncPtr)(void*, Arg...);
+    typedef Ret (Any::*ThisFunc)(Arg...);
+    typedef Ret (*FuncPtr)(void*, Arg...);
     // variables
     void* data;
     union { // _stdcall mandatory
@@ -120,12 +120,12 @@ struct ExPolyFunc {
 //
 struct ExCallback : public ExPolyFunc<uint32, const void*, const void*> {
     template <typename A, typename B, typename C>
-    ExCallback(A* d, uint32 (STDCALL A::*f)(B*, C*))  // look like data->func(...)
+    ExCallback(A* d, uint32 (A::*f)(B*, C*))  // look like data->func(...)
         : ExPolyFunc(d) {
         func = reinterpret_cast<ThisFunc>(f);
     }
     template <typename A, typename B, typename C>
-    ExCallback(uint32 (STDCALL *f)(A*, B*, C*), A* d) // look like func(data, ...)
+    ExCallback(uint32 (*f)(A*, B*, C*), A* d) // look like func(data, ...)
         : ExPolyFunc(d) {
         vfunc = reinterpret_cast<FuncPtr>(f);
         #if EX2CONF_DISABLE_STDCALL
@@ -140,7 +140,7 @@ struct ExCallback : public ExPolyFunc<uint32, const void*, const void*> {
 
 struct ExDrawFunc : public ExPolyFunc<void, const ExCanvas*, const ExWidget*, const ExRegion*> {
     template <typename A, typename B, typename C, typename D>
-    ExDrawFunc(A* d, void (STDCALL A::*f)(B*, C*, D*))
+    ExDrawFunc(A* d, void (A::*f)(B*, C*, D*))
         : ExPolyFunc(d) {
         static_assert(std::is_base_of<ExCanvas, B>::value, "B must be derived from ExCanvas");
         static_assert(std::is_base_of<ExWidget, C>::value, "C must be derived from ExWidget");
@@ -148,7 +148,7 @@ struct ExDrawFunc : public ExPolyFunc<void, const ExCanvas*, const ExWidget*, co
         func = reinterpret_cast<ThisFunc>(f);
     }
     template <typename A, typename B, typename C, typename D>
-    ExDrawFunc(void (STDCALL *f)(A*, B*, C*, D*), A* d)
+    ExDrawFunc(void (*f)(A*, B*, C*, D*), A* d)
         : ExPolyFunc(d) {
         static_assert(std::is_base_of<ExCanvas, B>::value, "B must be derived from ExCanvas");
         static_assert(std::is_base_of<ExWidget, C>::value, "C must be derived from ExWidget");
@@ -176,12 +176,12 @@ struct ExDrawFunc : public ExPolyFunc<void, const ExCanvas*, const ExWidget*, co
 
 struct ExFlushFunc : public ExPolyFunc<void, const ExWidget*, const ExRegion*> {
     template <typename A, class W/*inherit ExWindow*/>
-    ExFlushFunc(A* d, void (STDCALL A::*f)(W*, const ExRegion*))
+    ExFlushFunc(A* d, void (A::*f)(W*, const ExRegion*))
         : ExPolyFunc(d) {
         func = reinterpret_cast<ThisFunc>(f);
     }
     template <typename A, class W/*inherit ExWindow*/>
-    ExFlushFunc(void (STDCALL *f)(A*, W*, const ExRegion*), A* d)
+    ExFlushFunc(void (*f)(A*, W*, const ExRegion*), A* d)
         : ExPolyFunc(d) {
         vfunc = reinterpret_cast<FuncPtr>(f);
         #if EX2CONF_DISABLE_STDCALL
@@ -218,7 +218,7 @@ private:
         // inherit void push_back(const Callback& cb);
         // inherit void push_front(const Callback& cb);
         void push(const Callback& cb); // lifo
-        uint32 invoke(void* object, void* cbinfo);
+        uint32 invoke(const void* object, const void* cbinfo);
     };
     #if 1
     CallbackList cblist;
@@ -230,11 +230,11 @@ public:
     ExCallbackList() : cblist() {}
 public: // operations
     template <typename A, typename B, typename C>
-    void add(uint32 (STDCALL *f)(A*, B*, C*), A* d, uint8 prio = 5U) {
+    void add(uint32 (*f)(A*, B*, C*), A* d, uint8 prio = 5U) {
         cblist.push(Callback(ExCallback(f, d), prio));
     }
     template <typename A, typename B, typename C>
-    void add(A* d, uint32 (STDCALL A::*f)(B*, C*), uint8 prio = 5U) {
+    void add(A* d, uint32 (A::*f)(B*, C*), uint8 prio = 5U) {
         cblist.push(Callback(ExCallback(d, f), prio));
     }
     void add(const ExCallback& cb, uint8 prio = 5U) { // for lambda or pre-constructed ExCallback
@@ -245,9 +245,7 @@ public: // operations
     }
     template <typename B, typename C>
     uint32 invoke(B* object, C* cbinfo) {
-        using NonConstB = typename std::remove_const<B>::type;
-        using NonConstC = typename std::remove_const<C>::type;
-        return cblist.invoke((NonConstB*)object, (NonConstC*)cbinfo);
+        return cblist.invoke(object, cbinfo);
     }
     size_t size() const { return cblist.size(); }
 };
@@ -277,18 +275,22 @@ private:
         // inherit void push_back(const Listener& cb);
         // inherit void push_front(const Listener& cb);
         void push(const Listener& cb); // lifo
-        uint32 invoke(uint32 type, void* object, void* cbinfo);
+        uint32 invoke(uint32 type, const void* object, const void* cbinfo);
     };
     ListenerList cblist;
 public:
     ExListenerList() : cblist() {}
 public: // operations
     template <typename A, typename B, typename C>
-    void add(uint32 (STDCALL *f)(A*, B*, C*), A* d, uint32 type, uint8 prio = 5U) {
+    void add(uint32 (*f)(A*, B*, C*), A* d, uint32 type, uint8 prio = 5U) {
+        static_assert(std::is_base_of<ExObject, B>::value, "B must be derived from ExObject");
+        static_assert(std::is_base_of<ExCbInfo, C>::value, "C must be derived from ExCbInfo");
         cblist.push(Listener(ExCallback(f, d), type, prio));
     }
     template <typename A, typename B, typename C>
-    void add(A* d, uint32 (STDCALL A::*f)(B*, C*), uint32 type, uint8 prio = 5U) {
+    void add(A* d, uint32 (A::*f)(B*, C*), uint32 type, uint8 prio = 5U) {
+        static_assert(std::is_base_of<ExObject, B>::value, "B must be derived from ExObject");
+        static_assert(std::is_base_of<ExCbInfo, C>::value, "C must be derived from ExCbInfo");
         cblist.push(Listener(ExCallback(d, f), type, prio));
     }
     void add(const ExCallback& cb, uint32 type, uint8 prio = 5U) { // for lambda or pre-constructed ExCallback
@@ -299,9 +301,12 @@ public: // operations
     }
     template <typename B, typename C>
     uint32 invoke(uint32 type, B* object, C* cbinfo) {
-        using NonConstB = typename std::remove_const<B>::type;
-        using NonConstC = typename std::remove_const<C>::type;
-        return cblist.invoke(type, (NonConstB*)object, (NonConstC*)cbinfo);
+        // using NonConstB = typename std::remove_const<B>::type;
+        // using NonConstC = typename std::remove_const<C>::type;
+        // return cblist.invoke(type, (NonConstB*)object, (NonConstC*)cbinfo);
+        static_assert(std::is_base_of<ExObject, B>::value, "B must be derived from ExObject");
+        static_assert(std::is_base_of<ExCbInfo, C>::value, "C must be derived from ExCbInfo");
+        return cblist.invoke(type, object, cbinfo);
     }
     size_t size() const { return cblist.size(); }
 };
@@ -310,12 +315,12 @@ public: // operations
 //
 struct ExNotify : public ExPolyFunc<uint32, const void*> {
     template <typename A, typename B>
-    ExNotify(A* d, uint32 (STDCALL A::*f)(B*))  // look like data->func(...)
+    ExNotify(A* d, uint32 (A::*f)(B*))  // look like data->func(...)
         : ExPolyFunc(d) {
         func = reinterpret_cast<ThisFunc>(f);
     }
     template <typename A, typename B>
-    ExNotify(uint32 (STDCALL *f)(A*, B*), A* d) // look like func(data, ...)
+    ExNotify(uint32 (*f)(A*, B*), A* d) // look like func(data, ...)
         : ExPolyFunc(d) {
         vfunc = reinterpret_cast<FuncPtr>(f);
         #if EX2CONF_DISABLE_STDCALL

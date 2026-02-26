@@ -45,23 +45,23 @@ protected:
     }
 public:
     #if EX2CONF_LAMBDA_CALLBACK
-    void init(ExWatch* watch, uint32 (STDCALL *f)(void*, ExTimer*, ExCbInfo*), void* d) {
+    void init(ExWatch* watch, uint32 (*f)(void*, ExTimer*, ExCbInfo*), void* d) {
         setup(watch, ExCallback(f, d), NULL);
     }
-    void init(ExWatch* watch, uint32 (STDCALL* f)(void*, ExWidget*, ExCbInfo*), void* d, ExWidget* w) {
+    void init(ExWatch* watch, uint32 (*f)(void*, ExWidget*, ExCbInfo*), void* d, ExWidget* w) {
         setup(watch, ExCallback(f, d), (ExObject*)w);
     }
     #endif
     template <typename A, typename B>
-    void init(ExWatch* watch, uint32 (STDCALL *f)(A*, B*, ExCbInfo*), A* d, B* obj) {
+    void init(ExWatch* watch, uint32 (*f)(A*, B*, ExCbInfo*), A* d, B* obj) {
         setup(watch, ExCallback(f, d), obj);
     }
     template <typename A, typename B>
-    void init(ExWatch* watch, A* d, uint32 (STDCALL A::*f)(B*, ExCbInfo*), B* obj) {
+    void init(ExWatch* watch, A* d, uint32 (A::*f)(B*, ExCbInfo*), B* obj) {
         setup(watch, ExCallback(d, f), obj);
     }
     template <typename A>
-    void init(ExWatch* watch, A* d, uint32 (STDCALL A::*f)(ExTimer*, ExCbInfo*)) {
+    void init(ExWatch* watch, A* d, uint32 (A::*f)(ExTimer*, ExCbInfo*)) {
         setup(watch, ExCallback(d, f));
     }
     void stop(); // notes: clear fActived by remove from timerlist.

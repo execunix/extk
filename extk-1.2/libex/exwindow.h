@@ -112,15 +112,15 @@ protected: // window callback internal
     CallbackList filterList;
     CallbackList handlerList;
 public: // window message callback operation (event filter and handler)
-    void addFilter(uint32(STDCALL *f)(void*, ExWindow*, ExCbInfo*), void* d, uint8 prio = 5) {
+    void addFilter(uint32(*f)(void*, ExWindow*, ExCbInfo*), void* d, uint8 prio = 5) {
         filterList.push(Callback(ExCallback(f, d), prio));
     }
     template <typename A, class W/*inherit ExWidget*/>
-    void addFilter(uint32(STDCALL *f)(A*, W*, ExCbInfo*), A* d, uint8 prio = 5) {
+    void addFilter(uint32(*f)(A*, W*, ExCbInfo*), A* d, uint8 prio = 5) {
         filterList.push(Callback(ExCallback(f, d), prio));
     }
     template <typename A, class W/*inherit ExWidget*/>
-    void addFilter(A* d, uint32(STDCALL A::*f)(W*, ExCbInfo*), uint8 prio = 5) {
+    void addFilter(A* d, uint32(A::*f)(W*, ExCbInfo*), uint8 prio = 5) {
         filterList.push(Callback(ExCallback(d, f), prio));
     }
     void removeFilter(const ExCallback& cb) {
@@ -130,15 +130,15 @@ public: // window message callback operation (event filter and handler)
         return filterList.invoke(exWatchDisp, this, cbinfo);
     }
 
-    void addHandler(uint32(STDCALL *f)(void*, ExWindow*, ExCbInfo*), void* d, uint8 prio = 5) {
+    void addHandler(uint32(*f)(void*, ExWindow*, ExCbInfo*), void* d, uint8 prio = 5) {
         handlerList.push(Callback(ExCallback(f, d), prio));
     }
     template <typename A, class W/*inherit ExWidget*/>
-    void addHandler(uint32(STDCALL *f)(A*, W*, ExCbInfo*), A* d, uint8 prio = 5) {
+    void addHandler(uint32(*f)(A*, W*, ExCbInfo*), A* d, uint8 prio = 5) {
         handlerList.push(Callback(ExCallback(f, d), prio));
     }
     template <typename A, class W/*inherit ExWidget*/>
-    void addHandler(A* d, uint32(STDCALL A::*f)(W*, ExCbInfo*), uint8 prio = 5) {
+    void addHandler(A* d, uint32(A::*f)(W*, ExCbInfo*), uint8 prio = 5) {
         handlerList.push(Callback(ExCallback(d, f), prio));
     }
     void removeHandler(const ExCallback& cb) {
@@ -148,10 +148,10 @@ public: // window message callback operation (event filter and handler)
         return handlerList.invoke(exWatchDisp, this, cbinfo);
     }
 public:
-    void STDCALL onExFlush(ExWindow* window, const ExRegion* updateRgn);
-    void STDCALL onWmPaint(ExWindow* window, const ExRegion* updateRgn);
-    uint32 STDCALL onRepeatBut(ExTimer* timer, ExCbInfo* cbinfo);
-    uint32 STDCALL onRepeatKey(ExTimer* timer, ExCbInfo* cbinfo);
+    void onExFlush(ExWindow* window, const ExRegion* updateRgn);
+    void onWmPaint(ExWindow* window, const ExRegion* updateRgn);
+    uint32 onRepeatBut(ExTimer* timer, ExCbInfo* cbinfo);
+    uint32 onRepeatKey(ExTimer* timer, ExCbInfo* cbinfo);
 protected:
     virtual uint32 basicWndProc(ExCbInfo* cbinfo);
 #ifdef WIN32

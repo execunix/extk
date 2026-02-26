@@ -275,48 +275,48 @@ protected: // widget callback internal
     };
     ListenerList listenerList;
 public: // widget callback operation
-    void addListener(uint32(STDCALL *f)(void*, const ExWidget*, const ExCbInfo*), void* d, uint32 type, uint8 prio = 5U) {
+    void addListener(uint32(*f)(void*, const ExWidget*, const ExCbInfo*), void* d, uint32 type, uint8 prio = 5U) {
         listenerList.push(Listener(ExCallback(f, d), type, prio));
     }
-    void addListener(uint32(STDCALL *f)(void*, const ExWidget*, ExCbInfo*), void* d, uint32 type, uint8 prio = 5U) {
+    void addListener(uint32(*f)(void*, const ExWidget*, ExCbInfo*), void* d, uint32 type, uint8 prio = 5U) {
         listenerList.push(Listener(ExCallback(f, d), type, prio));
     }
-    void addListener(uint32(STDCALL *f)(void*, ExWidget*, const ExCbInfo*), void* d, uint32 type, uint8 prio = 5U) {
+    void addListener(uint32(*f)(void*, ExWidget*, const ExCbInfo*), void* d, uint32 type, uint8 prio = 5U) {
         listenerList.push(Listener(ExCallback(f, d), type, prio));
     }
-    void addListener(uint32(STDCALL *f)(void*, ExWidget*, ExCbInfo*), void* d, uint32 type, uint8 prio = 5U) {
-        listenerList.push(Listener(ExCallback(f, d), type, prio));
-    }
-    template <typename A, class W/*inherit ExWidget*/>
-    void addListener(uint32(STDCALL *f)(A*, const W*, const ExCbInfo*), A* d, uint32 type, uint8 prio = 5U) {
+    void addListener(uint32(*f)(void*, ExWidget*, ExCbInfo*), void* d, uint32 type, uint8 prio = 5U) {
         listenerList.push(Listener(ExCallback(f, d), type, prio));
     }
     template <typename A, class W/*inherit ExWidget*/>
-    void addListener(uint32(STDCALL *f)(A*, const W*, ExCbInfo*), A* d, uint32 type, uint8 prio = 5U) {
+    void addListener(uint32(*f)(A*, const W*, const ExCbInfo*), A* d, uint32 type, uint8 prio = 5U) {
         listenerList.push(Listener(ExCallback(f, d), type, prio));
     }
     template <typename A, class W/*inherit ExWidget*/>
-    void addListener(uint32(STDCALL *f)(A*, W*, const ExCbInfo*), A* d, uint32 type, uint8 prio = 5U) {
+    void addListener(uint32(*f)(A*, const W*, ExCbInfo*), A* d, uint32 type, uint8 prio = 5U) {
         listenerList.push(Listener(ExCallback(f, d), type, prio));
     }
     template <typename A, class W/*inherit ExWidget*/>
-    void addListener(uint32(STDCALL *f)(A*, W*, ExCbInfo*), A* d, uint32 type, uint8 prio = 5U) {
+    void addListener(uint32(*f)(A*, W*, const ExCbInfo*), A* d, uint32 type, uint8 prio = 5U) {
         listenerList.push(Listener(ExCallback(f, d), type, prio));
     }
     template <typename A, class W/*inherit ExWidget*/>
-    void addListener(A* d, uint32(STDCALL A::*f)(const W*, const ExCbInfo*), uint32 type, uint8 prio = 5U) {
+    void addListener(uint32(*f)(A*, W*, ExCbInfo*), A* d, uint32 type, uint8 prio = 5U) {
+        listenerList.push(Listener(ExCallback(f, d), type, prio));
+    }
+    template <typename A, class W/*inherit ExWidget*/>
+    void addListener(A* d, uint32(A::*f)(const W*, const ExCbInfo*), uint32 type, uint8 prio = 5U) {
         listenerList.push(Listener(ExCallback(d, f), type, prio));
     }
     template <typename A, class W/*inherit ExWidget*/>
-    void addListener(A* d, uint32(STDCALL A::*f)(const W*, ExCbInfo*), uint32 type, uint8 prio = 5U) {
+    void addListener(A* d, uint32(A::*f)(const W*, ExCbInfo*), uint32 type, uint8 prio = 5U) {
         listenerList.push(Listener(ExCallback(d, f), type, prio));
     }
     template <typename A, class W/*inherit ExWidget*/>
-    void addListener(A* d, uint32(STDCALL A::*f)(W*, const ExCbInfo*), uint32 type, uint8 prio = 5U) {
+    void addListener(A* d, uint32(A::*f)(W*, const ExCbInfo*), uint32 type, uint8 prio = 5U) {
         listenerList.push(Listener(ExCallback(d, f), type, prio));
     }
     template <typename A, class W/*inherit ExWidget*/>
-    void addListener(A* d, uint32(STDCALL A::*f)(W*, ExCbInfo*), uint32 type, uint8 prio = 5U) {
+    void addListener(A* d, uint32(A::*f)(W*, ExCbInfo*), uint32 type, uint8 prio = 5U) {
         listenerList.push(Listener(ExCallback(d, f), type, prio));
     }
     void removeListener(uint32 type, uint8 prio = 5U) { // tbd

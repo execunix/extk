@@ -18,11 +18,11 @@ public:
         wcsncpy(title, str, 255);
         title[255] = 0;
     }
-    int STDCALL onLayout(ExWidget* widget, ExCbInfo* cbinfo);
-    void STDCALL onDrawTitle(ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage);
-    void STDCALL onDrawClock(ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage);
-    void STDCALL onDrawBtns(ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage);
-    int STDCALL onActBtns(ExWidget* widget, ExCbInfo* cbinfo);
+    int onLayout(ExWidget* widget, ExCbInfo* cbinfo);
+    void onDrawTitle(ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage);
+    void onDrawClock(ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage);
+    void onDrawBtns(ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage);
+    int onActBtns(ExWidget* widget, ExCbInfo* cbinfo);
 };
 
 class WndMain : public ExWindow {
@@ -51,22 +51,22 @@ public:
     WndMain() : ExWindow() {}
 public:
     int initInput();
-    int STDCALL onDestroyed(WndMain* w, ExCbInfo* cbinfo);
-    int STDCALL onLayout(ExWidget* widget, ExCbInfo* cbinfo);
-    int STDCALL onFocused(WndMain* widget, ExCbInfo* cbinfo);
-    int STDCALL onActMain(WndMain* widget, ExCbInfo* cbinfo);
-    int STDCALL onActBkgd(WndMain* widget, ExCbInfo* cbinfo);
-    int STDCALL onActBtns(ExWidget* widget, ExCbInfo* cbinfo);
-    void STDCALL onDrawBkgd(ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage);
-    void STDCALL onDrawCamInfo(ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage);
-    void STDCALL onDrawCamView(ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage);
-    int STDCALL onActCamInfo(ExWidget* widget, ExCbInfo* cbinfo);
-    int STDCALL onActCamView(ExWidget* widget, ExCbInfo* cbinfo);
+    int onDestroyed(WndMain* w, ExCbInfo* cbinfo);
+    int onLayout(ExWidget* widget, ExCbInfo* cbinfo);
+    int onFocused(WndMain* widget, ExCbInfo* cbinfo);
+    int onActMain(WndMain* widget, ExCbInfo* cbinfo);
+    int onActBkgd(WndMain* widget, ExCbInfo* cbinfo);
+    int onActBtns(ExWidget* widget, ExCbInfo* cbinfo);
+    void onDrawBkgd(ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage);
+    void onDrawCamInfo(ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage);
+    void onDrawCamView(ExCanvas* canvas, const ExWidget* widget, const ExRegion* damage);
+    int onActCamInfo(ExWidget* widget, ExCbInfo* cbinfo);
+    int onActCamView(ExWidget* widget, ExCbInfo* cbinfo);
     int initCam(ExWidget* parent, int id);
-    int STDCALL onVideoRefresh(WndMain* w, ExCbInfo* cbinfo);
-    int STDCALL onHandler(WndMain* w, ExCbInfo* cbinfo);
-    int STDCALL onFilter(WndMain* w, ExCbInfo* cbinfo);
-    int STDCALL onTimer(ExTimer* timer, ExCbInfo* cbinfo);
+    int onVideoRefresh(WndMain* w, ExCbInfo* cbinfo);
+    int onHandler(WndMain* w, ExCbInfo* cbinfo);
+    int onFilter(WndMain* w, ExCbInfo* cbinfo);
+    int onTimer(ExTimer* timer, ExCbInfo* cbinfo);
 public:
     int build();
     int InitInstance();

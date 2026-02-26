@@ -123,14 +123,14 @@ int WndMain::initInput()
     return 0;
 }
 
-static int STDCALL
+static int
 onUnrealized(void* data, ExWidget* w, ExCbInfo* cbinfo)
 {
     dprintf(L"onUnrealized()\n");
     return Ex_Continue;
 }
 
-static int STDCALL
+static int
 onRealized(WndMain* data, ExWindow* w, ExCbInfo* cbinfo)
 {
     dprintf(L"onRealized()\n");
