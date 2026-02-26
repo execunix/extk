@@ -23,9 +23,9 @@ uint32 WgtTitle::onLayout(WgtTitle* widget, ExCbInfo* cbinfo) {
     return Ex_Continue;
 }
 
-void WgtTitle::onDrawTitle(ExCanvas* canvas, const ExVision* widget, const ExRegion* damage) {
+void WgtTitle::onDrawTitle(ExCanvas* canvas, const ExWgtRes* wgtres, const ExRegion* damage) {
     ExCairo cr(canvas, damage);
-    ExCairo::Rect rc(widget->calcRect());
+    ExCairo::Rect rc(wgtres->calcRect());
 
     cr.fill_rect_rgba(rc, ExCairo::Color(.2f, .2f, .2f, .5f));
 
@@ -58,18 +58,18 @@ onRealized(WndMain* data, ExWindow* w, ExCbInfo* cbinfo) {
 }
 
 static void
-onDrawBkgd(void* data, ExCanvas* canvas, const ExVision* widget, const ExRegion* damage) {
+onDrawBkgd(void* data, ExCanvas* canvas, const ExWgtRes* wgtres, const ExRegion* damage) {
     dprint("onDrawBkgd()\n");
 }
 
-void WndMain::onDrawBkgd(ExCanvas* canvas, const ExVision* widget, const ExRegion* damage) {
-    if (widget == this) {
+void WndMain::onDrawBkgd(ExCanvas* canvas, const ExWgtRes* wgtres, const ExRegion* damage) {
+    if (wgtres == this) {
         ExRegion rgn(*damage);
         rgn.subtract(ExBox(img_pt0.x, img_pt0.y, res.i.bg0.width + img_pt0.x, res.i.bg0.height + img_pt0.y));
 #if 1
         for (int i = 0; i < rgn.n_boxes; i++) {
             //canvas->gc->fillBox(&rgn.boxes[i], 0U);
-            canvas->gc->fillBox(&rgn.boxes[i], ((uint64)widget) & 0xffffff);
+            canvas->gc->fillBox(&rgn.boxes[i], ((uint64)wgtres) & 0xffffff);
         }
 #endif
 #if 1
@@ -81,17 +81,17 @@ void WndMain::onDrawBkgd(ExCanvas* canvas, const ExVision* widget, const ExRegio
             }
         }
 #endif
-    } else if (widget == &wgtBkgd) {
+    } else if (wgtres == &wgtBkgd) {
         if (!res.i.bg1.bits) return;
-        if (widget->isOpaque()) {
-            const ExPoint& pt = widget->calcRect().u.pt;
+        if (wgtres->isOpaque()) {
+            const ExPoint& pt = wgtres->calcRect().u.pt;
             for (int i = 0; i < damage->n_boxes; i++) {
                 const ExBox& bx = damage->boxes[i];
                 canvas->gc->blitRgb(bx.l, bx.t, bx.width(), bx.height(),
                                     &res.i.bg1, bx.l - pt.x, bx.t - pt.y);
             }
         } else if (res.i.bg1.crs) {
-            ExCairo::Rect rc(widget->calcRect());
+            ExCairo::Rect rc(wgtres->calcRect());
             ExCairo cr(canvas, damage);
             cr_set_source_surface(cr, res.i.bg1.crs, rc.x, rc.y);
             cr_paint_with_alpha(cr, .75); // for alpha blend
@@ -99,7 +99,7 @@ void WndMain::onDrawBkgd(ExCanvas* canvas, const ExVision* widget, const ExRegio
     }
 }
 
-void WndMain::onDrawTrap(ExCanvas* canvas, const ExVision* widget, const ExRegion* damage) {
+void WndMain::onDrawTrap(ExCanvas* canvas, const ExWgtRes* wgtres, const ExRegion* damage) {
     static int id = 0;
     static uint32 color[7] = { 0xff, 0xff00, 0xff0000, 0xffff, 0xff00ff, 0xffff00, 0xffffff };
     for (int i = 0; i < damage->n_boxes; i++) {
@@ -112,9 +112,9 @@ void WndMain::onDrawTrap(ExCanvas* canvas, const ExVision* widget, const ExRegio
 #define USE_PATTERN_BTN 1
 #define USE_ALPHA_BTN 1
 
-void WndMain::onDrawBtns(ExCanvas* canvas, const ExVision* widget, const ExRegion* damage) {
+void WndMain::onDrawBtns(ExCanvas* canvas, const ExWgtRes* wgtres, const ExRegion* damage) {
     ExCairo cr(canvas, damage);
-    ExCairo::Rect rc(widget->calcRect());
+    ExCairo::Rect rc(wgtres->calcRect());
     ExCairo::Point p2(rc.p2());
 
     cr_new_path(cr);
@@ -130,7 +130,7 @@ void WndMain::onDrawBtns(ExCanvas* canvas, const ExVision* widget, const ExRegio
 
     ExCairo::Color pc0; // pattern color offset 0.f
     ExCairo::Color pc1; // pattern color offset 1.f
-    if (widget->getFlags(Ex_PtrEntered)) {
+    if (wgtres->getFlags(Ex_PtrEntered)) {
         pc0.setv(112, 224, 224, 255);
         pc1.setv(64, 128, 128, 128);
     } else {
@@ -157,15 +157,15 @@ void WndMain::onDrawBtns(ExCanvas* canvas, const ExVision* widget, const ExRegio
     cr_fill_preserve(cr);
 
     ExCairo::Color lc; // line color
-    if (widget->getFlags(Ex_Focused)) {
+    if (wgtres->getFlags(Ex_Focused)) {
         lc.setv(64, 255, 64, 255);
-    } else if (widget->getFlags(Ex_ButPressed)) {
+    } else if (wgtres->getFlags(Ex_ButPressed)) {
         lc.setv(255, 255, 255, 255);
     } else {
-        uint32 c = ((uint64)widget) & 0xffffff;
+        uint32 c = ((uint64)wgtres) & 0xffffff;
         lc.setv(ExRValue(c), ExGValue(c), ExBValue(c), 255);
     }
-    cr_set_line_width(cr, widget->getFlags(Ex_Focused) ? 3.6f : 1.2f);
+    cr_set_line_width(cr, wgtres->getFlags(Ex_Focused) ? 3.6f : 1.2f);
     cr_set_line_join(cr, CR_LINE_JOIN_ROUND);
     cr_set_line_cap(cr, CR_LINE_CAP_ROUND);
     cr_set_antialias(cr, CR_ANTIALIAS_GRAY);
@@ -176,7 +176,7 @@ void WndMain::onDrawBtns(ExCanvas* canvas, const ExVision* widget, const ExRegio
 #endif
     cr_stroke(cr);
 
-    const char* text = widget->getName();
+    const char* text = wgtres->getName();
     cr.set_font(res.f.gothic.crf, 12.f);
     cr.show_text(text, ExCairo::Color(0.f), rc);
 
@@ -185,9 +185,9 @@ void WndMain::onDrawBtns(ExCanvas* canvas, const ExVision* widget, const ExRegio
 #endif//USE_PATTERN_BTN
 }
 
-void WndMain::onDrawPane(ExCanvas* canvas, const ExVision* widget, const ExRegion* damage) {
+void WndMain::onDrawPane(ExCanvas* canvas, const ExWgtRes* wgtres, const ExRegion* damage) {
     ExCairo cr(canvas, damage);
-    ExCairo::Rect rc(widget->calcRect());
+    ExCairo::Rect rc(wgtres->calcRect());
     ExCairo::Point p2(rc.p2());
 
     cr_new_path(cr);
@@ -205,16 +205,16 @@ void WndMain::onDrawPane(ExCanvas* canvas, const ExVision* widget, const ExRegio
     ExCairo::Color pc1; // pattern color offset 1.f
     pc0.setv(128, 128, 128, 255);
     pc1.setv(77, 77, 77, 128);
-    if (widget == &panes[0]) {
+    if (wgtres == &panes[0]) {
         pc1.r = FD8V(177);
-    } else if (widget == &panes[1]) {
+    } else if (wgtres == &panes[1]) {
         pc1.g = FD8V(177);
-    } else if (widget == &panes[2]) {
+    } else if (wgtres == &panes[2]) {
         pc1.b = FD8V(177);
     }
 #if USE_PATTERN_BTN
     cr_pattern_t* crp = cr_pattern_create_linear(rc.x, rc.y, p2.x, p2.y);
-    if (widget->isOpaque()) {
+    if (wgtres->isOpaque()) {
         cr_pattern_add_color_stop_rgb(crp, 0.f, pc0.r, pc0.g, pc0.b);
         cr_pattern_add_color_stop_rgb(crp, 1.f, pc1.r, pc1.g, pc1.b);
     } else {
@@ -223,7 +223,7 @@ void WndMain::onDrawPane(ExCanvas* canvas, const ExVision* widget, const ExRegio
     }
     cr_set_source(cr, crp);
 #else//USE_PATTERN_BTN
-    if (widget->isOpaque())
+    if (wgtres->isOpaque())
         cr_set_source_rgb(cr, pc1.r, pc1.g, pc1.b);
     else
         cr_set_source_rgba(cr, pc1.r, pc1.g, pc1.b, pc1.a);
@@ -231,16 +231,16 @@ void WndMain::onDrawPane(ExCanvas* canvas, const ExVision* widget, const ExRegio
     cr_fill_preserve(cr);
 
     ExCairo::Color lc; // line color
-    if (widget->getFlags(Ex_Focused)) {
+    if (wgtres->getFlags(Ex_Focused)) {
         lc.setv(160, 255, 160, 224);
     } else {
         lc.setv(160, 160, 160, 128);
     }
-    cr_set_line_width(cr, widget->getFlags(Ex_Focused) ? 3.f : 1.f);
+    cr_set_line_width(cr, wgtres->getFlags(Ex_Focused) ? 3.f : 1.f);
     cr_set_line_join(cr, CR_LINE_JOIN_ROUND);
     cr_set_line_cap(cr, CR_LINE_CAP_ROUND);
     cr_set_antialias(cr, CR_ANTIALIAS_GRAY);
-    if (widget->isOpaque())
+    if (wgtres->isOpaque())
         cr_set_source_rgb(cr, lc.r, lc.g, lc.b);
     else
         cr_set_source_rgba(cr, lc.r, lc.g, lc.b, lc.a);
@@ -251,14 +251,14 @@ void WndMain::onDrawPane(ExCanvas* canvas, const ExVision* widget, const ExRegio
 #endif//USE_PATTERN_BTN
 }
 
-void WndMain::onDrawToy(ExCanvas* canvas, ExVision* widget, ExRegion* damage) {
+void WndMain::onDrawToy(ExCanvas* canvas, ExWgtRes* wgtres, ExRegion* damage) {
     static const float fs = 16.; // font_size
     static const char* strtbl[2] = {
         "ExeCUnix Project for the Embedded Unix",
         "C.H Park <execunix@gmail.com>"
     };
 
-    const ExBox& bx = widget->calcBox();
+    const ExBox& bx = wgtres->calcBox();
 
     cr_status_t status;
     cr_matrix_t font_matrix, ctm;
@@ -320,7 +320,7 @@ uint32 WndMain::onTimerToy(WndMain* wnd, ExCbInfo* cbinfo) {
     return Ex_Continue;
 }
 
-void WndMain::onDrawBackBuf(ExCanvas* canvas, const ExVision* w, const ExRegion* damage) {
+void WndMain::onDrawBackBuf(ExCanvas* canvas, const ExWgtRes* w, const ExRegion* damage) {
     if (w == &wgtBackViewer &&
         wndBackBuf.canvas->gc->crs) {
         ExCairo cr(canvas, damage);

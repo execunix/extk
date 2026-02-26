@@ -124,9 +124,9 @@ const uint32 Ex_Rebuild       = static_cast<uint32>(ExWidgetFlags::Rebuild);
 const uint32 Ex_SkipLayout    = static_cast<uint32>(ExWidgetFlags::SkipLayout);
 const uint32 Ex_FreeMemory    = static_cast<uint32>(ExWidgetFlags::FreeMemory);
 
-// class ExVision
+// class ExWgtRes
 //
-class ExVision : public ExObject {
+class ExWgtRes : public ExObject {
 protected:
     char*       name;
     // ExLayoutInfo
@@ -156,8 +156,8 @@ public:
     // usage: Type* t = widget->userdata_of<Type>();
     template <typename T> T& userdata_of() const { T* t = (T*)userdata.u64; return *t; }
 public:
-    virtual ~ExVision() noexcept;
-    explicit ExVision() noexcept;
+    virtual ~ExWgtRes() noexcept;
+    explicit ExWgtRes() noexcept;
 public:
     const char* getName() const { return name ? name : "(null)"; }
     void        setName(const char* text);
@@ -173,12 +173,12 @@ public: // widget flags operation
         return (masks & flags);
     }
 public:
-    Ex_DECLARE_TYPEINFO(ExVision, ExObject);
+    Ex_DECLARE_TYPEINFO(ExWgtRes, ExObject);
 };
 
 // class ExWidget
 //
-class ExWidget : public ExVision {
+class ExWidget : public ExWgtRes {
 protected:
     ExWidget* parent;
     ExWidget* broNext;
@@ -335,7 +335,7 @@ protected:
         void draw(ExWidget* w);
         Draw(const ExCanvas*, const ExWidget*);
     };
-    static void render(const ExCanvas* canvas, const ExVision* widget, uint32 flags);
+    static void render(const ExCanvas* canvas, const ExWgtRes* wgtres, uint32 flags);
     #endif
 public:
     void dumpImage(const ExCanvas* canvas); // for dumping images to a temporary canvas
@@ -348,7 +348,7 @@ public:
     friend class ExWindow;
     friend class ExApp;
 public:
-    Ex_DECLARE_TYPEINFO(ExWidget, ExVision);
+    Ex_DECLARE_TYPEINFO(ExWidget, ExWgtRes);
 };
 
 inline bool ExWidget::isExtentContainPoint(const ExPoint& pt) {

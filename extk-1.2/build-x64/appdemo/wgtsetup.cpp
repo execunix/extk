@@ -7,9 +7,9 @@
 #include "wgtsetup.h"
 
 static void
-fillRect(void* data, ExCanvas* canvas, const ExVision* widget, const ExRegion* damage) {
+fillRect(void* data, ExCanvas* canvas, const ExWgtRes* wgtres, const ExRegion* damage) {
     ExCairo cr(canvas, damage);
-    ExCairo::Rect rc(widget->calcRect());
+    ExCairo::Rect rc(wgtres->calcRect());
     ExCairo::Color fc; // fill color
     double alpha = (uint64)data / 100.f;
     fc.set(.8f, .8f, .8f, alpha);
@@ -17,13 +17,13 @@ fillRect(void* data, ExCanvas* canvas, const ExVision* widget, const ExRegion* d
 }
 
 static void
-drawName(void* data, ExCanvas* canvas, const ExVision* widget, const ExRegion* damage) {
+drawName(void* data, ExCanvas* canvas, const ExWgtRes* wgtres, const ExRegion* damage) {
     ExCairo cr(canvas, damage);
-    ExCairo::Rect rc(widget->calcRect());
+    ExCairo::Rect rc(wgtres->calcRect());
     ExCairo::Color fc; // fill color
     fc.set(.5f, .5f, .5f, .8f);
     cr.fill_rect_rgba(rc, fc);
-    const char* text = widget->getName();
+    const char* text = wgtres->getName();
     cr.set_font(res.f.gothic.crf, 12.f);
     cr.show_text(text, ExCairo::Color(1.f), rc);
 }
@@ -70,9 +70,9 @@ void WgtPage3::init(ExWidget* parent, ExRect& rc) {
     button1.drawFunc = ExDrawFunc(drawName, (void*)50);
 }
 
-void WgtSetup::onDrawSetup(ExCanvas* canvas, const ExVision* widget, const ExRegion* damage) {
+void WgtSetup::onDrawSetup(ExCanvas* canvas, const ExWgtRes* wgtres, const ExRegion* damage) {
     ExCairo cr(canvas, damage);
-    ExCairo::Rect rc(widget->calcRect());
+    ExCairo::Rect rc(wgtres->calcRect());
     ExCairo::Color fc; // fill color
     fc.set(0.f, 0.f, 0.f, .75f);
     cr.fill_rect_rgba(rc, fc);
