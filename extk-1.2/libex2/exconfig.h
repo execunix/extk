@@ -55,9 +55,9 @@
 #endif
 #endif /* STDCALL */
 
-#if defined(_MSC_VER) || defined(STDCPP_EABI)
+#if defined(_MSC_VER) || defined(STDCPP_EABI) // MSC, ARM-GCC(AAPCS)
 #define EX2CONF_DISABLE_STDCALL 0
-#else
+#else // AMD64-GCC for Linux (System V ABI)
 #define EX2CONF_DISABLE_STDCALL 1
 #endif
 

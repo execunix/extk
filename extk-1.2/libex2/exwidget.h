@@ -269,14 +269,14 @@ protected: // widget callback internal
         uint8 prio;
         uint8 flag;
         uint16 mask; // tbd - ???
-        Listener(const ExCallback& cb, const uint32 t, const uint8 p)
+        Listener(const ExCallback& cb, const uint32 t, const uint8 p) noexcept
             : ExCallback(cb), type(t), prio(p), flag(0), mask(0) {
         }
     };
     class ListenerList : public std::list<Listener> {
         uint16 influx, change; // for recurs
     public:
-        ListenerList() : std::list<Listener>(), influx(0), change(0) {}
+        ListenerList() noexcept : std::list<Listener>(), influx(0), change(0) {}
     public:
         // inherit size_type size();
         bool remove(const uint32 type, const uint8 prio);

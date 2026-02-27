@@ -1011,8 +1011,8 @@ int WndMain::start() {
     timer.init(NULL, this, &WndMain::onTimer);
 
     static ExTimer timerTest;
-    timerTest.init(NULL, [](void* d, ExObject* w, ExCbInfo*)->uint32 {
-        dprint("timerTest: %s\n", ((ExWidget*)w)->getName());
+    timerTest.init(NULL, [](void* d, ExWidget* w, ExCbInfo*)->uint32 {
+        dprint("timerTest: %s\n", ((WndMain*)w)->getName());
         return Ex_Continue; }, (void*)0, this); // test
     timerTest.init(NULL, [](void* d, ExTimer* t, ExCbInfo*)->uint32 {
         dprint("timerTest: %d %u %u\n", (t->u32[0])++, (ulong)*t, exWatchDisp->getTick());

@@ -31,7 +31,7 @@ protected:
     };
     class TimerSet : public std::multiset<ExTimer*, TickCompare> {
     public:
-        TimerSet() : std::multiset<ExTimer*, TickCompare>() {}
+        TimerSet() noexcept : std::multiset<ExTimer*, TickCompare>() {}
     public:
         void clearAll();
         void remove(ExTimer* timer);
@@ -44,7 +44,7 @@ protected:
         HANDLE          handle;
         ExNotify        notify;
         //mutable enum : int32 { NONE, ADD, MOD, DEL, RUN } status;
-        Iomux(HANDLE handle) : handle(handle), notify() {}
+        Iomux(HANDLE handle) noexcept : handle(handle), notify() {}
     };
     class IomuxMap : protected std::map<HANDLE, Iomux> {
     protected:
@@ -52,10 +52,10 @@ protected:
         int32           dirty;
         HANDLE          handles[MAXIMUM_WAIT_OBJECTS];
     public:
-        ~IomuxMap() {
+        ~IomuxMap() noexcept {
             fini();
         }
-        IomuxMap(ExWatch* watch) : std::map<HANDLE, Iomux>(), watch(watch), dirty(0) {
+        IomuxMap(ExWatch* watch) noexcept : std::map<HANDLE, Iomux>(), watch(watch), dirty(0) {
             memset(handles, 0, sizeof(handles));
         }
     public:
@@ -77,7 +77,7 @@ protected:
         ExNotify        notify;
         epoll_event     event;
         //mutable enum : int32 { NONE, ADD, MOD, DEL, RUN } status;
-        Iomux() : notify() {}
+        Iomux() noexcept : notify() {}
     };
     class IomuxMap : protected std::map<int32, Iomux*> {
     protected:
@@ -90,14 +90,15 @@ protected:
         mutable pthread_cond_t cond;
         #endif
     public:
-        ~IomuxMap() {
+        ~IomuxMap() noexcept {
             fini();
             #if EX2CONF_ENABLE_IOMUX_LOCK
             pthread_cond_destroy(&cond);
             pthread_mutex_destroy(&mutex);
             #endif
         }
-        IomuxMap(ExWatch* watch) : std::map<int32, Iomux*>(), watch(watch), epfd(-1), events(NULL), maxevents(0U) {
+        IomuxMap(ExWatch* watch) noexcept : std::map<int32, Iomux*>()
+            , watch(watch), epfd(-1), events(NULL), maxevents(0U) {
             #if EX2CONF_ENABLE_IOMUX_LOCK
             pthread_mutex_init(&mutex, NULL);
             pthread_cond_init(&cond, NULL);
@@ -164,23 +165,23 @@ public:
 
 public:
     #ifdef WIN32
-    virtual ~ExWatch() {
+    virtual ~ExWatch() noexcept {
         fini();
         CloseHandle(mutex);
     }
-    explicit ExWatch(const char* name) : name(name)
+    explicit ExWatch(const char* name) noexcept : name(name)
         , iomuxmap(this), timerset(), idThread(0), hThread(NULL), hev(NULL), halt(0), tickCount(0)
         , hookPhase(HookReady), hookStart(), hookTimer(), hookIomux(), hookClean() {
         mutex = CreateMutex(NULL, FALSE, NULL);
         tickCount = tickAppLaunch;
     }
     #else // __linux__
-    virtual ~ExWatch() {
+    virtual ~ExWatch() noexcept {
         fini();
         pthread_cond_destroy(&cond);
         pthread_mutex_destroy(&mutex);
     }
-    explicit ExWatch(const char* name) : name(name)
+    explicit ExWatch(const char* name) noexcept : name(name)
         , iomuxmap(this), timerset(), tid(0), efd(-1), halt(0), tickCount(0)
         , hookPhase(HookReady), hookStart(), hookTimer(), hookIomux(), hookClean() {
         pthread_mutex_init(&mutex, NULL);
