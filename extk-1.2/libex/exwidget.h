@@ -253,15 +253,15 @@ protected: // widget callback internal
     };
     ListenerList listenerList;
 public: // widget callback operation
-    void addListener(uint32(STDCALL *f)(void*, ExWidget*, ExCbInfo*), void* d, uint32 type, uint8 prio = 5) {
+    void addListener(uint32(*f)(void*, ExWidget*, ExCbInfo*), void* d, uint32 type, uint8 prio = 5) {
         listenerList.push(Listener(ExCallback(f, d), type, prio));
     }
     template <typename A, class W/*inherit ExWidget*/>
-    void addListener(uint32(STDCALL *f)(A*, W*, ExCbInfo*), A* d, uint32 type, uint8 prio = 5) {
+    void addListener(uint32(*f)(A*, W*, ExCbInfo*), A* d, uint32 type, uint8 prio = 5) {
         listenerList.push(Listener(ExCallback(f, d), type, prio));
     }
     template <typename A, class W/*inherit ExWidget*/>
-    void addListener(A* d, uint32(STDCALL A::*f)(W*, ExCbInfo*), uint32 type, uint8 prio = 5) {
+    void addListener(A* d, uint32(A::*f)(W*, ExCbInfo*), uint32 type, uint8 prio = 5) {
         listenerList.push(Listener(ExCallback(d, f), type, prio));
     }
     void removeListener(uint32 type, uint8 prio = 5) { // tbd

@@ -61,11 +61,11 @@ public:
     };
     struct Proc : public ExPolyFunc<int, ExThread*> {
         template <typename A>
-        Proc(A* d, int (STDCALL A::*f)(ExThread*)) : ExPolyFunc(d) {
+        Proc(A* d, int (A::*f)(ExThread*)) : ExPolyFunc(d) {
             func = reinterpret_cast<ThisFunc>(f);
         }
         template <typename A>
-        Proc(int (STDCALL *f)(A*, ExThread*), A* d) : ExPolyFunc(d) {
+        Proc(int (*f)(A*, ExThread*), A* d) : ExPolyFunc(d) {
             vfunc = reinterpret_cast<FuncPtr>(f);
 #if EX2CONF_DISABLE_STDCALL
             invoker = &funcptr;

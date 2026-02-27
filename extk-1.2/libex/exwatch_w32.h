@@ -109,20 +109,20 @@ public:
 protected:
     bool setEvent(uint64 u64) const;
     bool getEvent(uint64* u64) const;
-    uint32 STDCALL proc();
-    uint32 STDCALL onEvent(HANDLE handle);
+    uint32 proc();
+    uint32 onEvent(HANDLE handle);
 public:
     #if EX2CONF_LAMBDA_CALLBACK
-    bool ioAdd(uint32 (STDCALL *f)(void*, HANDLE handle), void* d, HANDLE handle, int32 pos = -1) {
+    bool ioAdd(uint32 (*f)(void*, HANDLE handle), void* d, HANDLE handle, int32 pos = -1) {
         return iomuxmap.add(handle, ExNotify(f, d), pos);
     }
     #endif
     template <typename A>
-    bool ioAdd(A* d, uint32 (STDCALL A::*f)(HANDLE handle), HANDLE handle, int32 pos) {
+    bool ioAdd(A* d, uint32 (A::*f)(HANDLE handle), HANDLE handle, int32 pos) {
         return iomuxmap.add(handle, ExNotify(d, f), pos);
     }
     template <typename A>
-    bool ioAdd(A* d, uint32 (STDCALL A::* f)(HANDLE handle), HANDLE handle) {
+    bool ioAdd(A* d, uint32 (A::* f)(HANDLE handle), HANDLE handle) {
         return iomuxmap.add(handle, ExNotify(d, f));
     }
     bool ioDel(HANDLE handle) {
