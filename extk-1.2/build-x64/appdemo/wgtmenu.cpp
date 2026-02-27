@@ -93,8 +93,8 @@ uint32 WgtMenu::onTimerAni(Popup* popup, ExCbInfo* cbinfo) {
 
 }
 
-void WgtMenu::onDrawMenuPopBkgd(ExCanvas* canvas, const ExVision* widget, const ExRegion* damage) {
-    const Popup* popup = (const Popup*)widget;
+void WgtMenu::onDrawMenuPopBkgd(ExCanvas* canvas, const ExWgtRes* wgtres, const ExRegion* damage) {
+    const Popup* popup = (const Popup*)wgtres;
     ExCairo cr(canvas, damage);
     ExCairo::Rect rc(popup->calcRect());
     ExCairo::Color fc; // fill color
@@ -104,15 +104,15 @@ void WgtMenu::onDrawMenuPopBkgd(ExCanvas* canvas, const ExVision* widget, const 
     // tbd - border
 }
 
-void WgtMenu::onDrawMenuPop(ExCanvas* canvas, const ExVision* widget, const ExRegion* damage) {
+void WgtMenu::onDrawMenuPop(ExCanvas* canvas, const ExWgtRes* wgtres, const ExRegion* damage) {
     ExCairo cr(canvas, damage);
-    ExCairo::Rect rc(widget->calcRect());
+    ExCairo::Rect rc(wgtres->calcRect());
     ExCairo::Point p2(rc.p2());
 
-    Menu* menu = (Menu*)widget->getData();
-    bool isFocused = widget->getFlags(Ex_Focused);
+    Menu* menu = (Menu*)wgtres->getData();
+    bool isFocused = wgtres->getFlags(Ex_Focused);
     for (Menu* im = focused; im->parent; im = im->parent)
-        if (im->view == widget) isFocused = true;
+        if (im->view == wgtres) isFocused = true;
     if (menu->flag & Menu::Separator) {
         ExCairo::Point p1(rc.x + 36.f, rc.y + menuHeight + 1.5f);
         cr_set_source_rgb(cr, 1.f, 1.f, 1.f);
@@ -150,21 +150,21 @@ void WgtMenu::onDrawMenuPop(ExCanvas* canvas, const ExVision* widget, const ExRe
     cr.show_text(menu->text, tc, cr.text_align(canvas->fe, menu->extents, rc, ExCairo::Left));
 }
 
-void WgtMenu::onDrawMenuBarBkgd(ExCanvas* canvas, const ExVision* widget, const ExRegion* damage) {
+void WgtMenu::onDrawMenuBarBkgd(ExCanvas* canvas, const ExWgtRes* wgtres, const ExRegion* damage) {
     ExCairo cr(canvas, damage);
-    ExCairo::Rect rc(widget->calcRect());
+    ExCairo::Rect rc(wgtres->calcRect());
     ExCairo::Color fc; // fill color
     fc.set(0.f, 0.f, 0.f, .5f);
     cr.fill_rect_rgba(rc, fc);
 }
 
-void WgtMenu::onDrawMenuBar(ExCanvas* canvas, const ExVision* widget, const ExRegion* damage) {
+void WgtMenu::onDrawMenuBar(ExCanvas* canvas, const ExWgtRes* wgtres, const ExRegion* damage) {
     ExCairo cr(canvas, damage);
-    ExCairo::Rect rc(widget->calcRect());
-    Menu* menu = (Menu*)widget->getData();
+    ExCairo::Rect rc(wgtres->calcRect());
+    Menu* menu = (Menu*)wgtres->getData();
     Popup* pop = popList.empty() ? NULL : popList.back();
     bool isPopFocused = pop && pop->link == menu;
-    bool isPtrEntered = !pop && widget->getFlags(Ex_PtrEntered);
+    bool isPtrEntered = !pop && wgtres->getFlags(Ex_PtrEntered);
     if (isPopFocused || isPtrEntered) {
         ExCairo::Color fc; // fill color
         if (isPopFocused)

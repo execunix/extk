@@ -53,14 +53,14 @@ void collectWindow() {
 
 // class ExWindow
 //
-ExWindow::~ExWindow() {
+ExWindow::~ExWindow() noexcept {
     if (canvas)
         delete canvas;
     //handlerList.clear();
     //filterList.clear();
 }
 
-ExWindow::ExWindow()
+ExWindow::ExWindow() noexcept
     : ExWidget()
 #ifdef WIN32
     , hwnd(NULL)

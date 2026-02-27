@@ -138,12 +138,12 @@ struct ExCallback : public ExPolyFunc<uint32, const void*, const void*> {
         : ExPolyFunc() {}
 };
 
-struct ExDrawFunc : public ExPolyFunc<void, const ExCanvas*, const ExVision*, const ExRegion*> {
+struct ExDrawFunc : public ExPolyFunc<void, const ExCanvas*, const ExWgtRes*, const ExRegion*> {
     template <typename A, typename B, typename C, typename D>
     ExDrawFunc(A* d, void (A::*f)(B*, C*, D*)) noexcept
         : ExPolyFunc(d) {
         using NonConstC = typename std::remove_const<C>::type;
-        static_assert(std::is_same<ExVision, NonConstC>::value, "C must be ExVision");
+        static_assert(std::is_same<ExWgtRes, NonConstC>::value, "C must be ExWgtRes");
         static_assert(std::is_base_of<ExCanvas, B>::value, "B must be derived from ExCanvas");
         static_assert(std::is_base_of<ExRegion, D>::value, "D must be derived from ExRegion");
         func = reinterpret_cast<ThisFunc>(f);
@@ -152,7 +152,7 @@ struct ExDrawFunc : public ExPolyFunc<void, const ExCanvas*, const ExVision*, co
     ExDrawFunc(void (*f)(A*, B*, C*, D*), A* d) noexcept
         : ExPolyFunc(d) {
         using NonConstC = typename std::remove_const<C>::type;
-        static_assert(std::is_same<ExVision, NonConstC>::value, "C must be ExVision");
+        static_assert(std::is_same<ExWgtRes, NonConstC>::value, "C must be ExWgtRes");
         static_assert(std::is_base_of<ExCanvas, B>::value, "B must be derived from ExCanvas");
         static_assert(std::is_base_of<ExRegion, D>::value, "D must be derived from ExRegion");
         vfunc = reinterpret_cast<FuncPtr>(f);

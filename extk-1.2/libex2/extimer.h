@@ -33,9 +33,9 @@ public:
     // usage: Type* t = timer->userdata_of<Type>();
     template <typename T> T& userdata_of() const { T* t = (T*)u64; return *t; }
 public:
-    virtual ~ExTimer() { stop(); }
-    explicit ExTimer()
-        : ExObject(), watch(NULL), value(0), repeat(0), callback(), fActived(0)
+    virtual ~ExTimer() noexcept { stop(); }
+    explicit ExTimer() noexcept : ExObject()
+        , watch(NULL), value(0), repeat(0), callback(), fActived(0)
         , object(NULL), u64 { 0ull, } {}
 public:
     void setup(ExWatch* watch, const ExCallback& callback, const void* object = NULL) {
@@ -44,8 +44,8 @@ public:
         this->object = object;
     }
 public:
-    void init(ExWatch* watch, uint32(*f)(void*, ExObject*, ExCbInfo*), void* d, const void* obj) { // lambda
-        setup(watch, ExCallback(f, d), obj);
+    void init(ExWatch* watch, uint32(*f)(void*, ExWidget*, ExCbInfo*), void* d, const ExWidget* wgt) { // lambda
+        setup(watch, ExCallback(f, d), wgt);
     }
     void init(ExWatch* watch, uint32(*f)(void*, ExTimer*, ExCbInfo*), void* d) { // lambda
         setup(watch, ExCallback(f, d), NULL);

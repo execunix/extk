@@ -63,8 +63,8 @@ protected: // now allow new & delete
     static void* operator new[](std::size_t, void* placement) { return placement; }
 #endif
 public:
-    virtual ~ExWindow();
-    explicit ExWindow();
+    virtual ~ExWindow() noexcept;
+    explicit ExWindow() noexcept;
     uint32 init(const char* name, int32 w, int32 h);
     static ExWindow* create(const char* name, int32 w, int32 h);
     virtual uint32 destroy();
@@ -99,7 +99,7 @@ protected: // window callback internal
         uint8 prio;
         uint8 flag;
         uint16 mask; // tbd - ???
-        Callback(const ExCallback& cb, const uint8 prio)
+        Callback(const ExCallback& cb, const uint8 prio) noexcept
             : ExCallback(cb), prio(prio), flag(0), mask(0) {
         }
         bool operator == (const Callback& cb) const {
@@ -109,7 +109,7 @@ protected: // window callback internal
     class CallbackList : public std::list<Callback> {
         uint16 influx, change; // for recurs
     public:
-        CallbackList() : std::list<Callback>(), influx(0), change(0) {}
+        CallbackList() noexcept : std::list<Callback>(), influx(0), change(0) {}
     public:
         // inherit size_type size();
         bool remove2(const ExCallback& cb);

@@ -188,16 +188,16 @@ void ExRender::renderOwnGC(ExCanvas* canvas, ExWidget* w) { // tbd
 }
 
 #if defined(EXAPITEST) // sample pseudo code
-void onDrawOwnGC(void* data, ExCanvas* canvas, const ExVision* widget, const ExRegion* damage) {
+void onDrawOwnGC(void* data, ExCanvas* canvas, const ExWgtRes* wgtres, const ExRegion* damage) {
     if (canvas == NULL/*my_canvas*/) {
         // draw self & child to my canvas
         ExCanvas my_canvas;
         my_canvas.gc = NULL/*my_gc*/;
         my_canvas.cr = NULL/*my_cr*/;
-        ExPoint pt = widget->calcRect().u.pt;
+        ExPoint pt = wgtres->calcRect().u.pt;
         // tbd - translate
         cairo_translate(my_canvas.cr, -pt.x, -pt.y);
-        ExWidget* w = (ExWidget*)widget;
+        ExWidget* w = (ExWidget*)wgtres;
         ExRender::renderOwnGC(&my_canvas, w);
     } else {
         //flush_my_canvas_to_canvas();

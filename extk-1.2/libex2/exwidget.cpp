@@ -30,12 +30,12 @@ void collectWidget() {
 }
 
 // test sample
-static void s_fill(void* data, const ExCanvas* canvas, const ExVision* widget, const ExRegion* damage) {
+static void s_fill(void* data, const ExCanvas* canvas, const ExWgtRes* wgtres, const ExRegion* damage) {
 #if 1
     if (!(canvas && canvas->cr))
         return;
     ExCairo cr(canvas, damage);
-    ExCairo::Box bx(widget->calcBox());
+    ExCairo::Box bx(wgtres->calcBox());
 
     //bx.l += 1.F;
     //bx.t += 1.F;
@@ -50,7 +50,7 @@ static void s_fill(void* data, const ExCanvas* canvas, const ExVision* widget, c
     cairo_close_path(cr);
 
     ExCairo::Color lc; // line color
-    uint32 c = ((uint64)widget) & 0xffffff;
+    uint32 c = ((uint64)wgtres) & 0xffffff;
     lc.setv(ExRValue(c), ExGValue(c), ExBValue(c), 96);
 
     cairo_set_line_width(cr, 1.f);
@@ -60,9 +60,9 @@ static void s_fill(void* data, const ExCanvas* canvas, const ExVision* widget, c
     cairo_set_source_rgba(cr, lc.r, lc.g, lc.b, lc.a);
     cairo_stroke(cr);
 #else // deprecated
-    HWND hwnd = widget->getWindow()->getHwnd();
+    HWND hwnd = wgtres->getWindow()->getHwnd();
     HDC hdc = GetDC(hwnd ? hwnd : GetDesktopWindow());
-    COLORREF c = ((uint64)widget) & 0xffffff;//RGB(0, 0, 128);
+    COLORREF c = ((uint64)wgtres) & 0xffffff;//RGB(0, 0, 128);
     HBRUSH hbr = CreateSolidBrush(c);
     for (int32 i = 0; i < damage->n_boxes; i++)
         FillRect(hdc, damage->boxes[i], hbr);
@@ -70,15 +70,15 @@ static void s_fill(void* data, const ExCanvas* canvas, const ExVision* widget, c
 #endif
 }
 
-// class ExVision
+// class ExWgtRes
 //
-ExVision::~ExVision() noexcept {
+ExWgtRes::~ExWgtRes() noexcept {
     if (name) {
         free(name);
     }
 }
 
-ExVision::ExVision() noexcept
+ExWgtRes::ExWgtRes() noexcept
     : ExObject()
     , name(NULL)
     , extent(0)
@@ -112,7 +112,7 @@ ExVision::ExVision() noexcept
     flags |= Ex_Visible; // default visible
 }
 
-void ExVision::setName(const char* text) {
+void ExWgtRes::setName(const char* text) {
     char buf[20];
     if (name != NULL) {
         free(name);
@@ -124,7 +124,7 @@ void ExVision::setName(const char* text) {
     name = strdup(text);
 }
 
-ExBox& ExVision::calcBox(ExBox& bx) const {
+ExBox& ExWgtRes::calcBox(ExBox& bx) const {
     bx.l = origin.x;
     bx.t = origin.y;
     bx.r = bx.l + area.w;
@@ -132,7 +132,7 @@ ExBox& ExVision::calcBox(ExBox& bx) const {
     return bx;
 }
 
-ExRect& ExVision::calcRect(ExRect& rc) const {
+ExRect& ExWgtRes::calcRect(ExRect& rc) const {
     rc.x = origin.x;
     rc.y = origin.y;
     rc.w = area.w;
@@ -146,7 +146,7 @@ ExWidget::~ExWidget() noexcept {
 }
 
 ExWidget::ExWidget() noexcept
-    : ExVision()
+    : ExWgtRes()
     , parent(NULL)
     , broNext(NULL)
     , broPrev(NULL)

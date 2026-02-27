@@ -7,17 +7,17 @@
 #include "wndtest.h"
 #include <assert.h>
 
-void WndTest::onDrawBkgd(ExCanvas* canvas, const ExVision* widget, const ExRegion* damage) {
-    if (widget == this) {
+void WndTest::onDrawBkgd(ExCanvas* canvas, const ExWgtRes* wgtres, const ExRegion* damage) {
+    if (wgtres == this) {
         ExRegion rgn(*damage);
         for (int i = 0; i < rgn.n_boxes; i++)
-            canvas->gc->fillBox(&rgn.boxes[i], ((uint64)widget) & 0xffffff);
+            canvas->gc->fillBox(&rgn.boxes[i], ((uint64)wgtres) & 0xffffff);
     }
 }
 
-void WndTest::onDrawBtns(ExCanvas* canvas, const ExVision* widget, const ExRegion* damage) {
+void WndTest::onDrawBtns(ExCanvas* canvas, const ExWgtRes* wgtres, const ExRegion* damage) {
     ExCairo cr(canvas, damage);
-    ExCairo::Rect rc(widget->calcRect());
+    ExCairo::Rect rc(wgtres->calcRect());
     ExCairo::Point p2(rc.p2());
 
     cr_new_path(cr);
@@ -33,7 +33,7 @@ void WndTest::onDrawBtns(ExCanvas* canvas, const ExVision* widget, const ExRegio
 
     ExCairo::Color pc0; // pattern color offset 0.f
     ExCairo::Color pc1; // pattern color offset 1.f
-    if (widget->getFlags(Ex_PtrEntered)) {
+    if (wgtres->getFlags(Ex_PtrEntered)) {
         pc0.setv(112, 224, 224, 255);
         pc1.setv(64, 128, 128, 128);
     } else {
@@ -47,22 +47,22 @@ void WndTest::onDrawBtns(ExCanvas* canvas, const ExVision* widget, const ExRegio
     cr_fill_preserve(cr);
 
     ExCairo::Color lc; // line color
-    if (widget->getFlags(Ex_Focused)) {
+    if (wgtres->getFlags(Ex_Focused)) {
         lc.setv(64, 255, 64, 255);
-    } else if (widget->getFlags(Ex_ButPressed)) {
+    } else if (wgtres->getFlags(Ex_ButPressed)) {
         lc.setv(255, 255, 255, 255);
     } else {
-        uint32 c = ((uint64)widget) & 0xffffff;
+        uint32 c = ((uint64)wgtres) & 0xffffff;
         lc.setv(ExRValue(c), ExGValue(c), ExBValue(c), 255);
     }
-    cr_set_line_width(cr, widget->getFlags(Ex_Focused) ? 3.6f : 1.2f);
+    cr_set_line_width(cr, wgtres->getFlags(Ex_Focused) ? 3.6f : 1.2f);
     cr_set_line_join(cr, CR_LINE_JOIN_ROUND);
     cr_set_line_cap(cr, CR_LINE_CAP_ROUND);
     cr_set_antialias(cr, CR_ANTIALIAS_GRAY);
     cr_set_source_rgba(cr, lc.r, lc.g, lc.b, lc.a);
     cr_stroke(cr);
 
-    const char* text = widget->getName();
+    const char* text = wgtres->getName();
     cr.set_font(res.f.gothic.crf, 12.f);
     cr.show_text(text, ExCairo::Color(0.f), rc);
 
@@ -197,9 +197,9 @@ void WndTest::initEdit(int x, int y, int w, int h)
                               hwnd,         // parent window
                               (HMENU)ID_EDITCHILD,   // edit control ID
                               (HINSTANCE)GetWindowLongPtr(hwnd, GWLP_HINSTANCE),
-                              NULL);        // pointer not needed 
+                              NULL);        // pointer not needed
 
-    // Add text to the window. 
+    // Add text to the window.
     SendMessage(hwndEdit, WM_SETTEXT, 0, (LPARAM)lpszLatin);
 }
 
