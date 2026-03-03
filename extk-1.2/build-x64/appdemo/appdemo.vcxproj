@@ -107,6 +107,7 @@
   <ItemGroup>
     <ClInclude Include="../../appdemo/src/appdemo.h" />
     <ClInclude Include="../../appdemo/src/env.h" />
+    <ClInclude Include="../../appdemo/src/osal/osal.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="../../appdemo/src/res.h" />
     <ClInclude Include="Resource.h" />

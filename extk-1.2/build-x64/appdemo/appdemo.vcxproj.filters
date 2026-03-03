@@ -16,6 +16,9 @@
     <Filter Include="Source Files\view">
       <UniqueIdentifier>{cee08042-212e-436b-b7a4-88c9bef87762}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\osal">
+      <UniqueIdentifier>{aa8198ca-b2a1-4cb2-beb9-a76b140c7ae9}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="../../appdemo/src/appdemo.cpp">
@@ -70,6 +73,9 @@
     </ClInclude>
     <ClInclude Include="../../appdemo/src/view/wndtest.h">
       <Filter>Source Files\view</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\appdemo\src\osal\osal.h">
+      <Filter>Source Files\osal</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

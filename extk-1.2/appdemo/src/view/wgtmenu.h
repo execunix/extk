@@ -3,7 +3,8 @@
 // SPDX-License-Identifier:     GPL-2.0+
 //
 
-#pragma once
+#ifndef _wgtmenu_h_
+#define _wgtmenu_h_
 
 #include <ex.h>
 #include <list>
@@ -60,7 +61,7 @@ class WgtMenu : public ExWidget {
         void fill(Menu* menu);
     };
 
-    const UINT WM_APP_MENUPOPUP = ExRegAppMessage();
+    const uint32 WM_APP_MENUPOPUP = ExRegAppMessage();
     const double fontSize = 12.f;
     const int menuHeight = 28;
 protected:
@@ -98,3 +99,5 @@ public:
     void init(ExWindow* window);
     void load(); // sample
 };
+
+#endif // _wgtmenu_h_

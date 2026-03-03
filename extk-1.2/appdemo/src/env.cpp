@@ -3,18 +3,27 @@
 // SPDX-License-Identifier:     GPL-2.0+
 //
 
-#include "framework.h"
+#include "osal/osal.h"
 #include <stdio.h>
+#include "env.h"
 
 Env env;
 
 int initEnv()
 {
+    #ifdef WIN32
     env.sm_w = GetSystemMetrics(SM_CXSCREEN);
     env.sm_h = GetSystemMetrics(SM_CYSCREEN);
     env.wnd.show = SW_SHOWNORMAL;
     env.wnd.x = CW_USEDEFAULT;
     env.wnd.y = CW_USEDEFAULT;
+    #else // !WIN32
+    env.sm_w = 1920;
+    env.sm_h = 1080;
+    env.wnd.show = 1;
+    env.wnd.x = 5;
+    env.wnd.y = 5;
+    #endif // WIN32
     env.wnd.w = 1280;
     env.wnd.h = 720;
 
@@ -23,10 +32,11 @@ int initEnv()
     return 0;
 }
 
-static const char* envfile = ".\\appenv.ini";
+static const char* envfile = "./appenv.ini";
 
 int loadEnv()
 {
+    #ifdef WIN32
     env.wnd.show = GetPrivateProfileIntA("wnd", "show", env.wnd.show, envfile);
     env.wnd.x = GetPrivateProfileIntA("wnd", "x", env.wnd.x, envfile);
     env.wnd.y = GetPrivateProfileIntA("wnd", "y", env.wnd.y, envfile);
@@ -44,12 +54,16 @@ int loadEnv()
         env.wnd.x = 0;
     if (env.wnd.y < 0)
         env.wnd.y = 0;
+    #else // !WIN32
+    // tbd
+    #endif // WIN32
 
     return 0;
 }
 
 int saveEnv()
 {
+    #ifdef WIN32
     char val[256];
 
     snprintf(val, 32, "%d", env.wnd.show);
@@ -66,6 +80,9 @@ int saveEnv()
 
     snprintf(val, 32, "%d", env.wnd.h);
     WritePrivateProfileStringA("wnd", "h", val, envfile);
+    #else // !WIN32
+    // tbd
+    #endif // WIN32
 
     return 0;
 }

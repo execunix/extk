@@ -3,8 +3,8 @@
 // SPDX-License-Identifier:     GPL-2.0+
 //
 
-#ifndef res_h_included
-#define res_h_included
+#ifndef _res_h_
+#define _res_h_
 
 #include <ex.h>
 
@@ -55,4 +55,4 @@ bool finiRes();
 
 extern Res res;
 
-#endif // res_h_included
+#endif // _res_h_

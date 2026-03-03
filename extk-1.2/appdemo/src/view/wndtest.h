@@ -3,7 +3,8 @@
 // SPDX-License-Identifier:     GPL-2.0+
 //
 
-#pragma once
+#ifndef _wndtest_h_
+#define _wndtest_h_
 
 #include <ex.h>
 
@@ -29,3 +30,5 @@ public:
     uint32 onFilter(WndTest* w, ExCbInfo* cbinfo);
     uint32 onTimer(ExTimer* timer, ExCbInfo* cbinfo);
 };
+
+#endif // _wndtest_h_

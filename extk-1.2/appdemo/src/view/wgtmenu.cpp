@@ -3,10 +3,11 @@
 // SPDX-License-Identifier:     GPL-2.0+
 //
 
-#include "framework.h"
+#include "osal/osal.h"
 #include "wgtmenu.h"
+#include "res.h"
 
-const UINT IDM_EXIT = 100;
+const uint32 IDM_EXIT = 100;
 
 void Menu::detach() {
     if (parent == NULL)
@@ -65,7 +66,7 @@ Menu::Menu()
 
 Menu* Menu::add(const char* text, int id, int flag) {
     Menu* menu = new Menu;
-    strncpy(menu->text, text, 255);
+    exstrncpy(menu->text, text, 255);
     menu->text[255] = 0;
     menu->flag = flag;
     menu->id = id;

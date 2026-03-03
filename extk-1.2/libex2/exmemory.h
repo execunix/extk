@@ -197,6 +197,8 @@ exmemsum(const void* data, size_t n_bytes) {
 
 extern char* exstrcpy(char* __restrict __dest, const char* __restrict __src);
 extern char* exstrncpy(char* __restrict __dest, const char* __restrict __src, size_t __n);
+extern char* exstrcat(char* __restrict __dest, const char* __restrict __src);
+extern char* exstrncat(char* __restrict __dest, const char* __restrict __src, size_t __n);
 extern int exstrcmp(const char* __s1, const char* __s2);
 extern int exstrncmp(const char* __s1, const char* __s2, size_t __n);
 

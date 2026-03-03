@@ -60,8 +60,8 @@ uint32       ExApp::double_click_time;      /* Maximum time between clicks in ms
 uint32       ExApp::button_number[2];       /* The last 2 buttons to be pressed. */
 ExWidget*    ExApp::button_widget[2];       /* The last 2 widgets to receive button presses. */
 ExWindow*    ExApp::button_window[2];       /* The last 2 windows to receive button presses. */
-#ifdef WIN32
-UINT         ExApp::regAppMsgIndex = WM_APP;
+#ifdef OSAL_WIN32
+uint32       ExApp::regAppMsgIndex = 0x8000U; // WM_APP 0x8000
 #endif
 
 bool ExEventPeek(ExEvent* event)

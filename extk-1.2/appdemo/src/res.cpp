@@ -3,18 +3,16 @@
 // SPDX-License-Identifier:     GPL-2.0+
 //
 
-
 #include "res.h"
 #include "env.h"
 #include <sys/stat.h>
-//#include "framework.h"
 
 Res res;
 
 static bool img_init(ExImage* img, const char* name)
 {
     char pathname[256];
-    sprintf_s(pathname, 256, "%s/%s", res.path, name);
+    snprintf(pathname, 256, "%s/%s", res.path, name);
     bool result = img->load(pathname);
     if (result != true) {
         dprint("%s: %s fail.\n", __func__, pathname);
@@ -25,11 +23,11 @@ static bool img_init(ExImage* img, const char* name)
 bool initRes()
 {
     bool hasResPath = true;
-    struct _stat statbuf;
-    sprintf_s(res.path, 256, "%s/res", exModulePath);
-    if (_stat(res.path, &statbuf) != 0) {
-        sprintf_s(res.path, 256, "%s/../../../../appdemo/res", exModulePath);
-        if (_stat(res.path, &statbuf) != 0) {
+    struct stat statbuf;
+    snprintf(res.path, 256, "%s/res", exModulePath);
+    if (stat(res.path, &statbuf) != 0) {
+        snprintf(res.path, 256, "%s/../../../../appdemo/res", exModulePath);
+        if (stat(res.path, &statbuf) != 0) {
             dprint("%s: cant open res path\n", __func__);
             hasResPath = false;
         }

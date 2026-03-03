@@ -3,9 +3,9 @@
 // SPDX-License-Identifier:     GPL-2.0+
 //
 
-#include "framework.h"
+#include "osal/osal.h"
 #include "wndtest.h"
-#include <assert.h>
+#include "res.h"
 
 void WndTest::onDrawBkgd(ExCanvas* canvas, const ExWgtRes* wgtres, const ExRegion* damage) {
     if (wgtres == this) {
@@ -154,7 +154,7 @@ bool WndTest::initBtn(ExWidget* parent, ExWidget* btn, const char* name) {
 
 uint32 WndTest::onDestroyed(WndTest* w, ExCbInfo* cbinfo) {
     dprint("%s()\n", __func__);
-    assert(w == this);
+    exassert(w == this);
     timer.stop();
     return Ex_Continue;
 }
@@ -231,7 +231,7 @@ int WndTest::start() {
             dprint("GetClientRect %d,%d-%dx%d\n",
                    rc.x, rc.y, rc.w, rc.h);
             window->layout(rc);
-            assert(data == window);
+            exassert(data == window);
             WndTest* w = (WndTest*)data;
             w->initEdit(rc.x + 20, rc.y + 20, 640, 480);
             // To remove an anonymous callback, simply return Ex_Remove.

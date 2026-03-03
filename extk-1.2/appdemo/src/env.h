@@ -3,7 +3,8 @@
 // SPDX-License-Identifier:     GPL-2.0+
 //
 
-#pragma once
+#ifndef _env_h_
+#define _env_h_
 
 #include <extypes.h>
 
@@ -25,3 +26,4 @@ int saveEnv();
 
 extern Env env;
 
+#endif // _env_h_

@@ -1,11 +1,31 @@
+//
+// Copyright (C) 2020 C.H Park <execunix@gmail.com>
+// SPDX-License-Identifier:     GPL-2.0+
+//
 // appdemo.cpp : Defines the entry point for the application.
 //
 
-#include "framework.h"
+#include "osal/osal.h"
+#ifdef __linux__
+#include "osal/lcdout.h"
+#include <ctype.h>
+#include <locale.h>
+#include <execinfo.h>
+#endif // __linux__
+#include <functional>
+#include <exdebug.h>
 #include "appdemo.h"
 #include "view/wndmain.h"
-#include <functional>
-#include <assert.h>
+#ifdef __linux__
+#include "watch.h"
+#include "wdmgr.h"
+#endif // __linux__
+#include "res.h"
+#include "env.h"
+
+#ifdef CONF_ARM
+//x
+#endif
 
 class TestClass {
 public:
@@ -226,53 +246,53 @@ int flt_test() {
     volatile int32 val;
     ulong tick1, tick2;
 
-    tick1 = GetTickCount();
+    tick1 = ExWatch::getTickCount();
     for (volatile int i = 0; i < TESTCNT; i++) {
         val = 0;
     }
-    tick2 = GetTickCount();
+    tick2 = ExWatch::getTickCount();
     dprint1("val=0 loop test %d\n", tick2 - tick1);
 
-    tick1 = GetTickCount();
+    tick1 = ExWatch::getTickCount();
     for (volatile int i = 0; i < TESTCNT; i++) {
         val = _fixed_from_float(i * 1.f);
     }
-    tick2 = GetTickCount();
+    tick2 = ExWatch::getTickCount();
     dprint1("_fixed_from_float %d\n", tick2 - tick1);
 
-    tick1 = GetTickCount();
+    tick1 = ExWatch::getTickCount();
     for (volatile int i = 0; i < TESTCNT; i++) {
         val = _fixed_from_double(i * 1.);
     }
-    tick2 = GetTickCount();
+    tick2 = ExWatch::getTickCount();
     dprint1("_fixed_from_double %d\n", tick2 - tick1);
 
-    tick1 = GetTickCount();
+    tick1 = ExWatch::getTickCount();
     for (volatile int i = 0; i < TESTCNT; i++) {
         val = _fixed_from_doublem(i * 1.);
     }
-    tick2 = GetTickCount();
+    tick2 = ExWatch::getTickCount();
     dprint1("_fixed_from_doublem %d\n", tick2 - tick1);
 
-    tick1 = GetTickCount();
+    tick1 = ExWatch::getTickCount();
     for (volatile int i = 0; i < TESTCNT; i++) {
         val = _fixed_16_16_from_float(i * 1.f);
     }
-    tick2 = GetTickCount();
+    tick2 = ExWatch::getTickCount();
     dprint1("_fixed_16_16_from_float %d\n", tick2 - tick1);
 
-    tick1 = GetTickCount();
+    tick1 = ExWatch::getTickCount();
     for (volatile int i = 0; i < TESTCNT; i++) {
         val = _fixed_16_16_from_double(i * 1.);
     }
-    tick2 = GetTickCount();
+    tick2 = ExWatch::getTickCount();
     dprint1("_fixed_16_16_from_double %d\n", tick2 - tick1);
 
-    tick1 = GetTickCount();
+    tick1 = ExWatch::getTickCount();
     for (volatile int i = 0; i < TESTCNT; i++) {
         val = _fixed_16_16_from_doublem(i * 1.);
     }
-    tick2 = GetTickCount();
+    tick2 = ExWatch::getTickCount();
     dprint1("_fixed_16_16_from_doublem %d\n", tick2 - tick1);
 
     return 0;
@@ -400,11 +420,474 @@ static uint32 flushMainWnd(void* data, ExWatch* watch, ExCbInfo* cbinfo) {
     return 0;
 }
 
+
+#define GUI_TEST
+
+#define TIMERS 1500
+
+int dp_gps;
+int dp_pkt;
+
+#ifdef __linux__
+class App {
+public:
+    int sockfd;
+    uint32 noti(const epoll_event* event) {
+        return 0;
+    }
+    int attach(ExWatch* watch) {
+        return watch->ioAdd(this, &App::noti, sockfd);
+    }
+public:
+    ExTimer timer[TIMERS];
+    uint32 onTimer(ExTimer* timer, ExCbInfo* cbinfo) {
+        if (timer->u32[0] & 0x100)
+            printf("onTimer-%04d: %4u value=%u\n", timer->u32[0], timer->u32[1]++, (uint32)*timer % 10000);
+        return 0;
+    }
+    void timer_test1() {
+        for (int i = 0; i < TIMERS; i++) {
+            timer[i].init(exWatchMain, this, &App::onTimer);
+            timer[i].u32[0] = i;
+            exWatchMain->enter();
+            timer[i].start(333+i, 999+i/5);
+            exWatchMain->leave();
+            printf("timer-%03d start\n", i);
+        }
+    }
+    void timer_test2() {
+        exWatchMain->enter();
+        for (int i = 0; i < TIMERS; i++) {
+            if (!(i%5)) continue;
+            if (!(i%3)) {
+                timer[i].start(i, 888+i);
+                continue;
+            }
+            timer[i].stop();
+        }
+        exWatchMain->leave();
+    }
+public:
+    int test();
+public:
+    App() : sockfd(0) {}
+};
+
+int App::test()
+{
+    //attach(exWatchMain);
+
+    timer_test1();
+    printf("timer_test1 start\n");
+    usleep(1000);
+
+    timer_test2();
+    printf("timer_test2 start\n");
+    usleep(1000);
+
+    #if 1 // lambda callback
+    ExTimer timer1;
+    timer1.init(exWatchMain, [](void* data, ExTimer* timer, ExCbInfo* cbinfo)->uint32 {
+        printf("*** anonymous func data=%p timer=%4u cbinfo=%d\n",
+               data, (uint32)*timer % 10000U, cbinfo->type);
+        return 0U; }, (void*)0xaaaa);
+    timer1.enter();
+    timer1.start(1, 1233);
+    timer1.leave();
+    #endif
+
+    printf("App::test...\n");
+
+    return 0;
+}
+#endif // __linux__
+
+struct CbTest {
+    uint32 onTest1(ExTimer* timer, ExCbInfo* cbinfo) {
+        printf("onTest1: data=%p value=%u\n", this, (uint32)*timer);
+        return 0;
+    }
+    static uint32 onTest2(void* data, ExTimer* timer, ExCbInfo* cbinfo) {
+        printf("onTest2: data=%p value=%u\n", data, (uint32)*timer);
+        return 0;
+    }
+};
+
+static uint32 onTimer4(void* data, ExTimer* timer, ExCbInfo* cbinfo) {
+    printf("onTimer4: value=%u\n", (uint32)*timer);
+    return 0;
+}
+
+void poly_test()
+{
+    ExTimer timer1;
+
+    ExCallback cb1((CbTest*)NULL, &CbTest::onTest1);
+    ExCallback cb2(&CbTest::onTest2, (void*)NULL);
+    cb1(&timer1, NULL);
+    cb2(&timer1, NULL);
+
+    ExCallback cb3 = cb1;
+    ExCallback cb4 = cb2;
+    cb3(&timer1, NULL);
+    cb4(&timer1, NULL);
+
+    cb3 = ExCallback((CbTest*)NULL, &CbTest::onTest1);
+    cb4 = ExCallback(&CbTest::onTest2, (void*)NULL);
+    cb3(&timer1, NULL);
+    cb4(&timer1, NULL);
+
+    ExCallback cb5;
+    if (cb5) cb5(&timer1, NULL);
+
+    ExCallback cb6(&onTimer4, (void*)NULL);
+    cb6(&timer1, NULL);
+    ExCallbackList cblist;
+    cblist.add((CbTest*)NULL, &CbTest::onTest1, 9U);
+    cblist.add(&CbTest::onTest2, (void*)NULL, 9U);
+    cblist.add(&onTimer4, (void*)NULL, 9U);
+    ExCbInfo cbinfo(5678);
+    #if 1 // lambda callback
+    auto func = [](int32* data, ExTimer* object, ExCbInfo* cbinfo)->uint32 {
+        printf("ExCallbackList func data=%p object=%p cbinfo=%d\n",
+               data, object, cbinfo->type);
+        #if 0 // test backtrace
+        int* buf = NULL;
+        *buf = 0;
+        #endif
+        return 0U;
+    };
+    int32 data = 0x1234;
+    func(&data, &timer1, &cbinfo);
+    //ExCallback cb7(static_cast<uint32 (*)(int32*, ExTimer*, ExCbInfo*)>(func), &data);
+
+    uint32 (*func_ptr)(int32*, ExTimer*, ExCbInfo*) = [](int32* data, ExTimer* object, ExCbInfo* cbinfo)->uint32 {
+        printf("ExCallbackList func data=%p object=%p cbinfo=%d\n",
+               data, object, cbinfo->type);
+        #if 0 // test backtrace
+        int* buf = NULL;
+        *buf = 0;
+        #endif
+        return 0U;
+    };
+    cblist.add(ExCallback(func_ptr, &data));
+    #endif
+    cblist.invoke(&timer1, &cbinfo);
+}
+
+void callback_test()
+{
+    ExTimer timer1;
+    printf("callback_test %u\n", (uint32)timer1);
+    ExCallback cb1((CbTest*)NULL, &CbTest::onTest1);
+    cb1(&timer1, NULL);
+
+    //ExTimer timer3;
+    //ExTimer timer4;
+    //timer3.init(exWatchMain, (CbTest*)NULL, &CbTest::onTest1);
+}
+
+#ifdef __linux__
+constexpr int32 BT_BUF_SIZE = 32;
+
+#ifdef LOG_BACKTRACE
+static void sigaction_exit(const int32 s)
+{
+    dprint("Signal Exit : %d\n", s);
+    (void)gWatchdog.fini();
+    _exit(EXIT_FAILURE);
+}
+
+static void sigaction_halt(const int32 s)
+{
+    dprint("Signal Halt : %d\n", s);
+    (void)gWatchApp.setHalt();
+}
+#endif
+
+#ifdef LOG_BACKTRACE
+static void sigaction_segv(int32 /*s*/, siginfo_t* /*si*/, void* /*t*/)
+{
+    int32 j;
+    int32 nptrs;
+    void* buffer[BT_BUF_SIZE];
+    char** strings;
+
+    nptrs = backtrace(&buffer[0], BT_BUF_SIZE);
+    dprint("backtrace() returned %d addresses\n", nptrs);
+
+    strings = backtrace_symbols(&buffer[0], nptrs);
+    if (strings == nullptr) {
+        dprint1("backtrace_symbols - %s\n", exstrerr());
+        _exit(EXIT_FAILURE);
+    }
+    const char* (&btstrs)[nptrs] = *reinterpret_cast<const char* (*)[nptrs]>(strings);
+    for (j = 0; j < nptrs; j++) {
+        dprint1("%s\n", btstrs[j]);
+    }
+    ExHeapManager<char>::deallocate(strings);
+
+    dprint0("Signal SEGV : PID=%d, %d(UID=%d)\n", getpid(), si->si_pid, si->si_uid);
+
+    // should be reboot - nop gWatchdog.fini();
+    _exit(EXIT_FAILURE);
+}
+#endif
+
+static int32 init_signal()
+{
+#ifdef LOG_BACKTRACE
+    struct sigaction sa_exit;
+    struct sigaction sa_halt;
+    struct sigaction sa_segv;
+
+    (void)memset(&sa_exit, 0, sizeof(struct sigaction));
+    (void)memset(&sa_halt, 0, sizeof(struct sigaction));
+    (void)memset(&sa_segv, 0, sizeof(struct sigaction));
+
+    sa_exit.sa_handler = &sigaction_exit;
+    sa_halt.sa_handler = &sigaction_halt;
+    sa_segv.sa_sigaction = &sigaction_segv;
+
+    (void)sigemptyset(&(sa_exit.sa_mask));
+    (void)sigemptyset(&(sa_halt.sa_mask));
+    (void)sigemptyset(&(sa_segv.sa_mask));
+
+    sa_exit.sa_flags = 0;
+    sa_halt.sa_flags = 0;
+    sa_segv.sa_flags = SA_SIGINFO;
+
+    (void)sigaction(SIGINT, &sa_exit, nullptr);
+    (void)sigaction(SIGABRT, &sa_exit, nullptr);
+    (void)sigaction(SIGQUIT, &sa_halt, nullptr);
+    (void)sigaction(SIGTERM, &sa_halt, nullptr);
+    (void)sigaction(SIGSEGV, &sa_segv, nullptr);
+#endif
+
+#if 0//defined(_DEBUG)
+    // Requests not to send SIGPIPE on errors on stream oriented sockets
+    // when the other end breaks the connection
+    const sighandler_t sig_ign = reinterpret_cast<sighandler_t>(1); // SIG_IGN
+    const sighandler_t sig_old = signal(SIGPIPE, sig_ign);
+    dprint1("sig_ign=0x%08x\n", sig_ign);
+    dprint1("sig_old=0x%08x\n", sig_old);
+#endif
+
+    return 0;
+}
+#endif __linux__
+
+static uint32 on_enum(void* /*data*/, const ExWidget* const widget, ExCbInfo* const cbinfo)
+{
+    uint32 ret = Ex_Break;
+
+    if (cbinfo->type == Ex_CbEnumEnter) {
+        char depth[256] = "";
+        for (const ExWidget* w = widget; w->getParent(); w = w->getParent()) {
+            exstrcat(depth, "   .");
+        }
+        cbinfo->subtype++;
+        printf("enum: %s [%s] %s\n", depth, widget->getFlags(Ex_Visible) ? "*" : " ", widget->getName());
+        // ret = ((widget->getFlags(Ex_Visible) != 0U) ? Ex_Continue : Ex_Discard);
+        ret = Ex_Continue;
+    } else if (cbinfo->type == Ex_CbEnumLeave) {
+        // ret = ((widget->getFlags(Ex_Visible) != 0U) ? Ex_Continue : Ex_Discard);
+        ret = Ex_Continue;
+    } else {
+        // defense code
+    }
+    return ret;
+}
+
+static uint32 cmdline_coverage(void* /*data*/, void* /*ev*/, const ExCbInfo* const cbinfo)
+{
+    uint32 ret = Ex_Break;
+    return ret;
+}
+
+static uint32 cmdline_dprint(void* /*data*/, void* /*ev*/, const ExCbInfo* const cbinfo)
+{
+    uint32 ret = Ex_Continue;
+    int32 argc = cbinfo->subtype;
+    char** argv = (char**)cbinfo->data;
+
+    if ((0 == exstrcmp(argv[0], "dp")) || (0 == exstrcmp(argv[0], "dprint"))) {
+        if (argc == 1) {
+            dprint("dprint_verbose = %d\n", dprint_verbose);
+        } else if (0 == exstrcmp(argv[1], "gps")) {
+            if (argc > 2) {
+                dp_gps = atoi(argv[2]);
+            } else {
+                dp_gps = 9;
+            }
+        } else if (0 == exstrcmp(argv[1], "pkt")) {
+            if (argc > 2) {
+                dp_pkt = atoi(argv[2]);
+            } else {
+                dp_pkt = 9;
+            }
+        } else if (0 == isdigit(*argv[1])) {
+            dprint_verbose = !dprint_verbose;
+        } else {
+            dprint_verbose = atoi(argv[1]);
+        }
+        ret = Ex_Break;
+    }
+    return ret;
+}
+
+static uint32 cmdline_halt(void* /*data*/, void* /*ev*/, ExCbInfo* cbinfo)
+{
+    uint32 ret = Ex_Continue;
+    //int32 argc = cbinfo->subtype;
+    char** argv = (char**)cbinfo->data;
+
+    if (0 == exstrcmp(argv[0], "halt")) {
+        #ifdef __linux__
+        (void)gWatchApp.setHalt();
+        #endif // __linux__
+        ret = Ex_Break;
+    } else if ((0 == exstrcmp(argv[0], "enum")) && (ExApp::mainWnd != nullptr)) {
+        ExCbInfo ci(0);
+        (void)ExWindow::enumBackToFront(ExApp::mainWnd, ExApp::mainWnd, ExCallback(&on_enum, (void*)NULL), &ci);
+        dprint("enum: total %d widgets\n", ci.subtype);
+        ret = Ex_Break;
+    } else if (0 == exstrcmp(argv[0], "scrcap")) {
+        #ifdef __linux__
+        (void)PostMessage(WM_COMMAND, CMD_SCREEN_CAPTURE);
+        #endif // __linux__
+        ret = Ex_Break;
+    }
+#ifdef _DEBUG // segv test
+    else if (0 == exstrcmp(argv[0], "segvtest")) {
+        uint64* const p = reinterpret_cast<uint64*>(0xdeaddeaddeaddeadUL);
+        *p = 1UL;
+        ret = Ex_Break;
+    }
+#endif
+    else {
+        // defense code
+    }
+    return ret;
+}
+
+#ifdef __linux__
+int main(int argc, char* argv[])
+{
+    ExWatch::tls_specific(gWatchApp.name);
+#ifdef DPRINT
+    dprint_verbose = 3;
+    ex_dprint_appinfo = dprint_appinfo;
+    if (setlocale(LC_ALL, "en_US.UTF-8") == NULL) {
+        dprint("setlocale(LC_ALL, en_US.UTF-8) failed.\n");
+    }
+    #if 1 // test
+    dprint(dprint_verbose, "mbs %s\n", "mbs 한글");
+    dprint(dprint_verbose, "mbs %ls\n", L"wcs 한글");
+    dprint(dprint_verbose, L"wcs %s\n", "mbs 한글");
+    dprint(dprint_verbose, L"wcs %ls\n", L"wcs 한글");
+    #endif
+#else
+    dprint_verbose = 0;
+#endif
+    printf("Welcome to callbacks world...\n");
+    //printf("errno 35 - %s\n", strerror(35)); // test
+
+    init_signal();
+
+    initEnv();
+    initRes();
+
+    gWatchApp.startup();
+
+#ifdef GUI_TEST
+    // app startup begin
+    cmdline_callback_list.add(cmdline_halt, (void*)NULL);
+    ;
+    // app startup end
+
+    gLcdOut.init();
+
+    wndMain = new WndMain;
+    wndMain->setFlags(Ex_FreeMemory);
+    wndMain->flushFunc = ExFlushFunc(&gLcdOut, &LcdOut::onFlush);
+    if (wndMain->start() != 0)
+        return EXIT_FAILURE;
+#ifdef __linux__
+    do { // emul XCreateWindow
+        Event ev;
+        ev.collector = wndMain;
+        ev.emitter = &gWatchApp;
+        ev.message = WM_CREATE;
+        DefWndProc(ev);
+        ev.msg.sz = ExSize(env.sm_w, env.sm_h);
+        ev.message = WM_SIZE;
+        DefWndProc(ev);
+    } while (0);
+    wndMain->flush();
+#else
+    CreateWindowEx(klass, name, style, x, y, ...);
+#endif
+    assert(ExApp::mainWnd == wndMain);
+#else // GUI_TEST
+    App app;
+    app.test();
+#endif // GUI_TEST
+    //
+    //wndMain->addFilter(&app, &CApp::onFilter);
+    //
+
+    gWatchdog.init();
+    gWatchApp.mainloop();
+
+#ifdef GUI_TEST
+    //
+    // When the system window manager closed the app, mainWnd was destroyed.
+    //
+    if (ExApp::mainWnd != NULL) { // If the halt flag is set inside the app,
+        ExApp::mainWnd->destroy(); // then, mainWnd was not destroyed yet.
+#ifdef __linux__
+        do { // emul XDestroyWindow
+            Event ev;
+            ev.message = WM_DESTROY;
+            DefWndProc(ev); // send WM_DESTROY
+        } while (0);
+#endif
+        ExApp::collect(); // call delete wndMain
+    }
+    assert(ExApp::mainWnd == NULL);
+    wndMain = NULL;
+#else // GUI_TEST
+    callback_test();
+    poly_test();
+    std::function<int(void*)> func1;
+#endif // GUI_TEST
+
+    gWatchdog.fini();
+
+    // app cleanup begin
+    ;
+    // app cleanup end
+
+    gWatchApp.cleanup();
+
+    finiRes();
+    saveEnv();
+
+    sync();
+
+    return EXIT_SUCCESS;
+}
+#endif // __linux__
+
+#ifdef WIN32
 int APIENTRY WinMain(_In_ HINSTANCE hInstance,
                      _In_opt_ HINSTANCE hPrevInstance,
                      _In_ LPSTR     lpCmdLine,
                      _In_ int       nCmdShow)
 {
+    SetConsoleOutputCP(65001); // UTF-8
+
     //cb_test();
     //app_test();
     //flt_test();
@@ -425,7 +908,7 @@ int APIENTRY WinMain(_In_ HINSTANCE hInstance,
     if (wndMain->start() != 0)
         return EXIT_FAILURE;
 
-    assert(ExApp::mainWnd == wndMain);
+    exassert(ExApp::mainWnd == wndMain);
     ExMainLoop();
     exWatchDisp->fini();
     exWatchDisp->leave();
@@ -434,3 +917,4 @@ int APIENTRY WinMain(_In_ HINSTANCE hInstance,
     ExApp::exit(1);
     return ExApp::retCode;
 }
+#endif // WIN32

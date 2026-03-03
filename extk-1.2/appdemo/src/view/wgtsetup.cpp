@@ -3,8 +3,9 @@
 // SPDX-License-Identifier:     GPL-2.0+
 //
 
-#include "framework.h"
+#include "osal/osal.h"
 #include "wgtsetup.h"
+#include "res.h"
 
 static void
 fillRect(void* data, ExCanvas* canvas, const ExWgtRes* wgtres, const ExRegion* damage) {

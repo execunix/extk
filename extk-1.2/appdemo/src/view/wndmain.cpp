@@ -3,11 +3,12 @@
 // SPDX-License-Identifier:     GPL-2.0+
 //
 
-#include "framework.h"
+#include "osal/osal.h"
 #include "wgtsetup.h"
 #include "wndmain.h"
 #include "wndtest.h"
-#include <assert.h>
+#include "res.h"
+#include "env.h"
 
 void WgtTitle::init(ExWindow* window) {
     ExRect rc;
@@ -635,7 +636,7 @@ bool WndMain::initBtn(ExWidget* parent, ExWidget* btn, const char* name) {
 
 uint32 WndMain::onDestroyed(WndMain* w, ExCbInfo* cbinfo) {
     dprint("%s()\n", __func__);
-    assert(w == this);
+    exassert(w == this);
     timerToy.stop();
     timer.stop();
     finiRes();
@@ -866,7 +867,7 @@ void WndMain::onFlushBackBuf(WndMain* w, const ExRegion* updateRgn) {
 
 uint32 WndMain::onBackViewMove(WndMain* widget, ExCbInfo* cbinfo) {
     static ExPoint but_pt(0);
-    assert(widget == &wgtBackViewer);
+    exassert(widget == &wgtBackViewer);
     if (cbinfo->type == Ex_CbButPress) {
         int xPos = LOWORD(cbinfo->event->lParam);
         int yPos = HIWORD(cbinfo->event->lParam);
@@ -1108,3 +1109,5 @@ int WndMain::start() {
     return damage();
 #endif
 }
+
+//WndMain* wndMain = NULL;
