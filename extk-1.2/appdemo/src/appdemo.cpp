@@ -3,7 +3,7 @@
 
 #include "framework.h"
 #include "appdemo.h"
-#include "wndmain.h"
+#include "view/wndmain.h"
 #include <functional>
 #include <assert.h>
 

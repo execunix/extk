@@ -28,7 +28,7 @@ bool initRes()
     struct _stat statbuf;
     sprintf_s(res.path, 256, "%s/res", exModulePath);
     if (_stat(res.path, &statbuf) != 0) {
-        sprintf_s(res.path, 256, "%s/../../res", exModulePath);
+        sprintf_s(res.path, 256, "%s/../../../../appdemo/res", exModulePath);
         if (_stat(res.path, &statbuf) != 0) {
             dprint("%s: cant open res path\n", __func__);
             hasResPath = false;

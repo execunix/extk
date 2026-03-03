@@ -13,28 +13,31 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav</Extensions>
     </Filter>
+    <Filter Include="Source Files\view">
+      <UniqueIdentifier>{cee08042-212e-436b-b7a4-88c9bef87762}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="appdemo.cpp">
+    <ClCompile Include="../../appdemo/src/appdemo.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="wndmain.cpp">
+    <ClCompile Include="../../appdemo/src/env.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="wgtmenu.cpp">
+    <ClCompile Include="../../appdemo/src/res.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="wgtsetup.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="../../appdemo/src/view/wgtmenu.cpp">
+      <Filter>Source Files\view</Filter>
     </ClCompile>
-    <ClCompile Include="wndtest.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="../../appdemo/src/view/wgtsetup.cpp">
+      <Filter>Source Files\view</Filter>
     </ClCompile>
-    <ClCompile Include="env.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="../../appdemo/src/view/wndmain.cpp">
+      <Filter>Source Files\view</Filter>
     </ClCompile>
-    <ClCompile Include="res.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="../../appdemo/src/view/wndtest.cpp">
+      <Filter>Source Files\view</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -47,26 +50,26 @@
     <ClInclude Include="framework.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="wndmain.h">
+    <ClInclude Include="../../appdemo/src/appdemo.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="appdemo.h">
+    <ClInclude Include="../../appdemo/src/env.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="wgtmenu.h">
+    <ClInclude Include="../../appdemo/src/res.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="wgtsetup.h">
-      <Filter>Source Files</Filter>
+    <ClInclude Include="../../appdemo/src/view/wgtmenu.h">
+      <Filter>Source Files\view</Filter>
     </ClInclude>
-    <ClInclude Include="wndtest.h">
-      <Filter>Source Files</Filter>
+    <ClInclude Include="../../appdemo/src/view/wgtsetup.h">
+      <Filter>Source Files\view</Filter>
     </ClInclude>
-    <ClInclude Include="env.h">
-      <Filter>Source Files</Filter>
+    <ClInclude Include="../../appdemo/src/view/wndmain.h">
+      <Filter>Source Files\view</Filter>
     </ClInclude>
-    <ClInclude Include="res.h">
-      <Filter>Source Files</Filter>
+    <ClInclude Include="../../appdemo/src/view/wndtest.h">
+      <Filter>Source Files\view</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -1015,7 +1015,7 @@ int WndMain::start() {
         dprint("timerTest: %s\n", ((WndMain*)w)->getName());
         return Ex_Continue; }, (void*)0, this); // test
     timerTest.init(NULL, [](void* d, ExTimer* t, ExCbInfo*)->uint32 {
-        dprint("timerTest: %d %u %u\n", (t->u32[0])++, (ulong)*t, exWatchDisp->getTick());
+        dprint("timerTest: %d %u %u\n", (t->u32[0])++, (uint32)*t, exWatchDisp->getTick());
         return Ex_Continue; }, (void*)0);
     timerTest.start(1, 1000);
 
@@ -1091,10 +1091,10 @@ int WndMain::start() {
     showWindow(0, WS_POPUP | WS_VISIBLE, env.wnd.x, env.wnd.y);
     //showWindow(0, WS_OVERLAPPEDWINDOW | WS_VISIBLE, env.wnd.x, env.wnd.y);
 #if 1
-    // Ã¢À» Layered Window·Î º¯°æ
+    // ì°½ì„ Layered Windowë¡œ ë³€ê²½.
     LONG lStyle = GetWindowLong(hwnd, GWL_EXSTYLE);
     SetWindowLong(hwnd, GWL_EXSTYLE, lStyle | WS_EX_LAYERED);
-    // ÀüÃ¼ Ã¢À» ¹İÅõ¸íÇÏ°Ô (¿¹: 128 ¡æ 50% Åõ¸í)
+    // ì „ì²´ ì°½ì„ ë°˜íˆ¬ëª…í•˜ê²Œ (ì˜ˆ: 128 â†’ 50% íˆ¬ëª…)
     SetLayeredWindowAttributes(hwnd, 0, 234, LWA_ALPHA);
 #endif
     //SetWindowTextA(hwnd, "AppDemo-extk-1.1");
