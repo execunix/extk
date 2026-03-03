@@ -408,99 +408,19 @@ int app_test() {
     top.invokeListener(1);
     top.invokeListener(2);
 
-    return 0;
-}
-
-static uint32 flushMainWnd(void* data, ExWatch* watch, ExCbInfo* cbinfo) {
-    if (cbinfo->type != ExWatch::HookTimer)
-        return -1;
-    if (ExApp::mainWnd != NULL) {
-        ExApp::mainWnd->flush();
-    }
-    return 0;
-}
-
-
-#define GUI_TEST
-
-#define TIMERS 1500
-
-int dp_gps;
-int dp_pkt;
-
-#ifdef __linux__
-class App {
-public:
-    int sockfd;
-    uint32 noti(const epoll_event* event) {
-        return 0;
-    }
-    int attach(ExWatch* watch) {
-        return watch->ioAdd(this, &App::noti, sockfd);
-    }
-public:
-    ExTimer timer[TIMERS];
-    uint32 onTimer(ExTimer* timer, ExCbInfo* cbinfo) {
-        if (timer->u32[0] & 0x100)
-            printf("onTimer-%04d: %4u value=%u\n", timer->u32[0], timer->u32[1]++, (uint32)*timer % 10000);
-        return 0;
-    }
-    void timer_test1() {
-        for (int i = 0; i < TIMERS; i++) {
-            timer[i].init(exWatchMain, this, &App::onTimer);
-            timer[i].u32[0] = i;
-            exWatchMain->enter();
-            timer[i].start(333+i, 999+i/5);
-            exWatchMain->leave();
-            printf("timer-%03d start\n", i);
-        }
-    }
-    void timer_test2() {
-        exWatchMain->enter();
-        for (int i = 0; i < TIMERS; i++) {
-            if (!(i%5)) continue;
-            if (!(i%3)) {
-                timer[i].start(i, 888+i);
-                continue;
-            }
-            timer[i].stop();
-        }
-        exWatchMain->leave();
-    }
-public:
-    int test();
-public:
-    App() : sockfd(0) {}
-};
-
-int App::test()
-{
-    //attach(exWatchMain);
-
-    timer_test1();
-    printf("timer_test1 start\n");
-    usleep(1000);
-
-    timer_test2();
-    printf("timer_test2 start\n");
-    usleep(1000);
-
     #if 1 // lambda callback
-    ExTimer timer1;
+    static ExTimer timer1;
     timer1.init(exWatchMain, [](void* data, ExTimer* timer, ExCbInfo* cbinfo)->uint32 {
-        printf("*** anonymous func data=%p timer=%4u cbinfo=%d\n",
-               data, (uint32)*timer % 10000U, cbinfo->type);
+        dprint1("\n*** anonymous func data=%p timer=%4u type=%d\n",
+               data, ((uint32)*timer) % 10000U, cbinfo->type);
         return 0U; }, (void*)0xaaaa);
     timer1.enter();
     timer1.start(1, 1233);
     timer1.leave();
     #endif
 
-    printf("App::test...\n");
-
     return 0;
 }
-#endif // __linux__
 
 struct CbTest {
     uint32 onTest1(ExTimer* timer, ExCbInfo* cbinfo) {
@@ -520,7 +440,7 @@ static uint32 onTimer4(void* data, ExTimer* timer, ExCbInfo* cbinfo) {
 
 void poly_test()
 {
-    ExTimer timer1;
+    static ExTimer timer1;
 
     ExCallback cb1((CbTest*)NULL, &CbTest::onTest1);
     ExCallback cb2(&CbTest::onTest2, (void*)NULL);
@@ -575,18 +495,22 @@ void poly_test()
     cblist.invoke(&timer1, &cbinfo);
 }
 
-void callback_test()
-{
-    ExTimer timer1;
-    printf("callback_test %u\n", (uint32)timer1);
-    ExCallback cb1((CbTest*)NULL, &CbTest::onTest1);
-    cb1(&timer1, NULL);
-
-    //ExTimer timer3;
-    //ExTimer timer4;
-    //timer3.init(exWatchMain, (CbTest*)NULL, &CbTest::onTest1);
+static uint32 flushMainWnd(void* data, ExWatch* watch, ExCbInfo* cbinfo) {
+    if (cbinfo->type != ExWatch::HookTimer)
+        return -1;
+    if (ExApp::mainWnd != NULL) {
+        ExApp::mainWnd->flush();
+    }
+    return 0;
 }
 
+
+#define GUI_TEST
+
+int dp_gps;
+int dp_pkt;
+
+#if 0 // tbd
 #ifdef __linux__
 constexpr int32 BT_BUF_SIZE = 32;
 
@@ -675,7 +599,7 @@ static int32 init_signal()
 
     return 0;
 }
-#endif __linux__
+#endif // __linux__
 
 static uint32 on_enum(void* /*data*/, const ExWidget* const widget, ExCbInfo* const cbinfo)
 {
@@ -736,11 +660,9 @@ static uint32 cmdline_dprint(void* /*data*/, void* /*ev*/, const ExCbInfo* const
     return ret;
 }
 
-static uint32 cmdline_halt(void* /*data*/, void* /*ev*/, ExCbInfo* cbinfo)
+static uint32 cmdline_halt(void* /*data*/, const int32* argc, const char** argv)
 {
     uint32 ret = Ex_Continue;
-    //int32 argc = cbinfo->subtype;
-    char** argv = (char**)cbinfo->data;
 
     if (0 == exstrcmp(argv[0], "halt")) {
         #ifdef __linux__
@@ -770,10 +692,12 @@ static uint32 cmdline_halt(void* /*data*/, void* /*ev*/, ExCbInfo* cbinfo)
     }
     return ret;
 }
+#endif // tbd
 
 #ifdef __linux__
 int main(int argc, char* argv[])
 {
+#if 0 // tbd
     ExWatch::tls_specific(gWatchApp.name);
 #ifdef DPRINT
     dprint_verbose = 3;
@@ -828,7 +752,7 @@ int main(int argc, char* argv[])
 #else
     CreateWindowEx(klass, name, style, x, y, ...);
 #endif
-    assert(ExApp::mainWnd == wndMain);
+    exassert(ExApp::mainWnd == wndMain);
 #else // GUI_TEST
     App app;
     app.test();
@@ -855,7 +779,7 @@ int main(int argc, char* argv[])
 #endif
         ExApp::collect(); // call delete wndMain
     }
-    assert(ExApp::mainWnd == NULL);
+    exassert(ExApp::mainWnd == NULL);
     wndMain = NULL;
 #else // GUI_TEST
     callback_test();
@@ -875,7 +799,7 @@ int main(int argc, char* argv[])
     saveEnv();
 
     sync();
-
+#endif // tbd
     return EXIT_SUCCESS;
 }
 #endif // __linux__
