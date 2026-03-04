@@ -3,7 +3,8 @@
 // SPDX-License-Identifier:     GPL-2.0+
 //
 
-#include <stdlib.h>
+#include <iostream>
+#include <exdebug.h>
 #ifdef __linux__
 #include <linux/fb.h>
 #include <linux/input.h>
@@ -15,9 +16,11 @@
 #include "res.h"
 
 #ifdef __linux__
-#define FB0DEV_NAME "/dev/fb0"
-#define FB1DEV_NAME "/dev/fb1"
-#define EV2DEV_NAME "/dev/input/event2"
+#ifndef CONF_X11
+static const char* const FB0DEV_NAME = "/dev/fb0";
+static const char* const EV2DEV_NAME = "/dev/input/event2";
+#endif // CONF_X11
+static const char* const APP_FIFO = "/tmp/app.fifo";
 
 // WatchDev
 //
@@ -37,348 +40,569 @@ WatchNet gWatchNet;
 // WatchApp
 //
 
-#define APP_FIFO "/tmp/app.fifo"
-
-uint32 WatchApp::on_ev2dev(const epoll_event* ev)
+#ifdef CONF_X11
+static int32 x_error_handler(Display* d, XErrorEvent* e)
 {
-    int xy = 0;
-    ssize_t rsize;
-    uint32 packet_count = 0;
-    struct input_event ev2;
-    static ExPoint pt0(0, 0);
-    static int msg = 0;
-    ExPoint pt(pt0);
+    char buffer[256];
+    XGetErrorText(d, e->error_code, buffer, 256);
+    dprint("X-ERR %d: %s\n", e->type, buffer);
+    return 0;
+}
 
-    exassert(ev->data.fd == ev2dev_fd);
-    dprint0("%s: ev2dev_fd=%d\n", __func__, ev2dev_fd);
+uint32 WatchApp::on_xdisp(const epoll_event* const ev)
+{
+    exassert2(ev->data.fd == xdisp_fd, __FILE__ "@" Ex_STRINGIFY(__LINE__));
+    dprint0("%s: xdisp_fd=%d\n", __func__, xdisp_fd);
 
-    while ((rsize = read(ev2dev_fd, &ev2, sizeof(ev2))) > 0) {
-        if (rsize != (ssize_t)sizeof(ev2)) {
-            dprint("%s: rsize=%d, %s\n", __func__, rsize, exstrerr());
-            return 0;
+    while (XPending(env.display)) {
+        XEvent e;
+        XNextEvent(env.display, &e);
+        switch (e.type) {
+            case ClientMessage: {
+                if ((e.xclient.message_type == env.wm_atom[Env::WM_PROTOCOLS]) &&
+                    (e.xclient.format == 32)) {
+                    Atom protocol = e.xclient.data.l[0];
+                    if (protocol == env.wm_atom[Env::WM_DELETE_WINDOW]) {
+                        dprint("ClientMessage.WM_DELETE_WINDOW\n");
+                        #if 1
+                        setHalt();
+                        #else
+                        XDestroyWindow(env.display, env.top);
+                        dprint("XDestroyWindow()\n");
+                        #endif
+                    }
+                    if (protocol == env.wm_atom[Env::WM_TAKE_FOCUS]) {
+                        dprint("ClientMessage.WM_TAKE_FOCUS\n");
+                    }
+                }
+            } break;
+            case DestroyNotify: {
+                dprint("DestroyNotify\n");
+            } break;
+            case CreateNotify: {
+                dprint("CreateNotify\n");
+            } break;
+            case ButtonPress: {
+                dprint0("ButtonPress state:%d button:%d pos:%d,%d\n", e.xbutton.state, e.xbutton.button, e.xbutton.x, e.xbutton.y);
+                EmitTouchEvent(tickCount, WM_LBUTTONDOWN, e.xbutton.x, e.xbutton.y);
+                touch_ic_overheat_dataset.push(1U, tickCount);
+            } break;
+            case ButtonRelease: {
+                dprint0("ButtonRelease state:%d button:%d pos:%d,%d\n", e.xbutton.state, e.xbutton.button, e.xbutton.x, e.xbutton.y);
+                EmitTouchEvent(tickCount, WM_LBUTTONUP, e.xbutton.x, e.xbutton.y);
+                touch_ic_overheat_dataset.push(1U, tickCount);
+            } break;
+            case MotionNotify: {
+                dprint0("MotionNotify state:%d button:%d pos:%d,%d\n", e.xbutton.state, e.xbutton.button, e.xbutton.x, e.xbutton.y);
+                EmitTouchEvent(tickCount, WM_MOUSEMOVE, e.xbutton.x, e.xbutton.y);
+                touch_ic_overheat_dataset.push(1U, tickCount);
+            } break;
+            case EnterNotify: {
+                dprint("EnterNotify\n");
+            } break;
+            case LeaveNotify: {
+                dprint("LeaveNotify\n");
+            } break;
+            case KeyPress: {
+                dprint("KeyPress\n");
+                //uint32 state = e.xkey.state;
+                uint32 keycode = e.xkey.keycode; // KeyCode: uint32
+                int32 keysyms_per_keycode = 0;
+                KeySym* keysym = XGetKeyboardMapping(env.display, keycode, 1, &keysyms_per_keycode);
+                switch (*keysym) {
+                    case XK_Escape: {
+                        setHalt(); //XDestroyWindow(env.display, env.top);
+                    } break;
+                    case XK_Return: break;
+                    case XK_BackSpace: break;
+                    case XK_0: break;
+                    case XK_1: break;
+                    case XK_2: break;
+                    case XK_3: break;
+                    case XK_4: break;
+                    case XK_5: break;
+                    case XK_6: break;
+                    case XK_7: break;
+                    case XK_8: break;
+                    case XK_9: break;
+                }
+                XFree(keysym);
+            } break;
+            case KeyRelease: {
+                dprint("KeyRelease\n");
+            } break;
+            case FocusIn: {
+                dprint("FocusIn\n");
+            } break;
+            case FocusOut: {
+                dprint("FocusOut\n");
+            } break;
+            case Expose: {
+                dprint("Expose count:%d\n", e.xexpose.count);
+            } break;
+            case GraphicsExpose: {
+                dprint("GraphicsExpose count:%d\n", e.xgraphicsexpose.count);
+            } break;
+            case ResizeRequest: {
+                dprint("ResizeRequest\n");
+            } break;
+            case MapNotify: {
+                dprint("MapNotify\n");
+            } break;
+            case UnmapNotify: {
+                dprint("UnmapNotify\n");
+            } break;
+            default: {
+                dprint("Unhandled XEvent.type=%d\n", e.type);
+            } break;
         }
-        dprint0("%s: rsize=%d type:%d code:%d value:%d\n", __func__, rsize,
-               ev2.type, ev2.code, ev2.value);
-        packet_count++;
-
-        if (ev2.type == EV_KEY) {
-            if (ev2.code == BTN_TOUCH)
-                msg = ev2.value ? WM_LBUTTONDOWN : WM_LBUTTONUP;
-        } else if (ev2.type == EV_ABS) {
-            if (ev2.code == ABS_X || ev2.code == ABS_MT_POSITION_X) {
-                pt.x = ev2.value;
-                xy |= 1;
-            } else if (ev2.code == ABS_Y || ev2.code == ABS_MT_POSITION_Y) {
-                pt.y = ev2.value;
-                xy |= 2;
-            }
-        } else if (ev2.type == EV_SYN || (pt != pt0 && xy == 3)) {
-            dprint0("%s.%d: %d - %d,%d\n", __func__, tickCount, msg, pt.x, pt.y);
-            EmitTouchEvent(tickCount, msg, pt);
-            pt0 = pt;
-            xy = 0;
-            if (msg == WM_LBUTTONDOWN)
-                msg = WM_MOUSEMOVE;
-        }
-    }
-    if (pt != pt0 && xy != 0) { // check broken event
-        dprint0("%s.%d: %d - %d,%d\n", __func__, tickCount, msg, pt.x, pt.y);
-        EmitTouchEvent(tickCount, msg, pt);
-        pt0 = pt;
     }
     return 0U;
 }
-
-int WatchApp::cleanup()
+#else // CONF_X11
+uint32 WatchApp::on_ev2dev(const epoll_event* const ev)
 {
-    int r = 0;
+    uint32 xy = 0U;
+    uint32 packet_count = 0U;
+    struct input_event ev2;
+    static int32 pt0_x;
+    static int32 pt0_y;
+    static int32 msg = 0;
+    int32 pt_x = pt0_x;
+    int32 pt_y = pt0_y;
 
-    if (ev2dev_fd) {
-        ioDel(ev2dev_fd);
-        close(ev2dev_fd);
+    exassert2(ev->data.fd == ev2dev_fd, __FILE__ "@" Ex_STRINGIFY(__LINE__));
+    dprint0("%s: ev2dev_fd=%d\n", __func__, ev2dev_fd);
+
+    while (true) {
+        ssize_t rsize;
+        rsize = read(ev2dev_fd, &ev2, sizeof(ev2));
+        if (rsize <= 0) {
+            break; // no more input
+        }
+        if (rsize != ssizeof(ev2)) {
+            dprint("%s: rsize=%d, %s\n", __func__, rsize, exstrerr());
+            goto done; // size error
+        }
+        dprint0("%s: rsize=%d type:%d code:%d value:%d\n", __func__, rsize, ev2.type, ev2.code, ev2.value);
+        packet_count++;
+
+        if (ev2.type == static_cast<uint16>(EV_KEY)) {
+            if (ev2.code == static_cast<uint16>(BTN_TOUCH)) {
+                if (ev2.value != 0) {
+                    msg = WM_LBUTTONDOWN;
+                } else {
+                    msg = WM_LBUTTONUP;
+                }
+            }
+        } else if (ev2.type == static_cast<uint16>(EV_ABS)) {
+            if ((ev2.code == static_cast<uint16>(ABS_X)) || (ev2.code == static_cast<uint16>(ABS_MT_POSITION_X))) {
+                pt_x = ev2.value;
+                xy |= 1U;
+            } else if ((ev2.code == static_cast<uint16>(ABS_Y)) || (ev2.code == static_cast<uint16>(ABS_MT_POSITION_Y))) {
+                pt_y = ev2.value;
+                xy |= 2U;
+            } else {
+                // defense code
+            }
+        } else if ((ev2.type == static_cast<uint16>(EV_SYN)) || (((pt_x != pt0_x) || (pt_y != pt0_y)) && (xy == 3U))) {
+            dprint0("%s.%d: %d - %d,%d\n", __func__, tickCount, msg, pt_x, pt_y);
+            EmitTouchEvent(tickCount, msg, pt_x, pt_y);
+            pt0_x = pt_x;
+            pt0_y = pt_y;
+            xy = 0U;
+            if (msg == WM_LBUTTONDOWN) {
+                msg = WM_MOUSEMOVE;
+            }
+        } else {
+            // defense code
+        }
+    }
+
+    if (env.is_run_tchcal == 1) {
+        touch_ic_overheat_dataset.truncat2(0U);
+    } else {
+        touch_ic_overheat_dataset.push(packet_count, tickCount);
+    }
+
+    if (((pt_x != pt0_x) || (pt_y != pt0_y)) && (xy != 0U)) { // check broken event
+        dprint0("%s.%d: %d - %d,%d\n", __func__, tickCount, msg, pt_x, pt_y);
+        EmitTouchEvent(tickCount, msg, pt_x, pt_y);
+        pt0_x = pt_x;
+        pt0_y = pt_y;
+    }
+done:
+    return 0U;
+}
+#endif // CONF_X11
+
+bool WatchApp::cleanup()
+{
+    if (ev2dev_fd > 0) {
+        (void)ioDel(ev2dev_fd);
+        (void)close(ev2dev_fd);
         ev2dev_fd = 0;
     }
-    if (fb1dev_fd) {
-        if (munmap(env.fb1_bits, env.fb1_bpl * env.fb1_h) == -1)
-            dprint("munmap(fb1_bits) failed.\n");
-        close(fb1dev_fd);
-        fb1dev_fd = 0;
+    ExHeapManager<uint8>::deallocate(env.fb1_bits);
+    env.fb1_bits = nullptr;
+#ifdef CONF_X11
+    if (xdisp_fd > 0) {
+        (void)ioDel(xdisp_fd);
+        xdisp_fd = 0;
     }
-    if (fb0dev_fd) {
-        memset(env.fb0_bits, 0x7f, env.fb0_bpl * env.fb0_h); // fill gray
-        if (munmap(env.fb0_bits, env.fb0_bpl * env.fb0_h) == -1)
+    if (env.display != nullptr) {
+        XCloseDisplay(env.display);
+        env.display = nullptr;
+    }
+#else // CONF_X11
+    if (fb0dev_fd > 0) {
+        const int32 fb0_fill = static_cast<int32>(0x7F);
+        const int32 fb0_size = (env.fb0_bpl * env.fb0_h);
+        (void)memset(env.fb0_bits, fb0_fill, static_cast<size_t>(fb0_size)); // fill gray
+        if (munmap(env.fb0_bits, static_cast<size_t>(fb0_size)) == -1) {
             dprint("munmap(fb0_bits) failed.\n");
-        close(fb0dev_fd);
+        }
+        (void)close(fb0dev_fd);
         fb0dev_fd = 0;
     }
+#endif // CONF_X11
 
-    ioDel(/*stdin*/ 0);
+    (void)ioDel(STDIN_FILENO);
 
     fini_fifo();
 
-    tid = 0;
+    tid = 0UL;
     iomuxmap.fini();
     timerset.clearAll();
     if (efd != -1) {
-        close(efd);
+        (void)close(efd);
         efd = -1;
     }
-    return r;
+    return true;
 }
 
-int WatchApp::startup()
+bool WatchApp::startup()
 {
-    int r = 0;
+    int32 r = 0;
 
     exWatchMain = this;
     exWatchLast = this;
     exWatchDisp = this;
 
-    exassert(tid == 0);
-    iomuxmap.init(256);
+    exassert2(tid == 0UL, __FILE__ "@" Ex_STRINGIFY(__LINE__));
+    iomuxmap.init(256UL);
 
-    efd = eventfd(0, 0);
-    exassert(efd != -1);
-    ioAdd(this, &WatchApp::onEvent, efd);
+    efd = eventfd(0U, 0);
+    exassert2(efd != -1, __FILE__ "@" Ex_STRINGIFY(__LINE__));
+    (void)ioAdd(this, &WatchApp::onEvent, efd);
 
     tickCount = getTickCount(); // update tick
     env.tch_tick = tickCount;
 
     tid = pthread_self();
 
+    fini_fifo();
     init_fifo();
+    open_fifo();
 
-    ioAdd(this, &WatchApp::on_cmdline, /*stdin*/0, EPOLLIN);
+    (void)ioAdd(this, &WatchApp::on_cmdline, STDIN_FILENO, EPOLLIN);
 
-    fb0dev_fd = open(FB0DEV_NAME, O_RDWR);
+#ifdef CONF_X11
+    do {
+        XSetErrorHandler(x_error_handler);
+
+        // connect to the display
+        const char* const disp = getenv("DISPLAY");
+        env.display = XOpenDisplay((disp == nullptr) ? ":0.0" : disp);
+        dprint("XOpenDisplay(0)=0x%p\n", env.display);
+        if (env.display == nullptr) {
+            r = -1;
+            break;
+        }
+        // get display info : "$ xwininfo"
+        env.screen = XDefaultScreen(env.display);
+        dprint("XDefaultScreen()=%d\n", env.screen);
+        env.depth = XDefaultDepth(env.display, env.screen);
+        dprint("XDefaultDepth()=%d\n", env.depth);
+        if (!(env.depth == 32 || env.depth == 24)) {
+            dprint("Check your X Server Configuration!!!\n");
+            dprint("This program requires 32bit-color-depth of Screen.\n");
+            r = -1;
+            break;
+        }
+        env.visual = XDefaultVisual(env.display, env.screen);
+        dprint("visual=0x%p, visual_class=%d\n", env.visual, env.visual->c_class);
+        if (env.visual->c_class != TrueColor) {
+            dprint("Check your X Server Configuration!!!\n");
+            dprint("This program requires TrueColor Visual Type.\n");
+            r = -1;
+            break;
+        }
+        // get root window
+        env.root = XDefaultRootWindow(env.display);
+        dprint("XDefaultRootWindow()=%ld\n", env.root);
+        if (env.root == None) {
+            dprint("Cannot find root window.\n");
+            r = -1;
+            break;
+        }
+        env.fb0_w = env.sm_w;
+        env.fb0_h = env.sm_h;
+        //env.fb0_rotate = 0;
+    } while (false);
+#else
+    fb0dev_fd = open(FB0DEV_NAME, 2/*O_RDWR*/);
     if (fb0dev_fd < 0) {
         fb0dev_fd = 0;
         dprint("open(%s) error\n", FB0DEV_NAME);
+        r = -1;
     } else {
         struct fb_var_screeninfo vinfo;
-        ioctl(fb0dev_fd, FBIOGET_VSCREENINFO, &vinfo);
-        env.fb0_w = vinfo.xres;
-        env.fb0_h = vinfo.yres;
-        env.fb0_bpp = vinfo.bits_per_pixel;
-        env.fb0_bpl = env.fb0_bpp * env.fb0_w / 8;
-        env.fb0_bits = (uint8*)mmap(0, env.fb0_bpl * env.fb0_h,
-                                   PROT_READ | PROT_WRITE, MAP_SHARED, fb0dev_fd, 0);
+        (void)ioctl(fb0dev_fd, FBIOGET_VSCREENINFO, &vinfo);
+        env.fb0_w = static_cast<int32>(vinfo.xres);
+        env.fb0_h = static_cast<int32>(vinfo.yres);
+        env.fb0_bpp = static_cast<int32>(vinfo.bits_per_pixel);
+        env.fb0_bpl = (env.fb0_bpp * env.fb0_w) / 8;
+        const int32 fb0_size = (env.fb0_bpl * env.fb0_h);
+        void* const va = mmap(nullptr, static_cast<size_t>(fb0_size),
+                              PROT_READ | PROT_WRITE, MAP_SHARED, fb0dev_fd, 0L);
+        env.fb0_bits = reinterpret_cast<uint8*>(va);
         dprint("fb0: %dx%dx%dbpp bits=%p\n", env.fb0_w, env.fb0_h, env.fb0_bpp, env.fb0_bits);
-        //memset(env.fb0_bits, 0, env.fb0_bpl * env.fb0_h);
+        //(void)memset(env.fb0_bits, 0, static_cast<size_t>(fb0_size));
     }
+#endif // CONF_X11
+    env.fb1_w = 800; // MAP_W;
+    env.fb1_h = 480; // MAP_H;
+    env.fb1_bpp = 32;
+    env.fb1_bpl = (env.fb1_bpp * env.fb1_w) / 8;
+    const int32 fb1_size = (env.fb1_bpl * env.fb1_h);
+    env.fb1_bits = ExHeapManager<uint8>::allocate(static_cast<size_t>(fb1_size));
 
-    fb1dev_fd = open(FB1DEV_NAME, O_RDWR);
-    if (fb1dev_fd < 0) {
-        fb1dev_fd = 0;
-        dprint("open(%s) error\n", FB1DEV_NAME);
-    } else {
-        struct fb_var_screeninfo vinfo;
-        ioctl(fb1dev_fd, FBIOGET_VSCREENINFO, &vinfo);
-        env.fb1_w = vinfo.xres;
-        env.fb1_h = vinfo.yres;
-        env.fb1_bpp = vinfo.bits_per_pixel;
-        env.fb1_bpl = env.fb1_bpp * env.fb1_w / 8;
-        env.fb1_bits = (uint8*)mmap(0, env.fb1_bpl * env.fb1_h,
-                                    PROT_READ | PROT_WRITE, MAP_SHARED, fb1dev_fd, 0);
-        dprint("fb1: %dx%dx%dbpp bits=%p\n", env.fb1_w, env.fb1_h, env.fb1_bpp, env.fb1_bits);
-        memset(env.fb1_bits, 0x7f, env.fb1_bpl * env.fb1_h); // fill gray
-        #if 0 // api test - ok
-        uint8* bits2 = (uint8*)mmap(0, env.fb1_bpl * env.fb1_h,
-                                    PROT_READ | PROT_WRITE, MAP_SHARED, fb1dev_fd, 0);
-        dprint("fb2: %dx%dx%dbpp bits=%p\n", env.fb1_w, env.fb1_h, env.fb1_bpp, bits2);
-        // < test result >
-        // fb1: 480x800x32bpp bits=0xfffff1259000
-        // fb2: 480x800x32bpp bits=0xfffff10e2000
-        #endif
+#ifdef CONF_X11
+    if (env.display != nullptr) {
+        xdisp_fd = ConnectionNumber(env.display);
+        (void)ioAdd(this, &WatchApp::on_xdisp, xdisp_fd);
     }
-
-    ev2dev_fd = open(EV2DEV_NAME, O_RDONLY | O_NONBLOCK, 0);
+    //env.tch_flip_h = 0;
+    //env.tch_flip_v = 0;
+    env.tch_rotate = 0;
+    env.board_type = 0; // evk
+    env.abs_x_min = 0;
+    env.abs_x_max = env.fb0_w - 1;
+    env.abs_y_min = 0;
+    env.abs_y_max = env.fb0_h - 1;
+#else
+    const int32 oflags = (0 + 2048); // (O_RDONLY | O_NONBLOCK)
+    ev2dev_fd = open(EV2DEV_NAME, oflags);
     if (ev2dev_fd < 0) {
         ev2dev_fd = 0;
         dprint("open(%s) error\n", EV2DEV_NAME);
+        r = -1;
     } else {
-        int abs_x[6];
-        int abs_y[6];
-        ioctl(ev2dev_fd, EVIOCGABS(ABS_X), abs_x);
-        ioctl(ev2dev_fd, EVIOCGABS(ABS_Y), abs_y);
-        env.abs_x_min = abs_x[1];
-        env.abs_x_max = abs_x[2];
-        env.abs_y_min = abs_y[1];
-        env.abs_y_max = abs_y[2];
+        int32 ev_abs_x[6];
+        int32 ev_abs_y[6];
+        (void)ioctl(ev2dev_fd, EVIOCGABS(ABS_X), &ev_abs_x[0]);
+        (void)ioctl(ev2dev_fd, EVIOCGABS(ABS_Y), &ev_abs_y[0]);
+        env.abs_x_min = ev_abs_x[1];
+        env.abs_x_max = ev_abs_x[2];
+        env.abs_y_min = ev_abs_y[1];
+        env.abs_y_max = ev_abs_y[2];
         dprint("ABS_X Min:%d Max:%d\n", env.abs_x_min, env.abs_x_max);
         dprint("ABS_Y Min:%d Max:%d\n", env.abs_y_min, env.abs_y_max);
-        ioAdd(this, &WatchApp::on_ev2dev, ev2dev_fd);
+        (void)ioAdd(this, &WatchApp::on_ev2dev, ev2dev_fd);
     }
     env.tch_rotate = 1;
-    // env.board_type = 1; // pdu default
-    // if (env.abs_x_max > 799 && env.abs_y_max > 479) { // is ft5x06 ?
-    //     env.tch_flip_h = 1;
-    //     env.tch_flip_v = 0;
-    //     env.abs_x_min = 250;
-    //     env.abs_x_max = 3750;
-    //     env.abs_y_min = 180;
-    //     env.abs_y_max = 3800;
-    // } else {
-    //     env.board_type = 0; // evk
-    // }
-
-    return r;
+    env.board_type = 1; // pdu default
+    if ((env.abs_x_max > 799) && (env.abs_y_max > 479)) { // is ft5x06 ?
+        env.tch_flip_h = 1;
+        env.tch_flip_v = 0;
+        env.abs_x_min = 250;
+        env.abs_x_max = 3750;
+        env.abs_y_min = 180;
+        env.abs_y_max = 3800;
+    } else {
+        env.board_type = 0; // evk
+    }
+#endif // CONF_X11
+    return (r == 0);
 }
 
-int WatchApp::mainloop()
+void WatchApp::mainloop()
 {
-    Event& ev = this->event;
+    Event ev(nullptr);
 
-    enter();
-    while (getHalt() == 0) {
-        while (GetMessage(ev) > 0) { // is message available ?
+    (void)enter();
+    while (halt == 0U) {
+        while (true) {
+            if (!GetMessage(ev)) {
+                break;
+            }
+            // ev message is available
             if (ev.message == WM_QUIT) {
                 dprint("WM_QUIT tick=%d\n", tickCount);
-                setHalt(Ex_Halt); // stop event loop
-                goto halt;
+                (void)setHalt(Ex_Halt); // stop event loop
+                goto end_loop;
             }
-            exWatchDisp->leave();
-            //DefWndProc(ev); // dispatch
-            exWatchDisp->enter();
-            if (getHalt() != 0)
-                goto halt;
+            (void)exWatchDisp->leave();
+            (void)DefWndProc(ev); // dispatch
+            (void)exWatchDisp->enter();
+            if (getHalt() != 0U) {
+                goto end_loop;
+            }
         }
-        int waittick = timerset.invoke(tickCount);
-        if (getHalt() != 0)
+        const uint32 waittick = timerset.invoke(tickCount);
+        if (getHalt() != 0U) {
             break;
+        }
         ExApp::collect();
-        if (ExApp::mainWnd != NULL)
-            ExApp::mainWnd->flush();
+        if (ExApp::mainWnd != nullptr) {
+            (void)ExApp::mainWnd->flush();
+        }
         // blocked
-        iomuxmap.invoke(waittick);
+        (void)iomuxmap.invoke(waittick);
     }
-halt:
+end_loop:
     ExApp::collect();
-    leave();
-    return 0;
+    (void)leave();
 }
 #endif // __linux__
 
 #if 0
-int WatchApp::modal_loop(void* ctrl)
+int32 WatchApp::modal_loop(void* ctrl)
 {
-    Event& ev = this->event;
+    Event ev(nullptr);
 
-    enter();
-    while (getHalt() == 0) {
-        while (GetMessage(ev) > 0) { // is message available ?
-            if (ev.message == WM_CLOSE || ctrl->done) {
+    (void)enter();
+    while (halt == 0U) {
+        while (GetMessage(ev)) { // is message available ?
+            if ((ev.message == WM_CLOSE) || (ctrl->done != 0)) {
                 dprint("WM_CLOSE tick=%d\n", tickCount);
-                setHalt(Ex_Halt); // stop event loop
-                goto halt;
+                (void)setHalt(Ex_Halt); // stop event loop
+                goto end_loop;
             }
-            exWatchDisp->leave();
-            DefWndProc(ev); // dispatch
-            exWatchDisp->enter();
-            if (getHalt() != 0)
-                goto halt;
+            (void)exWatchDisp->leave();
+            (void)DefWndProc(ev); // dispatch
+            (void)exWatchDisp->enter();
+            if (getHalt() != 0U) {
+                goto end_loop;
+            }
         }
-        int waittick = timerset.invoke(tickCount);
-        if (getHalt() != 0)
+        const uint32 waittick = timerset.invoke(tickCount);
+        if (getHalt() != 0U) {
             break;
+        }
         ExApp::collect();
-        if (ExApp::mainWnd != NULL)
-            ExApp::mainWnd->flush();
+        if (ExApp::mainWnd != nullptr) {
+            (void)ExApp::mainWnd->flush();
+        }
         // blocked
-        iomuxmap.invoke(waittick);
+        (void)iomuxmap.invoke(waittick);
     }
-halt:
+end_loop:
     ExApp::collect();
-    leave();
+    (void)leave();
     return 0;
 }
 #endif
 
 #ifdef __linux__
-uint32 WatchApp::on_cmdline(const epoll_event* ev)
+uint32 WatchApp::on_cmdline(const epoll_event* const ev)
 {
+    const char* prompt = "app";
     char cmdline[512];
+    char* str;
 
     //dprint("%s\n", __func__);
     if (ev->data.fd != 0) { // fifo
-        int n;
-        exassert(app_fifo);
-        if ((n = read(app_fifo, cmdline, 512)) <= 0) {
-            return 0;
+        ssize_t n;
+        exassert2(app_fifo > 0, __FILE__ "@" Ex_STRINGIFY(__LINE__));
+        n = read(app_fifo, &cmdline[0], 511UL);
+        if (n <= 0) {
+            goto done;
         }
-        cmdline[n] = 0;
-        printf("cmd: %s\n", cmdline);
+        cmdline[n] = '\0';
+        prompt = "cmd";
     } else { // stdin
-        char* p;
-        if ((p = fgets(cmdline, 512, stdin)) == NULL) {
-            return 0;
+        (void)std::cin.getline(&cmdline[0], 512);
+        if (!std::cin.good()) {
+            goto done;
         }
-        printf("app: %s\n", cmdline);
     }
 
     // parse cmdline
-    char* str = strtrim(cmdline, " \t\r\n"); // trim white char...
-    if (str && *str) { // is not empty ?
+    str = strtrim(&cmdline[0], " \t\r\n"); // trim white char...
+#if 1
+    static char cmd_bk[512] = "help";
+    if (*str == '\0') { // is empty ?
+        (void)exstrcpy(&cmdline[0], &cmd_bk[0]); // use previous command
+        str = &cmdline[0];
+    } else {
+        (void)exstrcpy(&cmd_bk[0], &str[0]); // backup command
+    }
+#endif
+    dprint("%s: %s\n", prompt, str);
+    if (*str != '\0') { // is not empty ?
         char* argv[32];
         int32 argc = strsplit(argv, 32, str, ' ');
         exassert(argc > 0);
-        #if 1
-        //ExCbInfo cbinfo(ev->data.fd, argc, NULL, argv);
         cmdline_callback_list.invoke(&argc, &argv[0]);
-        #else // CFLAGS += -fpermissive
-        cmdline_callback_list.invoke(ev, &ExCbInfo(ev->data.fd, argc, NULL, argv));
-        #endif
     }
+done:
+    ev_serial++;
     return 0U;
 }
 
-int WatchApp::fini_fifo()
+void WatchApp::fini_fifo()
 {
-    if (app_fifo) {
-        ioDel(app_fifo);
-        close(app_fifo);
+    if (app_fifo > 0) {
+        (void)ioDel(app_fifo);
+        (void)close(app_fifo);
         app_fifo = 0;
     }
-    remove(APP_FIFO);
-    return 0;
+    (void)unlink(APP_FIFO);
 }
 
-int WatchApp::init_fifo()
+void WatchApp::init_fifo()
 {
-    if (mkfifo(APP_FIFO, 0666) != 0) {
+    if (mkfifo(APP_FIFO, 0b110110110U/*rw-rw-rw*/) != 0) {
         dprint("mkfifo(%s) error\n", APP_FIFO);
-        return -1;
+        app_fifo = 0;
     }
-    if ((app_fifo = open(APP_FIFO, O_RDONLY | O_NONBLOCK)) < 0) {
+}
+
+void WatchApp::open_fifo()
+{
+    const int32 oflags = (O_RDONLY | O_NONBLOCK);
+    app_fifo = open(APP_FIFO, oflags);
+    if (app_fifo != -1) {
+        // this is watch
+        (void)this->ioAdd(this, &WatchApp::on_cmdline, app_fifo, (EPOLLIN | EPOLLET));
+    } else {
         dprint("open(%s) error\n", APP_FIFO);
         app_fifo = 0;
-        return -1;
     }
-
-    // this is watch
-    this->ioAdd(this, &WatchApp::on_cmdline, app_fifo, EPOLLIN | EPOLLET);
-
-    return 0;
 }
 #endif // __linux__
 
 WatchApp gWatchApp;
 
 #ifdef __linux__
-int
-dprint_appinfo(char* mbs, int len)
+int32 dprint_appinfo(char* const mbs, const int32 len)
 {
     char buf[32];
-    void* tls = NULL;
-    if (ExWatch::tls_key && (tls = pthread_getspecific(ExWatch::tls_key))) {
-        strncpy(buf, (char*)tls, 31);
-        buf[31] = 0;
-    } else {
-        pthread_t tid = pthread_self();
-        snprintf(buf, 32, "%03u", (int)(tid % 1000));
+    void* tls = nullptr;
+    if (ExWatch::tls_key != static_cast<pthread_key_t>(-1)) {
+        tls = pthread_getspecific(ExWatch::tls_key);
     }
-    uint32 tick = ExWatch::getTickCount() - ExWatch::tickAppLaunch;
-    return snprintf(mbs, len, "[%4u.%03u:%s] ", tick / 1000, tick % 1000, buf);
+    if (tls != nullptr) {
+        (void)exstrncpy(&buf[0], reinterpret_cast<char*>(tls), 31UL);
+        buf[31] = '\0';
+    } else {
+        const pthread_t tid = pthread_self();
+        (void)snprintf(&buf[0], 32UL, "%03u", static_cast<uint32>(tid % 1000UL));
+    }
+    const uint32 tick = static_cast<uint32>(ExWatch::getTickCount() - ExWatch::tickAppLaunch);
+    return snprintf(mbs, static_cast<size_t>(len), "[%4u.%03u:%s] ", tick / 1000U, tick % 1000U, &buf[0]);
 }
 #endif // __linux__
 

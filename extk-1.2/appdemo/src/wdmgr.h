@@ -12,17 +12,18 @@
 #ifdef __linux__
 
 class Watchdog {
-protected:
+private:
     int32 fd;
     ExTimer wdtimer;
+    int32 callback_serial; // for misra rules
 public:
-    ~Watchdog() { fini(); }
-    Watchdog() : fd(0), wdtimer() {}
+    ~Watchdog() noexcept { (void)fini(); }
+    Watchdog() noexcept : fd(0), wdtimer(), callback_serial(0) {}
 public:
-    int fini();
-    int init();
-    int keep();
-    uint32 on_alive(const ExTimer* timer, const ExCbInfo* cbinfo);
+    bool fini() noexcept;
+    bool init() noexcept;
+    bool keep();
+    uint32 on_alive(const ExTimer* const timer, const ExCbInfo* const cbinfo);
 };
 
 extern Watchdog gWatchdog;

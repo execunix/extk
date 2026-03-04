@@ -18,7 +18,7 @@ struct Env {
     int32 sm_w;
     int32 sm_h;
 
-#ifdef CONF_X11
+    #ifdef CONF_X11
     enum : int32 {
         WM_PROTOCOLS,
         WM_TAKE_FOCUS,
@@ -34,7 +34,7 @@ struct Env {
     Window root;
     Window top;
     XImage* ximg;
-#endif
+    #endif
 
     int32 fb0_w;
     int32 fb0_h;
@@ -63,6 +63,13 @@ struct Env {
     int32 tch_flip_h;
     int32 tch_flip_v;
     int32 tch_rotate; // 0:landscape, 1:portrait
+    int32 is_run_tchcal;
+    int32 is_set_tchcal_dat;
+
+    int32 board_type; // 0:evk, 1:pdu
+    char locale[32];
+    uint32 gui_tick;
+    uint64 key_flags;
 
     struct {
         int32 show;

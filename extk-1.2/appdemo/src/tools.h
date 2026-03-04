@@ -10,6 +10,7 @@
 #include <exmemory.h>
 #include <vector>
 #include <array>
+#include "event.h"
 
 // 시스템 성능저하 방지 및 신뢰성시험 룰을 동시에 만족하기 위한 목적으로서
 // C++ 표준 라이브러리(STL) 적용이 불가능한 부분은 하기 클래스로 대체함
@@ -303,6 +304,13 @@ public:
 };
 
 extern TouchRecordStack touch_ic_overheat_dataset;
+
+#ifdef __linux__
+bool stopTouchRecord();
+bool startTouchRecord();
+bool recordTouchEvent(const Event* const ev);
+bool recordEventMark(const char* const msg, const int32 wparam);
+#endif // __linux__
 
 // MemFifo - stream memory as fifo
 //

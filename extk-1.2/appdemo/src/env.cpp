@@ -4,11 +4,19 @@
 //
 
 #include "osal/osal.h"
-#include <stdio.h>
+#include <exthread.h>
 #include <fstream>
+#include <stdio.h>
 #include "env.h"
 
 Env env;
+
+static void set_env_locale(const char* const env_locale)
+{
+    if (setlocale(LC_ALL, env_locale) == nullptr) {
+        dprint("setlocale(%s) failed.\n", env_locale);
+    }
+}
 
 bool initEnv() noexcept
 {
@@ -16,6 +24,8 @@ bool initEnv() noexcept
     if (getcwd(&env.cwd[0], 64UL) != nullptr) {
         dprint("cwd: %s\n", &env.cwd[0]);
     }
+    #else // __linux__
+    (void)snprintf(env.cwd, 64U, "%s", exModulePath);
     #endif // __linux__
     #ifdef WIN32
     env.sm_w = GetSystemMetrics(SM_CXSCREEN);
@@ -66,6 +76,19 @@ bool initEnv() noexcept
     env.tch_flip_h = 0;
     env.tch_flip_v = 1;
     env.tch_rotate = 0;
+    env.is_run_tchcal = 0;
+    env.is_set_tchcal_dat = 0;
+
+    env.board_type = 1;
+    (void)snprintf(&env.locale[0], 32U, "%s", "en_US.UTF-8"); // tbd - install "ko_KR.UTF-8"
+    /* # localectl set-locale LANG=en_US.UTF-8
+       # localectl set-keymap en
+       # localectl status
+    */
+
+    env.gui_tick = 0U;
+    env.key_flags = 0UL;
+
     env.wnd.show = 1;
     env.wnd.x = 5;
     env.wnd.y = 5;
@@ -78,6 +101,8 @@ bool initEnv() noexcept
     env.dp_pkt = 3;
 
     (void)loadEnv();
+
+    set_env_locale(&env.locale[0]);
 
     return true;
 }
@@ -170,6 +195,9 @@ bool loadEnv(const char* const envfile) noexcept
             else if (0 == exstrcmp(key, "tch_flip_v")) {
                 env.tch_flip_v = atoi32(val);
             }
+            else if (0 == exstrcmp(key, "locale")) {
+                (void)snprintf(&env.locale[0], 32U, "%s", val);
+            }
             else {
                 // defense code
             }
@@ -229,6 +257,8 @@ bool saveEnv(const char* const envfile) noexcept
     n = snprintf(&line[0], 256UL, "%s=%d\n", "tch_flip_h", env.tch_flip_h);
     (void)fp.write(&line[0], static_cast<std::streamsize>(n));
     n = snprintf(&line[0], 256UL, "%s=%d\n", "tch_flip_v", env.tch_flip_v);
+    (void)fp.write(&line[0], static_cast<std::streamsize>(n));
+    n = snprintf(&line[0], 256UL, "%s=%s\n", "locale", &env.locale[0]);
     (void)fp.write(&line[0], static_cast<std::streamsize>(n));
     n = snprintf(&line[0], 256UL, "%s=%d\n", "wnd.show", env.wnd.show);
     (void)fp.write(&line[0], static_cast<std::streamsize>(n));

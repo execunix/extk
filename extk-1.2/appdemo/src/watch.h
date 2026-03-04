@@ -6,9 +6,8 @@
 #ifndef _watch_h_
 #define _watch_h_
 
-#include <stdlib.h>
+#include <exdebug.h>
 #ifdef __linux__
-#include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/eventfd.h>
@@ -22,12 +21,12 @@
 // WatchDev
 //
 class WatchDev : public ExWatch { // run in watch thread
-protected:
+private:
     // inherit
 public:
     // inherit
 public:
-    WatchDev() : ExWatch("Dev") {}
+    WatchDev() noexcept : ExWatch("Dev") {}
 };
 
 extern WatchDev gWatchDev;
@@ -35,15 +34,15 @@ extern WatchDev gWatchDev;
 // WatchMap
 //
 class WatchMap : public ExWatch { // run in watch thread
-protected:
+private:
     // inherit
 public:
-    int init() {
-        return ExWatch::init(16, 1024*1024*1024);
+    bool init() {
+        return ExWatch::init(16UL, 32U*1024U*1024UL);
     }
     // inherit
 public:
-    WatchMap() : ExWatch("Map") {}
+    WatchMap() noexcept : ExWatch("Map") {}
 };
 
 extern WatchMap gWatchMap;
@@ -51,13 +50,13 @@ extern WatchMap gWatchMap;
 // WatchNet
 //
 class WatchNet : public ExWatch { // run in watch thread
-protected:
+private:
     // inherit
 public:
-    int init();
+    bool init();
     // inherit
 public:
-    WatchNet() : ExWatch("Net") {}
+    WatchNet() noexcept : ExWatch("Net") {}
 };
 
 extern WatchNet gWatchNet;
@@ -65,36 +64,42 @@ extern WatchNet gWatchNet;
 // WatchApp
 //
 class WatchApp : public ExWatch { // run in main thread
-protected:
+private:
     bool fini() = delete;
     bool init(size_t, size_t) = delete;
 #ifdef __linux__
-    uint32 onEvent(const epoll_event* ev) {
+    uint32 onEvent(const epoll_event* const ev) {
         return ExWatch::onEvent(ev);
     }
-protected:
-    uint32 on_ev2dev(const epoll_event* ev);
-    uint32 on_cmdline(const epoll_event* ev);
-    int fini_fifo();
-    int init_fifo();
-    int app_fifo;
+private:
+    uint32 on_xdisp(const epoll_event* const ev);
+    uint32 on_ev2dev(const epoll_event* const ev);
+    uint32 on_cmdline(const epoll_event* const ev);
+    void fini_fifo();
+    void init_fifo();
+    void open_fifo();
+    int32 app_fifo;
+    int32 fb0dev_fd;
+    int32 fb1dev_fd;
+    int32 ev2dev_fd;
+    int32 xdisp_fd;
+    Event def_event;
+    int32 ev_serial; // for misra rules
 public:
-    int fb0dev_fd;
-    int fb1dev_fd;
-    int ev2dev_fd;
-    Event event;
+    int32 get_ev2dev_fd() const { return ev2dev_fd; }
+    Event* get_def_event() { return &def_event; }
 #endif // __linux__
 public:
-    int cleanup();
-    int startup();
-    int mainloop();
+    bool cleanup();
+    bool startup();
+    void mainloop();
     //static void dispatch(Event& ev);
 #ifdef __linux__
-    WatchApp() : ExWatch("Gui"), app_fifo(0)
-        , fb0dev_fd(0), fb1dev_fd(0)
-        , ev2dev_fd(0), event() {}
+    WatchApp() noexcept : ExWatch("Gui"), app_fifo(0)
+        , fb0dev_fd(0), fb1dev_fd(0), ev2dev_fd(0)
+        , xdisp_fd(0), def_event(), ev_serial(0) {}
 #else // __linux__
-    WatchApp() : ExWatch("Gui") {
+    WatchApp() noexcept : ExWatch("Gui") {
     }
 #endif // __linux__
 };
@@ -103,6 +108,6 @@ extern WatchApp gWatchApp;
 
 extern ExCallbackList cmdline_callback_list;
 
-int dprint_appinfo(char* mbs, int len);
+int32 dprint_appinfo(char* const mbs, const int32 len);
 
 #endif // _watch_h_

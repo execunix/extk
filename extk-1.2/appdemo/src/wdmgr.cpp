@@ -3,7 +3,7 @@
 // SPDX-License-Identifier:     GPL-2.0+
 //
 
-#include <stdlib.h>
+#include <exdebug.h>
 #ifdef __linux__
 #include <sys/ioctl.h>
 #include <linux/watchdog.h>
@@ -17,57 +17,63 @@
 
 #ifdef __linux__
 
-int Watchdog::fini()
+bool Watchdog::fini() noexcept
 {
-    if (!fd) {
-        return -1;
+    bool bRet = false;
+    if (fd != 0) {
+        wdtimer.stop();
+        int32 opt = WDIOS_DISABLECARD;
+        if (ioctl(fd, WDIOC_SETOPTIONS, &opt) < 0) {
+            dprint("wd opt fail. %s\n", exstrerr());
+        }
+        (void)close(fd);
+        fd = 0;
+        bRet = true;
     }
-    wdtimer.stop();
-    int opt = WDIOS_DISABLECARD;
-    if (ioctl(fd, WDIOC_SETOPTIONS, &opt) < 0) {
-        printf("wd opt fail. %s\n", exstrerr());
-    }
-    close(fd);
-    fd = 0;
-    return 0;
+    return bRet;
 }
 
-int Watchdog::init()
+bool Watchdog::init() noexcept
 {
+    bool bRet = false;
     fd = open("/dev/watchdog", O_RDWR);
     if (fd == -1) {
-        printf("wd open fail. %s\n", exstrerr());
+        dprint("wd open fail. %s\n", exstrerr());
         fd = 0;
-        return -1;
-    }
+    } else {
 #ifdef _DEBUG
-    int tmo = 5000;
+        int32 tmo = 5000;
 #else
-    int tmo = 5;
+        int32 tmo = 5;
 #endif
-    if (ioctl(fd, WDIOC_SETTIMEOUT, &tmo) != 0) {
-        printf("wd set fail. %s\n", exstrerr());
-        return -1;
+        if (ioctl(fd, WDIOC_SETTIMEOUT, &tmo) != 0) {
+            dprint("wd set fail. %s\n", exstrerr());
+        } else {
+            wdtimer.init(&gWatchDev, this, &Watchdog::on_alive);
+            wdtimer.start(1000U, 1000U);
+            bRet = true;
+        }
     }
-    wdtimer.init(&gWatchApp, this, &Watchdog::on_alive);
-    wdtimer.start(1000, 1000);
-    return 0;
+    return bRet;
 }
 
-int Watchdog::keep()
+bool Watchdog::keep()
 {
-    if (!fd) {
-        return -1;
+    bool bRet = false;
+    if (fd != 0) {
+        if (ioctl(fd, WDIOC_KEEPALIVE, nullptr) < 0) {
+            dprint("wd keep fail. %s\n", exstrerr());
+        } else {
+            bRet = true;
+        }
     }
-    if (ioctl(fd, WDIOC_KEEPALIVE, NULL) < 0) {
-        printf("wd keep fail. %s\n", exstrerr());
-    }
-    return 0;
+    callback_serial++;
+    return bRet;
 }
 
-uint32 Watchdog::on_alive(const ExTimer* timer, const ExCbInfo* cbinfo)
+uint32 Watchdog::on_alive(const ExTimer* const /*timer*/, const ExCbInfo* const /*cbinfo*/)
 {
-    keep();
+    (void)keep();
     return Ex_Continue;
 }
 

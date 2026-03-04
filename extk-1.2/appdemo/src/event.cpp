@@ -3,6 +3,7 @@
 // SPDX-License-Identifier:     GPL-2.0+
 //
 
+#include <exwindow.h>
 #include <exevent.h>
 #include <cstring>
 #include "watch.h"
@@ -12,114 +13,102 @@
 extern ExWatch* exWatchDisp;
 
 #ifdef __linux__
+
+static Event* new_event()
+{
+    std::allocator<Event> ev_allocator;
+    Event* const ev = ev_allocator.allocate(1U);
+    ev_allocator.construct(ev, Event(nullptr));
+    return ev;
+}
+
+static void delete_event(Event* const ev)
+{
+    std::allocator<Event> ev_allocator;
+    // ev_allocator.destroy(ev); // hasnt destructor
+    ev_allocator.deallocate(ev, 1UL);
+}
+
 EventList gEventList;
 
-int EventList::add(Event* ev)
+bool EventList::add(Event* const ev)
 {
-    enter();
+    (void)enter();
     push_back(ev);
-    leave();
-    gWatchApp.wakeup();
-    return 0;
+    (void)leave();
+    (void)gWatchApp.wakeup();
+    return true;
 }
 
-int GetMessage(Event& ev)
+bool GetMessage(Event& ev)
 {
-    gEventList.enter();
+    bool hasEvent = false;
+    (void)gEventList.enter();
 
-    if (gEventList.empty()) {
-        gEventList.leave();
-        return 0;
+    if (!gEventList.empty()) {
+        ev = **gEventList.begin();
+        delete_event(*gEventList.begin());
+        gEventList.pop_front();
+        hasEvent = true;
     }
-#if 0 // no trivial copy-assignment
-    std::memcpy(&ev, *gEventList.begin(), sizeof(Event));
-#else
-    //ev = std::move(**gEventList.begin());
-    ev = **gEventList.begin();
-#endif
-    delete *gEventList.begin();
-    gEventList.pop_front();
+    (void)gEventList.leave();
 
-    gEventList.leave();
-
-    return 1;
+    return hasEvent;
 }
 
-int PostMessage(int message, ExPoint pt)
+bool PostPtrMsg(const int32 message, const int32 pt_x, const int32 pt_y)
 {
-    Event* ev = new Event;
-
+    Event* const ev = new_event();
+    exassert2(ev != nullptr, __FILE__ "@" Ex_STRINGIFY(__LINE__));
     ev->message = message;
-    ev->msg.pt = pt;
+    ev->msg.pt.x = static_cast<int16>(pt_x);
+    ev->msg.pt.y = static_cast<int16>(pt_y);
     ev->tick = exWatchDisp->getTick();
+    (void)recordTouchEvent(ev);
 
     return gEventList.add(ev);
 }
 
-int PostMessage(int message, int wparam, int64 lparam)
+bool PostMessage(const int32 message, const int32 wparam, const int64 lparam)
 {
-    Event* ev = new Event;
-
-    ev->set(message, wparam, lparam);
+    Event* const ev = new_event();
+    exassert2(ev != nullptr, __FILE__ "@" Ex_STRINGIFY(__LINE__));
+    (void)ev->set(message, wparam, lparam);
 
     return gEventList.add(ev);
 }
 
-int PostEditMsg(int message, int wparam, ExWidget* wgt, char* buf, int len)
+void EmitTouchEvent(const uint32 tickCount, const int32 message, int32 pt_x, int32 pt_y)
 {
-    Event* ev = new Event;
-
-    ev->set(message, wparam, 0);
-    ev->u.edit.wgt = wgt;
-    ev->u.edit.buf = buf;
-    ev->u.edit.len = len;
-
-    return gEventList.add(ev);
-}
-
-int EmitTouchEvent(uint32 tickCount, int message, ExPoint pt)
-{
-    int32_t raw_x, raw_y, cal_x, cal_y;
+    //int32_t origin_x = pt_x, origin_y = pt_y;
 
     env.tch_tick = tickCount;
 
-    if (gEventList.size() > 2 &&
-        message == WM_MOUSEMOVE)
-        return 0;
-
-    // translate event
-    int x_min = env.abs_x_min + env.rel_x_min;
-    int x_max = env.abs_x_max + env.rel_x_max;
-    int y_min = env.abs_y_min + env.rel_y_min;
-    int y_max = env.abs_y_max + env.rel_y_max;
-
-    pt.x = (pt.x - x_min) * env.fb0_w / (x_max - x_min);
-    pt.y = (pt.y - y_min) * env.fb0_h / (y_max - y_min);
-
-    if (env.tch_rotate) {
-        raw_x = env.tch_flip_v ? (env.fb0_h - 1) - pt.y : pt.y;
-        raw_y = env.tch_flip_h ? (env.fb0_w - 1) - pt.x : pt.x;
+    if ((gEventList.size() > 2UL) && (message == WM_MOUSEMOVE)) {
+        dprint0("skip frequent move event\n");
     } else {
-        raw_x = env.tch_flip_h ? (env.fb0_w - 1) - pt.x : pt.x;
-        raw_y = env.tch_flip_v ? (env.fb0_h - 1) - pt.y : pt.y;
+        // translate event
+        int32 raw_x;
+        int32 raw_y;
+        const int32 x_min = env.abs_x_min + env.rel_x_min;
+        const int32 x_max = env.abs_x_max + env.rel_x_max;
+        const int32 y_min = env.abs_y_min + env.rel_y_min;
+        const int32 y_max = env.abs_y_max + env.rel_y_max;
+
+        pt_x = ((pt_x - x_min) * env.fb0_w) / (x_max - x_min);
+        pt_y = ((pt_y - y_min) * env.fb0_h) / (y_max - y_min);
+
+        if (env.tch_rotate != 0) {
+            raw_x = ((env.tch_flip_v != 0) ? ((env.fb0_h - 1) - pt_y) : pt_y);
+            raw_y = ((env.tch_flip_h != 0) ? ((env.fb0_w - 1) - pt_x) : pt_x);
+        } else {
+            raw_x = ((env.tch_flip_h != 0) ? ((env.fb0_w - 1) - pt_x) : pt_x);
+            raw_y = ((env.tch_flip_v != 0) ? ((env.fb0_h - 1) - pt_y) : pt_y);
+        }
+        raw_x = ((raw_x < 0) ? 0 : ((raw_x >= env.sm_w) ? (env.sm_w - 1) : raw_x));
+        raw_y = ((raw_y < 0) ? 0 : ((raw_y >= env.sm_h) ? (env.sm_h - 1) : raw_y));
+        (void)PostPtrMsg(message, raw_x, raw_y);
     }
-
-    // if (env.is_run_tchcal == 1 ||
-    //     env.is_set_tchcal_dat == 0) {
-    //     return PostMessage(message, ExPoint(raw_x, raw_y));
-    // }
-
-    // apply calib
-    #if 0
-    TouchPanelCalibrateAPoint(raw_x, raw_y, &cal_x, &cal_y);
-
-    cal_x /= 4;
-    cal_y /= 4;
-    #else
-    cal_x = raw_x;
-    cal_y = raw_y;
-    #endif
-
-    return PostMessage(message, ExPoint(cal_x, cal_y));
 }
+
 #endif // __linux__

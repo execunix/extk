@@ -9,10 +9,10 @@
 
 Res res;
 
-static bool img_init(ExImage* img, const char* name) noexcept
+static bool img_init(ExImage* const img, const char* const name) noexcept
 {
-    char pathname[256];
-    snprintf(pathname, 256, "%s/%s", res.path, name);
+    char pathname[512];
+    snprintf(pathname, 512U, "%s/%s", res.path, name);
     bool result = img->load(pathname);
     if (result != true) {
         dprint("%s: %s fail.\n", __func__, pathname);
@@ -24,9 +24,9 @@ bool initRes() noexcept
 {
     bool hasResPath = true;
     struct stat statbuf;
-    snprintf(res.path, 256U, "%s/res", exModulePath);
+    snprintf(res.path, 256U, "%s/res", env.cwd);
     if (stat(res.path, &statbuf) != 0) {
-        snprintf(res.path, 256U, "%s/../../../../appdemo/res", exModulePath);
+        snprintf(res.path, 256U, "%s/../../../../appdemo/res", env.cwd);
         if (stat(res.path, &statbuf) != 0) {
             dprint("%s: cant open res path\n", __func__);
             hasResPath = false;
@@ -65,8 +65,11 @@ bool initRes() noexcept
 
     // image
     //
-    img_init(&res.i.bg0, "img/S01090.bmp");
-    img_init(&res.i.bg1, "img/S01051.PNG");
+    if (hasResPath == true) {
+        (void)img_init(&res.i.bg0, "img/S01090.bmp");
+        (void)img_init(&res.i.bg1, "img/S01051.PNG");
+
+    }
 
     // string
     //
