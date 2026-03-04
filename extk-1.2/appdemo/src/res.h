@@ -12,10 +12,10 @@ struct Res {
     char path[256];
 
     struct Fonts {
-        ExCairo::Face gothic;
-        ExCairo::Face gothic_B;
-        ExCairo::Face square;
-        ExCairo::Face square_B;
+        ExCairo::Face gothic;        // NanumGothic.ttf
+        ExCairo::Face gothic_B;      // NanumGothicBold.ttf
+        ExCairo::Face square;        // NanumSquareB.ttf
+        ExCairo::Face square_B;      // NanumSquareEB.ttf
     } f;
 
     struct Colors {
@@ -48,10 +48,10 @@ struct Res {
 
 };
 
-bool initRes();
-//bool loadRes();
-//bool saveRes();
-bool finiRes();
+bool initRes() noexcept;
+//bool loadRes() noexcept;
+//bool saveRes() noexcept;
+bool finiRes() noexcept;
 
 extern Res res;
 

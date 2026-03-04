@@ -4,8 +4,10 @@
 //
 
 #include <stdlib.h>
+#ifdef __linux__
 #include <sys/ioctl.h>
 #include <linux/watchdog.h>
+#endif // __linux__
 #include "watch.h"
 #include "wdmgr.h"
 

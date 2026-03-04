@@ -7,17 +7,18 @@
 #define _watch_h_
 
 #include <stdlib.h>
+#ifdef __linux__
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/eventfd.h>
+#endif // __linux__
 #include <fcntl.h>
 #include <extimer.h>
 #include <exwatch.h>
-#include "osal/event.h"
-//#include "tools.h"
+#include "event.h"
+#include "tools.h"
 
-#if 0
 // WatchDev
 //
 class WatchDev : public ExWatch { // run in watch thread
@@ -67,6 +68,7 @@ class WatchApp : public ExWatch { // run in main thread
 protected:
     bool fini() = delete;
     bool init(size_t, size_t) = delete;
+#ifdef __linux__
     uint32 onEvent(const epoll_event* ev) {
         return ExWatch::onEvent(ev);
     }
@@ -81,20 +83,23 @@ public:
     int fb1dev_fd;
     int ev2dev_fd;
     Event event;
+#endif // __linux__
 public:
     int cleanup();
     int startup();
     int mainloop();
     //static void dispatch(Event& ev);
+#ifdef __linux__
     WatchApp() : ExWatch("Gui"), app_fifo(0)
         , fb0dev_fd(0), fb1dev_fd(0)
         , ev2dev_fd(0), event() {}
+#else // __linux__
+    WatchApp() : ExWatch("Gui") {
+    }
+#endif // __linux__
 };
 
 extern WatchApp gWatchApp;
-#else
-extern ExWatch gWatchApp;
-#endif
 
 extern ExCallbackList cmdline_callback_list;
 

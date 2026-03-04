@@ -504,13 +504,6 @@ static uint32 flushMainWnd(void* data, ExWatch* watch, ExCbInfo* cbinfo) {
     return 0;
 }
 
-
-#define GUI_TEST
-
-int dp_gps;
-int dp_pkt;
-
-#if 0 // tbd
 #ifdef __linux__
 constexpr int32 BT_BUF_SIZE = 32;
 
@@ -611,7 +604,8 @@ static uint32 on_enum(void* /*data*/, const ExWidget* const widget, ExCbInfo* co
             exstrcat(depth, "   .");
         }
         cbinfo->subtype++;
-        printf("enum: %s [%s] %s\n", depth, widget->getFlags(Ex_Visible) ? "*" : " ", widget->getName());
+        const char* const visable_mark = ((widget->getFlags(Ex_Visible) != 0U) ? "*" : " ");
+        dprint("enum: %s [%s] %s\n", depth, visable_mark, widget->getName());
         // ret = ((widget->getFlags(Ex_Visible) != 0U) ? Ex_Continue : Ex_Discard);
         ret = Ex_Continue;
     } else if (cbinfo->type == Ex_CbEnumLeave) {
@@ -623,37 +617,35 @@ static uint32 on_enum(void* /*data*/, const ExWidget* const widget, ExCbInfo* co
     return ret;
 }
 
-static uint32 cmdline_coverage(void* /*data*/, void* /*ev*/, const ExCbInfo* const cbinfo)
+static uint32 cmdline_coverage(void* /*data*/, const int32* argc, const char** argv)
 {
     uint32 ret = Ex_Break;
     return ret;
 }
 
-static uint32 cmdline_dprint(void* /*data*/, void* /*ev*/, const ExCbInfo* const cbinfo)
+static uint32 cmdline_dprint(void* /*data*/, const int32* argc, const char** argv)
 {
     uint32 ret = Ex_Continue;
-    int32 argc = cbinfo->subtype;
-    char** argv = (char**)cbinfo->data;
 
     if ((0 == exstrcmp(argv[0], "dp")) || (0 == exstrcmp(argv[0], "dprint"))) {
-        if (argc == 1) {
+        if (*argc == 1) {
             dprint("dprint_verbose = %d\n", dprint_verbose);
         } else if (0 == exstrcmp(argv[1], "gps")) {
-            if (argc > 2) {
-                dp_gps = atoi(argv[2]);
+            if (*argc > 2) {
+                env.dp_gps = atoi32(argv[2]);
             } else {
-                dp_gps = 9;
+                env.dp_gps = 9;
             }
         } else if (0 == exstrcmp(argv[1], "pkt")) {
-            if (argc > 2) {
-                dp_pkt = atoi(argv[2]);
+            if (*argc > 2) {
+                env.dp_pkt = atoi32(argv[2]);
             } else {
-                dp_pkt = 9;
+                env.dp_pkt = 9;
             }
         } else if (0 == isdigit(*argv[1])) {
             dprint_verbose = !dprint_verbose;
         } else {
-            dprint_verbose = atoi(argv[1]);
+            dprint_verbose = atoi32(argv[1]);
         }
         ret = Ex_Break;
     }
@@ -670,8 +662,8 @@ static uint32 cmdline_halt(void* /*data*/, const int32* argc, const char** argv)
         #endif // __linux__
         ret = Ex_Break;
     } else if ((0 == exstrcmp(argv[0], "enum")) && (ExApp::mainWnd != nullptr)) {
-        ExCbInfo ci(0);
-        (void)ExWindow::enumBackToFront(ExApp::mainWnd, ExApp::mainWnd, ExCallback(&on_enum, (void*)NULL), &ci);
+        ExCbInfo ci(0U);
+        (void)ExWindow::enumBackToFront(ExApp::mainWnd, ExApp::mainWnd, ExCallback(&on_enum, (void*)0), &ci);
         dprint("enum: total %d widgets\n", ci.subtype);
         ret = Ex_Break;
     } else if (0 == exstrcmp(argv[0], "scrcap")) {
@@ -692,17 +684,17 @@ static uint32 cmdline_halt(void* /*data*/, const int32* argc, const char** argv)
     }
     return ret;
 }
-#endif // tbd
 
 #ifdef __linux__
 int main(int argc, char* argv[])
 {
-#if 0 // tbd
+    int32 result = EXIT_SUCCESS;
+
     ExWatch::tls_specific(gWatchApp.name);
 #ifdef DPRINT
     dprint_verbose = 3;
-    ex_dprint_appinfo = dprint_appinfo;
-    if (setlocale(LC_ALL, "en_US.UTF-8") == NULL) {
+    ex_dprint_appinfo = &dprint_appinfo;
+    if (setlocale(LC_ALL, "en_US.UTF-8") == nullptr) {
         dprint("setlocale(LC_ALL, en_US.UTF-8) failed.\n");
     }
     #if 1 // test
@@ -717,17 +709,19 @@ int main(int argc, char* argv[])
     printf("Welcome to callbacks world...\n");
     //printf("errno 35 - %s\n", strerror(35)); // test
 
-    init_signal();
+    (void)init_signal();
 
-    initEnv();
-    initRes();
+    (void)initEnv();
+    (void)initRes();
 
-    gWatchApp.startup();
+    (void)gWatchApp.startup();
+    (void)gWatchApp.enter();
 
-#ifdef GUI_TEST
     // app startup begin
-    cmdline_callback_list.add(cmdline_halt, (void*)NULL);
-    ;
+    cmdline_callback_list.add(cmdline_halt, (void*)0);
+    cmdline_callback_list.add(cmdline_dprint, (void*)0);
+    cmdline_callback_list.add(cmdline_coverage, (void*)0);
+#if 0 // tbd
     // app startup end
 
     gLcdOut.init();
@@ -753,10 +747,6 @@ int main(int argc, char* argv[])
     CreateWindowEx(klass, name, style, x, y, ...);
 #endif
     exassert(ExApp::mainWnd == wndMain);
-#else // GUI_TEST
-    App app;
-    app.test();
-#endif // GUI_TEST
     //
     //wndMain->addFilter(&app, &CApp::onFilter);
     //

@@ -4,15 +4,17 @@
 //
 
 #include <stdlib.h>
+#ifdef __linux__
 #include <linux/fb.h>
 #include <linux/input.h>
 #include <sys/mman.h>
+#endif // __linux__
 #include "watch.h"
 #include "exapp.h"
 #include "env.h"
 #include "res.h"
 
-#if 0
+#ifdef __linux__
 #define FB0DEV_NAME "/dev/fb0"
 #define FB1DEV_NAME "/dev/fb1"
 #define EV2DEV_NAME "/dev/input/event2"
@@ -41,7 +43,7 @@ uint32 WatchApp::on_ev2dev(const epoll_event* ev)
 {
     int xy = 0;
     ssize_t rsize;
-    int packet_count = 0;
+    uint32 packet_count = 0;
     struct input_event ev2;
     static ExPoint pt0(0, 0);
     static int msg = 0;
@@ -208,17 +210,17 @@ int WatchApp::startup()
         ioAdd(this, &WatchApp::on_ev2dev, ev2dev_fd);
     }
     env.tch_rotate = 1;
-    env.board_type = 1; // pdu default
-    if (env.abs_x_max > 799 && env.abs_y_max > 479) { // is ft5x06 ?
-        env.tch_flip_h = 1;
-        env.tch_flip_v = 0;
-        env.abs_x_min = 250;
-        env.abs_x_max = 3750;
-        env.abs_y_min = 180;
-        env.abs_y_max = 3800;
-    } else {
-        env.board_type = 0; // evk
-    }
+    // env.board_type = 1; // pdu default
+    // if (env.abs_x_max > 799 && env.abs_y_max > 479) { // is ft5x06 ?
+    //     env.tch_flip_h = 1;
+    //     env.tch_flip_v = 0;
+    //     env.abs_x_min = 250;
+    //     env.abs_x_max = 3750;
+    //     env.abs_y_min = 180;
+    //     env.abs_y_max = 3800;
+    // } else {
+    //     env.board_type = 0; // evk
+    // }
 
     return r;
 }
@@ -236,7 +238,7 @@ int WatchApp::mainloop()
                 goto halt;
             }
             exWatchDisp->leave();
-            DefWndProc(ev); // dispatch
+            //DefWndProc(ev); // dispatch
             exWatchDisp->enter();
             if (getHalt() != 0)
                 goto halt;
@@ -255,6 +257,7 @@ halt:
     leave();
     return 0;
 }
+#endif // __linux__
 
 #if 0
 int WatchApp::modal_loop(void* ctrl)
@@ -291,6 +294,7 @@ halt:
 }
 #endif
 
+#ifdef __linux__
 uint32 WatchApp::on_cmdline(const epoll_event* ev)
 {
     char cmdline[512];
@@ -356,11 +360,9 @@ int WatchApp::init_fifo()
 
     return 0;
 }
+#endif // __linux__
 
 WatchApp gWatchApp;
-#else
-ExWatch gWatchApp(nullptr);
-#endif
 
 #ifdef __linux__
 int

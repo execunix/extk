@@ -9,7 +9,7 @@
 
 Res res;
 
-static bool img_init(ExImage* img, const char* name)
+static bool img_init(ExImage* img, const char* name) noexcept
 {
     char pathname[256];
     snprintf(pathname, 256, "%s/%s", res.path, name);
@@ -20,13 +20,13 @@ static bool img_init(ExImage* img, const char* name)
     return result;
 }
 
-bool initRes()
+bool initRes() noexcept
 {
     bool hasResPath = true;
     struct stat statbuf;
-    snprintf(res.path, 256, "%s/res", exModulePath);
+    snprintf(res.path, 256U, "%s/res", exModulePath);
     if (stat(res.path, &statbuf) != 0) {
-        snprintf(res.path, 256, "%s/../../../../appdemo/res", exModulePath);
+        snprintf(res.path, 256U, "%s/../../../../appdemo/res", exModulePath);
         if (stat(res.path, &statbuf) != 0) {
             dprint("%s: cant open res path\n", __func__);
             hasResPath = false;
@@ -38,10 +38,10 @@ bool initRes()
     // font
     //
     if (hasResPath == true) {
-        res.f.gothic.load(res.path, "font/NanumGothic.ttf");
-        res.f.gothic_B.load(res.path, "font/NanumGothicBold.ttf");
-        res.f.square.load(res.path, "font/NanumSquareB.ttf");
-        res.f.square_B.load(res.path, "font/NanumSquareEB.ttf");
+        (void)res.f.gothic.load(res.path, "font/NanumGothic.ttf");
+        (void)res.f.gothic_B.load(res.path, "font/NanumGothicBold.ttf");
+        (void)res.f.square.load(res.path, "font/NanumSquareB.ttf");
+        (void)res.f.square_B.load(res.path, "font/NanumSquareEB.ttf");
     }
 
     // color
@@ -75,7 +75,7 @@ bool initRes()
     return hasResPath;
 }
 
-bool finiRes()
+bool finiRes() noexcept
 {
     res.f.gothic.destroy();
     res.f.gothic_B.destroy();

@@ -103,11 +103,17 @@
     <ClCompile Include="../../appdemo/src/view/wgtsetup.cpp" />
     <ClCompile Include="../../appdemo/src/view/wndmain.cpp" />
     <ClCompile Include="../../appdemo/src/view/wndtest.cpp" />
+    <ClCompile Include="../../appdemo/src/tools.cpp" />
+    <ClCompile Include="../../appdemo/src/watch.cpp" />
+    <ClCompile Include="../../appdemo/src/wdmgr.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="../../appdemo/src/appdemo.h" />
     <ClInclude Include="../../appdemo/src/env.h" />
     <ClInclude Include="../../appdemo/src/osal/osal.h" />
+    <ClInclude Include="../../appdemo/src/tools.h" />
+    <ClInclude Include="../../appdemo/src/watch.h" />
+    <ClInclude Include="../../appdemo/src/wdmgr.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="../../appdemo/src/res.h" />
     <ClInclude Include="Resource.h" />
