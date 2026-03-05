@@ -3,8 +3,8 @@
  * SPDX-License-Identifier:     GPL-2.0+
  */
 
-#ifndef __extype_h__
-#define __extype_h__
+#ifndef __extypes_h__
+#define __extypes_h__
 
 #include "exconfig.h"
 #include "exdebug.h"
@@ -299,4 +299,4 @@ template <typename T> constexpr ssize_t ssizeof(const T&) { return static_cast<s
 //
 typedef void (*ExDestroyNotify)(void* data);
 
-#endif//__extype_h__
+#endif//__extypes_h__

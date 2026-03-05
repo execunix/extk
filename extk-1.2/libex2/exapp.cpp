@@ -242,8 +242,45 @@ void ExApp::dispatch(ExEvent& ev)
 }
 #endif
 
-void collectWindow();
-void collectWidget();
+typedef std::list<ExWidget*> ExWidgetList;
+typedef std::list<ExWindow*> ExWindowList;
+
+static ExWidgetList deleteWidgetList;
+static ExWindowList detachWindowList;
+
+static void collectWidget() {
+    while (!deleteWidgetList.empty()) {
+        ExWidget* w = deleteWidgetList.front();
+        deleteWidgetList.pop_front();
+
+        dprint1("collectWidget %s\n", w->getName());
+        delete w;
+        //
+        // After destroy, can't access callback list...
+        // Be careful not to access member variables any more.
+        //
+    }
+}
+
+static void collectWindow() {
+    while (!detachWindowList.empty()) {
+        ExWindow* w = detachWindowList.front();
+        detachWindowList.pop_front();
+
+        dprint1("collectWindow %s\n", w->getName());
+        w->destroy();
+    }
+}
+
+void ExApp::addCollectWidget(ExWidget* widget)
+{
+    deleteWidgetList.push_back(widget);
+}
+
+void ExApp::addCollectWindow(ExWindow* window)
+{
+    detachWindowList.push_back(window);
+}
 
 void ExApp::collect()
 {

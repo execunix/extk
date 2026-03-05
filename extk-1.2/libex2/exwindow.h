@@ -8,9 +8,7 @@
 
 #include "exwidget.h"
 #include "excanvas.h"
-#ifdef WIN32
 #include "exthread.h"
-#endif
 
 // Window constants definition
 //
@@ -87,6 +85,7 @@ public:
     //void leave() { mutex.unlock(); }
 #ifdef WIN32
     HWND getHwnd() const { return this ? hwnd : NULL; }
+    void setHwnd(HWND h) { hwnd = h; }
 #endif
     ExWidget* giveFocus(ExWidget* newFocus);
     ExWidget* moveFocus(uint32 dir); // sample
@@ -176,10 +175,8 @@ public:
     void onWmPaint(ExWindow* window, const ExRegion* updateRgn);
     uint32 onRepeatBut(ExTimer* timer, ExCbInfo* cbinfo);
     uint32 onRepeatKey(ExTimer* timer, ExCbInfo* cbinfo);
-protected:
-    virtual uint32 basicWndProc(ExCbInfo* cbinfo);
+public:
 #ifdef WIN32
-    static LRESULT CALLBACK sysWndProc(HWND, UINT, WPARAM, LPARAM);
     static LPCSTR getClassName() { return "ExWindow"; }
     static ATOM classInit(HINSTANCE hInstance);
 #endif

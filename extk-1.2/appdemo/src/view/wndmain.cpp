@@ -7,8 +7,9 @@
 #include "wgtsetup.h"
 #include "wndmain.h"
 #include "wndtest.h"
-#include "res.h"
+#include "event.h"
 #include "env.h"
+#include "res.h"
 
 void WgtTitle::init(ExWindow* window) {
     ExRect rc;
@@ -528,6 +529,7 @@ uint32 WndMain::onActBtns(ExWidget* widget, ExCbInfo* cbinfo) {
     }
     if (widget == &btns1[2]) {
         if (cbinfo->type == Ex_CbActivate) {
+            #ifdef WIN32
             static ExTimer setCursor;
             if (setCursor.u32[0] == 0) {
                 setCursor.u32[0] = 1;
@@ -546,6 +548,7 @@ uint32 WndMain::onActBtns(ExWidget* widget, ExCbInfo* cbinfo) {
                 setCursor.u32[0] = 1;
                 setCursor.stop();
             }
+            #endif // WIN32
             return Ex_Continue;
         }
     }
@@ -584,17 +587,21 @@ uint32 WndMain::onTimer(ExTimer* timer, ExCbInfo* cbinfo)
     panes[1].area.x += dx;
     panes[1].area.y += dy;
     dprint0("%s: %d,%d\n", __func__, panes[1].area.x, panes[1].area.y);
-    if (state == 0 && panes[1].area.y > 480 ||
-        state != 0 && panes[1].area.y < 0)
+    if ((state == 0 && panes[1].area.y > 480) ||
+        (state != 0 && panes[1].area.y < 0)) {
         state = !state;
+    }
     panes[1].setPos(panes[1].area.u.pt);
     return Ex_Continue;
 }
 
+#ifdef WIN32
 static HANDLE hWakeupNoti;
 static HANDLE hStorageNoti;
+#endif // WIN32
 
 int WndMain::initIomux() {
+    #ifdef WIN32
     static ExTimer launchInputTimer;
     launchInputTimer.init(NULL, [](void* d, ExTimer* t, ExCbInfo*)->uint32 {
         dprint("launchInputTimer: %d\n", exWatchDisp->getTick());
@@ -621,6 +628,7 @@ int WndMain::initIomux() {
         signalInputTimer.start(1, 1000);
         return Ex_Continue; }, (void*)0);
     launchInputTimer.start(1000);
+    #endif // WIN32
     return 0;
 }
 
@@ -639,15 +647,20 @@ uint32 WndMain::onDestroyed(WndMain* w, ExCbInfo* cbinfo) {
     exassert(w == this);
     timerToy.stop();
     timer.stop();
-    finiRes();
-    saveEnv();
+    // finiRes();
+    // saveEnv();
     return Ex_Continue;
 }
 
 uint32 WndMain::onRbtnDown(WndMain* w, ExCbInfo* cbinfo) {
     if (cbinfo->event->message == WM_RBUTTONDOWN) {
+        #ifdef WIN32
         int xPos = LOWORD(cbinfo->event->lParam);
         int yPos = HIWORD(cbinfo->event->lParam);
+        #else // linux
+        int xPos = cbinfo->event->msg.pt.x;
+        int yPos = cbinfo->event->msg.pt.y;
+        #endif // WIN32
         ExWidget* w = getPointOwner(ExPoint(xPos, yPos));
         if (w == &wgtBackViewer ||
             w == &wgtBkgd) {
@@ -659,25 +672,33 @@ uint32 WndMain::onRbtnDown(WndMain* w, ExCbInfo* cbinfo) {
 }
 
 uint32 WndMain::onHandler(WndMain* w, ExCbInfo* cbinfo) {
+    #ifdef WIN32
     dprint("handler WM_0x%04x:0x%04x\n", cbinfo->event->message, cbinfo->event->msg.message);
+    #else // linux
+    dprint("handler WM_0x%04x:0x%04x\n", cbinfo->event->message, cbinfo->event->wParam);
+    #endif // WIN32
     return Ex_Continue;
 }
 
 uint32 WndMain::onFilter(WndMain* w, ExCbInfo* cbinfo) {
     dprint("filter WM_0x%04x\n", cbinfo->event->message);
-#if 1 // test
+    #if 1 // test
     // filter and handler can be installed intersection each other
     static int i = 0;
     ++i;
     if (i == 20) {
         removeHandler(ExCallback(this, &WndMain::onHandler));
     } else if (i == 40) {
+        #ifdef WIN32
         PostMessage(w->getHwnd(), WM_APP_TEST, 0, 0);
+        #else // linux
+        PostMessage(WM_APP_TEST, 0, 0LL);
+        #endif // WIN32
         addHandler(this, &WndMain::onHandler);
         i = 0;
     }
-#endif
-#if 1
+    #endif
+    #ifdef WIN32 // test window state change
     if (cbinfo->event->message == WM_SYSCOMMAND) {
         if (cbinfo->event->wParam == SC_MAXIMIZE) {
             env.wnd.show = SW_SHOWMAXIMIZED;
@@ -715,7 +736,7 @@ uint32 WndMain::onFilter(WndMain* w, ExCbInfo* cbinfo) {
         //cbinfo->event->lResult = 0;
         return Ex_Continue;
     }
-#endif
+    #endif // WIN32
     if (cbinfo->event->message == WM_KEYDOWN) {
         ExCbInfo cbinfo2(0);
         switch (cbinfo->event->wParam) {
@@ -753,7 +774,11 @@ uint32 WndMain::onFilter(WndMain* w, ExCbInfo* cbinfo) {
                 break;
             case VK_TAB: {
                 dprint("0x%04x %s\n", cbinfo->event->message, "VK_TAB");
+                #ifdef WIN32
                 SHORT ks = GetKeyState(VK_SHIFT);
+                #else // WIN32
+                int32 ks = 0; // tbd
+                #endif // WIN32
                 moveFocus(ks & 0x100 ? Ex_DirTabPrev : Ex_DirTabNext);
                 break;
             }
@@ -869,15 +894,25 @@ uint32 WndMain::onBackViewMove(WndMain* widget, ExCbInfo* cbinfo) {
     static ExPoint but_pt(0);
     exassert(widget == &wgtBackViewer);
     if (cbinfo->type == Ex_CbButPress) {
+        #ifdef WIN32
         int xPos = LOWORD(cbinfo->event->lParam);
         int yPos = HIWORD(cbinfo->event->lParam);
+        #else // linux
+        int xPos = cbinfo->event->msg.pt.x;
+        int yPos = cbinfo->event->msg.pt.y;
+        #endif // WIN32
         but_pt.set(xPos, yPos); // memory press point
         widget->toFront();
         wgtCapture = widget;
     } else if (cbinfo->type == Ex_CbPtrMove &&
                widget->getFlags(Ex_ButPressed)) {
+        #ifdef WIN32
         int xPos = LOWORD(cbinfo->event->lParam);
         int yPos = HIWORD(cbinfo->event->lParam);
+        #else // linux
+        int xPos = cbinfo->event->msg.pt.x;
+        int yPos = cbinfo->event->msg.pt.y;
+        #endif // WIN32
         ExPoint pt(wgtBackViewer.area.u.pt);
         pt.x += xPos - but_pt.x;
         pt.y += yPos - but_pt.y;
@@ -913,8 +948,8 @@ public:
 
 int WndMain::start() {
     ExRect rc;
-    initEnv();
-    initRes();
+    // initEnv();
+    // initRes();
     this->init("AppDemoWndMain", env.wnd.w, env.wnd.h);
 
     // init canvas
@@ -930,12 +965,14 @@ int WndMain::start() {
     drawFunc = ExDrawFunc(&::onDrawBkgd, (void*)this); // test
     drawFunc = ExDrawFunc(this, &WndMain::onDrawBkgd);
 
+    #ifdef WIN32
     FlushTest flushTest;
     flushFunc = ExFlushFunc(&flushTest, &FlushTest::onFlush); // apitest
     flushFunc = ExFlushFunc(this, &WndMain::onExFlush); // apitest
     paintFunc = ExFlushFunc(this, &WndMain::onWmPaint); // apitest
     flushFunc = ExFlushFunc((ExWindow*)this, &ExWindow::onExFlush);
     paintFunc = ExFlushFunc((ExWindow*)this, &ExWindow::onWmPaint);
+    #endif // WIN32
 #if DISP_AT_ONCE
     ;
 #else
@@ -1012,13 +1049,13 @@ int WndMain::start() {
     timer.init(NULL, this, &WndMain::onTimer);
 
     static ExTimer timerTest;
-    timerTest.init(NULL, [](void* d, ExWidget* w, ExCbInfo*)->uint32 {
+    timerTest.init(nullptr, [](void* d, ExWidget* w, ExCbInfo*)->uint32 {
         dprint("timerTest: %s\n", ((WndMain*)w)->getName());
         return Ex_Continue; }, (void*)0, this); // test
-    timerTest.init(NULL, [](void* d, ExTimer* t, ExCbInfo*)->uint32 {
+    timerTest.init(nullptr, [](void* d, ExTimer* t, ExCbInfo*)->uint32 {
         dprint("timerTest: %d %u %u\n", (t->u32[0])++, (uint32)*t, exWatchDisp->getTick());
         return Ex_Continue; }, (void*)0);
-    timerTest.start(1, 1000);
+    timerTest.start(1U, 1000U);
 
     toy_alpha = .2f;
     toy_delta = 1.f;
@@ -1062,10 +1099,14 @@ int WndMain::start() {
         dprint("[%s] WM_0x%04x\n", window->getName(), cbinfo->event->message);
         if (cbinfo->event->message == WM_CREATE) {
             cbinfo->event->lResult = 0;
+            #ifdef WIN32
             RECT r;
             // The right and bottom members contain the width and height of the window.
             GetClientRect(cbinfo->event->hwnd, &r);
             ExRect rc(r);
+            #else // linux - tbd
+            ExRect rc(0, 0, env.wnd.w, env.wnd.h);
+            #endif // WIN32
             dprint("GetClientRect %d,%d-%dx%d\n",
                    rc.x, rc.y, rc.w, rc.h);
             window->layout(rc);
@@ -1088,21 +1129,27 @@ int WndMain::start() {
         }
 #endif
         return Ex_Continue; }, this);
+    #ifdef WIN32
     //showWindow(0, WS_POPUP | WS_VISIBLE);
     showWindow(0, WS_POPUP | WS_VISIBLE, env.wnd.x, env.wnd.y);
     //showWindow(0, WS_OVERLAPPEDWINDOW | WS_VISIBLE, env.wnd.x, env.wnd.y);
-#if 1
+    #if 1
     // 창을 Layered Window로 변경.
     LONG lStyle = GetWindowLong(hwnd, GWL_EXSTYLE);
     SetWindowLong(hwnd, GWL_EXSTYLE, lStyle | WS_EX_LAYERED);
     // 전체 창을 반투명하게 (예: 128 → 50% 투명)
     SetLayeredWindowAttributes(hwnd, 0, 234, LWA_ALPHA);
-#endif
+    #endif
     //SetWindowTextA(hwnd, "AppDemo-extk-1.1");
     SetWindowText(hwnd, res.s.title);
     if (env.wnd.show == SW_SHOWMAXIMIZED) {
         ShowWindow(hwnd, SW_SHOWMAXIMIZED);
     }
+    #else
+    this->setVisible(true);
+    exassert2(gWndMain == this, __FILE__ "@" Ex_STRINGIFY(__LINE__));
+    (void)this->damage();
+    #endif // WIN32
     return 0;
 #else
     layout(area);
@@ -1110,4 +1157,4 @@ int WndMain::start() {
 #endif
 }
 
-//WndMain* wndMain = NULL;
+WndMain* gWndMain = NULL;

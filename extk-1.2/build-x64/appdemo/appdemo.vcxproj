@@ -63,6 +63,7 @@
       <LanguageStandard>stdcpp20</LanguageStandard>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
+      <DisableSpecificWarnings>4819</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <AdditionalDependencies>dwmapi.lib;libex2.lib;libpng.lib;libz.lib;libcairo.lib;libpixman.lib;libft.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -85,6 +86,7 @@
       <LanguageStandard>stdcpp20</LanguageStandard>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
+      <DisableSpecificWarnings>4819</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <AdditionalDependencies>dwmapi.lib;libex2.lib;libpng.lib;libz.lib;libcairo.lib;libpixman.lib;libft.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -106,6 +108,9 @@
     <ClCompile Include="../../appdemo/src/tools.cpp" />
     <ClCompile Include="../../appdemo/src/watch.cpp" />
     <ClCompile Include="../../appdemo/src/wdmgr.cpp" />
+    <ClCompile Include="../../appdemo/src/event.cpp" />
+    <ClCompile Include="../../appdemo/src/lcdout.cpp" />
+    <ClCompile Include="../../appdemo/src/wndproc.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="../../appdemo/src/appdemo.h" />
@@ -114,6 +119,8 @@
     <ClInclude Include="../../appdemo/src/tools.h" />
     <ClInclude Include="../../appdemo/src/watch.h" />
     <ClInclude Include="../../appdemo/src/wdmgr.h" />
+    <ClInclude Include="../../appdemo/src/event.h" />
+    <ClInclude Include="../../appdemo/src/lcdout.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="../../appdemo/src/res.h" />
     <ClInclude Include="Resource.h" />

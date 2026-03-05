@@ -77,6 +77,6 @@ public:
     uint32 onBackBufUpdater(ExTimer* timer, ExCbInfo* cbinfo);
 };
 
-//extern WndMain* wndMain;
+extern WndMain* gWndMain;
 
 #endif // _wndmain_h_

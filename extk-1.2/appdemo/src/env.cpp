@@ -34,8 +34,8 @@ bool initEnv() noexcept
     env.wnd.x = CW_USEDEFAULT;
     env.wnd.y = CW_USEDEFAULT;
     #else // !WIN32
-    env.sm_w = 1920;
-    env.sm_h = 1080;
+    env.sm_w = 800;
+    env.sm_h = 480;
     #endif // WIN32
 
     #ifdef CONF_X11
@@ -92,8 +92,8 @@ bool initEnv() noexcept
     env.wnd.show = 1;
     env.wnd.x = 5;
     env.wnd.y = 5;
-    env.wnd.w = 1280;
-    env.wnd.h = 720;
+    env.wnd.w = 800;
+    env.wnd.h = 480;
 
     env.dp_bit = 9;
     env.dp_gps = 5;

@@ -51,6 +51,15 @@
     <ClCompile Include="../../appdemo/src/wdmgr.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="../../appdemo/src/event.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="../../appdemo/src/lcdout.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="../../appdemo/src/wndproc.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Resource.h">
@@ -93,6 +102,12 @@
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="../../appdemo/src/wdmgr.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="../../appdemo/src/event.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="../../appdemo/src/lcdout.h">
       <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>

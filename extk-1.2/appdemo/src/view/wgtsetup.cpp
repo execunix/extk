@@ -5,6 +5,7 @@
 
 #include "osal/osal.h"
 #include "wgtsetup.h"
+#include "event.h"
 #include "res.h"
 
 static void
@@ -106,13 +107,17 @@ uint32 WgtSetup::onTitleMove(ExWidget* widget, ExCbInfo* cbinfo) {
 uint32 WgtSetup::onActivate(ExWidget* widget, ExCbInfo* cbinfo) {
     if (widget == &close) {
         if (cbinfo->type == Ex_CbActivate) {
-#if 1
+            #ifdef WIN32
+            #if 1 // test
             PostMessage(getWindow()->getHwnd(), WM_CbRemove, 0, (LPARAM)this);
-#else
+            #else
             ExWindow* window = parent->getWindow();
             window->removeHandler(ExCallback(this, &WgtSetup::onHandler));
             window->removeFilter(ExCallback(this, &WgtSetup::onFilter));
-#endif
+            #endif
+            #else // linux
+            PostMessage(WM_CbRemove, 0, (LPARAM)this);
+            #endif // WIN32
             destroy();
             return Ex_Continue;
         }
@@ -165,7 +170,11 @@ uint32 WgtSetup::onFilter(ExWidget* widget, ExCbInfo* cbinfo) {
             break;
         case VK_SPACE:
         case VK_RETURN: {
+            #ifdef WIN32
             PostMessage(getWindow()->getHwnd(), WM_COMMAND, 12345, 0);
+            #else // linux
+            PostMessage(WM_COMMAND, 12345, 0LL);
+            #endif // WIN32
             break;
         }
         case VK_ESCAPE: {
@@ -222,4 +231,3 @@ void WgtSetup::init(ExWidget* parent, int x, int y) {
     page2.init(this, rc);
     page3.init(this, rc);
 }
-

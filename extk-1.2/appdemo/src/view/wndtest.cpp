@@ -5,6 +5,8 @@
 
 #include "osal/osal.h"
 #include "wndtest.h"
+#include "event.h"
+#include "env.h"
 #include "res.h"
 
 void WndTest::onDrawBkgd(ExCanvas* canvas, const ExWgtRes* wgtres, const ExRegion* damage) {
@@ -161,6 +163,7 @@ uint32 WndTest::onDestroyed(WndTest* w, ExCbInfo* cbinfo) {
 
 uint32 WndTest::onFilter(WndTest* w, ExCbInfo* cbinfo) {
     dprint("filter WM_0x%04x\n", cbinfo->event->message);
+    #ifdef WIN32
     if (cbinfo->event->message == WM_KEYDOWN) {
         switch (cbinfo->event->wParam) {
             case VK_UP:
@@ -169,6 +172,7 @@ uint32 WndTest::onFilter(WndTest* w, ExCbInfo* cbinfo) {
         }
         return Ex_Continue;
     }
+    #endif // WIN32
     return Ex_Continue;
 }
 
@@ -176,6 +180,7 @@ uint32 WndTest::onFilter(WndTest* w, ExCbInfo* cbinfo) {
 
 void WndTest::initEdit(int x, int y, int w, int h)
 {
+    #ifdef WIN32
     char lpszLatin[] = "Lorem ipsum dolor sit amet, consectetur "
         "adipisicing elit, sed do eiusmod tempor "
         "incididunt ut labore et dolore magna "
@@ -201,6 +206,7 @@ void WndTest::initEdit(int x, int y, int w, int h)
 
     // Add text to the window.
     SendMessage(hwndEdit, WM_SETTEXT, 0, (LPARAM)lpszLatin);
+    #endif // WIN32
 }
 
 int WndTest::start() {
@@ -224,10 +230,14 @@ int WndTest::start() {
         dprint("[%s] WM_0x%04x\n", window->getName(), cbinfo->event->message);
         if (cbinfo->event->message == WM_CREATE) {
             cbinfo->event->lResult = 0;
+            #ifdef WIN32
             RECT r;
             // The right and bottom members contain the width and height of the window.
             GetClientRect(cbinfo->event->hwnd, &r);
             ExRect rc(r);
+            #else // linux - tbd
+            ExRect rc(0, 0, env.wnd.w, env.wnd.h);
+            #endif // WIN32
             dprint("GetClientRect %d,%d-%dx%d\n",
                    rc.x, rc.y, rc.w, rc.h);
             window->layout(rc);
@@ -245,8 +255,9 @@ int WndTest::start() {
     initBtn(this, &btns0[3], "btns0-3");
     initBtn(this, &btns0[4], "btns0-4");
 
+    #ifdef WIN32
     //showWindow(0, WS_POPUP | WS_VISIBLE);
     showWindow(0, WS_OVERLAPPEDWINDOW | WS_VISIBLE);
+    #endif // WIN32
     return 0;
 }
-

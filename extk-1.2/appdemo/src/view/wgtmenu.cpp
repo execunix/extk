@@ -5,6 +5,7 @@
 
 #include "osal/osal.h"
 #include "wgtmenu.h"
+#include "event.h"
 #include "res.h"
 
 const uint32 IDM_EXIT = 100;
@@ -224,8 +225,13 @@ uint32 WgtMenu::onFilter(ExWidget* widget, ExCbInfo* cbinfo) {
     if (cbinfo->event->message == WM_MOUSEMOVE) {
         if (popList.empty())
             return Ex_Continue;
+        #ifdef WIN32
         int xPos = LOWORD(cbinfo->event->lParam);
         int yPos = HIWORD(cbinfo->event->lParam);
+        #else // linux
+        int xPos = cbinfo->event->msg.pt.x;
+        int yPos = cbinfo->event->msg.pt.y;
+        #endif // WIN32
         Menu* menu = findMenu(ExPoint(xPos, yPos));
         if (menu) {
             if (window->wgtEntered != menu->view) {
@@ -250,8 +256,13 @@ uint32 WgtMenu::onFilter(ExWidget* widget, ExCbInfo* cbinfo) {
 #endif
     }
     if (cbinfo->event->message == WM_LBUTTONDOWN) {
+        #ifdef WIN32
         int xPos = LOWORD(cbinfo->event->lParam);
         int yPos = HIWORD(cbinfo->event->lParam);
+        #else // linux
+        int xPos = cbinfo->event->msg.pt.x;
+        int yPos = cbinfo->event->msg.pt.y;
+        #endif // WIN32
         Menu* menu = findMenu(ExPoint(xPos, yPos));
         int popcnt = (int)popList.size();
         showPopup(menu);
@@ -267,8 +278,12 @@ uint32 WgtMenu::onFilter(ExWidget* widget, ExCbInfo* cbinfo) {
             }
             if (menu->size == 0) {
                 showPopup(NULL); // hide
+                #ifdef WIN32
                 HWND hwnd = window->getHwnd();
                 PostMessage(hwnd, WM_COMMAND, menu->id, (LPARAM)menu);
+                #else // linux
+                PostMessage(WM_COMMAND, menu->id, (LPARAM)menu);
+                #endif // WIN32
             }
             return Ex_Break;
         }
@@ -300,8 +315,12 @@ uint32 WgtMenu::onFilter(ExWidget* widget, ExCbInfo* cbinfo) {
             case VK_SPACE:
             case VK_RETURN: {
                 showPopup(NULL); // hide
+                #ifdef WIN32
                 HWND hwnd = window->getHwnd();
                 PostMessage(hwnd, WM_COMMAND, menu->id, (LPARAM)menu);
+                #else // linux
+                PostMessage(WM_COMMAND, menu->id, (LPARAM)menu);
+                #endif // WIN32
                 break;
             }
             case VK_ESCAPE: {
@@ -313,7 +332,11 @@ uint32 WgtMenu::onFilter(ExWidget* widget, ExCbInfo* cbinfo) {
                 break;
             }
             case VK_TAB: {
+                #ifdef WIN32
                 SHORT ks = GetKeyState(VK_SHIFT);
+                #else // WIN32
+                int32 ks = 0; // tbd
+                #endif // WIN32
                 moveMenuFocus(ks & 0x100 ? Ex_DirTabPrev : Ex_DirTabNext);
                 break;
             }
@@ -592,4 +615,3 @@ void WgtMenu::load() {
     menu2 = menu1->add("Manage Visual Studio Performance", 5008);
     menu2 = menu1->add("Check for Updates", 5009);
 }
-

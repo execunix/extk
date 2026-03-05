@@ -9,6 +9,14 @@
 #include "excallback.h"
 #include "exgeomet.h"
 
+// WM_GWES 0x0000~0x03FF : Messages reserved for use by the system
+// WM_USER 0x0400~0x7FFF : Integer messages for use by private window classes
+// WM_APP  0x8000~0xBFFF : Messages available for use by applications
+
+#define WM_CbRemove     0xBFFD // (WM_APP+0x3FFD)
+#define WM_ExEvEmit     0xBFFE // (WM_APP+0x3FFE)
+#define WM_ExEvWake     0xBFFF // (WM_APP+0x3FFF)
+
 // ExEvent
 //
 #ifdef WIN32

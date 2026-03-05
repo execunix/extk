@@ -7,7 +7,6 @@
 
 #include "osal/osal.h"
 #ifdef __linux__
-#include "osal/lcdout.h"
 #include <ctype.h>
 #include <locale.h>
 #include <execinfo.h>
@@ -15,11 +14,9 @@
 #include <functional>
 #include <exdebug.h>
 #include "appdemo.h"
-#include "view/wndmain.h"
-#ifdef __linux__
+#include "lcdout.h"
 #include "watch.h"
 #include "wdmgr.h"
-#endif // __linux__
 #include "res.h"
 #include "env.h"
 
@@ -619,7 +616,7 @@ static uint32 on_enum(void* /*data*/, const ExWidget* const widget, ExCbInfo* co
 
 static uint32 cmdline_coverage(void* /*data*/, const int32* argc, const char** argv)
 {
-    uint32 ret = Ex_Break;
+    uint32 ret = Ex_Continue;
     return ret;
 }
 
@@ -708,6 +705,12 @@ int main(int argc, char* argv[])
 #endif
     printf("Welcome to callbacks world...\n");
     //printf("errno 35 - %s\n", strerror(35)); // test
+    poly_test();
+    std::function<int32(void*)> func1 = [](void* data)->int32 {
+        dprint("func1: data=%p\n", data);
+        return 0;
+    };
+    (void)func1((void*)0x1234);
 
     (void)init_signal();
 
@@ -716,81 +719,107 @@ int main(int argc, char* argv[])
 
     (void)gWatchApp.startup();
     (void)gWatchApp.enter();
+    (void)gWatchDev.init(); // start watch thread for gps and etc
 
+    (void)gWatchDev.enter();
+    (void)gWatchdog.init();
+    (void)gWatchDev.leave();
     // app startup begin
+    //
+    //CApp app;
     cmdline_callback_list.add(cmdline_halt, (void*)0);
     cmdline_callback_list.add(cmdline_dprint, (void*)0);
     cmdline_callback_list.add(cmdline_coverage, (void*)0);
-#if 0 // tbd
+    //(void)app.startup();
+    //
     // app startup end
 
-    gLcdOut.init();
+    (void)gLcdOut.init();
 
-    wndMain = new WndMain;
-    wndMain->setFlags(Ex_FreeMemory);
-    wndMain->flushFunc = ExFlushFunc(&gLcdOut, &LcdOut::onFlush);
-    if (wndMain->start() != 0)
-        return EXIT_FAILURE;
+    std::allocator<WndMain> wndmain_allocator;
+    gWndMain = wndmain_allocator.allocate(1U);
+    wndmain_allocator.construct(gWndMain);
+    // gWndMain = new WndMain;
+    // (void)gWndMain->setFlags(Ex_FreeMemory); // dealloc by extk
+    gWndMain->flushFunc = ExFlushFunc(&gLcdOut, &LcdOut::onFlush);
+    if (gWndMain->start() != 0) {
+        result = EXIT_FAILURE;
+        goto on_failure;
+    }
 #ifdef __linux__
+    (void)gWatchApp.leave();
     do { // emul XCreateWindow
-        Event ev;
-        ev.collector = wndMain;
-        ev.emitter = &gWatchApp;
+        Event ev(nullptr);
+        ev.collector = static_cast<ExObject*>(gWndMain);
+        ev.emitter = static_cast<ExObject*>(&gWatchApp);
         ev.message = WM_CREATE;
-        DefWndProc(ev);
+        (void)DefWndProc(ev);
         ev.msg.sz = ExSize(env.sm_w, env.sm_h);
         ev.message = WM_SIZE;
-        DefWndProc(ev);
-    } while (0);
-    wndMain->flush();
+        (void)DefWndProc(ev);
+    } while (false);
+    (void)gWatchApp.enter();
+    (void)gWndMain->flush();
 #else
     CreateWindowEx(klass, name, style, x, y, ...);
 #endif
-    exassert(ExApp::mainWnd == wndMain);
+    exassert2(ExApp::mainWnd == gWndMain, __FILE__ "@" Ex_STRINGIFY(__LINE__));
+
     //
-    //wndMain->addFilter(&app, &CApp::onFilter);
+    //gWndMain->addFilter(&app, &CApp::onFilter);
+    //(void)module.init();
     //
 
-    gWatchdog.init();
-    gWatchApp.mainloop();
+    (void)gWatchApp.leave();
+    (void)gWatchApp.mainloop();
+    (void)gWatchApp.enter();
 
-#ifdef GUI_TEST
+    //
+    //(void)module.fini();
+    //
+
     //
     // When the system window manager closed the app, mainWnd was destroyed.
     //
-    if (ExApp::mainWnd != NULL) { // If the halt flag is set inside the app,
-        ExApp::mainWnd->destroy(); // then, mainWnd was not destroyed yet.
+    if (ExApp::mainWnd != nullptr) { // If the halt flag is set inside the app,
+        (void)ExApp::mainWnd->destroy(); // then, mainWnd was not destroyed yet.
 #ifdef __linux__
+        (void)gWatchApp.leave();
         do { // emul XDestroyWindow
-            Event ev;
+            Event ev(nullptr);
             ev.message = WM_DESTROY;
-            DefWndProc(ev); // send WM_DESTROY
-        } while (0);
+            ExCbInfo cbinfo(0U, 0U, &ev);
+            (void)gWndMain->invokeFilter(&cbinfo);
+            (void)DefWndProc(ev); // send WM_DESTROY
+            (void)gWndMain->invokeHandler(&cbinfo);
+        } while (false);
+        (void)gWatchApp.enter();
 #endif
-        ExApp::collect(); // call delete wndMain
+        ExApp::collect(); // call delete gWndMain
     }
-    exassert(ExApp::mainWnd == NULL);
-    wndMain = NULL;
-#else // GUI_TEST
-    callback_test();
-    poly_test();
-    std::function<int(void*)> func1;
-#endif // GUI_TEST
+    exassert2(ExApp::mainWnd == nullptr, __FILE__ "@" Ex_STRINGIFY(__LINE__));
+    wndmain_allocator.destroy(gWndMain);
+    wndmain_allocator.deallocate(gWndMain, 1U);
+    gWndMain = nullptr;
 
-    gWatchdog.fini();
+    (void)stopTouchRecord();
+    (void)gWatchdog.fini();
 
     // app cleanup begin
-    ;
+    //
+    //(void)app.cleanup();
+    //
     // app cleanup end
 
-    gWatchApp.cleanup();
+    (void)gWatchDev.fini();
+    (void)gWatchApp.cleanup();
 
-    finiRes();
-    saveEnv();
-
+    (void)gLcdOut.fini();
+    (void)finiRes();
+    (void)saveEnv();
     sync();
-#endif // tbd
-    return EXIT_SUCCESS;
+on_failure:
+    return result;
 }
 #endif // __linux__
 
@@ -808,6 +837,8 @@ int APIENTRY WinMain(_In_ HINSTANCE hInstance,
 
     ExApp::init(hInstance, hPrevInstance, lpCmdLine, nCmdShow);
     exWatchDisp = exWatchMain;
+    (void)initEnv();
+    (void)initRes();
 
     exWatchDisp->enter();
     exWatchDisp->hookTimer = ExCallback(&flushMainWnd, (void*)NULL);
@@ -815,19 +846,21 @@ int APIENTRY WinMain(_In_ HINSTANCE hInstance,
 
     // startup
     // tbd - parse args
-    //WndMain wndMain; // test
-    //WndMain* wndMain = WndMain::create(...); // test
-    WndMain* wndMain = new WndMain;
-    wndMain->setFlags(Ex_FreeMemory); // tbd
-    if (wndMain->start() != 0)
+    //WndMain gWndMain; // test
+    //WndMain* gWndMain = WndMain::create(...); // test
+    WndMain* gWndMain = new WndMain;
+    gWndMain->setFlags(Ex_FreeMemory); // tbd
+    if (gWndMain->start() != 0) {
         return EXIT_FAILURE;
-
-    exassert(ExApp::mainWnd == wndMain);
+    }
+    exassert(ExApp::mainWnd == gWndMain);
     ExMainLoop();
     exWatchDisp->fini();
     exWatchDisp->leave();
 
     // cleanup
+    (void)finiRes();
+    (void)saveEnv();
     ExApp::exit(1);
     return ExApp::retCode;
 }

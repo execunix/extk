@@ -59,6 +59,8 @@ public:
 #ifdef __linux__
     static void dispatch(ExEvent& ev);
 #endif
+    static void addCollectWidget(ExWidget* widget);
+    static void addCollectWindow(ExWindow* window);
     static void collect();
     static void exit(int32 retCode);
 #ifdef WIN32

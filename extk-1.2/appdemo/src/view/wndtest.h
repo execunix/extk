@@ -12,7 +12,9 @@ class WndTest : public ExWindow {
 public:
     ExWidget btns0[5];
     ExWidget edit;
+    #ifdef WIN32
     HWND hwndEdit;
+    #endif // WIN32
     ExTimer timer;
 public:
     ~WndTest() {}

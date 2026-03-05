@@ -212,10 +212,11 @@ static uint32 basicWndProc(ExWindow* const window, ExCbInfo* const cbinfo)
 int32 DefWndProc(Event& ev)
 {
     ExWindow* window;
-    ExCbInfo cbinfo(0U);
+    ExCbInfo msginfo(0U);
+    ExCbInfo* cbinfo = &msginfo;
 
-    cbinfo.event = &ev;
-    cbinfo.event->lResult = 0;
+    cbinfo->event = &ev;
+    cbinfo->event->lResult = 0;
 
     (void)exWatchDisp->enter();
 
@@ -281,7 +282,7 @@ int32 DefWndProc(Event& ev)
 
         XStoreName(env.display, env.top, "PDU Emulator - v1.0");
 #endif
-        goto leave_proc;
+        //goto leave_proc;
     }
 
     // pdu - has single window
@@ -304,25 +305,25 @@ int32 DefWndProc(Event& ev)
 
     *gWatchApp.get_def_event() = ev;
 
-    // setup cbinfo.event
+    // setup cbinfo->event
     window->event = gWatchApp.get_def_event();
-    cbinfo.event->setHwnd(window);
+    cbinfo->event->setHwnd(window);
 
-    cbinfo.type = Ex_CbFilter;
-    if ((window->invokeFilter(&cbinfo) & Ex_Break) != 0U) {
+    cbinfo->type = Ex_CbFilter;
+    if ((window->invokeFilter(cbinfo) & Ex_Break) != 0U) {
         goto leave_proc;
     }
-    cbinfo.type = Ex_CbUnknown;
-    if ((basicWndProc(window, &cbinfo) & Ex_Break) != 0U) {
+    cbinfo->type = Ex_CbUnknown;
+    if ((basicWndProc(window, cbinfo) & Ex_Break) != 0U) {
         goto leave_proc;
     }
-    cbinfo.type = Ex_CbHandler;
-    if ((window->invokeHandler(&cbinfo) & Ex_Break) != 0U) {
+    cbinfo->type = Ex_CbHandler;
+    if ((window->invokeHandler(cbinfo) & Ex_Break) != 0U) {
         // fallthrough: goto leave_proc;
     }
 leave_proc:
     (void)exWatchDisp->leave();
-    return ev.lResult;
+    return cbinfo->event->lResult;
 }
 
 #endif // __linux__

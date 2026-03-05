@@ -15,6 +15,10 @@
 //    HANDLE handle;
 //};
 
+#else // __linux__
+
+#include <excompat.h>
+
 #endif // WIN32
 
 #endif // _osal_h_
