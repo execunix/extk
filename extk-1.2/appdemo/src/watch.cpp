@@ -41,37 +41,30 @@ WatchNet gWatchNet;
 //
 
 #ifdef CONF_X11
-static int32 x_error_handler(Display* d, XErrorEvent* e)
-{
-    char buffer[256];
-    XGetErrorText(d, e->error_code, buffer, 256);
-    dprint("X-ERR %d: %s\n", e->type, buffer);
-    return 0;
-}
-
 uint32 WatchApp::on_xdisp(const epoll_event* const ev)
 {
     exassert2(ev->data.fd == xdisp_fd, __FILE__ "@" Ex_STRINGIFY(__LINE__));
     dprint0("%s: xdisp_fd=%d\n", __func__, xdisp_fd);
+    ExApp::EnvX11& x11 = ExApp::x11;
 
-    while (XPending(env.display)) {
+    while (XPending(x11.display)) {
         XEvent e;
-        XNextEvent(env.display, &e);
+        XNextEvent(x11.display, &e);
         switch (e.type) {
             case ClientMessage: {
-                if ((e.xclient.message_type == env.wm_atom[Env::WM_PROTOCOLS]) &&
+                if ((e.xclient.message_type == x11.wm_atom[ExApp::WM_PROTOCOLS]) &&
                     (e.xclient.format == 32)) {
                     Atom protocol = e.xclient.data.l[0];
-                    if (protocol == env.wm_atom[Env::WM_DELETE_WINDOW]) {
+                    if (protocol == x11.wm_atom[ExApp::WM_DELETE_WINDOW]) {
                         dprint("ClientMessage.WM_DELETE_WINDOW\n");
                         #if 1
                         setHalt();
                         #else
-                        XDestroyWindow(env.display, env.top);
+                        XDestroyWindow(x11.display, env.top);
                         dprint("XDestroyWindow()\n");
                         #endif
                     }
-                    if (protocol == env.wm_atom[Env::WM_TAKE_FOCUS]) {
+                    if (protocol == x11.wm_atom[ExApp::WM_TAKE_FOCUS]) {
                         dprint("ClientMessage.WM_TAKE_FOCUS\n");
                     }
                 }
@@ -108,10 +101,10 @@ uint32 WatchApp::on_xdisp(const epoll_event* const ev)
                 //uint32 state = e.xkey.state;
                 uint32 keycode = e.xkey.keycode; // KeyCode: uint32
                 int32 keysyms_per_keycode = 0;
-                KeySym* keysym = XGetKeyboardMapping(env.display, keycode, 1, &keysyms_per_keycode);
+                KeySym* keysym = XGetKeyboardMapping(x11.display, keycode, 1, &keysyms_per_keycode);
                 switch (*keysym) {
                     case XK_Escape: {
-                        setHalt(); //XDestroyWindow(env.display, env.top);
+                        setHalt(); //XDestroyWindow(x11.display, env.top);
                     } break;
                     case XK_Return: break;
                     case XK_BackSpace: break;
@@ -250,9 +243,10 @@ bool WatchApp::cleanup()
         (void)ioDel(xdisp_fd);
         xdisp_fd = 0;
     }
-    if (env.display != nullptr) {
-        XCloseDisplay(env.display);
-        env.display = nullptr;
+    ExApp::EnvX11& x11 = ExApp::x11;
+    if (x11.display != nullptr) {
+        XCloseDisplay(x11.display);
+        x11.display = nullptr;
     }
 #else // CONF_X11
     if (fb0dev_fd > 0) {
@@ -308,48 +302,10 @@ bool WatchApp::startup()
     (void)ioAdd(this, &WatchApp::on_cmdline, STDIN_FILENO, EPOLLIN);
 
 #ifdef CONF_X11
-    do {
-        XSetErrorHandler(x_error_handler);
+    ExApp::EnvX11& x11 = ExApp::x11;
 
-        // connect to the display
-        const char* const disp = getenv("DISPLAY");
-        env.display = XOpenDisplay((disp == nullptr) ? ":0.0" : disp);
-        dprint("XOpenDisplay(0)=0x%p\n", env.display);
-        if (env.display == nullptr) {
-            r = -1;
-            break;
-        }
-        // get display info : "$ xwininfo"
-        env.screen = XDefaultScreen(env.display);
-        dprint("XDefaultScreen()=%d\n", env.screen);
-        env.depth = XDefaultDepth(env.display, env.screen);
-        dprint("XDefaultDepth()=%d\n", env.depth);
-        if (!(env.depth == 32 || env.depth == 24)) {
-            dprint("Check your X Server Configuration!!!\n");
-            dprint("This program requires 32bit-color-depth of Screen.\n");
-            r = -1;
-            break;
-        }
-        env.visual = XDefaultVisual(env.display, env.screen);
-        dprint("visual=0x%p, visual_class=%d\n", env.visual, env.visual->c_class);
-        if (env.visual->c_class != TrueColor) {
-            dprint("Check your X Server Configuration!!!\n");
-            dprint("This program requires TrueColor Visual Type.\n");
-            r = -1;
-            break;
-        }
-        // get root window
-        env.root = XDefaultRootWindow(env.display);
-        dprint("XDefaultRootWindow()=%ld\n", env.root);
-        if (env.root == None) {
-            dprint("Cannot find root window.\n");
-            r = -1;
-            break;
-        }
-        env.fb0_w = env.sm_w;
-        env.fb0_h = env.sm_h;
-        //env.fb0_rotate = 0;
-    } while (false);
+    env.fb0_w = env.sm_w;
+    env.fb0_h = env.sm_h;
 #else
     fb0dev_fd = open(FB0DEV_NAME, 2/*O_RDWR*/);
     if (fb0dev_fd < 0) {
@@ -379,8 +335,8 @@ bool WatchApp::startup()
     env.fb1_bits = ExHeapManager<uint8>::allocate(static_cast<size_t>(fb1_size));
 
 #ifdef CONF_X11
-    if (env.display != nullptr) {
-        xdisp_fd = ConnectionNumber(env.display);
+    if (x11.display != nullptr) {
+        xdisp_fd = ConnectionNumber(x11.display);
         (void)ioAdd(this, &WatchApp::on_xdisp, xdisp_fd);
     }
     //env.tch_flip_h = 0;

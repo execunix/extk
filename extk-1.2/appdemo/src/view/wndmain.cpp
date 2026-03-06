@@ -1146,9 +1146,10 @@ int WndMain::start() {
         ShowWindow(hwnd, SW_SHOWMAXIMIZED);
     }
     #else
-    this->setVisible(true);
     exassert2(gWndMain == this, __FILE__ "@" Ex_STRINGIFY(__LINE__));
-    (void)this->damage();
+    showWindow(0UL, 0, 100);
+    //this->setVisible(true);
+    //(void)this->damage();
     #endif // WIN32
     return 0;
 #else

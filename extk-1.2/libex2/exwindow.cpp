@@ -8,7 +8,6 @@
 #include "exwatch.h"
 #include "exiconv.h"
 #include "exapp.h"
-#include <map>
 
 #define logdraw dprint0
 #define logdra1 dprint1
@@ -29,8 +28,8 @@ ExWindow::~ExWindow() noexcept {
 
 ExWindow::ExWindow() noexcept
     : ExWidget()
+    , hwnd(static_cast<HWND>(0))
 #ifdef WIN32
-    , hwnd(NULL)
     , dwStyle(0)
     , dwExStyle(0)
 #endif
@@ -88,21 +87,34 @@ ExWindow::create(const char* name, int32 w, int32 h) {
 }
 
 uint32 ExWindow::destroy() {
-    if (getFlags(Ex_Destroyed))
+    if (getFlags(Ex_Destroyed)) {
         return 1;
-
-#ifdef WIN32
+    }
     HWND hwnd = this->hwnd;
-#endif
     ExWidget::destroy();
 
     // Now, member variables are not accessible.
+    if (hwnd != static_cast<HWND>(0)) { // is not detached ?
+        // gWindowMap.detach(hwnd);
 #ifdef WIN32
-    if (hwnd != NULL) { // is not detached ?
-        // detachWindowMap(hwnd);
         DestroyWindow(hwnd); // send WM_DESTROY
-    }
 #endif
+#ifdef CONF_X11
+        ExApp::EnvX11& x11 = ExApp::x11;
+        XDestroyWindow(x11.display, hwnd);
+        //ExEmitMessage(1, WM_DESTROY, 0, 0); // tbd - type
+        #if 0
+        do { // emul XDestroyWindow
+            ExEvent ev(nullptr);
+            ev.message = WM_DESTROY;
+            ExCbInfo cbinfo(0U, 0U, &ev);
+            (void)window->invokeFilter(&cbinfo);
+            (void)DefWndProc(ev); // send WM_DESTROY
+            (void)window->invokeHandler(&cbinfo);
+        } while (false);
+        #endif
+#endif
+    }
     return 0;
 }
 
@@ -125,13 +137,16 @@ bool ExWindow::showWindow(DWORD dwExStyle, DWORD dwStyle, int32 x, int32 y) {
 }
 
 bool ExWindow::showWindow() {
-    if (hwnd == NULL)
+    if (hwnd == NULL) {
         return false;
-    if (!ShowWindow(hwnd, (dwStyle & WS_CHILD) ? SW_SHOW : SW_SHOWNORMAL))
+    }
+    if (!ShowWindow(hwnd, (dwStyle & WS_CHILD) ? SW_SHOW : SW_SHOWNORMAL)) {
         return false;
+    }
     // send WM_PAINT if the window's update region is not empty
-    if (!UpdateWindow(hwnd)) // can be skip
+    if (!UpdateWindow(hwnd)) { // can be skip
         return false;
+    }
     return true;
 }
 
@@ -141,6 +156,74 @@ bool ExWindow::hideWindow() {
         r = ShowWindow(hwnd, SW_HIDE);
     }
     return r;
+}
+#endif
+
+#ifdef CONF_X11 // __linux__
+bool ExWindow::showWindow(ulong type, int32 x, int32 y) {
+    ExApp::EnvX11& x11 = ExApp::x11;
+
+    int64 event_mask = 0;
+    event_mask |= KeyPressMask | KeyReleaseMask;
+    event_mask |= ButtonPressMask | ButtonReleaseMask | PointerMotionMask;
+    event_mask |= EnterWindowMask | LeaveWindowMask | FocusChangeMask;
+    event_mask |= ExposureMask | ResizeRedirectMask;
+    event_mask |= StructureNotifyMask;
+    // event_mask |= SubstructureNotifyMask;
+
+    uint64 value_mask = 0;
+    value_mask |= CWBackPixmap | CWBackPixel;
+    value_mask |= CWBorderPixel | CWBackingStore;
+    value_mask |= CWEventMask;
+    // value_mask |= CWColormap; // only if 8-bpp mode
+
+    // create parent window
+    XSetWindowAttributes attr;
+    attr.background_pixmap = None; //ParentRelative;
+    attr.background_pixel = BlackPixel(x11.display, 0);
+    //attr.border_pixmap = CopyFromParent;
+    attr.border_pixel = WhitePixel(x11.display, 0);
+    //attr.bit_gravity = ForgetGravity;
+    //attr.win_gravity = NorthWestGravity;
+    attr.backing_store = Always; //NotUseful;
+    //attr.backing_planes = All ones;
+    //attr.backing_pixel = zero;
+    //attr.save_under = False;
+    attr.event_mask = event_mask;
+    //attr.do_not_propagate_mask = empty set;
+    //attr.override_redirect = False;
+    attr.colormap = CopyFromParent;
+    //attr.cursor = None;
+    hwnd = XCreateWindow(x11.display, x11.root,
+        x, y, this->area.w, this->area.h, 2, x11.depth,
+        InputOutput, x11.visual, value_mask, &attr);
+
+    XSetWMProtocols(x11.display, hwnd, x11.wm_atom, ExApp::WM_MAX);
+    if (1) {
+        Atom* pa = 0;
+        int32 cnt = 0;
+        XGetWMProtocols(x11.display, hwnd, &pa, &cnt);
+        dprint("XGetWMProtocols: cnt=%d\n", cnt);
+        for (int32 i = 0; i < cnt; i++) {
+            dprint("atom[%d]=%lu:%s\n", i, pa[i], XGetAtomName(x11.display, pa[i]));
+        }
+        if (pa) {
+            XFree(pa);
+        }
+    }
+    XStoreName(x11.display, hwnd, this->name);
+    return showWindow();
+}
+
+bool ExWindow::showWindow() {
+    ExApp::EnvX11& x11 = ExApp::x11;
+    XMapWindow(x11.display, hwnd);
+    return true;
+}
+
+bool ExWindow::hideWindow() {
+    // tbd - type
+    return true;
 }
 #endif
 
@@ -374,7 +457,7 @@ ExWindow::classInit(HINSTANCE hInstance) {
     if (wcid == 0) {
         WNDCLASS wc;
         wc.style = /*CS_DBLCLKS | */CS_HREDRAW | CS_VREDRAW;
-        wc.lpfnWndProc = (WNDPROC)SysWndProc;
+        wc.lpfnWndProc = (WNDPROC)&DefWndProc;
         wc.cbClsExtra = 0;
         wc.cbWndExtra = 0;
         wc.hInstance = hInstance;

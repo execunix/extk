@@ -6,6 +6,8 @@
 #include "lcdout.h"
 #include "env.h"
 
+#define CLIP_EXTENT
+
 LcdOut gLcdOut;
 
 #ifdef __linux__
@@ -52,11 +54,12 @@ void LcdOut::onFlush(WndMain* window, const ExRegion* updateRgn)
     cr_restore(cr);
 
 #ifdef CONF_X11
-    GC gc = XCreateGC(env.display, env.top, 0, nullptr);
-    XPutImage(env.display, env.top, gc, env.ximg, 0, 0, 0, 0,
-              env.ximg->width, env.ximg->height);
-    XFlush(env.display);
-    XFreeGC(env.display, gc);
+    ExApp::EnvX11& x11 = ExApp::x11;
+    GC gc = XCreateGC(x11.display, window->getHwnd(), 0, nullptr);
+    XPutImage(x11.display, window->getHwnd(), gc, x11.ximg, 0, 0, 0, 0,
+              x11.ximg->width, x11.ximg->height);
+    XFlush(x11.display);
+    XFreeGC(x11.display, gc);
 #endif // CONF_X11
 
     env.gui_tick = ExWatch::getTickCount() - ExWatch::tickAppLaunch;
@@ -73,14 +76,15 @@ bool LcdOut::fini()
         crs = nullptr;
     }
 #ifdef CONF_X11
-    if (env.ximg != nullptr) {
-        if (env.ximg->data != nullptr) {
-            ExHeapManager<uint8>::deallocate(env.ximg->data);
-            env.ximg->data = nullptr;
+    ExApp::EnvX11& x11 = ExApp::x11;
+    if (x11.ximg != nullptr) {
+        if (x11.ximg->data != nullptr) {
+            ExHeapManager<uint8>::deallocate(x11.ximg->data);
+            x11.ximg->data = nullptr;
             env.fb0_bits = nullptr;
         }
-        XDestroyImage(env.ximg);
-        env.ximg = nullptr;
+        XDestroyImage(x11.ximg);
+        x11.ximg = nullptr;
     }
 #endif // CONF_X11
     return true;
@@ -104,7 +108,8 @@ bool LcdOut::init()
     int32 bytes_per_line = 0;
     size_t buf_size;
 
-    ximage = XCreateImage(env.display, env.visual, env.depth, ZPixmap, 0, nullptr,
+    ExApp::EnvX11& x11 = ExApp::x11;
+    ximage = XCreateImage(x11.display, x11.visual, x11.depth, ZPixmap, 0, nullptr,
                           env.fb0_w, env.fb0_h, bitmap_pad, bytes_per_line);
     if (ximage == nullptr) {
         dprint("XCreateImage() error.\n");
@@ -126,7 +131,7 @@ bool LcdOut::init()
     env.fb0_bpp = ximage->bits_per_pixel;
     env.fb0_bpl = ximage->bytes_per_line;
     ximage->data = reinterpret_cast<char*>(env.fb0_bits);
-    env.ximg = ximage;
+    x11.ximg = ximage;
 xinit_error:
 #endif // CONF_X11
 

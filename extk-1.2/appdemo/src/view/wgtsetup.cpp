@@ -90,7 +90,7 @@ uint32 WgtSetup::onTitleMove(ExWidget* widget, ExCbInfo* cbinfo) {
         if (cbinfo->type == Ex_CbButPress) {
             but_pt = msg_pt; // memory press point
             toFront();
-            window->wgtCapture = widget;
+            window->setCapture(widget);
         }
         else if (cbinfo->type == Ex_CbPtrMove &&
             widget->getFlags(Ex_ButPressed)) {

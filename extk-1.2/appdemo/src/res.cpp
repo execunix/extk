@@ -22,16 +22,26 @@ static bool img_init(ExImage* const img, const char* const name) noexcept
 
 bool initRes() noexcept
 {
-    bool hasResPath = true;
+    bool hasResPath = false;
+    static constexpr const char* const res_tbl[] = {
+        #ifdef WIN32
+        "../../../../appdemo/res",
+        "../../../appdemo/res",
+        #endif // WIN32
+        "../../res",
+        "../res",
+        "res",
+        nullptr
+    };
     struct stat statbuf;
-    snprintf(res.path, 256U, "%s/res", env.cwd);
-    if (stat(res.path, &statbuf) != 0) {
-        snprintf(res.path, 256U, "%s/../../../../appdemo/res", env.cwd);
-        if (stat(res.path, &statbuf) != 0) {
-            dprint("%s: cant open res path\n", __func__);
-            hasResPath = false;
+    for (int32 i = 0; res_tbl[i] != nullptr; ++i) {
+        snprintf(res.path, 256U, "%s/%s", env.cwd, res_tbl[i]);
+        if (stat(res.path, &statbuf) == 0) {
+            hasResPath = true;
+            break;
         }
     }
+    dprint("%s: res.path = %s\n", __func__, res.path);
 
     ExCairo::Face::initFtLib();
 
@@ -68,7 +78,6 @@ bool initRes() noexcept
     if (hasResPath == true) {
         (void)img_init(&res.i.bg0, "img/S01090.bmp");
         (void)img_init(&res.i.bg1, "img/S01051.PNG");
-
     }
 
     // string

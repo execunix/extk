@@ -11,13 +11,13 @@
 #ifdef __linux__
 typedef void* ATOM;
 typedef void* HANDLE;
-typedef void* HWND;
+//typedef void* HWND;
 typedef void* HRGN;
 typedef void* HDC;
 typedef uint UINT;
 typedef ulong DWORD;
-typedef int64 WPARAM;
-typedef int64 LPARAM;
+typedef uint64 WPARAM;
+typedef uint64 LPARAM;
 typedef int64 LRESULT;
 typedef void* HINSTANCE;
 #endif

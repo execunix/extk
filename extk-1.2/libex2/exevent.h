@@ -37,10 +37,10 @@ struct ExEvent {
 #ifdef __linux__
 struct ExEvent {
     void*       hwnd;
-    int32       message;
-    int32       wParam;
-    int64       lParam;
-    int32       lResult;
+    uint32      message;
+    uint64      wParam;
+    uint64      lParam;
+    int64       lResult;
     uint32      tick;
     ExObject*   emitter;
     ExObject*   collector;

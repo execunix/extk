@@ -36,16 +36,27 @@ uint32 ex_key_timer_instant_repeat = 0;
 // class ExApp
 //
 const char*  ExApp::appName = "ExApp";
-ExWindow*    ExApp::mainWnd = NULL;
+ExWindow*    ExApp::mainWnd = nullptr;
 #ifdef WIN32
 HINSTANCE    ExApp::hInstance = 0;
 HINSTANCE    ExApp::hPrevInstance = 0;
 LPSTR        ExApp::lpCmdLine = NULL;
 int32        ExApp::nCmdShow = 0;
 #endif
+#ifdef CONF_X11
+ExApp::EnvX11 ExApp::x11 = {
+    .wm_atom = { None },
+    .display = nullptr,
+    .visual = nullptr,
+    .screen = -1,
+    .depth = 0,
+    .root = None,
+    .ximg = nullptr,
+};
+#endif // CONF_X11
 int32        ExApp::retCode = 0;            // 0:EXIT_SUCCESS,1:EXIT_FAILURE
 ExSize       ExApp::smSize(0);              // SystemMetrics
-ExEvent      ExApp::event(NULL);
+ExEvent      ExApp::event(nullptr);
 
 ExTimer      ExApp::but_timer;
 ExTimer      ExApp::key_timer;
@@ -150,7 +161,7 @@ void* ExModalBlock(ExModalCtrl* ctrl, long flags)
         dprint0("waittick=%d\n", waittick);
         if (exWatchDisp->getHalt()) // is halt ?
             break; // stop event loop
-        if (ExApp::mainWnd != NULL)
+        if (ExApp::mainWnd != nullptr)
             ExApp::mainWnd->flush();
         ExInput::invoke(waittick); // The only waiting point.
         if (exWatchDisp->getHalt()) // is halt ?
@@ -302,7 +313,7 @@ void ExApp::exit(int32 retCode)
     }
     // When the system window manager closed the app, mainWnd was destroyed.
 #if 1 // It's not essential, but it's better to keep it clean.
-    if (ExApp::mainWnd != NULL) { // When the halt flag is set inside the app.
+    if (ExApp::mainWnd != nullptr) { // When the halt flag is set inside the app.
         ExApp::mainWnd->destroy();
         ExApp::collect();
     }
@@ -316,10 +327,10 @@ void ExApp::exit(int32 retCode)
 }
 
 #ifdef WIN32
-int32 ExApp::init(HINSTANCE hInstance,
-    HINSTANCE hPrevInstance,
-    LPSTR lpCmdLine,
-    int32 nCmdShow)
+bool ExApp::init(HINSTANCE hInstance,
+                 HINSTANCE hPrevInstance,
+                 LPSTR lpCmdLine,
+                 int32 nCmdShow)
 {
     // init lib
     ExInitProcess();
@@ -345,11 +356,76 @@ int32 ExApp::init(HINSTANCE hInstance,
     dprint("%s() width=%d height=%d\n", __func__, smSize.w, smSize.h);
     // memset(&ExApp::event, 0, sizeof(ExEvent));
 
-    if (ExWindow::classInit(hInstance) != Ex_Continue)
-        return retCode;
-
-    retCode = EXIT_SUCCESS;
-
-    return retCode;
+    if (ExWindow::classInit(hInstance) != 0) {
+        retCode = EXIT_SUCCESS;
+    }
+    return (retCode == EXIT_SUCCESS);
 }
-#endif
+#endif // WIN32
+
+#ifdef CONF_X11
+static int32 x_error_handler(Display* d, XErrorEvent* e)
+{
+    char buffer[256];
+    XGetErrorText(d, e->error_code, buffer, 256);
+    dprint("X-ERR %d: %s\n", e->type, buffer);
+    return 0;
+}
+
+bool ExApp::initX11()
+{
+    int32 r = 0;
+    do {
+        XSetErrorHandler(x_error_handler);
+
+        // connect to the display
+        const char* const disp = getenv("DISPLAY");
+        x11.display = XOpenDisplay((disp == nullptr) ? ":0.0" : disp);
+        dprint("XOpenDisplay(0)=0x%p\n", x11.display);
+        if (x11.display == nullptr) {
+            r = -1;
+            break;
+        }
+        // get display info : "$ xwininfo"
+        x11.screen = XDefaultScreen(x11.display);
+        dprint("XDefaultScreen()=%d\n", x11.screen);
+        x11.depth = XDefaultDepth(x11.display, x11.screen);
+        dprint("XDefaultDepth()=%d\n", x11.depth);
+        if (!(x11.depth == 32 || x11.depth == 24)) {
+            dprint("Check your X Server Configuration!!!\n");
+            dprint("This program requires 32bit-color-depth of Screen.\n");
+            r = -1;
+            break;
+        }
+        x11.visual = XDefaultVisual(x11.display, x11.screen);
+        dprint("visual=0x%p, visual_class=%d\n", x11.visual, x11.visual->c_class);
+        if (x11.visual->c_class != TrueColor) {
+            dprint("Check your X Server Configuration!!!\n");
+            dprint("This program requires TrueColor Visual Type.\n");
+            r = -1;
+            break;
+        }
+        // get root window
+        x11.root = XDefaultRootWindow(x11.display);
+        dprint("XDefaultRootWindow()=%ld\n", x11.root);
+        if (x11.root == None) {
+            dprint("Cannot find root window.\n");
+            r = -1;
+            break;
+        }
+        x11.wm_atom[ExApp::WM_PROTOCOLS] = XInternAtom(ExApp::x11.display, "WM_PROTOCOLS", True);
+        x11.wm_atom[ExApp::WM_TAKE_FOCUS] = XInternAtom(ExApp::x11.display, "WM_TAKE_FOCUS", True);
+        x11.wm_atom[ExApp::WM_SAVE_YOURSELF] = XInternAtom(ExApp::x11.display, "WM_SAVE_YOURSELF", True); // deprecated
+        x11.wm_atom[ExApp::WM_DELETE_WINDOW] = XInternAtom(ExApp::x11.display, "WM_DELETE_WINDOW", True);
+        // x11.fb0_w = x11.sm_w;
+        // x11.fb0_h = x11.sm_h;
+        // x11.fb0_rotate = 0;
+    } while (false);
+    return (r == 0);
+}
+#else // CONF_X11
+bool ExApp::initX11()
+{
+    return true;
+}
+#endif // CONF_X11

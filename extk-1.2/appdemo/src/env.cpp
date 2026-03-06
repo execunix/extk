@@ -34,27 +34,16 @@ bool initEnv() noexcept
     env.wnd.x = CW_USEDEFAULT;
     env.wnd.y = CW_USEDEFAULT;
     #else // !WIN32
-    env.sm_w = 800;
-    env.sm_h = 480;
+    env.sm_w = 1280;
+    env.sm_h = 720;
     #endif // WIN32
-
-    #ifdef CONF_X11
-    (void)memset(&env.wm_atom[0], 0, sizeof(env.wm_atom));
-    env.display = nullptr;
-    env.visual = nullptr;
-    env.screen = 0;
-    env.depth = 0;
-    env.root = None;
-    env.top = None;
-    env.ximg = nullptr;
-    #endif
 
     env.fb0_w = 0;
     env.fb0_h = 0;
     env.fb0_bpp = 0;
     env.fb0_bpl = 0;
     env.fb0_bits = nullptr;
-    env.fb0_rotate = 270;
+    env.fb0_rotate = 0;
 
     env.fb1_w = 0;
     env.fb1_h = 0;
@@ -74,7 +63,7 @@ bool initEnv() noexcept
 
     env.tch_tick = 0U;
     env.tch_flip_h = 0;
-    env.tch_flip_v = 1;
+    env.tch_flip_v = 0;
     env.tch_rotate = 0;
     env.is_run_tchcal = 0;
     env.is_set_tchcal_dat = 0;

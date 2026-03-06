@@ -234,18 +234,18 @@ uint32 WgtMenu::onFilter(ExWidget* widget, ExCbInfo* cbinfo) {
         #endif // WIN32
         Menu* menu = findMenu(ExPoint(xPos, yPos));
         if (menu) {
-            if (window->wgtEntered != menu->view) {
+            if (window->getEntered() != menu->view) {
                 showPopup(menu);
             }
         }
 #if 1 // like modal loop
         if (menu) {
-            if (window->wgtEntered != menu->view) {
-                if (window->wgtEntered) {
-                    window->wgtEntered->setFlags(Ex_PtrEntered, Ex_BitFalse);
-                    window->wgtEntered->damage();
+            if (window->getEntered() != menu->view) {
+                if (window->getEntered()) {
+                    window->getEntered()->setFlags(Ex_PtrEntered, Ex_BitFalse);
+                    window->getEntered()->damage();
                 }
-                window->wgtEntered = menu->view;
+                window->setEntered(menu->view);
                 menu->view->setFlags(Ex_PtrEntered, Ex_BitTrue);
                 menu->view->damage();
             }
@@ -446,7 +446,7 @@ Menu* WgtMenu::findMenu(const ExPoint& pt) {
 void WgtMenu::menuFocus(Menu* menu) {
     if (menu != NULL) {
         if (oldFocus == NULL)
-            oldFocus = window->wgtFocused;
+            oldFocus = window->getFocused();
         window->giveFocus(menu->view);
     } else {
         window->giveFocus(oldFocus);

@@ -716,7 +716,9 @@ int main(int argc, char* argv[])
 
     (void)initEnv();
     (void)initRes();
-
+#ifdef CONF_X11
+    (void)ExApp::initX11();
+#endif
     (void)gWatchApp.startup();
     (void)gWatchApp.enter();
     (void)gWatchDev.init(); // start watch thread for gps and etc
@@ -754,7 +756,7 @@ int main(int argc, char* argv[])
         ev.emitter = static_cast<ExObject*>(&gWatchApp);
         ev.message = WM_CREATE;
         (void)DefWndProc(ev);
-        ev.msg.sz = ExSize(env.sm_w, env.sm_h);
+        ev.msg.sz = ExSize(env.wnd.w, env.wnd.h);
         ev.message = WM_SIZE;
         (void)DefWndProc(ev);
     } while (false);
@@ -783,18 +785,11 @@ int main(int argc, char* argv[])
     //
     if (ExApp::mainWnd != nullptr) { // If the halt flag is set inside the app,
         (void)ExApp::mainWnd->destroy(); // then, mainWnd was not destroyed yet.
-#ifdef __linux__
-        (void)gWatchApp.leave();
-        do { // emul XDestroyWindow
-            Event ev(nullptr);
-            ev.message = WM_DESTROY;
-            ExCbInfo cbinfo(0U, 0U, &ev);
-            (void)gWndMain->invokeFilter(&cbinfo);
-            (void)DefWndProc(ev); // send WM_DESTROY
-            (void)gWndMain->invokeHandler(&cbinfo);
-        } while (false);
-        (void)gWatchApp.enter();
-#endif
+        // call XDestroyWindow, emit WM_DESTROY, and post WM_QUIT.
+        #if 1 // test
+        ExApp::mainWnd->setHwnd(None);
+        ExApp::mainWnd = nullptr; // stop timer/flush/input exlib proc
+        #endif
         ExApp::collect(); // call delete gWndMain
     }
     exassert2(ExApp::mainWnd == nullptr, __FILE__ "@" Ex_STRINGIFY(__LINE__));

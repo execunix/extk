@@ -9,6 +9,14 @@
 #include "exwidget.h"
 #include "excanvas.h"
 #include "exthread.h"
+#ifdef CONF_X11
+#include <X11/Xlib.h>
+#include <X11/Xutil.h>
+#endif // CONF_X11
+
+#ifdef CONF_X11 // __linux__
+typedef Window HWND;
+#endif
 
 // Window constants definition
 //
@@ -21,8 +29,8 @@ enum ExRenderFlags {
 //
 class ExWindow : public ExWidget {
 protected:
-#ifdef WIN32
     HWND        hwnd;
+#ifdef WIN32
     DWORD       dwStyle;
     DWORD       dwExStyle;
 #endif
@@ -30,7 +38,7 @@ protected:
     uint32      renderFlags;    // tbd - remove
     //ExRegion    exposeAcc;  // tbd - replace Ex_RenderRebuild
     //ExRegion    opaqueAcc;
-public: // protected:
+protected:
     ExWidget*   wgtCapture;
     ExWidget*   wgtEntered;
     ExWidget*   wgtPressed;
@@ -71,6 +79,11 @@ public:
     bool showWindow(); // ShowWindow(hwnd, SW_SHOWNORMAL); flush();
     bool hideWindow(); // ShowWindow(hwnd, SW_HIDE);
 #endif
+#ifdef CONF_X11 // __linux__
+    bool showWindow(ulong type, int32 x = 0, int32 y = 0);
+    bool showWindow(); // XMapWindow(...)
+    bool hideWindow(); // XUnmapWindow(...);
+#endif
 protected:
     virtual uint32 getClassFlags(uint32 masks = Ex_BitTrue) const {
         return (masks & (Ex_RECTANGULAR | Ex_CONTAINER | Ex_DISJOINT));
@@ -83,10 +96,8 @@ protected:
 public:
     //void enter() { mutex.lock(); }
     //void leave() { mutex.unlock(); }
-#ifdef WIN32
-    HWND getHwnd() const { return this ? hwnd : NULL; }
+    HWND getHwnd() const { return (this != nullptr) ? hwnd : static_cast<HWND>(0); }
     void setHwnd(HWND h) { hwnd = h; }
-#endif
     ExWidget* giveFocus(ExWidget* newFocus);
     ExWidget* moveFocus(uint32 dir); // sample
 public:
@@ -178,7 +189,7 @@ public:
 public:
 #ifdef WIN32
     static LPCSTR getClassName() { return "ExWindow"; }
-    static ATOM classInit(HINSTANCE hInstance);
+    static ATOM classInit(HINSTANCE hInstance); // customizable
 #endif
 public:
     friend class ExWidget;

@@ -7,6 +7,7 @@
 #define __extypes_h__
 
 #include "exconfig.h"
+#include "excompat.h"
 #include "exdebug.h"
 #include "exmacro.h"
 #include <new>

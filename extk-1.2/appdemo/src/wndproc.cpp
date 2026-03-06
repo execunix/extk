@@ -24,9 +24,9 @@ static uint32 getDoubleClickDist(const int32 (&x)[2], const int32 (&y)[2])
     return static_cast<uint32>(dist);
 }
 
-static int32 procPtrLeaveEnter(ExWindow* const window, ExWidget* const widget, ExCbInfo* const cbinfo)
+static int64 procPtrLeaveEnter(ExWindow* const window, ExWidget* const widget, ExCbInfo* const cbinfo)
 {
-    int32 lResult = 0;
+    int64 lResult = 0;
     if (window->getEntered() != widget) {
         ExWidget* wgttmp; // prev entered
         wgttmp = window->getEntered();
@@ -56,10 +56,10 @@ static int32 procPtrLeaveEnter(ExWindow* const window, ExWidget* const widget, E
     return lResult;
 }
 
-static uint32 basicWndProc(ExWindow* const window, ExCbInfo* const cbinfo)
+static uint32 ProcWndEvent(ExWindow* const window, ExCbInfo* const cbinfo)
 {
     uint32 cbret_code;
-    int32& message = cbinfo->event->message;
+    uint32 message = cbinfo->event->message;
     Event& ev = static_cast<Event&>(*cbinfo->event);
 
     switch (message) {
@@ -225,63 +225,6 @@ int32 DefWndProc(Event& ev)
         window = static_cast<ExWindow*>(ev.collector);
         exassert2(window != nullptr, __FILE__ "@" Ex_STRINGIFY(__LINE__));
         ExApp::mainWnd = window;
-#ifdef CONF_X11
-        int64 event_mask = 0;
-        event_mask |= KeyPressMask | KeyReleaseMask;
-        event_mask |= ButtonPressMask | ButtonReleaseMask | PointerMotionMask;
-        event_mask |= EnterWindowMask | LeaveWindowMask | FocusChangeMask;
-        event_mask |= ExposureMask | ResizeRedirectMask;
-        event_mask |= StructureNotifyMask;
-        // event_mask |= SubstructureNotifyMask;
-
-        uint64 value_mask = 0;
-        value_mask |= CWBackPixmap | CWBackPixel;
-        value_mask |= CWBorderPixel | CWBackingStore;
-        value_mask |= CWEventMask;
-        // value_mask |= CWColormap; // only if 8-bpp mode
-
-        // create parent window
-        XSetWindowAttributes attr;
-        attr.background_pixmap = None; //ParentRelative;
-        attr.background_pixel = BlackPixel(env.display, 0);
-        //attr.border_pixmap = CopyFromParent;
-        attr.border_pixel = WhitePixel(env.display, 0);
-        //attr.bit_gravity = ForgetGravity;
-        //attr.win_gravity = NorthWestGravity;
-        attr.backing_store = Always; //NotUseful;
-        //attr.backing_planes = All ones;
-        //attr.backing_pixel = zero;
-        //attr.save_under = False;
-        attr.event_mask = event_mask;
-        //attr.do_not_propagate_mask = empty set;
-        //attr.override_redirect = False;
-        attr.colormap = CopyFromParent;
-        //attr.cursor = None;
-        env.top = XCreateWindow(env.display, env.root, 100, 50, env.sm_w, env.sm_h, 2, env.depth,
-            InputOutput, env.visual, value_mask, &attr);
-
-        XMapWindow(env.display, env.top);
-
-        env.wm_atom[Env::WM_PROTOCOLS] = XInternAtom(env.display, "WM_PROTOCOLS", True);
-        env.wm_atom[Env::WM_TAKE_FOCUS] = XInternAtom(env.display, "WM_TAKE_FOCUS", True);
-        env.wm_atom[Env::WM_SAVE_YOURSELF] = XInternAtom(env.display, "WM_SAVE_YOURSELF", True); // deprecated
-        env.wm_atom[Env::WM_DELETE_WINDOW] = XInternAtom(env.display, "WM_DELETE_WINDOW", True);
-        XSetWMProtocols(env.display, env.top, env.wm_atom, Env::WM_MAX);
-        if (1) {
-            Atom* pa = 0;
-            int32 cnt = 0;
-            XGetWMProtocols(env.display, env.top, &pa, &cnt);
-            dprint("XGetWMProtocols: cnt=%d\n", cnt);
-            for (int32 i = 0; i < cnt; i++) {
-                dprint("atom[%d]=%lu:%s\n", i, pa[i], XGetAtomName(env.display, pa[i]));
-            }
-            if (pa) {
-                XFree(pa);
-            }
-        }
-
-        XStoreName(env.display, env.top, "PDU Emulator - v1.0");
-#endif
         //goto leave_proc;
     }
 
@@ -293,12 +236,9 @@ int32 DefWndProc(Event& ev)
     // detach
     if (ev.message == WM_DESTROY) {
         if (true) { // ExApp::mainWnd == window
+            window->setHwnd(None);
             ExApp::mainWnd = nullptr; // stop timer/flush/input exlib proc
-            (void)PostMessage(WM_QUIT); // stop main loop
-#ifdef CONF_X11
-            XDestroyWindow(env.display, env.top);
-            env.top = 0;
-#endif
+            //(void)PostMessage(WM_QUIT); // stop main loop
         }
         goto leave_proc;
     }
@@ -314,7 +254,7 @@ int32 DefWndProc(Event& ev)
         goto leave_proc;
     }
     cbinfo->type = Ex_CbUnknown;
-    if ((basicWndProc(window, cbinfo) & Ex_Break) != 0U) {
+    if ((ProcWndEvent(window, cbinfo) & Ex_Break) != 0U) {
         goto leave_proc;
     }
     cbinfo->type = Ex_CbHandler;

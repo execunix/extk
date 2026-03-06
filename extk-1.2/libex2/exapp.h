@@ -10,6 +10,10 @@
 #include "extimer.h"
 #include "exevent.h"
 #include "exwindow.h"
+#ifdef CONF_X11
+#include <X11/Xlib.h>
+#include <X11/Xutil.h>
+#endif // CONF_X11
 
 extern uint32 ex_but_timer_default_initial;
 extern uint32 ex_but_timer_default_repeat;
@@ -33,6 +37,25 @@ public:
     static LPSTR        lpCmdLine;
     static int32        nCmdShow;
 #endif
+#ifdef CONF_X11
+    enum : int32 {
+        WM_PROTOCOLS,
+        WM_TAKE_FOCUS,
+        WM_SAVE_YOURSELF,
+        WM_DELETE_WINDOW,
+        WM_MAX
+    };
+    struct EnvX11 {
+        Atom            wm_atom[WM_MAX];
+        Display*        display;
+        Visual*         visual;
+        int32           screen;
+        int32           depth;
+        Window          root;
+        XImage*         ximg;
+    };
+    static EnvX11       x11;
+#endif // CONF_X11
     static int32        retCode;                // 0:EXIT_SUCCESS,1:EXIT_FAILURE
     static ExSize       smSize;                 // SystemMetrics
     static ExEvent      event;
@@ -64,8 +87,9 @@ public:
     static void collect();
     static void exit(int32 retCode);
 #ifdef WIN32
-    static int32 init(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int32 nCmdShow);
+    static bool init(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int32 nCmdShow);
 #endif
+    static bool initX11();
 public:
     static uint32& butRepeatCnt() { return but_timer.u32[0]; };
     static uint32& keyRepeatCnt() { return key_timer.u32[0]; };

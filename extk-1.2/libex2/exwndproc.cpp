@@ -10,64 +10,9 @@
 #define logproc dprint
 #define logpro0 dprint0
 
+ExWindowMap gWindowMap;
+
 #ifdef WIN32
-typedef std::map<HWND, ExWindow*> ExWindowMap;
-
-static ExWindowMap gWindowMap;
-
-static int32 detachWindowMap(HWND hwnd) {
-    dprint("%s: hwnd=0x%p addr=0x%p\n", __func__, hwnd, gWindowMap[hwnd]);
-    //SetWindowLong(hwnd, GWL_USERDATA, (LONG)NULL); // detach window handle
-    gWindowMap.erase(hwnd);
-    return 0;
-}
-
-static int32 attachWindowMap(HWND hwnd, ExWindow* window) {
-    dprint("%s: hwnd=0x%p addr=0x%p name=%s\n", __func__, hwnd, window, window->getName());
-    //SetWindowLong(hwnd, GWL_USERDATA, (LONG)this); // attach window handle
-    gWindowMap[hwnd] = window;
-    return 0;
-}
-
-static ExWindow* searchWindowMap(HWND hwnd) {
-    return gWindowMap[hwnd];
-}
-
-#if 0 // test
-void      ExWindowMapInsert(HWND hwnd, ExWindow* window);
-void      ExWindowMapRemove(HWND hwnd);
-ExWindow* ExWindowMapSearch(HWND hwnd);
-
-void
-ExWindowMapInsert(HWND hwnd, ExWindow* window) {
-    exassert(hwnd && window);
-    exassert(gWindowMap.find(hwnd) == gWindowMap.end());
-    //gWindowMap[hwnd] = window;
-    //gWindowMap.insert(ExWindowMap::value_type(hwnd, window));
-    std::pair<ExWindowMap::iterator, bool> pr;
-    pr = gWindowMap.insert(ExWindowMap::value_type(hwnd, window));
-    exassert(pr.second == false && pr.first->second == window);
-    exassert(pr.second == true);
-}
-
-void
-ExWindowMapRemove(HWND hwnd) {
-    exassert(hwnd);
-    //gWindowMap.erase(hwnd);
-    ExWindowMap::iterator i = gWindowMap.find(hwnd);
-    exassert(gWindowMap.end() != i);
-    if (gWindowMap.end() != i)
-        gWindowMap.erase(i);
-}
-
-ExWindow*
-ExWindowMapSearch(HWND hwnd) {
-    exassert(hwnd);
-    ExWindowMap::iterator i = gWindowMap.find(hwnd);
-    return gWindowMap.end() != i ? i->second : NULL;
-}
-#endif // test
-
 static uint32 getDoubleClickDiff(const uint32 (&click_time)[2])
 {
     const uint32 diff = static_cast<uint32>(click_time[1] - click_time[0]);
@@ -114,7 +59,7 @@ static int64 procPtrLeaveEnter(ExWindow* const window, ExWidget* const widget, E
     return lResult;
 }
 
-uint32 basicWndProc(ExWindow* const window, ExCbInfo* const cbinfo)
+uint32 ProcWndEvent(ExWindow* const window, ExCbInfo* const cbinfo)
 {
     uint32 cbret_code;
     int32& message = (int32&)cbinfo->event->message;
@@ -393,7 +338,7 @@ uint32 basicWndProc(ExWindow* const window, ExCbInfo* const cbinfo)
 }
 
 LRESULT CALLBACK // static
-SysWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
+DefWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
     ExWindow* window;
     (void)exWatchDisp->enter();
 #if 0
@@ -407,7 +352,7 @@ SysWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
     if (message == WM_CREATE) {
         window = (ExWindow*)((LPCREATESTRUCT)lParam)->lpCreateParams;
         exassert(window && !window->hwnd);
-        attachWindowMap(hwnd, window);
+        gWindowMap.attach(hwnd, window);
         window->hwnd = hwnd;
         logproc("[0x%p][0x%p] WM_CREATE\n", hwnd, window);
         // If an application processes this message, it should return 0 to continue creation of the window.
@@ -419,7 +364,7 @@ SysWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
     if (message == WM_NCCREATE) {
         window = (ExWindow*)((LPCREATESTRUCT)lParam)->lpCreateParams;
         exassert(window && (window->getHwnd() != nullptr));
-        attachWindowMap(hwnd, window);
+        gWindowMap.attach(hwnd, window);
         window->setHwnd(hwnd);
         logproc("[0x%p][0x%p] WM_NCCREATE\n", hwnd, window);
         exWatchDisp->leave();
@@ -428,7 +373,7 @@ SysWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
 #endif
 
     //window = (ExWindow*)GetWindowLong(hwnd, GWL_USERDATA);
-    window = searchWindowMap(hwnd);
+    window = gWindowMap.search(hwnd);
     if (!(window && (window->getHwnd() == hwnd))) {
         logproc("[0x%p] WM_0x%04x\n", hwnd, message);
         exWatchDisp->leave();
@@ -440,7 +385,7 @@ SysWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
         logproc("[0x%p][0x%p] WM_DESTROY\n", hwnd, window);
         exassert(window && (window->getHwnd() == hwnd));
         window->setHwnd(nullptr);
-        detachWindowMap(hwnd);
+        gWindowMap.detach(hwnd);
         ExApp::addCollectWindow(window);
         if (ExApp::mainWnd == window) {
             ExApp::mainWnd = NULL; // stop timer/flush/input exlib proc
@@ -476,7 +421,7 @@ SysWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
         goto leave_proc;
     }
     cbinfo->type = Ex_CbUnknown;
-    if ((basicWndProc(window, cbinfo) & Ex_Break) != 0U) {
+    if ((ProcWndEvent(window, cbinfo) & Ex_Break) != 0U) {
         goto leave_proc;
     }
     cbinfo->type = Ex_CbHandler;
@@ -488,3 +433,16 @@ leave_proc:
     return cbinfo->event->lResult;
 }
 #endif // WIN32
+
+#ifdef CONF_X11 // __linux__
+uint32 __attribute__((weak))
+ProcWndEvent(ExWindow* window, ExCbInfo* cbinfo)
+{
+    return Ex_Continue;
+}
+
+int64 __attribute__((weak))
+DefWndProc(ExEvent& ev) {
+    return 0;
+}
+#endif // CONF_X11 // __linux__

@@ -11,14 +11,6 @@
 #include <stdint.h>
 #include "framework.h"
 
-//struct epoll_event {
-//    HANDLE handle;
-//};
-
-#else // __linux__
-
-#include <excompat.h>
-
 #endif // WIN32
 
 #endif // _osal_h_

@@ -7,34 +7,12 @@
 #define _env_h_
 
 #include <extypes.h>
-#ifdef CONF_X11
-#include <X11/Xlib.h>
-#include <X11/Xutil.h>
-#endif
 #include "tools.h"
 
 struct Env {
     char cwd[64];
     int32 sm_w;
     int32 sm_h;
-
-    #ifdef CONF_X11
-    enum : int32 {
-        WM_PROTOCOLS,
-        WM_TAKE_FOCUS,
-        WM_SAVE_YOURSELF,
-        WM_DELETE_WINDOW,
-        WM_MAX
-    };
-    Atom wm_atom[WM_MAX];
-    Display* display;
-    Visual* visual;
-    int32 screen;
-    int32 depth;
-    Window root;
-    Window top;
-    XImage* ximg;
-    #endif
 
     int32 fb0_w;
     int32 fb0_h;
