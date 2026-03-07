@@ -229,8 +229,8 @@ uint32 WgtMenu::onFilter(ExWidget* widget, ExCbInfo* cbinfo) {
         int xPos = LOWORD(cbinfo->event->lParam);
         int yPos = HIWORD(cbinfo->event->lParam);
         #else // linux
-        int xPos = cbinfo->event->msg.pt.x;
-        int yPos = cbinfo->event->msg.pt.y;
+        int xPos = cbinfo->event->pt.x;
+        int yPos = cbinfo->event->pt.y;
         #endif // WIN32
         Menu* menu = findMenu(ExPoint(xPos, yPos));
         if (menu) {
@@ -260,8 +260,8 @@ uint32 WgtMenu::onFilter(ExWidget* widget, ExCbInfo* cbinfo) {
         int xPos = LOWORD(cbinfo->event->lParam);
         int yPos = HIWORD(cbinfo->event->lParam);
         #else // linux
-        int xPos = cbinfo->event->msg.pt.x;
-        int yPos = cbinfo->event->msg.pt.y;
+        int xPos = cbinfo->event->pt.x;
+        int yPos = cbinfo->event->pt.y;
         #endif // WIN32
         Menu* menu = findMenu(ExPoint(xPos, yPos));
         int popcnt = (int)popList.size();
@@ -278,12 +278,8 @@ uint32 WgtMenu::onFilter(ExWidget* widget, ExCbInfo* cbinfo) {
             }
             if (menu->size == 0) {
                 showPopup(NULL); // hide
-                #ifdef WIN32
                 HWND hwnd = window->getHwnd();
                 PostMessage(hwnd, WM_COMMAND, menu->id, (LPARAM)menu);
-                #else // linux
-                PostMessage(WM_COMMAND, menu->id, (LPARAM)menu);
-                #endif // WIN32
             }
             return Ex_Break;
         }
@@ -315,12 +311,8 @@ uint32 WgtMenu::onFilter(ExWidget* widget, ExCbInfo* cbinfo) {
             case VK_SPACE:
             case VK_RETURN: {
                 showPopup(NULL); // hide
-                #ifdef WIN32
                 HWND hwnd = window->getHwnd();
                 PostMessage(hwnd, WM_COMMAND, menu->id, (LPARAM)menu);
-                #else // linux
-                PostMessage(WM_COMMAND, menu->id, (LPARAM)menu);
-                #endif // WIN32
                 break;
             }
             case VK_ESCAPE: {

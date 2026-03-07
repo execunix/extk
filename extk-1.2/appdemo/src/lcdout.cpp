@@ -62,7 +62,7 @@ void LcdOut::onFlush(WndMain* window, const ExRegion* updateRgn)
     XFreeGC(x11.display, gc);
 #endif // CONF_X11
 
-    env.gui_tick = ExWatch::getTickCount() - ExWatch::tickAppLaunch;
+    env.gui_tick = ExGetTickCount() - ExWatch::tickAppLaunch;
 }
 
 bool LcdOut::fini()

@@ -56,7 +56,7 @@ ExApp::EnvX11 ExApp::x11 = {
 #endif // CONF_X11
 int32        ExApp::retCode = 0;            // 0:EXIT_SUCCESS,1:EXIT_FAILURE
 ExSize       ExApp::smSize(0);              // SystemMetrics
-ExEvent      ExApp::event(nullptr);
+ExEvent      ExApp::event(None);
 
 ExTimer      ExApp::but_timer;
 ExTimer      ExApp::key_timer;
@@ -74,27 +74,6 @@ ExWindow*    ExApp::button_window[2];       /* The last 2 windows to receive but
 #ifdef OSAL_WIN32
 uint32       ExApp::regAppMsgIndex = 0x8000U; // WM_APP 0x8000
 #endif
-
-bool ExEventPeek(ExEvent* event)
-{
-#ifdef WIN32
-    BOOL bRet;
-
-    exWatchDisp->leave();
-    if ((bRet = GetMessage(&event->msg, NULL, 0, 0)) != TRUE) {
-        exassert(event->msg.message == WM_QUIT);
-        // WM_DESTROY => PostQuitMessage
-        bRet = TRUE;
-    }
-    exWatchDisp->enter();
-
-    return bRet;
-#else
-    return false; // tbd
-#endif
-}
-
-ExEventFunc exEventFunc = &ExEventPeek;
 
 #ifdef WIN32
 // ExModalCtrl - tbd
@@ -149,8 +128,9 @@ Returns:
 void* ExModalBlock(ExModalCtrl* ctrl, long flags)
 {
 #if 0 // tbd
+    MSG msg;
     uint32 waittick;
-    ExEvent* event = &ExApp::event;
+    //ExEvent* event = &ExApp::event;
     ctrl->flags = flags | 0x80000000;
     ctrl->result = NULL;
     ctrl->cond = NULL;
@@ -167,19 +147,19 @@ void* ExModalBlock(ExModalCtrl* ctrl, long flags)
         if (exWatchDisp->getHalt()) // is halt ?
             break; // stop event loop
         while ((ctrl->flags & 0x80000000) &&
-            exEventFunc(event) == true) { // is message available ?
-            if (event->msg.message == WM_ExEvWake) {
+            GetMessage(&msg, NULL, 0, 0) == true) { // is message available ?
+            if (msg.message == WM_ExEvWake) {
                 dprint("message == WM_ExEvWake\n");
                 break;
             }
-            if (event->msg.message == WM_QUIT) { // WM_DESTROY => PostQuitMessage
+            if (msg.message == WM_QUIT) { // WM_DESTROY => PostQuitMessage
                 dprint("message == WM_QUIT tick=%d\n", exWatchDisp->getTick());
-                ExApp::retCode = (int32)event->msg.wParam; // cause DestroyWindow
+                ExApp::retCode = (int32)msg.wParam; // cause DestroyWindow
                 exWatchDisp->setHalt(Ex_Halt); // stop event loop
                 break;
             }
             //exWatchDisp->leave(); // tbd ctrl->leave()
-            ExApp::dispatch(event->msg);
+            ExApp::dispatch(msg);
             //exWatchDisp->enter(); // tbd ctrl->enter()
             ExApp::collect();
         }
@@ -199,26 +179,25 @@ Description:
 */
 void ExMainLoop()
 {
-    ExEvent* event = &ExApp::event;
-
-    while (exWatchDisp->getHalt() == 0 &&
-           exEventFunc(event) == true) { // is message available ?
 #ifdef WIN32
-        if (event->msg.message == WM_ExEvWake) {
+    MSG msg;
+    while (exWatchDisp->getHalt() == 0 &&
+           GetMessage(&msg, NULL, 0, 0) == true) { // is message available ?
+        if (msg.message == WM_ExEvWake) {
             dprint("message == WM_ExEvWake\n");
             continue;
         }
-        if (event->msg.message == WM_QUIT) { // WM_DESTROY => PostQuitMessage
+        if (msg.message == WM_QUIT) { // WM_DESTROY => PostQuitMessage
             dprint("message == WM_QUIT tick=%d\n", exWatchDisp->getTick());
-            ExApp::retCode = (int32)event->msg.wParam; // cause DestroyWindow
+            ExApp::retCode = (int32)msg.wParam; // cause DestroyWindow
             exWatchDisp->setHalt(Ex_Halt); // stop event loop
             break;
         }
-        ExApp::dispatch(event->msg);
-#endif
+        ExApp::dispatch(msg);
         ExApp::collect();
     }
     ExApp::collect();
+#endif
 }
 
 /**

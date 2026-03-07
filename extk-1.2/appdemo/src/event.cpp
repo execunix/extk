@@ -10,72 +10,18 @@
 #include "event.h"
 #include "env.h"
 
-extern ExWatch* exWatchDisp;
-
 #ifdef __linux__
-
-static Event* new_event()
-{
-    std::allocator<Event> ev_allocator;
-    Event* const ev = ev_allocator.allocate(1U);
-    ev_allocator.construct(ev, Event(nullptr));
-    return ev;
-}
-
-static void delete_event(Event* const ev)
-{
-    std::allocator<Event> ev_allocator;
-    // ev_allocator.destroy(ev); // hasnt destructor
-    ev_allocator.deallocate(ev, 1UL);
-}
-
-EventList gEventList;
-
-bool EventList::add(Event* const ev)
-{
-    (void)enter();
-    push_back(ev);
-    (void)leave();
-    (void)gWatchApp.wakeup();
-    return true;
-}
-
-bool GetMessage(Event& ev)
-{
-    bool hasEvent = false;
-    (void)gEventList.enter();
-
-    if (!gEventList.empty()) {
-        ev = **gEventList.begin();
-        delete_event(*gEventList.begin());
-        gEventList.pop_front();
-        hasEvent = true;
-    }
-    (void)gEventList.leave();
-
-    return hasEvent;
-}
 
 bool PostPtrMsg(const int32 message, const int32 pt_x, const int32 pt_y)
 {
-    Event* const ev = new_event();
-    exassert2(ev != nullptr, __FILE__ "@" Ex_STRINGIFY(__LINE__));
-    ev->message = message;
-    ev->msg.pt.x = static_cast<int16>(pt_x);
-    ev->msg.pt.y = static_cast<int16>(pt_y);
-    ev->tick = exWatchDisp->getTick();
-    (void)recordTouchEvent(ev);
-
-    return gEventList.add(ev);
-}
-
-bool PostMessage(const int32 message, const int32 wparam, const int64 lparam)
-{
-    Event* const ev = new_event();
-    exassert2(ev != nullptr, __FILE__ "@" Ex_STRINGIFY(__LINE__));
-    (void)ev->set(message, wparam, lparam);
-
-    return gEventList.add(ev);
+    ExEvent ev(None);
+    ev.message = message;
+    ev.pt.x = pt_x;
+    ev.pt.y = pt_y;
+    ev.time = exWatchDisp->getTick();
+    ExEvent* back = exEventList.add(&ev);
+    (void)recordTouchEvent(back);
+    return (back != nullptr);
 }
 
 void EmitTouchEvent(const uint32 tickCount, const int32 message, int32 pt_x, int32 pt_y)
@@ -84,7 +30,7 @@ void EmitTouchEvent(const uint32 tickCount, const int32 message, int32 pt_x, int
 
     env.tch_tick = tickCount;
 
-    if ((gEventList.size() > 2UL) && (message == WM_MOUSEMOVE)) {
+    if ((exEventList.size() > 2UL) && (message == WM_MOUSEMOVE)) {
         dprint0("skip frequent move event\n");
     } else {
         // translate event

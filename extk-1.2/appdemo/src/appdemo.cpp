@@ -241,55 +241,55 @@ _fixed_16_16_from_doublem(double d)
 
 int flt_test() {
     volatile int32 val;
-    ulong tick1, tick2;
+    uint32 tick1, tick2;
 
-    tick1 = ExWatch::getTickCount();
+    tick1 = ExGetTickCount();
     for (volatile int i = 0; i < TESTCNT; i++) {
         val = 0;
     }
-    tick2 = ExWatch::getTickCount();
+    tick2 = ExGetTickCount();
     dprint1("val=0 loop test %d\n", tick2 - tick1);
 
-    tick1 = ExWatch::getTickCount();
+    tick1 = ExGetTickCount();
     for (volatile int i = 0; i < TESTCNT; i++) {
         val = _fixed_from_float(i * 1.f);
     }
-    tick2 = ExWatch::getTickCount();
+    tick2 = ExGetTickCount();
     dprint1("_fixed_from_float %d\n", tick2 - tick1);
 
-    tick1 = ExWatch::getTickCount();
+    tick1 = ExGetTickCount();
     for (volatile int i = 0; i < TESTCNT; i++) {
         val = _fixed_from_double(i * 1.);
     }
-    tick2 = ExWatch::getTickCount();
+    tick2 = ExGetTickCount();
     dprint1("_fixed_from_double %d\n", tick2 - tick1);
 
-    tick1 = ExWatch::getTickCount();
+    tick1 = ExGetTickCount();
     for (volatile int i = 0; i < TESTCNT; i++) {
         val = _fixed_from_doublem(i * 1.);
     }
-    tick2 = ExWatch::getTickCount();
+    tick2 = ExGetTickCount();
     dprint1("_fixed_from_doublem %d\n", tick2 - tick1);
 
-    tick1 = ExWatch::getTickCount();
+    tick1 = ExGetTickCount();
     for (volatile int i = 0; i < TESTCNT; i++) {
         val = _fixed_16_16_from_float(i * 1.f);
     }
-    tick2 = ExWatch::getTickCount();
+    tick2 = ExGetTickCount();
     dprint1("_fixed_16_16_from_float %d\n", tick2 - tick1);
 
-    tick1 = ExWatch::getTickCount();
+    tick1 = ExGetTickCount();
     for (volatile int i = 0; i < TESTCNT; i++) {
         val = _fixed_16_16_from_double(i * 1.);
     }
-    tick2 = ExWatch::getTickCount();
+    tick2 = ExGetTickCount();
     dprint1("_fixed_16_16_from_double %d\n", tick2 - tick1);
 
-    tick1 = ExWatch::getTickCount();
+    tick1 = ExGetTickCount();
     for (volatile int i = 0; i < TESTCNT; i++) {
         val = _fixed_16_16_from_doublem(i * 1.);
     }
-    tick2 = ExWatch::getTickCount();
+    tick2 = ExGetTickCount();
     dprint1("_fixed_16_16_from_doublem %d\n", tick2 - tick1);
 
     return 0;
@@ -665,7 +665,7 @@ static uint32 cmdline_halt(void* /*data*/, const int32* argc, const char** argv)
         ret = Ex_Break;
     } else if (0 == exstrcmp(argv[0], "scrcap")) {
         #ifdef __linux__
-        (void)PostMessage(WM_COMMAND, CMD_SCREEN_CAPTURE);
+        (void)PostMessage(None, WM_COMMAND, CMD_SCREEN_CAPTURE);
         #endif // __linux__
         ret = Ex_Break;
     }
@@ -751,12 +751,12 @@ int main(int argc, char* argv[])
 #ifdef __linux__
     (void)gWatchApp.leave();
     do { // emul XCreateWindow
-        Event ev(nullptr);
+        ExEvent ev(None);
         ev.collector = static_cast<ExObject*>(gWndMain);
         ev.emitter = static_cast<ExObject*>(&gWatchApp);
         ev.message = WM_CREATE;
         (void)DefWndProc(ev);
-        ev.msg.sz = ExSize(env.wnd.w, env.wnd.h);
+        ev.sz = ExSize(env.wnd.w, env.wnd.h);
         ev.message = WM_SIZE;
         (void)DefWndProc(ev);
     } while (false);

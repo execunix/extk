@@ -12,9 +12,8 @@
 #include "exgdiobj.h"
 #include "exregion.h"
 //#include "exstyle.h"
+#include "exwatch.h"
 #include <list>
-
-extern ExWatch* exWatchDisp;
 
 typedef std::list<ExWidget*> ExWidgetList;
 

@@ -308,7 +308,7 @@ extern TouchRecordStack touch_ic_overheat_dataset;
 #ifdef __linux__
 bool stopTouchRecord();
 bool startTouchRecord();
-bool recordTouchEvent(const Event* const ev);
+bool recordTouchEvent(const ExEvent* const ev);
 bool recordEventMark(const char* const msg, const int32 wparam);
 #endif // __linux__
 

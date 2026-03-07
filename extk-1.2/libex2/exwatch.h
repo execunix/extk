@@ -21,6 +21,9 @@
 
 class ExTimer;
 
+uint64 ExGetMonoClock(void);
+uint32 ExGetTickCount(void);
+
 // Watch thread
 //
 class ExWatch : public ExObject {
@@ -123,7 +126,6 @@ protected:
     #endif
 public:
     const char* name; // for debug
-    static uint32 getTickCount();
     static uint32 tickAppLaunch;
     #ifdef WIN32
     static DWORD tls_key;
@@ -262,5 +264,6 @@ public:
 
 extern ExWatch* exWatchMain;
 extern ExWatch* exWatchLast;
+extern ExWatch* exWatchDisp;
 
 #endif//__exwatch_h__

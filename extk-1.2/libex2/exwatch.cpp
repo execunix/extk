@@ -13,6 +13,24 @@
 #undef dprint1
 #define dprint1(...) printf("ExWatch@" __VA_ARGS__)
 
+uint64 ExGetMonoClock(void)
+{
+    struct timespec ts;
+    (void)clock_gettime(CLOCK_MONOTONIC, &ts);
+    uint64 usec = (static_cast<uint64>(ts.tv_sec) * 1000000UL);
+    usec += (static_cast<uint64>(ts.tv_nsec) / 1000UL);
+    return usec;
+}
+
+uint32 ExGetTickCount(void)
+{
+    struct timespec ts;
+    (void)clock_gettime(CLOCK_MONOTONIC, &ts);
+    uint64 msec = (static_cast<uint64>(ts.tv_sec) * 1000UL);
+    msec += (static_cast<uint64>(ts.tv_nsec) / 1000000UL);
+    return static_cast<uint32>(msec);
+}
+
 // Iomux
 //
 void ExWatch::IomuxMap::fini() {
@@ -134,7 +152,7 @@ uint32 ExWatch::IomuxMap::invoke(uint32 waittick) {
     int32 cnt = epoll_wait(epfd, events, (int)maxevents, (int)waittick);
     //pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
     watch->enter();
-    watch->tickCount = getTickCount(); // update tick
+    watch->tickCount = ExGetTickCount(); // update tick
     for (int32 i = 0; i < cnt; i++) {
         Iomux* iomux = (Iomux*)events[i].data.ptr;
         epoll_event ev;
@@ -154,15 +172,7 @@ uint32 ExWatch::IomuxMap::invoke(uint32 waittick) {
 
 // Watch thread
 //
-uint32 ExWatch::getTickCount() {
-    struct timespec ts;
-    clock_gettime(CLOCK_MONOTONIC, &ts);
-    uint32 msec = (uint32)(ts.tv_sec * 1000);
-    msec += (uint32)(ts.tv_nsec / 1000000);
-    return msec;
-}
-
-uint32 ExWatch::tickAppLaunch = ExWatch::getTickCount();
+uint32 ExWatch::tickAppLaunch = ExGetTickCount();
 
 pthread_key_t ExWatch::tls_key = (pthread_key_t)-1;
 
@@ -216,7 +226,7 @@ bool ExWatch::init(size_t max_iomux, size_t stacksize) {
     exassert(efd != -1);
     ioAdd(this, &ExWatch::onEvent, efd);
 
-    tickCount = getTickCount(); // update tick
+    tickCount = ExGetTickCount(); // update tick
 
     pthread_attr_t attr;
     pthread_attr_init(&attr);
@@ -329,3 +339,4 @@ uint32 ExWatch::onEvent(const epoll_event* const ev) {
 static ExWatch exWatchDflt("exWatchDflt");
 ExWatch* exWatchMain = &exWatchDflt;
 ExWatch* exWatchLast = &exWatchDflt;
+ExWatch* exWatchDisp = nullptr;

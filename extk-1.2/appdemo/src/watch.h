@@ -83,17 +83,17 @@ private:
     int32 fb1dev_fd;
     int32 ev2dev_fd;
     int32 xdisp_fd;
-    Event def_event;
+    ExEvent def_event;
     int32 ev_serial; // for misra rules
 public:
     int32 get_ev2dev_fd() const { return ev2dev_fd; }
-    Event* get_def_event() { return &def_event; }
+    ExEvent* get_def_event() { return &def_event; }
 #endif // __linux__
 public:
     bool cleanup();
     bool startup();
     void mainloop();
-    //static void dispatch(Event& ev);
+    //static void dispatch(ExEvent& ev);
 #ifdef __linux__
     WatchApp() noexcept : ExWatch("Gui"), app_fifo(0)
         , fb0dev_fd(0), fb1dev_fd(0), ev2dev_fd(0)

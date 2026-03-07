@@ -34,7 +34,7 @@ struct ExWindowMap : public std::map<const HWND, const ExWindow*> {
     }
 };
 
-extern ExWindowMap gWindowMap;
+extern ExWindowMap exWndProcMap;
 
 #ifdef WIN32
 // custom usage:

@@ -290,7 +290,7 @@ bool WatchApp::startup()
     exassert2(efd != -1, __FILE__ "@" Ex_STRINGIFY(__LINE__));
     (void)ioAdd(this, &WatchApp::onEvent, efd);
 
-    tickCount = getTickCount(); // update tick
+    tickCount = ExGetTickCount(); // update tick
     env.tch_tick = tickCount;
 
     tid = pthread_self();
@@ -385,12 +385,12 @@ bool WatchApp::startup()
 
 void WatchApp::mainloop()
 {
-    Event ev(nullptr);
+    ExEvent ev(None);
 
     (void)enter();
     while (halt == 0U) {
         while (true) {
-            if (!GetMessage(ev)) {
+            if (ExGetMessage(&ev) == nullptr) {
                 break;
             }
             // ev message is available
@@ -426,11 +426,11 @@ end_loop:
 #if 0
 int32 WatchApp::modal_loop(void* ctrl)
 {
-    Event ev(nullptr);
+    ExEvent ev(None);
 
     (void)enter();
     while (halt == 0U) {
-        while (GetMessage(ev)) { // is message available ?
+        while (ExGetMessage(&ev) != nullptr) { // is message available ?
             if ((ev.message == WM_CLOSE) || (ctrl->done != 0)) {
                 dprint("WM_CLOSE tick=%d\n", tickCount);
                 (void)setHalt(Ex_Halt); // stop event loop
@@ -557,7 +557,7 @@ int32 dprint_appinfo(char* const mbs, const int32 len)
         const pthread_t tid = pthread_self();
         (void)snprintf(&buf[0], 32UL, "%03u", static_cast<uint32>(tid % 1000UL));
     }
-    const uint32 tick = static_cast<uint32>(ExWatch::getTickCount() - ExWatch::tickAppLaunch);
+    const uint32 tick = static_cast<uint32>(ExGetTickCount() - ExWatch::tickAppLaunch);
     return snprintf(mbs, static_cast<size_t>(len), "[%4u.%03u:%s] ", tick / 1000U, tick % 1000U, &buf[0]);
 }
 #endif // __linux__

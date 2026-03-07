@@ -15,8 +15,6 @@
 #define logproc dprint
 #define logpro0 dprint0
 
-ExWatch* exWatchDisp = NULL;
-
 // class ExWindow
 //
 ExWindow::~ExWindow() noexcept {
@@ -28,7 +26,7 @@ ExWindow::~ExWindow() noexcept {
 
 ExWindow::ExWindow() noexcept
     : ExWidget()
-    , hwnd(static_cast<HWND>(0))
+    , hwnd(None)
 #ifdef WIN32
     , dwStyle(0)
     , dwExStyle(0)
@@ -94,8 +92,8 @@ uint32 ExWindow::destroy() {
     ExWidget::destroy();
 
     // Now, member variables are not accessible.
-    if (hwnd != static_cast<HWND>(0)) { // is not detached ?
-        // gWindowMap.detach(hwnd);
+    if (hwnd != None) { // is not detached ?
+        // exWndProcMap.detach(hwnd);
 #ifdef WIN32
         DestroyWindow(hwnd); // send WM_DESTROY
 #endif
@@ -105,7 +103,7 @@ uint32 ExWindow::destroy() {
         //ExEmitMessage(1, WM_DESTROY, 0, 0); // tbd - type
         #if 0
         do { // emul XDestroyWindow
-            ExEvent ev(nullptr);
+            ExEvent ev(None);
             ev.message = WM_DESTROY;
             ExCbInfo cbinfo(0U, 0U, &ev);
             (void)window->invokeFilter(&cbinfo);

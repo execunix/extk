@@ -9,14 +9,6 @@
 #include "exwidget.h"
 #include "excanvas.h"
 #include "exthread.h"
-#ifdef CONF_X11
-#include <X11/Xlib.h>
-#include <X11/Xutil.h>
-#endif // CONF_X11
-
-#ifdef CONF_X11 // __linux__
-typedef Window HWND;
-#endif
 
 // Window constants definition
 //
@@ -96,7 +88,7 @@ protected:
 public:
     //void enter() { mutex.lock(); }
     //void leave() { mutex.unlock(); }
-    HWND getHwnd() const { return (this != nullptr) ? hwnd : static_cast<HWND>(0); }
+    HWND getHwnd() const { return (this != nullptr) ? hwnd : None; }
     void setHwnd(HWND h) { hwnd = h; }
     ExWidget* giveFocus(ExWidget* newFocus);
     ExWidget* moveFocus(uint32 dir); // sample

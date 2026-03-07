@@ -60,7 +60,7 @@ static uint32 ProcWndEvent(ExWindow* const window, ExCbInfo* const cbinfo)
 {
     uint32 cbret_code;
     uint32 message = cbinfo->event->message;
-    Event& ev = static_cast<Event&>(*cbinfo->event);
+    ExEvent& ev = static_cast<ExEvent&>(*cbinfo->event);
 
     switch (message) {
         case WM_PAINT: {
@@ -69,8 +69,8 @@ static uint32 ProcWndEvent(ExWindow* const window, ExCbInfo* const cbinfo)
             break;
         }
         case WM_SIZE: {
-            if (window->area.u.sz != ev.msg.sz) {
-                ExRect ar(window->area.u.pt, ev.msg.sz);
+            if (window->area.u.sz != ev.sz) {
+                ExRect ar(window->area.u.pt, ev.sz);
                 (void)window->layout(ar);
             }
             cbret_code = Ex_Continue;
@@ -90,7 +90,7 @@ static uint32 ProcWndEvent(ExWindow* const window, ExCbInfo* const cbinfo)
                     window->setCapture(nullptr); // cancel event
                 }
             }
-            widget = window->getSelectable(ev.msg.pt);
+            widget = window->getSelectable(ev.pt);
             (void)procPtrLeaveEnter(window, widget, cbinfo);
             if (widget != nullptr) {
                 (void)widget->invokeListener(Ex_CbActivate, cbinfo->set(Ex_CbPtrMove, 0U));
@@ -103,11 +103,11 @@ static uint32 ProcWndEvent(ExWindow* const window, ExCbInfo* const cbinfo)
         }
         case WM_LBUTTONDOWN: {
             ExWidget* widget;
-            widget = window->getSelectable(ev.msg.pt);
+            widget = window->getSelectable(ev.pt);
             ExApp::button_x[0] = ExApp::button_x[1];
-            ExApp::button_x[1] = ev.msg.pt.x;
+            ExApp::button_x[1] = ev.pt.x;
             ExApp::button_y[0] = ExApp::button_y[1];
-            ExApp::button_y[1] = ev.msg.pt.y;
+            ExApp::button_y[1] = ev.pt.y;
             ExApp::button_click_time[0] = ExApp::button_click_time[1];
             ExApp::button_click_time[1] = exWatchDisp->getTick();
             ExApp::button_widget[0] = ExApp::button_widget[1];
@@ -168,7 +168,7 @@ static uint32 ProcWndEvent(ExWindow* const window, ExCbInfo* const cbinfo)
                     window->setPressed(nullptr);
                 }
             }
-            widget = window->getSelectable(ev.msg.pt);
+            widget = window->getSelectable(ev.pt);
             if ((widget == wgttmp) &&
                 (widget != nullptr)) {
                 (void)widget->invokeListener(Ex_CbActivate, cbinfo->set(Ex_CbActivate, ExApp::butRepeatCnt()));
@@ -209,7 +209,7 @@ static uint32 ProcWndEvent(ExWindow* const window, ExCbInfo* const cbinfo)
     return cbret_code;
 }
 
-int32 DefWndProc(Event& ev)
+int32 DefWndProc(ExEvent& ev)
 {
     ExWindow* window;
     ExCbInfo msginfo(0U);
@@ -238,7 +238,7 @@ int32 DefWndProc(Event& ev)
         if (true) { // ExApp::mainWnd == window
             window->setHwnd(None);
             ExApp::mainWnd = nullptr; // stop timer/flush/input exlib proc
-            //(void)PostMessage(WM_QUIT); // stop main loop
+            //(void)PostMessage(None, WM_QUIT); // stop main loop
         }
         goto leave_proc;
     }
@@ -247,7 +247,7 @@ int32 DefWndProc(Event& ev)
 
     // setup cbinfo->event
     window->event = gWatchApp.get_def_event();
-    cbinfo->event->setHwnd(window);
+    cbinfo->event->hwnd = window->getHwnd();
 
     cbinfo->type = Ex_CbFilter;
     if ((window->invokeFilter(cbinfo) & Ex_Break) != 0U) {

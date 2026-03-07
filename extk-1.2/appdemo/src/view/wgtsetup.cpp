@@ -86,7 +86,7 @@ uint32 WgtSetup::onTitleMove(ExWidget* widget, ExCbInfo* cbinfo) {
     ExWindow* window = getWindow();
     if (widget == &title && window) {
         static ExPoint but_pt(0);
-        ExPoint msg_pt(cbinfo->event->msg.pt);
+        ExPoint msg_pt(cbinfo->event->pt);
         if (cbinfo->type == Ex_CbButPress) {
             but_pt = msg_pt; // memory press point
             toFront();
@@ -107,7 +107,6 @@ uint32 WgtSetup::onTitleMove(ExWidget* widget, ExCbInfo* cbinfo) {
 uint32 WgtSetup::onActivate(ExWidget* widget, ExCbInfo* cbinfo) {
     if (widget == &close) {
         if (cbinfo->type == Ex_CbActivate) {
-            #ifdef WIN32
             #if 1 // test
             PostMessage(getWindow()->getHwnd(), WM_CbRemove, 0, (LPARAM)this);
             #else
@@ -115,9 +114,6 @@ uint32 WgtSetup::onActivate(ExWidget* widget, ExCbInfo* cbinfo) {
             window->removeHandler(ExCallback(this, &WgtSetup::onHandler));
             window->removeFilter(ExCallback(this, &WgtSetup::onFilter));
             #endif
-            #else // linux
-            PostMessage(WM_CbRemove, 0, (LPARAM)this);
-            #endif // WIN32
             destroy();
             return Ex_Continue;
         }
@@ -170,11 +166,7 @@ uint32 WgtSetup::onFilter(ExWidget* widget, ExCbInfo* cbinfo) {
             break;
         case VK_SPACE:
         case VK_RETURN: {
-            #ifdef WIN32
             PostMessage(getWindow()->getHwnd(), WM_COMMAND, 12345, 0);
-            #else // linux
-            PostMessage(WM_COMMAND, 12345, 0LL);
-            #endif // WIN32
             break;
         }
         case VK_ESCAPE: {

@@ -10,10 +10,6 @@
 #include "extimer.h"
 #include "exevent.h"
 #include "exwindow.h"
-#ifdef CONF_X11
-#include <X11/Xlib.h>
-#include <X11/Xutil.h>
-#endif // CONF_X11
 
 extern uint32 ex_but_timer_default_initial;
 extern uint32 ex_but_timer_default_repeat;
@@ -98,20 +94,6 @@ public:
     friend class ExWidget;
     friend class ExTimer;
 };
-
-/**
-ExEventPeek()
-    Provide asynchronous event notification
-Description:
-    This function provides an asynchronous event-notification mechanism.
-Returns:
-    0	no messages are available
-    1	a message is available
-*/
-bool ExEventPeek(ExEvent* event);
-
-typedef bool (*ExEventFunc)(ExEvent* event);
-extern ExEventFunc exEventFunc;
 
 void ExMainLoop();
 void ExQuitMainLoop();

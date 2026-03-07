@@ -10,7 +10,7 @@
 #define logproc dprint
 #define logpro0 dprint0
 
-ExWindowMap gWindowMap;
+ExWindowMap exWndProcMap;
 
 #ifdef WIN32
 static uint32 getDoubleClickDiff(const uint32 (&click_time)[2])
@@ -62,9 +62,9 @@ static int64 procPtrLeaveEnter(ExWindow* const window, ExWidget* const widget, E
 uint32 ProcWndEvent(ExWindow* const window, ExCbInfo* const cbinfo)
 {
     uint32 cbret_code;
-    int32& message = (int32&)cbinfo->event->message;
-    WPARAM& wParam = cbinfo->event->wParam;
-    LPARAM& lParam = cbinfo->event->lParam;
+    const int32 message = cbinfo->event->message;
+    WPARAM wParam = static_cast<WPARAM>(cbinfo->event->wParam);
+    LPARAM lParam = static_cast<LPARAM>(cbinfo->event->lParam);
 
     switch (message) {
         case WM_PAINT: {
@@ -352,7 +352,7 @@ DefWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
     if (message == WM_CREATE) {
         window = (ExWindow*)((LPCREATESTRUCT)lParam)->lpCreateParams;
         exassert(window && !window->hwnd);
-        gWindowMap.attach(hwnd, window);
+        exWndProcMap.attach(hwnd, window);
         window->hwnd = hwnd;
         logproc("[0x%p][0x%p] WM_CREATE\n", hwnd, window);
         // If an application processes this message, it should return 0 to continue creation of the window.
@@ -364,7 +364,7 @@ DefWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
     if (message == WM_NCCREATE) {
         window = (ExWindow*)((LPCREATESTRUCT)lParam)->lpCreateParams;
         exassert(window && (window->getHwnd() != nullptr));
-        gWindowMap.attach(hwnd, window);
+        exWndProcMap.attach(hwnd, window);
         window->setHwnd(hwnd);
         logproc("[0x%p][0x%p] WM_NCCREATE\n", hwnd, window);
         exWatchDisp->leave();
@@ -373,7 +373,7 @@ DefWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
 #endif
 
     //window = (ExWindow*)GetWindowLong(hwnd, GWL_USERDATA);
-    window = gWindowMap.search(hwnd);
+    window = exWndProcMap.search(hwnd);
     if (!(window && (window->getHwnd() == hwnd))) {
         logproc("[0x%p] WM_0x%04x\n", hwnd, message);
         exWatchDisp->leave();
@@ -384,8 +384,8 @@ DefWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
     if (message == WM_DESTROY) {
         logproc("[0x%p][0x%p] WM_DESTROY\n", hwnd, window);
         exassert(window && (window->getHwnd() == hwnd));
-        window->setHwnd(nullptr);
-        gWindowMap.detach(hwnd);
+        window->setHwnd(None);
+        exWndProcMap.detach(hwnd);
         ExApp::addCollectWindow(window);
         if (ExApp::mainWnd == window) {
             ExApp::mainWnd = NULL; // stop timer/flush/input exlib proc
@@ -406,8 +406,8 @@ DefWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
     cbinfo->event->wParam = wParam;
     cbinfo->event->lParam = lParam;
     cbinfo->event->lResult = 0;
-    //exassert(cbinfo->event->msg.time == window->event->msg.time);
-    //exassert(cbinfo->event->msg.pt == window->event->msg.pt);
+    //exassert(cbinfo->event->time == window->event->time);
+    //exassert(cbinfo->event->pt == window->event->pt);
 #if 0 // deprecated
     if (message == WM_ExEvEmit) { // emitted msg is key,btn,...
         window->event = (ExEvent*)lParam;

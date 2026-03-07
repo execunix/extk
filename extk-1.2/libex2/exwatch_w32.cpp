@@ -9,6 +9,23 @@
 
 #define EVENTPROC_HAVETHREAD
 
+uint64 ExGetMonoClock(void)
+{
+    LARGE_INTEGER freq, tick;
+    QueryPerformanceFrequency(&freq);
+    QueryPerformanceCounter(&tick);
+    double usec = 1000000.0;
+    usec *= static_cast<double>(tick.QuadPart);
+    usec /= static_cast<double>(freq.QuadPart);
+    return static_cast<uint64>(usec);
+}
+
+uint32 ExGetTickCount() {
+    uint32 msec;
+    msec = GetTickCount();
+    return msec;
+}
+
 // Iomux
 //
 void ExWatch::IomuxMap::fini() {
@@ -168,13 +185,7 @@ uint32 ExWatch::IomuxMap::invoke(uint32 waittick) {
 
 // Watch thread
 //
-uint32 ExWatch::getTickCount() {
-    uint32 msec;
-    msec = GetTickCount();
-    return msec;
-}
-
-uint32 ExWatch::tickAppLaunch = ExWatch::getTickCount();
+uint32 ExWatch::tickAppLaunch = ExGetTickCount();
 
 DWORD ExWatch::tls_key = TLS_OUT_OF_INDEXES;
 

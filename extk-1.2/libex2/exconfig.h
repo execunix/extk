@@ -128,6 +128,8 @@ typedef          wchar_t ucs4_t;
 #endif
 typedef          wchar_t wchar;
 
+#include "excompat.h"
+
 #ifdef __cplusplus
 }
 #endif

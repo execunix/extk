@@ -401,7 +401,7 @@ uint32 WndMain::onLayout(WndMain* widget, ExCbInfo* cbinfo) {
 uint32 WndMain::onActMain(WndMain* widget, ExCbInfo* cbinfo) {
     if (widget == this) {
         static ExPoint but_pt(0);
-        ExPoint msg_pt(cbinfo->event->msg.pt);
+        ExPoint msg_pt(cbinfo->event->pt);
         if (cbinfo->type == Ex_CbButPress) {
             but_pt = msg_pt; // memory press point
             wgtCapture = widget;
@@ -414,7 +414,7 @@ uint32 WndMain::onActMain(WndMain* widget, ExCbInfo* cbinfo) {
         return Ex_Continue;
     } else if (widget == &panes[0]) {
         static ExPoint but_pt(0);
-        ExPoint msg_pt(cbinfo->event->msg.pt);
+        ExPoint msg_pt(cbinfo->event->pt);
         if (cbinfo->type == Ex_CbButPress) {
             but_pt = msg_pt; // memory press point
             wgtCapture = widget;
@@ -433,7 +433,7 @@ uint32 WndMain::onActMain(WndMain* widget, ExCbInfo* cbinfo) {
 uint32 WndMain::onActBkgd(WndMain* widget, ExCbInfo* cbinfo) {
     if (widget == &wgtBkgd) {
         static ExPoint but_pt(0);
-        ExPoint msg_pt(cbinfo->event->msg.pt);
+        ExPoint msg_pt(cbinfo->event->pt);
         if (cbinfo->type == Ex_CbButPress) {
             but_pt = msg_pt; // memory press point
             //widget->toFront();
@@ -658,8 +658,8 @@ uint32 WndMain::onRbtnDown(WndMain* w, ExCbInfo* cbinfo) {
         int xPos = LOWORD(cbinfo->event->lParam);
         int yPos = HIWORD(cbinfo->event->lParam);
         #else // linux
-        int xPos = cbinfo->event->msg.pt.x;
-        int yPos = cbinfo->event->msg.pt.y;
+        int xPos = cbinfo->event->pt.x;
+        int yPos = cbinfo->event->pt.y;
         #endif // WIN32
         ExWidget* w = getPointOwner(ExPoint(xPos, yPos));
         if (w == &wgtBackViewer ||
@@ -672,11 +672,7 @@ uint32 WndMain::onRbtnDown(WndMain* w, ExCbInfo* cbinfo) {
 }
 
 uint32 WndMain::onHandler(WndMain* w, ExCbInfo* cbinfo) {
-    #ifdef WIN32
-    dprint("handler WM_0x%04x:0x%04x\n", cbinfo->event->message, cbinfo->event->msg.message);
-    #else // linux
     dprint("handler WM_0x%04x:0x%04x\n", cbinfo->event->message, cbinfo->event->wParam);
-    #endif // WIN32
     return Ex_Continue;
 }
 
@@ -689,11 +685,7 @@ uint32 WndMain::onFilter(WndMain* w, ExCbInfo* cbinfo) {
     if (i == 20) {
         removeHandler(ExCallback(this, &WndMain::onHandler));
     } else if (i == 40) {
-        #ifdef WIN32
         PostMessage(w->getHwnd(), WM_APP_TEST, 0, 0);
-        #else // linux
-        PostMessage(WM_APP_TEST, 0, 0LL);
-        #endif // WIN32
         addHandler(this, &WndMain::onHandler);
         i = 0;
     }
@@ -898,8 +890,8 @@ uint32 WndMain::onBackViewMove(WndMain* widget, ExCbInfo* cbinfo) {
         int xPos = LOWORD(cbinfo->event->lParam);
         int yPos = HIWORD(cbinfo->event->lParam);
         #else // linux
-        int xPos = cbinfo->event->msg.pt.x;
-        int yPos = cbinfo->event->msg.pt.y;
+        int xPos = cbinfo->event->pt.x;
+        int yPos = cbinfo->event->pt.y;
         #endif // WIN32
         but_pt.set(xPos, yPos); // memory press point
         widget->toFront();
@@ -910,8 +902,8 @@ uint32 WndMain::onBackViewMove(WndMain* widget, ExCbInfo* cbinfo) {
         int xPos = LOWORD(cbinfo->event->lParam);
         int yPos = HIWORD(cbinfo->event->lParam);
         #else // linux
-        int xPos = cbinfo->event->msg.pt.x;
-        int yPos = cbinfo->event->msg.pt.y;
+        int xPos = cbinfo->event->pt.x;
+        int yPos = cbinfo->event->pt.y;
         #endif // WIN32
         ExPoint pt(wgtBackViewer.area.u.pt);
         pt.x += xPos - but_pt.x;

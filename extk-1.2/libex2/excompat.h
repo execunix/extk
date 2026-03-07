@@ -6,20 +6,28 @@
 #ifndef __excompat_h__
 #define __excompat_h__
 
-#include "exconfig.h"
+#ifdef CONF_X11
+#include <X11/Xlib.h>
+#include <X11/Xutil.h>
+#endif // CONF_X11
 
 #ifdef __linux__
 typedef void* ATOM;
 typedef void* HANDLE;
-//typedef void* HWND;
+typedef ulong HWND; // XID 64bit
+#ifndef CONF_X11 // __linux__
+constexpr HWND None = 0UL;
+#endif
 typedef void* HRGN;
 typedef void* HDC;
-typedef uint UINT;
-typedef ulong DWORD;
-typedef uint64 WPARAM;
-typedef uint64 LPARAM;
+typedef uint32 UINT;
+typedef uint32 DWORD;
+typedef uint32 WPARAM;
+typedef int64 LPARAM;
 typedef int64 LRESULT;
 typedef void* HINSTANCE;
+#else // WIN32
+constexpr HWND None = nullptr;
 #endif
 
 #endif//__excompat_h__
