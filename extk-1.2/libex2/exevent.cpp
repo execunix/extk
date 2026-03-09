@@ -90,10 +90,9 @@ bool PostMessage(HWND hwnd, const int32 message, const int32 wparam, const int64
 }
 #endif // __linux__
 
-bool ExEventPeek(ExEvent* event)
-{
 #ifdef WIN32
-    MSG msg;
+bool ExEventPeek(MSG& msg)
+{
     BOOL bRet;
     exWatchDisp->leave();
     if ((bRet = GetMessage(&msg, NULL, 0, 0)) != TRUE) {
@@ -103,10 +102,13 @@ bool ExEventPeek(ExEvent* event)
     }
     exWatchDisp->enter();
     return bRet;
-#else
-    return false; // tbd
-#endif
 }
+#else
+bool ExEventPeek(ExEvent* event)
+{
+    return false; // tbd
+}
+#endif
 
 ExEventFunc exEventFunc = &ExEventPeek;
 
@@ -121,7 +123,7 @@ bool ExEmitMessage(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
 
 bool ExEmitKeyEvent(ExWidget* widget, UINT message, int32 virtkey, long keydata) {
     HWND hwnd;
-    if (widget && widget->getFlags(Ex_Realized) &&
+    if ((widget != nullptr) && (widget->getFlags(Ex_Realized) != 0U) &&
         (hwnd = widget->getWindow()->getHwnd()) != NULL) {
         return ExEmitMessage(hwnd, message, virtkey, keydata);
     }
@@ -130,7 +132,7 @@ bool ExEmitKeyEvent(ExWidget* widget, UINT message, int32 virtkey, long keydata)
 
 bool ExEmitPtrEvent(ExWidget* widget, UINT message, WPARAM wParam, int32 x, int32 y) {
     HWND hwnd;
-    if (widget && widget->getFlags(Ex_Realized) &&
+    if ((widget != nullptr) && (widget->getFlags(Ex_Realized) != 0U) &&
         (hwnd = widget->getWindow()->getHwnd()) != NULL) {
         ExPoint pt(widget->getRect().center());
         x += pt.x;

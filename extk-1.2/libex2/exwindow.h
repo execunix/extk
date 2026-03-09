@@ -36,10 +36,10 @@ protected:
     ExWidget*   wgtPressed;
     ExWidget*   wgtFocused; // focused child
 public:
-    ExWidget* getCapture() const;
-    ExWidget* getEntered() const;
-    ExWidget* getPressed() const;
-    ExWidget* getFocused() const;
+    ExWidget* getCapture() const { return wgtCapture; }
+    ExWidget* getEntered() const { return wgtEntered; }
+    ExWidget* getPressed() const { return wgtPressed; }
+    ExWidget* getFocused() const { return wgtFocused; }
     void setCapture(ExWidget* wgt) { wgtCapture = wgt; }
     void setEntered(ExWidget* wgt) { wgtEntered = wgt; }
     void setPressed(ExWidget* wgt) { wgtPressed = wgt; }

@@ -601,12 +601,12 @@ static uint32 on_enum(void* /*data*/, const ExWidget* const widget, ExCbInfo* co
             exstrcat(depth, "   .");
         }
         cbinfo->subtype++;
-        const char* const visable_mark = ((widget->getFlags(Ex_Visible) != 0U) ? "*" : " ");
+        const char* const visable_mark = (widget->isFlagVisible() ? "*" : " ");
         dprint("enum: %s [%s] %s\n", depth, visable_mark, widget->getName());
-        // ret = ((widget->getFlags(Ex_Visible) != 0U) ? Ex_Continue : Ex_Discard);
+        // ret = (widget->isFlagVisible() ? Ex_Continue : Ex_Discard);
         ret = Ex_Continue;
     } else if (cbinfo->type == Ex_CbEnumLeave) {
-        // ret = ((widget->getFlags(Ex_Visible) != 0U) ? Ex_Continue : Ex_Discard);
+        // ret = (widget->isFlagVisible() ? Ex_Continue : Ex_Discard);
         ret = Ex_Continue;
     } else {
         // defense code

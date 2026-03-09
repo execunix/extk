@@ -138,19 +138,22 @@ ExWidget::ExWidget() noexcept
 
 void ExWidget::detachAll() {
     vanish(getWindow());
-    for (ExWidget* w = last(); w; w = last()) {
+    for (ExWidget* w = last(); w != nullptr; w = last()) {
         dprint1("detach: %s\n", w->name);
         w->detachParent();
-        if (w == this)
+        if (w == this) {
             break;
+        }
     }
 }
 
 void ExWidget::detachParent() {
-    if (parent == NULL)
+    if (parent == NULL) {
         return;
-    if (!getFlags(Ex_Destroyed))
+    }
+    if (getFlags(Ex_Destroyed) == 0U) {
         vanish(getWindow());
+    }
     ExWidget* next = NULL;
     if (broNext != this) {
         broNext->broPrev = broPrev;
@@ -165,10 +168,12 @@ void ExWidget::detachParent() {
 
 void ExWidget::attachHead(ExWidget* child) {
     exassert(child != this);
-    if (child == NULL)
+    if (child == NULL) {
         return;
-    if (childHead == child) // already attached to the head
+    }
+    if (childHead == child) { // already attached to the head
         return;
+    }
 
     child->detachParent();
 
@@ -188,10 +193,12 @@ void ExWidget::attachHead(ExWidget* child) {
 
 void ExWidget::attachTail(ExWidget* child) {
     exassert(child != this);
-    if (child == NULL)
+    if (child == NULL) {
         return;
-    if (childTail() == child) // already attached to the tail
+    }
+    if (childTail() == child) { // already attached to the tail
         return;
+    }
 
     child->detachParent();
 
@@ -210,41 +217,49 @@ void ExWidget::attachTail(ExWidget* child) {
 }
 
 ExWidget* ExWidget::seekNext(ExWidget* seek) {
-    if (seek->childHead != NULL)
+    if (seek->childHead != NULL) {
         return seek->childHead;
+    }
     while (seek->parent != NULL) {
-        if (seek->broNext != seek->parent->childHead)
+        if (seek->broNext != seek->parent->childHead) {
             return seek->broNext;
+        }
         seek = seek->parent;
     }
     return NULL;
 }
 
 ExWidget* ExWidget::seekPrev(ExWidget* seek) {
-    if (seek->parent == NULL) // is root ?
+    if (seek->parent == NULL) { // is root ?
         return NULL;
-    if (seek->parent->childHead == seek)
+    }
+    if (seek->parent->childHead == seek) {
         return seek->parent;
+    }
     seek = seek->broPrev;
-    while (seek->childHead != NULL)
+    while (seek->childHead != NULL) {
         seek = seek->childHead->broPrev;
+    }
     return seek;
 }
 
 ExWidget* ExWidget::seekLast(ExWidget* seek) { // top-most
-    while (seek->childHead != NULL)
+    while (seek->childHead != NULL) {
         seek = seek->childHead->broPrev;
+    }
     return seek;
 }
 
 void ExWidget::dumpBackToFront(ExWidget* end) {
-    for (ExWidget* w = this; w && w != end; w = w->next()) {
+    ExWidget* w = this;
+    for (; (w != nullptr) && (w != end); w = w->next()) {
         dprint1("seek name: %s\n", w->name);
     }
 }
 
 void ExWidget::dumpFrontToBack(ExWidget* end) {
-    for (ExWidget* w = this; w && w != end; w = w->prev()) {
+    ExWidget* w = this;
+    for (; (w != nullptr) && (w != end); w = w->prev()) {
         dprint1("seek name: %s\n", w->name);
     }
 }
@@ -252,9 +267,9 @@ void ExWidget::dumpFrontToBack(ExWidget* end) {
 ExBox& ExWidget::getBox(ExBox& bx) const {
     ExPoint pt = area.u.pt;
     const ExWidget* w = this;
-    for (; w && !w->getClassFlags(Ex_DISJOINT); w = w->parent)
+    for (; (w != nullptr) && !w->isClassDisjoint(); w = w->parent) {
         pt += w->area.u.pt;
-
+    }
     bx.l = pt.x;
     bx.t = pt.y;
     bx.r = bx.l + area.w;
@@ -265,9 +280,9 @@ ExBox& ExWidget::getBox(ExBox& bx) const {
 ExRect& ExWidget::getRect(ExRect& rc) const {
     ExPoint pt = area.u.pt;
     const ExWidget* w = this;
-    for (; w && !w->getClassFlags(Ex_DISJOINT); w = w->parent)
+    for (; (w != nullptr) && !w->isClassDisjoint(); w = w->parent) {
         pt += w->area.u.pt;
-
+    }
     rc.x = pt.x;
     rc.y = pt.y;
     rc.w = area.w;
@@ -277,8 +292,12 @@ ExRect& ExWidget::getRect(ExRect& rc) const {
 
 uint32 ExWidget::init(ExWidget* parent, const char* name, const ExRect* area) {
     this->setName(name);
-    if (parent) parent->attachTail(this);
-    if (area) this->area = *area;
+    if (parent) {
+        parent->attachTail(this);
+    }
+    if (area) {
+        this->area = *area;
+    }
     flags |= Ex_Exposed | Ex_Damaged;
     addRenderFlags(Ex_RenderRebuild); // for setup exposeRgn
     flags &= ~Ex_Destroyed;
@@ -295,31 +314,36 @@ ExWidget::create(ExWidget* parent, const char* name, const ExRect* area) {
 }
 
 uint32 ExWidget::destroy() {
-    if (getFlags(Ex_Destroyed))
+    if (getFlags(Ex_Destroyed) != 0U) {
         return 1;
+    }
     ExWindow* window = getWindow();
     ExWidgetList destroyed;
     vanish(window);
-    for (ExWidget* w = last(); w; w = last()) {
+    for (ExWidget* w = last(); w != nullptr; w = last()) {
         dprint0("destroy: %s\n", w->name);
         w->flags |= Ex_Destroyed;
         w->detachParent();
-        if (window->wgtCapture == w)
+        if (window->wgtCapture == w) {
             window->wgtCapture = NULL;
-        if (window->wgtEntered == w)
+        }
+        if (window->wgtEntered == w) {
             window->wgtEntered = NULL;
-        if (window->wgtPressed == w)
+        }
+        if (window->wgtPressed == w) {
             window->wgtPressed = NULL;
+        }
         destroyed.push_back(w);
-        if (w == this)
+        if (w == this) {
             break;
+        }
     }
     ExWidgetList::iterator i = destroyed.begin();
     while (i != destroyed.end()) {
         ExWidget* w = *i;
         // tbd - detach listenerList
         w->invokeListener(Ex_CbDestroyed);
-        if (w->getFlags(Ex_FreeMemory)) {
+        if (w->getFlags(Ex_FreeMemory) != 0U) {
             ExApp::addCollectWidget(w);
         }
         ++i;
@@ -328,40 +352,44 @@ uint32 ExWidget::destroy() {
 }
 
 uint32 ExWidget::realize() {
-    if (getFlags(Ex_Realized))
+    if (getFlags(Ex_Realized) != 0U) {
         return 1;
+    }
     ExWidget* end = last();
-    for (ExWidget* w = this; w; w = next()) {
-        if (!w->getFlags(Ex_Realized) && w->isVisible()) {
+    for (ExWidget* w = this; w != nullptr; w = next()) {
+        if ((w->getFlags(Ex_Realized) == 0U) && w->isVisible()) {
             dprint1("realize: %s\n", w->name);
             w->flags |= Ex_Realized;
             w->invokeListener(Ex_CbRealized);
         }
-        if (w == end)
+        if (w == end) {
             break;
+        }
     }
     return 0;
 }
 
 uint32 ExWidget::unrealize() {
-    if (!getFlags(Ex_Realized))
+    if (getFlags(Ex_Realized) == 0U) {
         return 1;
+    }
     ExWidget* end = this;
-    for (ExWidget* w = last(); w; w = prev()) {
-        if (w->getFlags(Ex_Realized)) {
+    for (ExWidget* w = last(); w != nullptr; w = prev()) {
+        if (w->getFlags(Ex_Realized) != 0U) {
             dprint1("unrealize: %s\n", w->name);
             w->flags &= ~Ex_Realized;
             w->invokeListener(Ex_CbUnrealized);
         }
-        if (w == end)
+        if (w == end) {
             break;
+        }
     }
     return 0;
 }
 
 void ExWidget::addRenderFlags(uint32 value) {
-    for (ExWidget* w = this; w; w = w->parent) {
-        if (w->getClassFlags(Ex_DISJOINT) && w->getFlags(Ex_Visible)) {
+    for (ExWidget* w = this; w != nullptr; w = w->parent) {
+        if (w->isClassDisjoint() && isFlagVisible()) {
             ((ExWindow*)w)->renderFlags |= value;
             return;
         }
@@ -369,8 +397,8 @@ void ExWidget::addRenderFlags(uint32 value) {
 }
 
 void ExWidget::addUpdateRegion(const ExRegion& rgn) {
-    for (ExWidget* w = this; w; w = w->parent) {
-        if (w->getClassFlags(Ex_DISJOINT) && w->getFlags(Ex_Visible)) {
+    for (ExWidget* w = this; w != nullptr; w = w->parent) {
+        if (w->isClassDisjoint() && isFlagVisible()) {
             ((ExWindow*)w)->damageRgn.combine(rgn);
             return;
         }
@@ -378,8 +406,8 @@ void ExWidget::addUpdateRegion(const ExRegion& rgn) {
 }
 
 void ExWidget::subUpdateRegion(const ExRegion& rgn) {
-    for (ExWidget* w = this; w; w = w->parent) {
-        if (w->getClassFlags(Ex_DISJOINT) && w->getFlags(Ex_Visible)) {
+    for (ExWidget* w = this; w != nullptr; w = w->parent) {
+        if (w->isClassDisjoint() && isFlagVisible()) {
             ((ExWindow*)w)->damageRgn.subtract(rgn);
             return;
         }
@@ -387,10 +415,11 @@ void ExWidget::subUpdateRegion(const ExRegion& rgn) {
 }
 
 void ExWidget::resetArea() {
-    if (isVisible() && !(getFlags(Ex_Exposed))) {
+    if (isVisible() && ((getFlags(Ex_Exposed) == 0U))) {
         // marks that the old area should be updated
-        if (extent.valid())
+        if (extent.valid()) {
             addUpdateRegion(ExRegion(extent));
+        }
         addRenderFlags(Ex_RenderRebuild);
     }
     // tbd - distinguish between move and resize
@@ -398,35 +427,39 @@ void ExWidget::resetArea() {
 }
 
 void ExWidget::setVisible(bool show) {
-    if (!getFlags(Ex_Visible) == !show)
+    if (!isFlagVisible() == !show) {
         return/* 1*/;
-
+    }
     if (!show) {
         vanish(getWindow());
         flags &= ~Ex_Visible;
         exposeRgn.setEmpty();
         damageRgn.setEmpty();
     } else /*if (calcExtent()) */{ // tbd
-        flags |= Ex_Visible | Ex_Exposed;
+        flags |= (Ex_Visible | Ex_Exposed);
         addRenderFlags(Ex_RenderRebuild);
     }
     return/* 0*/;
 }
 
 bool ExWidget::isVisible() {
-    for (ExWidget* w = this; w && w->getFlags(Ex_Visible); w = w->parent) {
-        if (w->getClassFlags(Ex_DISJOINT))
+    const ExWidget* w = this;
+    for (; (w != nullptr) && w->isFlagVisible(); w = w->parent) {
+        if (w->isClassDisjoint()) {
             return true;
+        }
     }
     return false;
 }
 
 uint32 ExWidget::vanish(ExWindow* window) {
-    if (getFlags(Ex_Destroyed))
+    if (getFlags(Ex_Destroyed) != 0U) {
         return 1;
+    }
     if (window) {
-        if (getFlags(Ex_Focused))
+        if (getFlags(Ex_Focused) != 0U) {
             window->giveFocus(parent);
+        }
         if (window != this && isVisible()) {
             window->damageRgn.combine(ExRegion(extent)); // inval
             window->renderFlags |= Ex_RenderRebuild;
@@ -455,11 +488,13 @@ uint32 ExWidget::layout(ExRect& ar) {
 }
 
 uint32 ExWidget::damage() {
-    if (!getFlags(Ex_Visible))
+    if (!isFlagVisible()) {
         return -1;
-    if (getFlags(Ex_Damaged | Ex_Exposed) ||
-        exposeRgn.empty())
+    }
+    if ((getFlags(Ex_Damaged | Ex_Exposed) != 0U) ||
+        exposeRgn.empty()) {
         return 1;
+    }
     flags |= Ex_Damaged;
     addUpdateRegion(exposeRgn);
     return 0;
@@ -484,10 +519,10 @@ This rectangle is the area capable of obscuring any widgets beneath. Widgets
 completely obscured by another widget aren't drawn.
 */
 bool ExWidget::calcExtent() {
-    if (parent && !getFlags(Ex_HasOwnGC)) {
+    if ((parent != nullptr) && (getFlags(Ex_HasOwnGC) == 0U)) {
         origin.x = area.x + parent->origin.x;
         origin.y = area.y + parent->origin.y;
-    //} else if (getFlags(Ex_HasOwnGC)) {
+    //} else if (getFlags(Ex_HasOwnGC) != 0U) {
     //    origin.x = area.x;
     //    origin.y = area.y;
     } else {
@@ -500,9 +535,10 @@ bool ExWidget::calcExtent() {
     extent.b = origin.y + area.h;
     if (!extent.valid())
         return false;
-    if (parent && !getFlags(Ex_HasOwnGC) &&
-        !extent.intersect(parent->extent))
+    if ((parent != nullptr) && (getFlags(Ex_HasOwnGC) == 0U) &&
+        !extent.intersect(parent->extent)) {
         return false;
+    }
     logdraw("extent: %s [%d,%d-%dx%d]\n", getName(),
             extent.l, extent.t, extent.width(), extent.height());
     return true;
@@ -529,7 +565,7 @@ ExWidget::calcOpaque(ExRegion& opaqueAcc) {
     exposeRgn.subtract(opaqueAcc);
     if (!drawFunc) {
         ; // if no drawFunc then it's transparent
-    } else if (getFlags(Ex_Opaque)) {
+    } else if (getFlags(Ex_Opaque) != 0U) {
         opaqueAcc.combine(extent);
     } else if (!opaqueRgn.empty()) {
         ExRegion clipRgn(extent);
@@ -545,7 +581,7 @@ ExWidget::calcOpaque(ExRegion& opaqueAcc) {
 }
 
 void ExWidget::buildExtent() {
-    exassert(getFlags(Ex_Visible));
+    exassert(isFlagVisible());
     if (!calcExtent()) {
         flags &= ~(Ex_Exposed | Ex_Damaged);
         exposeRgn.setEmpty();
@@ -553,18 +589,18 @@ void ExWidget::buildExtent() {
         return;
     }
     flags |= Ex_Exposed;
-    for (ExWidget* c = getChildHead(); c; c = c->getBroNext()) {
-        if (c->getFlags(Ex_Visible)) {
+    for (ExWidget* c = getChildHead(); c != nullptr; c = c->getBroNext()) {
+        if (c->isFlagVisible()) {
             c->buildExtent();
         }
     }
 }
 
 void ExWidget::buildRegion() { // simple ver for gpu
-    exassert(getFlags(Ex_Visible) && !extent.empty());
-    for (ExWidget* c = getChildTail(); c; c = c->getBroPrev()) {
-        if (c->getFlags(Ex_Exposed) &&
-            c->getFlags(Ex_Visible)) {
+    exassert(isFlagVisible() && !extent.empty());
+    for (ExWidget* c = getChildTail(); c != nullptr; c = c->getBroPrev()) {
+        if ((c->getFlags(Ex_Exposed) != 0U) &&
+            c->isFlagVisible()) {
             c->buildRegion();
         }
     }
@@ -572,7 +608,7 @@ void ExWidget::buildRegion() { // simple ver for gpu
 }
 
 void ExWidget::dumpImage(const ExCanvas* canvas) {
-    exassert(getFlags(Ex_Visible) && !extent.empty());
+    exassert(isFlagVisible() && !extent.empty());
     if (drawFunc && !exposeRgn.empty()) {
         drawFunc(canvas, this, &exposeRgn);
 #ifdef DEBUG
@@ -580,8 +616,8 @@ void ExWidget::dumpImage(const ExCanvas* canvas) {
             exDrawFuncTrap(canvas, this, &exposeRgn);
 #endif
     }
-    for (ExWidget* c = getChildHead(); c; c = c->getBroNext()) {
-        if (c->getFlags(Ex_Visible) && !c->extent.empty()) {
+    for (ExWidget* c = getChildHead(); c != nullptr; c = c->getBroNext()) {
+        if (c->isFlagVisible() && !c->extent.empty()) {
             c->dumpImage(canvas);
         }
     }
@@ -595,10 +631,10 @@ uint32 ExWidget::dumpImage(const ExCanvas* canvas, const ExRegion& updateRgn) { 
     ExWidget* c;
     do { // back to front iterator
 proc_enter:
-        if (!w->getFlags(Ex_Visible) || w->extent.empty())
+        if (!w->isFlagVisible() || w->extent.empty())
             goto proc_leave; // leave to parent and goto next_child
         if (w->drawFunc && !w->exposeRgn.empty()) {
-            if (w->getFlags(Ex_Damaged)) {
+            if (w->getFlags(Ex_Damaged) != 0U) {
                 w->damageRgn.copy(w->exposeRgn);
             } else {
                 w->damageRgn.copy(w->exposeRgn);
@@ -613,7 +649,7 @@ proc_enter:
                     exDrawFuncTrap(canvas, w, &w->damageRgn);
 #endif
                 call_cnt++;
-                if (w->getFlags(Ex_HasOwnGC)) // tbd - tbd
+                if (w->getFlags(Ex_HasOwnGC) != 0U) // tbd - tbd
                     goto proc_clear;
             }
         }
@@ -648,7 +684,7 @@ ExWidget* ExWidget::getPointOwner(const ExPoint& pt) {
     ExWidget* c;
     do { // front to back iterator
 proc_enter:
-        if (!w->getFlags(Ex_Visible))
+        if (!w->isFlagVisible())
             goto proc_leave; // leave to parent and goto next_child
         // front to back
         c = w->childHead ? w->childHead->broPrev : NULL;
@@ -678,7 +714,7 @@ ExWidget* ExWidget::getSelectable(const ExPoint& pt) {
     ExWidget* c;
     do { // front to back iterator
 proc_enter:
-        if (!w->getFlags(Ex_Visible))
+        if (!w->isFlagVisible())
             goto proc_leave; // leave to parent and goto next_child
         // front to back
         c = w->childHead ? w->childHead->broPrev : NULL;
@@ -689,10 +725,10 @@ next_child:
             c = c != w->childHead ? c->broPrev : NULL;
         }
         // w is visible and ...
-        if (w->getFlags(Ex_Selectable | Ex_AutoHighlight) &&
+        if ((w->getFlags(Ex_Selectable | Ex_AutoHighlight) != 0U) &&
             w->isSelectable(pt)) {
             for (ExWidget* p = w; ; p = p->parent) {
-                if (p->getFlags(Ex_Blocked))
+                if (p->getFlags(Ex_Blocked) != 0U)
                     return NULL;
                 if (p == this ||
                     p->parent == NULL)
@@ -713,20 +749,23 @@ proc_leave:
 }
 
 void ExWidget::setOpaqueRegion(const ExRegion& op) {
-    if (opaqueRgn.equal(op))
+    if (opaqueRgn.equal(op)) {
         return;
+    }
     opaqueRgn.copy(op);
     flags |= Ex_Exposed;
     addRenderFlags(Ex_RenderRebuild);
 }
 
 void ExWidget::setOpaque(bool set) {
-    if (!getFlags(Ex_Opaque) == !set)
+    if (!getFlags(Ex_Opaque) == !set) {
         return;
-    if (set)
+    }
+    if (set) {
         flags |= Ex_Opaque;
-    else
+    } else {
         flags &= ~Ex_Opaque;
+    }
     flags |= Ex_Exposed;
     addRenderFlags(Ex_RenderRebuild);
 }
@@ -735,18 +774,21 @@ ExWidget* // static
 ExWidget::enumBackToFront(ExWidget* begin, ExWidget* end, const ExCallback& cb, ExCbInfo* cbinfo) {
     uint32 r;
     ExCbInfo ci(0);
-    if (cbinfo == NULL)
+    if (cbinfo == NULL) {
         cbinfo = &ci;
+    }
     ExWidget* w = begin;
     ExWidget* c;
     do { // back to front iterator
 proc_enter:
         cbinfo->type = Ex_CbEnumEnter;
         r = cb(w, cbinfo);
-        if (r & Ex_Break)
+        if (r & Ex_Break) {
             return w;
-        if (r & Ex_Discard) // discard proc and skip leave callback
+        }
+        if (r & Ex_Discard) { // discard proc and skip leave callback
             goto proc_leave; // leave to parent and goto next_child
+        }
         // back to front
         c = w->childHead;
         while (c) {
@@ -757,12 +799,14 @@ next_child:
         }
         cbinfo->type = Ex_CbEnumLeave;
         r = cb(w, cbinfo);
-        if (r & Ex_Break)
+        if (r & Ex_Break) {
             return w;
+        }
 proc_leave:
         if (w == end ||
-            w->parent == NULL) // is root ?
+            w->parent == NULL) { // is root ?
             break;
+        }
         c = w;
         w = w->parent;
         goto next_child;
@@ -774,18 +818,21 @@ ExWidget* // static
 ExWidget::enumFrontToBack(ExWidget* begin, ExWidget* end, const ExCallback& cb, ExCbInfo* cbinfo) {
     uint32 r;
     ExCbInfo ci(0);
-    if (cbinfo == NULL)
+    if (cbinfo == NULL) {
         cbinfo = &ci;
+    }
     ExWidget* w = begin;
     ExWidget* c;
     do { // front to back iterator
 proc_enter:
         cbinfo->type = Ex_CbEnumEnter;
         r = cb(w, cbinfo);
-        if (r & Ex_Break)
+        if (r & Ex_Break) {
             return w;
-        if (r & Ex_Discard) // discard proc and skip leave callback
+        }
+        if (r & Ex_Discard) { // discard proc and skip leave callback
             goto proc_leave; // leave to parent and goto next_child
+        }
         // front to back
         c = w->childHead ? w->childHead->broPrev : NULL;
         while (c) {
@@ -796,12 +843,14 @@ next_child:
         }
         cbinfo->type = Ex_CbEnumLeave;
         r = cb(w, cbinfo);
-        if (r & Ex_Break)
+        if (r & Ex_Break) {
             return w;
+        }
 proc_leave:
         if (w == end ||
-            w->parent == NULL) // is root ?
+            w->parent == NULL) { // is root ?
             break;
+        }
         c = w;
         w = w->parent;
         goto next_child;

@@ -320,9 +320,14 @@ Returns:
     0	no messages are available
     1	a message is available
 */
-bool ExEventPeek(ExEvent* event);
-
+#ifdef WIN32
+typedef bool (*ExEventFunc)(MSG& msg);
+bool ExEventPeek(MSG& msg);
+#endif // WIN32
+#ifdef __linux__
 typedef bool (*ExEventFunc)(ExEvent* event);
+bool ExEventPeek(ExEvent* event);
+#endif // __linux__
 extern ExEventFunc exEventFunc;
 
 // ExEmit APIs - deprecated => Call the callback function directly.
@@ -333,7 +338,7 @@ bool ExEmitKeyEvent(ExWidget* widget, UINT message, int32 virtkey, long keydata)
 bool ExEmitPtrEvent(ExWidget* widget, UINT message, WPARAM wParam, int32 x, int32 y);
 bool ExEmitButPress(ExWidget* widget, int32 x, int32 y);
 bool ExEmitButRelease(ExWidget* widget, int32 x, int32 y);
-#endif
+#endif // WIN32
 #ifdef __linux__
 bool ExEmitMessage(const int32 type, const int32 message, const int32 wParam, const int64 lParam);
 #endif // __linux__

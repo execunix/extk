@@ -18,8 +18,9 @@
 // class ExWindow
 //
 ExWindow::~ExWindow() noexcept {
-    if (canvas)
+    if (canvas != nullptr) {
         delete canvas;
+    }
     //handlerList.clear();
     //filterList.clear();
 }
@@ -48,26 +49,6 @@ ExWindow::ExWindow() noexcept
     paintFunc = ExFlushFunc(this, &ExWindow::onWmPaint);
 }
 
-ExWidget* ExWindow::getCapture() const
-{
-    return wgtCapture;
-}
-
-ExWidget* ExWindow::getEntered() const
-{
-    return wgtEntered;
-}
-
-ExWidget* ExWindow::getPressed() const
-{
-    return wgtPressed;
-}
-
-ExWidget* ExWindow::getFocused() const
-{
-    return wgtFocused;
-}
-
 uint32 ExWindow::init(const char* name, int32 w, int32 h) {
     ExRect rc(0, 0, w, h);
     ExWidget::init(NULL/*parent*/, name, &rc);
@@ -85,7 +66,7 @@ ExWindow::create(const char* name, int32 w, int32 h) {
 }
 
 uint32 ExWindow::destroy() {
-    if (getFlags(Ex_Destroyed)) {
+    if (getFlags(Ex_Destroyed) != 0U) {
         return 1;
     }
     HWND hwnd = this->hwnd;
@@ -226,18 +207,21 @@ bool ExWindow::hideWindow() {
 #endif
 
 ExWidget* ExWindow::giveFocus(ExWidget* newFocus) {
-    if (newFocus == wgtFocused)
+    if (newFocus == wgtFocused) {
         return wgtFocused;
+    }
     if (newFocus != NULL) {
-        if (newFocus->getFlags(Ex_Blocked) ||
-            !newFocus->isVisible())
+        if ((newFocus->getFlags(Ex_Blocked) != 0U) ||
+            !newFocus->isVisible()) {
             return wgtFocused;
+        }
     }
 
     ExWidgetList got;
     if (newFocus) {
-        for (ExWidget* w = newFocus; w; w = w->parent)
+        for (ExWidget* w = newFocus; w != nullptr; w = w->parent) {
             got.push_front(w);
+        }
         if (got.front() != this) {
             exerror("can't give focus %s to %s different parent\n", newFocus->name, name);
             return wgtFocused;
@@ -245,19 +229,22 @@ ExWidget* ExWindow::giveFocus(ExWidget* newFocus) {
     }
     ExWidgetList lost;
     if (wgtFocused) {
-        for (ExWidget* w = wgtFocused; w; w = w->parent)
+        for (ExWidget* w = wgtFocused; w != nullptr; w = w->parent) {
             lost.push_front(w);
+        }
     }
 
     ExWidgetList::iterator got_i = got.begin();
     ExWidgetList::iterator lost_i = lost.begin();
     while (got_i != got.end() && lost_i != lost.end()) {
         dprint("compare %s %s\n", (*got_i)->name, (*lost_i)->name);
-        if (*lost_i != *got_i)
+        if (*lost_i != *got_i) {
             break;
+        }
         ++lost_i;
-        if (*got_i == newFocus)
+        if (*got_i == newFocus) {
             break;
+        }
         ++got_i;
     }
     lost.erase(lost.begin(), lost_i);
@@ -268,16 +255,18 @@ ExWidget* ExWindow::giveFocus(ExWidget* newFocus) {
     while (lost_i != lost.begin()) {
         ExWidget* w = *--lost_i;
         w->flags &= ~Ex_Focused;
-        if (w->getFlags(Ex_FocusRender))
+        if (w->getFlags(Ex_FocusRender) != 0U) {
             w->damage();
+        }
         dprint("lost focus %s\n", w->name);
     }
     got_i = got.begin();
     while (got_i != got.end()) {
         ExWidget* w = *got_i++;
         w->flags |= Ex_Focused;
-        if (w->getFlags(Ex_FocusRender))
+        if (w->getFlags(Ex_FocusRender) != 0U) {
             w->damage();
+        }
         dprint("got focus %s\n", w->name);
     }
 
@@ -303,23 +292,36 @@ ExWidget* ExWindow::giveFocus(ExWidget* newFocus) {
 
 ExWidget* ExWindow::moveFocus(uint32 dir) { // sample
     if (wgtFocused == NULL) {
-        if (dir == Ex_DirUp || dir == Ex_DirLeft)
+        if (dir == Ex_DirUp || dir == Ex_DirLeft) {
             return giveFocus(this);
+        }
         return giveFocus(last());
     }
     switch (dir) {
-        case Ex_DirUp:
-            if (wgtFocused->broPrev && wgtFocused->broPrev != wgtFocused)
+        case Ex_DirUp: {
+            if (wgtFocused->broPrev && wgtFocused->broPrev != wgtFocused) {
                 return giveFocus(wgtFocused->broPrev);
-        case Ex_DirDown:
-            if (wgtFocused->broNext && wgtFocused->broNext != wgtFocused)
+            }
+            break;
+        }
+        case Ex_DirDown: {
+            if (wgtFocused->broNext && wgtFocused->broNext != wgtFocused) {
                 return giveFocus(wgtFocused->broNext);
-        case Ex_DirLeft:
-            if (wgtFocused->parent)
+            }
+            break;
+        }
+        case Ex_DirLeft: {
+            if (wgtFocused->parent) {
                 return giveFocus(wgtFocused->parent);
-        case Ex_DirRight:
-            if (wgtFocused->childHead)
+            }
+            break;
+        }
+        case Ex_DirRight: {
+            if (wgtFocused->childHead) {
                 return giveFocus(wgtFocused->childHead);
+            }
+            break;
+        }
     }
     return wgtFocused;
 }

@@ -225,14 +225,7 @@ uint32 WgtMenu::onFilter(ExWidget* widget, ExCbInfo* cbinfo) {
     if (cbinfo->event->message == WM_MOUSEMOVE) {
         if (popList.empty())
             return Ex_Continue;
-        #ifdef WIN32
-        int xPos = LOWORD(cbinfo->event->lParam);
-        int yPos = HIWORD(cbinfo->event->lParam);
-        #else // linux
-        int xPos = cbinfo->event->pt.x;
-        int yPos = cbinfo->event->pt.y;
-        #endif // WIN32
-        Menu* menu = findMenu(ExPoint(xPos, yPos));
+        Menu* menu = findMenu(cbinfo->event->pt);
         if (menu) {
             if (window->getEntered() != menu->view) {
                 showPopup(menu);
@@ -256,14 +249,7 @@ uint32 WgtMenu::onFilter(ExWidget* widget, ExCbInfo* cbinfo) {
 #endif
     }
     if (cbinfo->event->message == WM_LBUTTONDOWN) {
-        #ifdef WIN32
-        int xPos = LOWORD(cbinfo->event->lParam);
-        int yPos = HIWORD(cbinfo->event->lParam);
-        #else // linux
-        int xPos = cbinfo->event->pt.x;
-        int yPos = cbinfo->event->pt.y;
-        #endif // WIN32
-        Menu* menu = findMenu(ExPoint(xPos, yPos));
+        Menu* menu = findMenu(cbinfo->event->pt);
         int popcnt = (int)popList.size();
         showPopup(menu);
         if (menu) {

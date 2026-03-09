@@ -106,17 +106,17 @@ uint32 ProcWndEvent(ExWindow* const window, ExCbInfo* const cbinfo)
             break;
         }
         case WM_SIZE: {
-            int32 width = LOWORD(lParam);
-            int32 height = HIWORD(lParam);
-            logproc("[0x%p] WM_SIZE wParam=0x%d w=%u h=%u\n", window->getHwnd(), wParam, width, height);
+            //int32 width = LOWORD(lParam);
+            //int32 height = HIWORD(lParam);
+            ExSize sz = cbinfo->event->sz;
+            logproc("[0x%p] WM_SIZE wParam=0x%d w=%u h=%u\n", window->getHwnd(), wParam, sz.w, sz.h);
             if (wParam != SIZE_MINIMIZED) {
-                if (width < 640) {
-                    width = 640;
+                if (sz.w < 640) {
+                    sz.w = 640;
                 }
-                if (height < 360) {
-                    height = 360;
+                if (sz.h < 360) {
+                    sz.h = 360;
                 }
-                ExSize sz(width, height);
                 if (window->area.u.sz != sz) {
                     ExRect ar(window->area.u.pt, sz);
                     (void)window->layout(ar);
@@ -127,23 +127,24 @@ uint32 ProcWndEvent(ExWindow* const window, ExCbInfo* const cbinfo)
         }
         case WM_MOUSEMOVE: {
             UINT fwKeys = (UINT)wParam;
-            int32 xPos = LOWORD(lParam);
-            int32 yPos = HIWORD(lParam);
-            logpro0("[0x%p] WM_MOUSEMOVE     fwKeys=0x%p xPos=%d yPos=%d\n", hwnd, fwKeys, xPos, yPos);
+            //int32 xPos = LOWORD(lParam);
+            //int32 yPos = HIWORD(lParam);
+            ExPoint pt = cbinfo->event->pt;
+            logpro0("[0x%p] WM_MOUSEMOVE     fwKeys=0x%p xPos=%d yPos=%d\n", hwnd, fwKeys, pt.x, pt.y);
             ExWidget* widget;
             // process already capture
             widget = window->getCapture();
             if (widget != nullptr) {
-                if ((widget == window->getEntered()) &&
-                    (widget == window->getPressed()) &&
-                    (widget->getFlags(Ex_Visible) != 0U)) {
+                if (widget->isFlagVisible() &&
+                    (widget == window->getEntered()) &&
+                    (widget == window->getPressed())) {
                     cbret_code = widget->invokeListener(Ex_CbActivate, cbinfo->set(Ex_CbPtrMove, 0U));
                     break;
                 } else {
                     window->setCapture(nullptr); // cancel event
                 }
             }
-            widget = window->getSelectable(ExPoint(xPos, yPos));
+            widget = window->getSelectable(pt);
             (void)procPtrLeaveEnter(window, widget, cbinfo);
             if (widget != nullptr) {
                 (void)widget->invokeListener(Ex_CbActivate, cbinfo->set(Ex_CbPtrMove, 0U));
@@ -156,15 +157,16 @@ uint32 ProcWndEvent(ExWindow* const window, ExCbInfo* const cbinfo)
         }
         case WM_LBUTTONDOWN: {
             UINT fwKeys = (UINT)wParam;
-            int32 xPos = LOWORD(lParam);
-            int32 yPos = HIWORD(lParam);
-            logpro0("[0x%p] WM_LBUTTONDOWN   fwKeys=0x%p xPos=%d yPos=%d\n", hwnd, fwKeys, xPos, yPos);
+            //int32 xPos = LOWORD(lParam);
+            //int32 yPos = HIWORD(lParam);
+            ExPoint pt = cbinfo->event->pt;
+            logpro0("[0x%p] WM_LBUTTONDOWN   fwKeys=0x%p xPos=%d yPos=%d\n", hwnd, fwKeys, pt.x, pt.y);
             ExWidget* widget;
-            widget = window->getSelectable(ExPoint(xPos, yPos));
+            widget = window->getSelectable(pt);
             ExApp::button_x[0] = ExApp::button_x[1];
-            ExApp::button_x[1] = xPos;
+            ExApp::button_x[1] = pt.x;
             ExApp::button_y[0] = ExApp::button_y[1];
-            ExApp::button_y[1] = yPos;
+            ExApp::button_y[1] = pt.y;
             ExApp::button_click_time[0] = ExApp::button_click_time[1];
             ExApp::button_click_time[1] = exWatchDisp->getTick();
             ExApp::button_widget[0] = ExApp::button_widget[1];
@@ -211,9 +213,10 @@ uint32 ProcWndEvent(ExWindow* const window, ExCbInfo* const cbinfo)
     #if 0
         case WM_LBUTTONDBLCLK: {
             UINT fwKeys = (UINT)wParam;
-            int32 xPos = LOWORD(lParam);
-            int32 yPos = HIWORD(lParam);
-            logproc("[0x%p] WM_LBUTTONDBLCLK fwKeys=0x%p xPos=%d yPos=%d\n", hwnd, fwKeys, xPos, yPos);
+            //int32 xPos = LOWORD(lParam);
+            //int32 yPos = HIWORD(lParam);
+            ExPoint pt = cbinfo->event->pt;
+            logproc("[0x%p] WM_LBUTTONDBLCLK fwKeys=0x%p xPos=%d yPos=%d\n", hwnd, fwKeys, pt.x, pt.y);
             /*  Only windows that have the CS_DBLCLKS style can receive WM_LBUTTONDBLCLK
                 messages, which the OS generates when the user presses, releases, and
                 again presses the left mouse button within the time limit for double-clicks
@@ -230,9 +233,10 @@ uint32 ProcWndEvent(ExWindow* const window, ExCbInfo* const cbinfo)
     #endif
         case WM_LBUTTONUP: {
             UINT fwKeys = (UINT)wParam;
-            int32 xPos = LOWORD(lParam);
-            int32 yPos = HIWORD(lParam);
-            logpro0("[0x%p] WM_LBUTTONUP     fwKeys=0x%p xPos=%d yPos=%d\n", hwnd, fwKeys, xPos, yPos);
+            //int32 xPos = LOWORD(lParam);
+            //int32 yPos = HIWORD(lParam);
+            ExPoint pt = cbinfo->event->pt;
+            logpro0("[0x%p] WM_LBUTTONUP     fwKeys=0x%p xPos=%d yPos=%d\n", hwnd, fwKeys, pt.x, pt.y);
             ExWidget* widget;
             ExWidget* wgttmp = window->getPressed();
             ExApp::but_timer.stop();
@@ -249,7 +253,7 @@ uint32 ProcWndEvent(ExWindow* const window, ExCbInfo* const cbinfo)
                     window->setPressed(nullptr);
                 }
             }
-            widget = window->getSelectable(ExPoint(xPos, yPos));
+            widget = window->getSelectable(pt);
             if ((widget == wgttmp) &&
                 (widget != nullptr)) {
                 (void)widget->invokeListener(Ex_CbActivate, cbinfo->set(Ex_CbActivate, ExApp::butRepeatCnt()));
@@ -406,6 +410,14 @@ DefWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
     cbinfo->event->wParam = wParam;
     cbinfo->event->lParam = lParam;
     cbinfo->event->lResult = 0;
+    if ((message >= WM_MOUSEFIRST) &&
+        (message <= WM_MOUSELAST)) {
+        cbinfo->event->pt.x = LOWORD(lParam);
+        cbinfo->event->pt.y = HIWORD(lParam);
+    } else if (message == WM_SIZE) {
+        cbinfo->event->sz.w = LOWORD(lParam);
+        cbinfo->event->sz.h = HIWORD(lParam);
+    }
     //exassert(cbinfo->event->time == window->event->time);
     //exassert(cbinfo->event->pt == window->event->pt);
 #if 0 // deprecated

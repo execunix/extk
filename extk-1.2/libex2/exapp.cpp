@@ -147,7 +147,7 @@ void* ExModalBlock(ExModalCtrl* ctrl, long flags)
         if (exWatchDisp->getHalt()) // is halt ?
             break; // stop event loop
         while ((ctrl->flags & 0x80000000) &&
-            GetMessage(&msg, NULL, 0, 0) == true) { // is message available ?
+            exEventFunc(msg) == true) { // is message available ?
             if (msg.message == WM_ExEvWake) {
                 dprint("message == WM_ExEvWake\n");
                 break;
@@ -182,7 +182,7 @@ void ExMainLoop()
 #ifdef WIN32
     MSG msg;
     while (exWatchDisp->getHalt() == 0 &&
-           GetMessage(&msg, NULL, 0, 0) == true) { // is message available ?
+        exEventFunc(msg) == true) { // is message available ?
         if (msg.message == WM_ExEvWake) {
             dprint("message == WM_ExEvWake\n");
             continue;

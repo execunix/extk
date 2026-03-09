@@ -404,7 +404,7 @@ uint32 WndMain::onActMain(WndMain* widget, ExCbInfo* cbinfo) {
         ExPoint msg_pt(cbinfo->event->pt);
         if (cbinfo->type == Ex_CbButPress) {
             but_pt = msg_pt; // memory press point
-            wgtCapture = widget;
+            setCapture(widget);
         } else if (cbinfo->type == Ex_CbPtrMove &&
                    widget->getFlags(Ex_ButPressed)) {
             img_pt0 += (msg_pt - but_pt);
@@ -417,7 +417,7 @@ uint32 WndMain::onActMain(WndMain* widget, ExCbInfo* cbinfo) {
         ExPoint msg_pt(cbinfo->event->pt);
         if (cbinfo->type == Ex_CbButPress) {
             but_pt = msg_pt; // memory press point
-            wgtCapture = widget;
+            setCapture(widget);
         } else if (cbinfo->type == Ex_CbPtrMove &&
                    widget->getFlags(Ex_ButPressed)) {
             ExPoint pt = widget->area.u.pt;
@@ -437,7 +437,7 @@ uint32 WndMain::onActBkgd(WndMain* widget, ExCbInfo* cbinfo) {
         if (cbinfo->type == Ex_CbButPress) {
             but_pt = msg_pt; // memory press point
             //widget->toFront();
-            wgtCapture = widget;
+            setCapture(widget);
         } else if (cbinfo->type == Ex_CbPtrMove &&
                    widget->getFlags(Ex_ButPressed)) {
             ExPoint pt(wgtBkgd.area.u.pt);
@@ -454,11 +454,11 @@ static uint32
 onEnum(void* data, ExWidget* widget, ExCbInfo* cbinfo) {
     if (cbinfo->type == Ex_CbEnumEnter) {
         dprint("enum: %s enter\n", widget->getName());
-        return (widget->getFlags(Ex_Visible)) ? Ex_Continue : Ex_Discard;
+        return widget->isFlagVisible() ? Ex_Continue : Ex_Discard;
     }
     if (cbinfo->type == Ex_CbEnumLeave) {
         dprint("enum: %s leave\n", widget->getName());
-        return (widget->getFlags(Ex_Visible)) ? Ex_Continue : Ex_Discard;
+        return widget->isFlagVisible() ? Ex_Continue : Ex_Discard;
     }
     dprint("enum: %s invalid *****************\n", widget->getName());
     return Ex_Break;
@@ -481,7 +481,7 @@ uint32 WndMain::onActBtns(ExWidget* widget, ExCbInfo* cbinfo) {
     }
     if (widget == &btns0[1]) {
         if (cbinfo->type == Ex_CbActivate) {
-            panes[2].setVisible(!panes[2].getFlags(Ex_Visible));
+            panes[2].setVisible(!panes[2].isFlagVisible());
             return Ex_Continue;
         }
     }
@@ -654,14 +654,7 @@ uint32 WndMain::onDestroyed(WndMain* w, ExCbInfo* cbinfo) {
 
 uint32 WndMain::onRbtnDown(WndMain* w, ExCbInfo* cbinfo) {
     if (cbinfo->event->message == WM_RBUTTONDOWN) {
-        #ifdef WIN32
-        int xPos = LOWORD(cbinfo->event->lParam);
-        int yPos = HIWORD(cbinfo->event->lParam);
-        #else // linux
-        int xPos = cbinfo->event->pt.x;
-        int yPos = cbinfo->event->pt.y;
-        #endif // WIN32
-        ExWidget* w = getPointOwner(ExPoint(xPos, yPos));
+        ExWidget* w = getPointOwner(cbinfo->event->pt);
         if (w == &wgtBackViewer ||
             w == &wgtBkgd) {
             w->toBack();
@@ -886,29 +879,15 @@ uint32 WndMain::onBackViewMove(WndMain* widget, ExCbInfo* cbinfo) {
     static ExPoint but_pt(0);
     exassert(widget == &wgtBackViewer);
     if (cbinfo->type == Ex_CbButPress) {
-        #ifdef WIN32
-        int xPos = LOWORD(cbinfo->event->lParam);
-        int yPos = HIWORD(cbinfo->event->lParam);
-        #else // linux
-        int xPos = cbinfo->event->pt.x;
-        int yPos = cbinfo->event->pt.y;
-        #endif // WIN32
-        but_pt.set(xPos, yPos); // memory press point
+        but_pt = cbinfo->event->pt; // memory press point
         widget->toFront();
-        wgtCapture = widget;
+        setCapture(widget);
     } else if (cbinfo->type == Ex_CbPtrMove &&
                widget->getFlags(Ex_ButPressed)) {
-        #ifdef WIN32
-        int xPos = LOWORD(cbinfo->event->lParam);
-        int yPos = HIWORD(cbinfo->event->lParam);
-        #else // linux
-        int xPos = cbinfo->event->pt.x;
-        int yPos = cbinfo->event->pt.y;
-        #endif // WIN32
         ExPoint pt(wgtBackViewer.area.u.pt);
-        pt.x += xPos - but_pt.x;
-        pt.y += yPos - but_pt.y;
-        but_pt.set(xPos, yPos);
+        pt.x += cbinfo->event->pt.x - but_pt.x;
+        pt.y += cbinfo->event->pt.y - but_pt.y;
+        but_pt = cbinfo->event->pt;
         wgtBackViewer.setPos(pt);
     }
     return Ex_Continue;

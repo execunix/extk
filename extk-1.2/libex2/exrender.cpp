@@ -11,21 +11,23 @@
 // ExRender::Build4MT
 //
 void ExRender::Build4MT::checkExtent(ExWidget* w) {
-    if (!w->getFlags(Ex_Visible))
+    if (!w->isFlagVisible()) {
         return;
-    if (w->getFlags(Ex_Exposed)) {
+    }
+    if (w->getFlags(Ex_Exposed) != 0U) {
         w->buildExtent(); // recurs
         return;
     }
-    for (ExWidget* c = w->getChildHead(); c; c = c->getBroNext())
+    for (ExWidget* c = w->getChildHead(); c != nullptr; c = c->getBroNext()) {
         checkExtent(c);
+    }
 }
 
 void ExRender::Build4MT::buildRegion(ExWidget* w) {
-    exassert(w->getFlags(Ex_Visible) && !w->extent.empty());
-    for (ExWidget* c = w->getChildTail(); c; c = c->getBroPrev()) {
-        if (c->getFlags(Ex_Exposed) &&
-            c->getFlags(Ex_Visible)) {
+    exassert(w->isFlagVisible() && !w->extent.empty());
+    for (ExWidget* c = w->getChildTail(); c != nullptr; c = c->getBroPrev()) {
+        if ((c->getFlags(Ex_Exposed) != 0U) &&
+            c->isFlagVisible()) {
             buildRegion(c);
         }
     }
@@ -34,7 +36,7 @@ void ExRender::Build4MT::buildRegion(ExWidget* w) {
 }
 
 ExRender::Build4MT::Build4MT(ExWidget* w) {
-    exassert(w->getFlags(Ex_Visible) && w->getFlags(Ex_HasOwnGC));
+    exassert(w->isFlagVisible() && (w->getFlags(Ex_HasOwnGC) != 0U));
     checkExtent(w);
     buildRegion(w);
 }
@@ -42,17 +44,21 @@ ExRender::Build4MT::Build4MT(ExWidget* w) {
 // ExRender::Build
 //
 void ExRender::Build::checkExtent(ExWidget* w) {
-    if (!w->getFlags(Ex_Visible))
+    if (!w->isFlagVisible()) {
         return;
-    if (w->getFlags(Ex_Exposed)) {
+    }
+    if (w->getFlags(Ex_Exposed) != 0U) {
 #if 0
         //exposeAcc.combine(w->extent); // add old extent
         buildExtent(w); // recurs
-        if (!w->getFlags(Ex_HasOwnGC)) {
-            if (w->getFlags(Ex_Opaque))
+        if (w->getFlags(Ex_HasOwnGC) == 0U) {
+            if (w->getFlags(Ex_Opaque) != 0U) {
                 exposeAcc.combine(w->extent); // add new extent
-            else if (!w->opaqueRgn.empty())
+            } else if (!w->opaqueRgn.empty()) {
                 exposeAcc.combine(w->opaqueRgn);
+            } else {
+                // nop
+            }
         }
 #else
         exposeAcc.combine(w->extent); // add old extent
@@ -61,12 +67,13 @@ void ExRender::Build::checkExtent(ExWidget* w) {
 #endif
         return;
     }
-    for (ExWidget* c = w->getChildHead(); c; c = c->getBroNext())
+    for (ExWidget* c = w->getChildHead(); c != nullptr; c = c->getBroNext()) {
         checkExtent(c);
+    }
 }
 
 void ExRender::Build::buildExtent(ExWidget* w) {
-    exassert(w->getFlags(Ex_Visible));
+    exassert(w->isFlagVisible());
     if (!w->calcExtent()) {
         w->flags &= ~(Ex_Exposed | Ex_Damaged);
         w->exposeRgn.setEmpty();
@@ -79,9 +86,9 @@ void ExRender::Build::buildExtent(ExWidget* w) {
 #else
     w->flags |= Ex_Exposed;
 #endif
-    for (ExWidget* c = w->getChildHead(); c; c = c->getBroNext()) {
-        if (c->getFlags(Ex_Visible)) {
-            if (c->getFlags(Ex_HasOwnGC)) {
+    for (ExWidget* c = w->getChildHead(); c != nullptr; c = c->getBroNext()) {
+        if (c->isFlagVisible()) {
+            if (c->getFlags(Ex_HasOwnGC) != 0U) {
                 Build build(c);
                 exposeAcc.combine(build.exposeAcc);
             } else {
@@ -92,14 +99,14 @@ void ExRender::Build::buildExtent(ExWidget* w) {
 }
 
 void ExRender::Build::buildOpaque(ExWidget* w) { // remove hidden areas
-    exassert(w->getFlags(Ex_Visible) && !w->extent.empty());
-    for (ExWidget* c = w->getChildTail(); c; c = c->getBroPrev()) {
-        if (c->getFlags(Ex_Visible) && !c->extent.empty()) {
+    exassert(w->isFlagVisible() && !w->extent.empty());
+    for (ExWidget* c = w->getChildTail(); c != nullptr; c = c->getBroPrev()) {
+        if (c->isFlagVisible() && !c->extent.empty()) {
             buildOpaque(c);
         }
     }
-    if (w->getFlags(Ex_Exposed) ||
-        exposeAcc.contain(w->extent) != Ex_OverlapOut) {
+    if ((w->getFlags(Ex_Exposed) != 0U) ||
+        (exposeAcc.contain(w->extent) != Ex_OverlapOut)) {
         w->calcOpaque(opaqueAcc);
     }
 }
@@ -108,17 +115,17 @@ ExRender::Build::Build(ExWidget* w)
     : exposeAcc()
     , opaqueAcc() {
 #if 0
-    exassert(w->getFlags(Ex_Rebuild) &&
-           w->getFlags(Ex_Visible) &&
-           w->getFlags(Ex_HasOwnGC));
+    exassert((w->getFlags(Ex_Rebuild) != 0U) &&
+             w->isFlagVisible() && (w->getFlags(Ex_HasOwnGC) != 0U));
     exposeAcc.copy(w->exposeRgn);
 #else
-    exassert(w->getFlags(Ex_Visible) && w->getFlags(Ex_HasOwnGC));
+    exassert(w->isFlagVisible() && (w->getFlags(Ex_HasOwnGC) != 0U));
 #endif
     checkExtent(w);
     if (!w->extent.empty() &&
-        !exposeAcc.empty())
+        !exposeAcc.empty()) {
         buildOpaque(w);
+    }
     w->opaqueRgn.copy(opaqueAcc);
     w->exposeRgn.setRect(w->extent);
 }
@@ -126,11 +133,11 @@ ExRender::Build::Build(ExWidget* w)
 // ExRender::Draw
 //
 void ExRender::Draw::draw(ExWidget* w) {
-    exassert(w->getFlags(Ex_Visible));
+    exassert(w->isFlagVisible());
     if (w->drawFunc && !w->exposeRgn.empty()) {
-        if (w->getFlags(Ex_HasOwnGC)) {
+        if (w->getFlags(Ex_HasOwnGC) != 0U) {
             exassert(&w->damageRgn == &updateRgn);
-        } else if (w->getFlags(Ex_Exposed | Ex_Damaged)) {
+        } else if (w->getFlags(Ex_Exposed | Ex_Damaged) != 0U) {
             w->damageRgn.copy(w->exposeRgn);
         } else {
             w->damageRgn.copy(w->exposeRgn);
@@ -139,16 +146,17 @@ void ExRender::Draw::draw(ExWidget* w) {
         if (!w->damageRgn.empty()) {
             w->drawFunc(canvas, w, &w->damageRgn);
 #ifdef DEBUG
-            if (exDrawFuncTrap)
+            if (exDrawFuncTrap) {
                 exDrawFuncTrap(canvas, w, &w->damageRgn);
+            }
 #endif
         }
     }
     w->flags &= ~(Ex_Exposed | Ex_Damaged);
-    for (ExWidget* c = w->getChildHead(); c; c = c->getBroNext()) {
-        if (c->getFlags(Ex_Visible)) {
+    for (ExWidget* c = w->getChildHead(); c != nullptr; c = c->getBroNext()) {
+        if (c->isFlagVisible()) {
 #if 1 // tbd
-            if (c->getFlags(Ex_HasOwnGC)) {
+            if (c->getFlags(Ex_HasOwnGC) != 0U) {
                 c->drawFunc((ExCanvas*)NULL, c, &c->damageRgn);
                 // I don't know, but you know what canvas to draw on ...
                 // I will give you the opportunity to fill in the content of the canvas ...
@@ -161,9 +169,10 @@ void ExRender::Draw::draw(ExWidget* w) {
 
 ExRender::Draw::Draw(ExCanvas* canvas, ExWidget* w)
     : canvas(canvas), updateRgn(w->damageRgn) {
-    exassert(w->getFlags(Ex_HasOwnGC));
-    if (w->getFlags(Ex_Visible))
+    exassert(w->getFlags(Ex_HasOwnGC) != 0U);
+    if (w->isFlagVisible()) {
         draw(w);
+    }
     updateRgn.setEmpty();
 }
 
@@ -207,9 +216,10 @@ void onDrawOwnGC(void* data, ExCanvas* canvas, const ExWgtRes* wgtres, const ExR
 
 #if defined(EXAPITEST)
 uint32 exrender_test1(void*, ExWidget* w, ExCbInfo* cbinfo) {
-    if (cbinfo->type != Ex_CbEnumEnter)
+    if (cbinfo->type != Ex_CbEnumEnter) {
         return Ex_Continue;
-    if (!w->getFlags(Ex_Visible)) {
+    }
+    if (!w->isFlagVisible()) {
         dprint("%s [%d,%d-%dx%d] invisible\n", w->getName(),
                w->area.x, w->area.y, w->area.w, w->area.h);
         return Ex_Discard;

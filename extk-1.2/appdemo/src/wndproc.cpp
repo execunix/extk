@@ -81,9 +81,9 @@ static uint32 ProcWndEvent(ExWindow* const window, ExCbInfo* const cbinfo)
             // process already capture
             widget = window->getCapture();
             if (widget != nullptr) {
-                if ((widget == window->getEntered()) &&
-                    (widget == window->getPressed()) &&
-                    (widget->getFlags(Ex_Visible) != 0U)) {
+                if (widget->isFlagVisible() &&
+                    (widget == window->getEntered()) &&
+                    (widget == window->getPressed())) {
                     cbret_code = widget->invokeListener(Ex_CbActivate, cbinfo->set(Ex_CbPtrMove, 0U));
                     break;
                 } else {
