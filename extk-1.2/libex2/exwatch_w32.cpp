@@ -289,11 +289,6 @@ uint32 ExWatch::setHalt(uint32 r)
     return (halt |= r);
 }
 
-uint32 ExWatch::getHalt() const
-{
-    return halt;
-}
-
 bool ExWatch::getEvent(uint64* u64) const {
     u64 = u64;
     BOOL ret = ResetEvent(efd);
@@ -304,38 +299,6 @@ bool ExWatch::setEvent(uint64 u64) const {
     u64 = u64;
     BOOL ret = SetEvent(efd);
     return (ret != 0);
-}
-
-uint32 ExWatch::proc() {
-    tls_specific(name);
-    dprint("%s: tickAppLaunch=%d tickCount=%d\n", name, tickAppLaunch, tickCount);
-    ExCbInfo cbinfo(0);
-    enter();
-    if (hookStart) {
-        hookStart(this, &cbinfo(HookStart));
-    }
-    while (getHalt() == 0U) {
-        uint32 waittick = timerset.invoke(tickCount);
-        if (getHalt() != 0U) { // is halt ?
-            break; // stop event loop
-        }
-        if (hookTimer) {
-            hookTimer(this, &cbinfo(HookTimer));
-        }
-        // blocked
-        iomuxmap.invoke(waittick); // The only waiting point.
-        if (getHalt() != 0U) { // is halt ?
-            break; // stop event loop
-        }
-        if (hookIomux) {
-            hookIomux(this, &cbinfo(HookIomux));
-        }
-    }
-    if (hookClean) {
-        hookClean(this, &cbinfo(HookClean));
-    }
-    leave();
-    return 0U;
 }
 
 uint32 ExWatch::onEvent(HANDLE hev) {

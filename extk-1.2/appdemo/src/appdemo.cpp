@@ -492,9 +492,10 @@ void poly_test()
     cblist.invoke(&timer1, &cbinfo);
 }
 
-static uint32 flushMainWnd(void* data, ExWatch* watch, ExCbInfo* cbinfo) {
-    if (cbinfo->type != ExWatch::HookTimer)
+static uint32 flushMainWnd(void* data, uint32 hook) {
+    if (hook != ExWatch::HookMaintain) {
         return -1;
+    }
     if (ExApp::mainWnd != NULL) {
         ExApp::mainWnd->flush();
     }
@@ -836,7 +837,7 @@ int APIENTRY WinMain(_In_ HINSTANCE hInstance,
     (void)initRes();
 
     exWatchDisp->enter();
-    exWatchDisp->hookTimer = ExCallback(&flushMainWnd, (void*)NULL);
+    exWatchDisp->procMaintain = ExWatch::HookProc(&flushMainWnd, (void*)NULL);
     exWatchDisp->init();
 
     // startup

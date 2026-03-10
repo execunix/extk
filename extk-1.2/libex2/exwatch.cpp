@@ -172,7 +172,7 @@ void ExWatch::tls_specific(const char* name)
     if (tls_key == (pthread_key_t)-1) {
         pthread_key_create(&tls_key, NULL);
     }
-    pthread_setspecific(tls_key, malloc(256));
+    pthread_setspecific(tls_key, malloc(256UL));
     strcpy((char*)pthread_getspecific(tls_key), name);
 }
 
@@ -259,11 +259,6 @@ uint32 ExWatch::setHalt(uint32 r)
     return (halt |= r);
 }
 
-uint32 ExWatch::getHalt() const
-{
-    return halt;
-}
-
 bool ExWatch::getEvent(uint64* u64) const {
     ssize_t r = 0;
     exassert(efd != -1);
@@ -280,39 +275,6 @@ bool ExWatch::setEvent(uint64 u64) const {
     return (r == ssizeof(u64));
 }
 
-uint32 ExWatch::proc() {
-    pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
-    tls_specific(name);
-    dprint("%s: tickAppLaunch=%d tickCount=%d\n", name, tickAppLaunch, tickCount);
-    ExCbInfo cbinfo(0);
-    enter();
-    if (hookStart) {
-        hookStart(this, &cbinfo(HookStart));
-    }
-    while (getHalt() == 0U) {
-        uint32 waittick = timerset.invoke(tickCount);
-        if (getHalt() != 0U) { // is halt ?
-            break; // stop event loop
-        }
-        if (hookTimer) {
-            hookTimer(this, &cbinfo(HookTimer));
-        }
-        // blocked
-        iomuxmap.invoke(waittick); // The only waiting point.
-        if (getHalt() != 0U) { // is halt ?
-            break; // stop event loop
-        }
-        if (hookIomux) {
-            hookIomux(this, &cbinfo(HookIomux));
-        }
-    }
-    if (hookClean) {
-        hookClean(this, &cbinfo(HookClean));
-    }
-    leave();
-    return 0U;
-}
-
 uint32 ExWatch::onEvent(const epoll_event* const ev) {
     dprint0("%s: fd:%d ev:%d\n", __func__, ev->data.fd, ev->events);
     exassert(efd == ev->data.fd);
@@ -327,7 +289,49 @@ uint32 ExWatch::onEvent(const epoll_event* const ev) {
 
 #endif // __linux__
 
+uint32 ExWatch::proc() {
+#ifdef __linux__
+    pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
+#endif // __linux__
+    tls_specific(name);
+    dprint("%s: tickAppLaunch=%d tickCount=%d\n", name, tickAppLaunch, tickCount);
+    (void)enter();
+    // seq-1 : prepare resources
+    if (procStartup) {
+        (void)procStartup(HookStartup);
+    }
+    while (getHalt() == 0U) {
+        // seq-2 : dispatch event
+        if (procDispatch) {
+            uint32 r = procDispatch(HookDispatch);
+            if (((r & Ex_Halt) != 0U) || (getHalt() != 0U)) {
+                break;
+            }
+        }
+        // seq-3 : invoke timer callback
+        uint32 waittick = timerset.invoke(tickCount);
+        if (getHalt() != 0U) { // is halt ?
+            break; // stop event loop
+        }
+        // seq-4 : collect resources, flush gui, ...
+        if (procMaintain) {
+            uint32 r = procMaintain(HookMaintain);
+            if (((r & Ex_Halt) != 0U) || (getHalt() != 0U)) {
+                break;
+            }
+        }
+        // seq-5 : wait blocked iomux for waittick msec and update tick count
+        (void)iomuxmap.invoke(waittick); // The only waiting point.
+    }
+    // seq-6 : cleanup resources
+    if (procCleanup) {
+        (void)procCleanup(HookCleanup);
+    }
+    (void)leave();
+    return 0U;
+}
+
 static ExWatch exWatchDflt("exWatchDflt");
 ExWatch* exWatchMain = &exWatchDflt;
 ExWatch* exWatchLast = &exWatchDflt;
-ExWatch* exWatchDisp = nullptr;
+ExWatch* exWatchDisp = nullptr; // tbd - assign individual window watch

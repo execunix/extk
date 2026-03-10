@@ -158,22 +158,14 @@ protected:
     mutable pthread_cond_t  cond;
     #endif
 public:
-    enum : int32 { HookReady, HookStart, HookTimer, HookIomux, HookClean };
-    int32           hookPhase; // for misra rules
-    ExCallback      hookStart;
-    ExCallback      hookTimer;
-    ExCallback      hookIomux;
-    ExCallback      hookClean;
-
-public:
     #ifdef WIN32
     virtual ~ExWatch() noexcept {
         fini();
         CloseHandle(mutex);
     }
     explicit ExWatch(const char* name) noexcept : name(name)
-        , iomuxmap(this), timerset(), idThread(0), hThread(NULL), efd(NULL), halt(0), tickCount(0)
-        , hookPhase(HookReady), hookStart(), hookTimer(), hookIomux(), hookClean() {
+        , iomuxmap(this), timerset(), idThread(0U), hThread(NULL), efd(NULL), halt(0U), tickCount(0U)
+        , procStartup(), procDispatch(), procMaintain(), procCleanup() {
         mutex = CreateMutex(NULL, FALSE, NULL);
         tickCount = tickAppLaunch;
     }
@@ -184,8 +176,8 @@ public:
         pthread_mutex_destroy(&mutex);
     }
     explicit ExWatch(const char* name) noexcept : name(name)
-        , iomuxmap(this), timerset(), tid(0), efd(-1), halt(0), tickCount(0)
-        , hookPhase(HookReady), hookStart(), hookTimer(), hookIomux(), hookClean() {
+        , iomuxmap(this), timerset(), tid(0U), efd(-1), halt(0U), tickCount(0U)
+        , procStartup(), procDispatch(), procMaintain(), procCleanup() {
         pthread_mutex_init(&mutex, NULL);
         pthread_cond_init(&cond, NULL);
         tickCount = tickAppLaunch;
@@ -197,17 +189,43 @@ public:
     bool leave() const;
     bool wakeup() const;
     uint32 setHalt(uint32 r = Ex_Halt);
-    uint32 getHalt() const;
+    uint32 getHalt() const { return halt; }
     uint32 getTick() const { return tickCount; }
 protected:
     bool setEvent(uint64 u64) const;
     bool getEvent(uint64* u64) const;
-    uint32 proc();
     #ifdef WIN32
     uint32 onEvent(HANDLE hev);
     #else // __linux__
     uint32 onEvent(const epoll_event* ev);
     #endif
+    uint32 proc();
+public:
+    struct HookProc : public ExPolyFunc<uint32, uint32> {
+        template <typename A>
+        HookProc(A* d, uint32 (A::*f)(uint32)) noexcept // look like data->func(...)
+            : ExPolyFunc(d) {
+            func = reinterpret_cast<ThisFunc>(f);
+        }
+        template <typename A>
+        HookProc(uint32 (*f)(A*, uint32), A* d) noexcept // look like func(data, ...)
+            : ExPolyFunc(d) {
+            vfunc = reinterpret_cast<FuncPtr>(f);
+            #if EX2CONF_DISABLE_STDCALL
+            invoker = &funcptr;
+            #endif
+        }
+        HookProc(const HookProc& cb) noexcept
+            : ExPolyFunc(cb) {}
+        HookProc() noexcept
+            : ExPolyFunc() {}
+    };
+    enum : uint32 { HookStartup, HookDispatch, HookMaintain, HookCleanup };
+    HookProc        procStartup;    // startup
+    HookProc        procDispatch;   // dispatch event
+    HookProc        procMaintain;   // collect resources, flush gui, ...
+    HookProc        procCleanup;    // cleanup
+
 public:
     #ifdef WIN32
     bool ioAdd(uint32 (*f)(void*, const HANDLE), void* d, const HANDLE mux_fd) { // lambda

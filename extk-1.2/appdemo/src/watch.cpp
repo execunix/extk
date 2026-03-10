@@ -388,7 +388,7 @@ void WatchApp::mainloop()
     ExEvent ev(None);
 
     (void)enter();
-    while (halt == 0U) {
+    while (getHalt() == 0U) {
         while (true) {
             if (ExGetMessage(&ev) == nullptr) {
                 break;
@@ -429,7 +429,7 @@ int32 WatchApp::modal_loop(void* ctrl)
     ExEvent ev(None);
 
     (void)enter();
-    while (halt == 0U) {
+    while (getHalt() == 0U) {
         while (ExGetMessage(&ev) != nullptr) { // is message available ?
             if ((ev.message == WM_CLOSE) || (ctrl->done != 0)) {
                 dprint("WM_CLOSE tick=%d\n", tickCount);

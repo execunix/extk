@@ -19,7 +19,7 @@ bool ExCallbackList::CallbackList::remove2(const ExCallback& cb) {
         // Be careful not to remove items from this list within the callback.
         if ((*i).func == cb.func &&
             (*i).data == cb.data) {
-            if (influx > 0) {
+            if (influx > 0U) {
                 change++;
                 (*i).flag |= fRemoved;
             } else {
@@ -43,7 +43,7 @@ void ExCallbackList::CallbackList::push(const Callback& cb) {
     for (iterator i = begin(); i != end(); ++i) {
         if (cb.prio <= (*i).prio) {
             insert(i, cb);
-            if (influx > 0) {
+            if (influx > 0U) {
                 change++;
                 (*i).flag |= fHoldOff;
             }
@@ -63,39 +63,38 @@ uint32 ExCallbackList::CallbackList::invoke(const void* object, const void* cbin
         #if 1 // tbd
         // If a callback with a lower priority is added during callback execution,
         // the callback is also called at the same time.
-        if (cb.flag & (fRemoved | fHoldOff))
+        if (cb.flag & (fRemoved | fHoldOff)) {
             continue;
+        }
         #endif
 
         r = cb(object, cbinfo);
 
-        #if 1 // for ipnc
-        if (r & Ex_Halt)
-            return r | Ex_End;
-        #else
-        if (watch->getHalt() || (r & Ex_Halt))
-            return watch->setHalt(r);
-        #endif
+        if (r & Ex_Halt) {
+            return (r | Ex_End);
+        }
         // should remove by invoker ?
         if (r & Ex_Remove) {
             change++;
             cb.flag |= fRemoved;
         }
         // should skip remain callbacks ?
-        if (r & Ex_Break)
+        if (r & Ex_Break) {
             break;
+        }
     }
     influx--;
-    if (influx == 0 && change > 0) {
+    if (influx == 0U && change > 0U) {
         for (iterator i = begin(); i != end();) {
             uint8 flag = (*i).flag;
-            (*i).flag = 0;
-            if (flag & fRemoved)
+            (*i).flag = 0U;
+            if (flag & fRemoved) {
                 i = erase(i);
-            else
+            } else {
                 ++i;
+            }
         }
-        change = 0;
+        change = 0U;
     }
     return r;
 }
@@ -107,7 +106,7 @@ bool ExListenerList::ListenerList::remove2(uint32 type, uint8 prio) {
         // Be careful not to remove items from this list within the callback.
         if ((*i).type == type &&
             (*i).prio == prio) {
-            if (influx > 0) {
+            if (influx > 0U) {
                 change++;
                 (*i).flag |= fRemoved;
             } else {
@@ -123,7 +122,7 @@ void ExListenerList::ListenerList::push(const Listener& cb) {
     for (iterator i = begin(); i != end(); ++i) {
         if (cb.prio <= (*i).prio) {
             insert(i, cb);
-            if (influx > 0) {
+            if (influx > 0U) {
                 change++;
                 (*i).flag |= fHoldOff;
             }
@@ -143,41 +142,40 @@ uint32 ExListenerList::ListenerList::invoke(uint32 type, const void* object, con
         #if 1 // tbd - featuring
         // If a callback with a lower priority is added during callback execution,
         // the callback is also called at the same time.
-        if (cb.flag & (fRemoved | fHoldOff))
+        if (cb.flag & (fRemoved | fHoldOff)) {
             continue;
+        }
         #endif
-        if (cb.type != type)
+        if (cb.type != type) {
             continue;
-
+        }
         r = cb(object, cbinfo);
 
-        #if 1 // for ipnc
-        if (r & Ex_Halt)
-            return r | Ex_End;
-        #else
-        if (watch->getHalt() || (r & Ex_Halt))
-            return watch->setHalt(r);
-        #endif
+        if (r & Ex_Halt) {
+            return (r | Ex_End);
+        }
         // should remove by invoker ?
         if (r & Ex_Remove) {
             change++;
             cb.flag |= fRemoved;
         }
         // should skip remain callbacks ?
-        if (r & Ex_Break)
+        if (r & Ex_Break) {
             break;
+        }
     }
     influx--;
-    if (influx == 0 && change > 0) {
+    if (influx == 0U && change > 0U) {
         for (iterator i = begin(); i != end();) {
             uint8 flag = (*i).flag;
-            (*i).flag = 0;
-            if (flag & fRemoved)
+            (*i).flag = 0U;
+            if (flag & fRemoved) {
                 i = erase(i);
-            else
+            } else {
                 ++i;
+            }
         }
-        change = 0;
+        change = 0U;
     }
     return r;
 }
@@ -189,7 +187,7 @@ bool ExWidget::ListenerList::remove(const uint32 type, const uint8 prio) {
         // Be careful not to remove items from this list within the callback.
         if ((*i).type == type &&
             (*i).prio == prio) {
-            if (influx > 0) {
+            if (influx > 0U) {
                 change++;
                 (*i).flag |= fRemoved;
             } else {
@@ -205,7 +203,7 @@ void ExWidget::ListenerList::push(const Listener& cb) {
     for (iterator i = begin(); i != end(); ++i) {
         if (cb.prio <= (*i).prio) {
             insert(i, cb);
-            if (influx > 0) {
+            if (influx > 0U) {
                 change++;
                 (*i).flag |= fHoldOff;
             }
@@ -225,20 +223,23 @@ uint32 ExWidget::ListenerList::invoke(ExWatch* watch, const uint32 type, const E
         #if 1 // tbd
         // If a callback with a lower priority is added during callback execution,
         // the callback is also called at the same time.
-        if (cb.flag & (fRemoved | fHoldOff))
+        if (cb.flag & (fRemoved | fHoldOff)) {
             continue;
+        }
         #endif
-        if (cb.type != type)
+        if (cb.type != type) {
             continue;
-
+        }
         r = cb(object, cbinfo);
 
-        if (watch != NULL) {
-            if (watch->getHalt() || (r & Ex_Halt))
+        if (watch != nullptr) {
+            if (watch->getHalt() || (r & Ex_Halt)) {
                 return watch->setHalt(r);
+            }
         } else {
-            if (r & Ex_Halt)
-                return r | Ex_End;
+            if (r & Ex_Halt) {
+                return (r | Ex_End);
+            }
         }
         // should remove by invoker ?
         if (r & Ex_Remove) {
@@ -246,20 +247,22 @@ uint32 ExWidget::ListenerList::invoke(ExWatch* watch, const uint32 type, const E
             cb.flag |= fRemoved;
         }
         // should skip remain callbacks ?
-        if (r & Ex_Break)
+        if (r & Ex_Break) {
             break;
+        }
     }
     influx--;
-    if (influx == 0 && change > 0) {
+    if (influx == 0U && change > 0U) {
         for (iterator i = begin(); i != end();) {
             uint8 flag = (*i).flag;
-            (*i).flag = 0;
-            if (flag & fRemoved)
+            (*i).flag = 0U;
+            if (flag & fRemoved) {
                 i = erase(i);
-            else
+            } else {
                 ++i;
+            }
         }
-        change = 0;
+        change = 0U;
     }
     return r;
 }
@@ -271,7 +274,7 @@ bool ExWindow::CallbackList::remove2(const ExCallback& cb) {
         // Be careful not to remove items from this list within the callback.
         if ((*i).func == cb.func &&
             (*i).data == cb.data) {
-            if (influx > 0) {
+            if (influx > 0U) {
                 change++;
                 (*i).flag |= fRemoved;
             } else {
@@ -295,7 +298,7 @@ void ExWindow::CallbackList::push(const Callback& cb) {
     for (iterator i = begin(); i != end(); ++i) {
         if (cb.prio <= (*i).prio) {
             insert(i, cb);
-            if (influx > 0) {
+            if (influx > 0U) {
                 change++;
                 (*i).flag |= fHoldOff;
             }
@@ -315,18 +318,21 @@ uint32 ExWindow::CallbackList::invoke(ExWatch* watch, const ExObject* object, co
         #if 1 // tbd
         // If a callback with a lower priority is added during callback execution,
         // the callback is also called at the same time.
-        if (cb.flag & (fRemoved | fHoldOff))
+        if (cb.flag & (fRemoved | fHoldOff)) {
             continue;
+        }
         #endif
 
         r = cb(object, cbinfo);
 
-        if (watch != NULL) {
-            if (exWatchDisp->getHalt() || (r & Ex_Halt))
-                return exWatchDisp->setHalt(r);
+        if (watch != nullptr) {
+            if (watch->getHalt() || (r & Ex_Halt)) {
+                return watch->setHalt(r);
+            }
         } else {
-            if (r & Ex_Halt)
-                return r | Ex_End;
+            if (r & Ex_Halt) {
+                return (r | Ex_End);
+            }
         }
         // should remove by invoker ?
         if (r & Ex_Remove) {
@@ -334,20 +340,22 @@ uint32 ExWindow::CallbackList::invoke(ExWatch* watch, const ExObject* object, co
             cb.flag |= fRemoved;
         }
         // should skip remain callbacks ?
-        if (r & Ex_Break)
+        if (r & Ex_Break) {
             break;
+        }
     }
     influx--;
-    if (influx == 0 && change > 0) {
+    if (influx == 0U && change > 0U) {
         for (iterator i = begin(); i != end();) {
             uint8 flag = (*i).flag;
-            (*i).flag = 0;
-            if (flag & fRemoved)
+            (*i).flag = 0U;
+            if (flag & fRemoved) {
                 i = erase(i);
-            else
+            } else {
                 ++i;
+            }
         }
-        change = 0;
+        change = 0U;
     }
     return r;
 }
