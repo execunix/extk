@@ -74,12 +74,22 @@ char* exstrncpy(char* __restrict __dest, const char* __restrict __src, size_t __
     return strncpy(__dest, __src, __n);
 }
 
-extern int exstrcmp(const char* __s1, const char* __s2)
+char* exstrcat(char* __restrict __dest, const char* __restrict __src)
+{
+    return strcat(__dest, __src);
+}
+
+char* exstrncat(char* __restrict __dest, const char* __restrict __src, size_t __n)
+{
+    return strncat(__dest, __src, __n);
+}
+
+int exstrcmp(const char* __s1, const char* __s2)
 {
     return strcmp(__s1, __s2);
 }
 
-extern int exstrncmp(const char* __s1, const char* __s2, size_t __n)
+int exstrncmp(const char* __s1, const char* __s2, size_t __n)
 {
     return strncmp(__s1, __s2, __n);
 }

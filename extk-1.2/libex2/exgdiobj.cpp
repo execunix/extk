@@ -365,4 +365,3 @@ ExMemDC::Create(int32 w, int32 h, int32 planes, int32 bpp, DWORD biCompression)
 }
 
 #endif // WIN32
-

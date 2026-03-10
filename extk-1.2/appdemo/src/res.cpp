@@ -3,18 +3,16 @@
 // SPDX-License-Identifier:     GPL-2.0+
 //
 
-
 #include "res.h"
 #include "env.h"
 #include <sys/stat.h>
-//#include "framework.h"
 
 Res res;
 
-static bool img_init(ExImage* img, const char* name)
+static bool img_init(ExImage* const img, const char* const name) noexcept
 {
-    char pathname[256];
-    sprintf_s(pathname, 256, "%s/%s", res.path, name);
+    char pathname[512];
+    snprintf(pathname, 512U, "%s/%s", res.path, name);
     bool result = img->load(pathname);
     if (result != true) {
         dprint("%s: %s fail.\n", __func__, pathname);
@@ -22,28 +20,38 @@ static bool img_init(ExImage* img, const char* name)
     return result;
 }
 
-bool initRes()
+bool initRes() noexcept
 {
-    bool hasResPath = true;
-    struct _stat statbuf;
-    sprintf_s(res.path, 256, "%s/res", exModulePath);
-    if (_stat(res.path, &statbuf) != 0) {
-        sprintf_s(res.path, 256, "%s/../../res", exModulePath);
-        if (_stat(res.path, &statbuf) != 0) {
-            dprint("%s: cant open res path\n", __func__);
-            hasResPath = false;
+    bool hasResPath = false;
+    static constexpr const char* const res_tbl[] = {
+        #ifdef WIN32
+        "../../../../appdemo/res",
+        "../../../appdemo/res",
+        #endif // WIN32
+        "../../res",
+        "../res",
+        "res",
+        nullptr
+    };
+    struct stat statbuf;
+    for (int32 i = 0; res_tbl[i] != nullptr; ++i) {
+        snprintf(res.path, 256U, "%s/%s", env.cwd, res_tbl[i]);
+        if (stat(res.path, &statbuf) == 0) {
+            hasResPath = true;
+            break;
         }
     }
+    dprint("%s: res.path = %s\n", __func__, res.path);
 
     ExCairo::Face::initFtLib();
 
     // font
     //
     if (hasResPath == true) {
-        res.f.gothic.load(res.path, "font/NanumGothic.ttf");
-        res.f.gothic_B.load(res.path, "font/NanumGothicBold.ttf");
-        res.f.square.load(res.path, "font/NanumSquareB.ttf");
-        res.f.square_B.load(res.path, "font/NanumSquareEB.ttf");
+        (void)res.f.gothic.load(res.path, "font/NanumGothic.ttf");
+        (void)res.f.gothic_B.load(res.path, "font/NanumGothicBold.ttf");
+        (void)res.f.square.load(res.path, "font/NanumSquareB.ttf");
+        (void)res.f.square_B.load(res.path, "font/NanumSquareEB.ttf");
     }
 
     // color
@@ -67,8 +75,10 @@ bool initRes()
 
     // image
     //
-    img_init(&res.i.bg0, "img/S01090.bmp");
-    img_init(&res.i.bg1, "img/S01051.PNG");
+    if (hasResPath == true) {
+        (void)img_init(&res.i.bg0, "img/S01090.bmp");
+        (void)img_init(&res.i.bg1, "img/S01051.PNG");
+    }
 
     // string
     //
@@ -77,7 +87,7 @@ bool initRes()
     return hasResPath;
 }
 
-bool finiRes()
+bool finiRes() noexcept
 {
     res.f.gothic.destroy();
     res.f.gothic_B.destroy();

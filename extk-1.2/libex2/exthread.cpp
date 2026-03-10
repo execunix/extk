@@ -99,7 +99,7 @@ bool ExThread::Cond::timedWait(Mutex* enteredMutex, ExTimeVal* absTime) {
     assert(this != NULL);
     assert(enteredMutex != NULL);
 
-    ulong milliseconds = INFINITE;
+    uint32 milliseconds = INFINITE;
     if (absTime) {
         ExTimeVal currentTime;
         ExGetCurrentTime(&currentTime);
@@ -112,7 +112,7 @@ bool ExThread::Cond::timedWait(Mutex* enteredMutex, ExTimeVal* absTime) {
                            (absTime->tv_usec - currentTime.tv_usec) / 1000;
         }
     }
-    ulong retval;
+    uint32 retval;
     HANDLE condEvent;
     condEvent = (HANDLE)TlsGetValue(exCondEventTls);
     if (condEvent == NULL) {

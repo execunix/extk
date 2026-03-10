@@ -12,9 +12,8 @@
 #include "exgdiobj.h"
 #include "exregion.h"
 //#include "exstyle.h"
+#include "exwatch.h"
 #include <list>
-
-extern ExWatch* exWatchDisp;
 
 typedef std::list<ExWidget*> ExWidgetList;
 
@@ -163,7 +162,7 @@ public:
     void        setName(const char* text);
     void* getData() const { return data; }
     void  setData(void* p) { data = p; }
-    bool isOpaque() const { return getFlags(Ex_Opaque) || !opaqueRgn.empty(); }
+    bool isOpaque() const { return (getFlags(Ex_Opaque) != 0U) || (!opaqueRgn.empty()); }
     ExBox& calcBox(ExBox& bx) const; // for drawing on canvas
     ExRect& calcRect(ExRect& rc) const; // for drawing on canvas
     ExBox calcBox() const { ExBox bx; return calcBox(bx); }
@@ -192,9 +191,11 @@ public:
     explicit ExWidget() noexcept;
 public:
     ExWindow* getWindow() const {
-        for (const ExWidget* w = this; w; w = w->parent)
-            if (w->getClassFlags(Ex_DISJOINT) || ExIsBase<ExWindow>(w))
+        for (const ExWidget* w = this; w != nullptr; w = w->parent) {
+            if (w->isClassDisjoint() || ExIsBase<ExWindow>(w)) {
                 return (ExWindow*)w;
+            }
+        }
         return NULL;
     }
     ExWidget* getParent() const { return parent; }
@@ -233,6 +234,8 @@ protected:
 public:
     virtual void setVisible(bool show);
     bool isVisible();
+    bool isFlagVisible() const { return ((flags & Ex_Visible) != 0U); }
+    bool isClassDisjoint() const { return ((getClassFlags() & Ex_DISJOINT) != 0U); }
     uint32 vanish(ExWindow* window);
     uint32 layout(ExRect& ar);
     uint32 damage();

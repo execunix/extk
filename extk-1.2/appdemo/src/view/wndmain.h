@@ -3,7 +3,8 @@
 // SPDX-License-Identifier:     GPL-2.0+
 //
 
-#pragma once
+#ifndef _wndmain_h_
+#define _wndmain_h_
 
 #include <ex.h>
 #include "wgtmenu.h"
@@ -17,7 +18,7 @@ public:
 public:
     void init(ExWindow* window);
     void setTitle(const char* str) {
-        strncpy(title, str, 255);
+        exstrncpy(title, str, 255);
         title[255] = 0;
     }
     uint32 onLayout(WgtTitle* widget, ExCbInfo* cbinfo);
@@ -40,7 +41,7 @@ public:
     int backBufCnt;
     WgtMenu wgtMenu;
     WgtTitle wgtTitle;
-    const UINT WM_APP_TEST = ExRegAppMessage();
+    const uint32 WM_APP_TEST = ExRegAppMessage();
 public:
     ~WndMain() {}
     WndMain() : ExWindow() {}
@@ -75,3 +76,7 @@ public:
     uint32 onBackViewMove(WndMain* widget, ExCbInfo* cbinfo);
     uint32 onBackBufUpdater(ExTimer* timer, ExCbInfo* cbinfo);
 };
+
+extern WndMain* gWndMain;
+
+#endif // _wndmain_h_

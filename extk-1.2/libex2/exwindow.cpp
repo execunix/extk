@@ -3,11 +3,11 @@
  * SPDX-License-Identifier:     GPL-2.0+
  */
 
+#include "exwndproc.h"
 #include "exrender.h"
 #include "exwatch.h"
 #include "exiconv.h"
 #include "exapp.h"
-#include <map>
 
 #define logdraw dprint0
 #define logdra1 dprint1
@@ -15,55 +15,20 @@
 #define logproc dprint
 #define logpro0 dprint0
 
-ExWatch* exWatchDisp = NULL;
-
-#ifdef WIN32
-typedef std::map<HWND, ExWindow*> ExWindowMap;
-
-static ExWindowMap attachWindowMap;
-
-static int32 detachWindow(HWND hwnd) {
-    dprint("%s: hwnd=0x%p addr=0x%p\n", __func__, hwnd, attachWindowMap[hwnd]);
-    //SetWindowLong(hwnd, GWL_USERDATA, (LONG)NULL); // detach window handle
-    attachWindowMap.erase(hwnd);
-    return 0;
-}
-
-static int32 attachWindow(HWND hwnd, ExWindow* window) {
-    dprint("%s: hwnd=0x%p addr=0x%p name=%s\n", __func__, hwnd, window, window->getName());
-    //SetWindowLong(hwnd, GWL_USERDATA, (LONG)this); // attach window handle
-    attachWindowMap[hwnd] = window;
-    return 0;
-}
-#endif
-
-typedef std::list<ExWindow*> ExWindowList;
-
-static ExWindowList detachWindowList;
-
-void collectWindow() {
-    while (!detachWindowList.empty()) {
-        ExWindow* w = detachWindowList.front();
-        detachWindowList.pop_front();
-
-        dprint1("collectWindow %s\n", w->getName());
-        w->destroy();
-    }
-}
-
 // class ExWindow
 //
 ExWindow::~ExWindow() noexcept {
-    if (canvas)
+    if (canvas != nullptr) {
         delete canvas;
+    }
     //handlerList.clear();
     //filterList.clear();
 }
 
 ExWindow::ExWindow() noexcept
     : ExWidget()
+    , hwnd(None)
 #ifdef WIN32
-    , hwnd(NULL)
     , dwStyle(0)
     , dwExStyle(0)
 #endif
@@ -84,26 +49,6 @@ ExWindow::ExWindow() noexcept
     paintFunc = ExFlushFunc(this, &ExWindow::onWmPaint);
 }
 
-ExWidget* ExWindow::getCapture() const
-{
-    return wgtCapture;
-}
-
-ExWidget* ExWindow::getEntered() const
-{
-    return wgtEntered;
-}
-
-ExWidget* ExWindow::getPressed() const
-{
-    return wgtPressed;
-}
-
-ExWidget* ExWindow::getFocused() const
-{
-    return wgtFocused;
-}
-
 uint32 ExWindow::init(const char* name, int32 w, int32 h) {
     ExRect rc(0, 0, w, h);
     ExWidget::init(NULL/*parent*/, name, &rc);
@@ -121,21 +66,34 @@ ExWindow::create(const char* name, int32 w, int32 h) {
 }
 
 uint32 ExWindow::destroy() {
-    if (getFlags(Ex_Destroyed))
+    if (getFlags(Ex_Destroyed) != 0U) {
         return 1;
-
-#ifdef WIN32
+    }
     HWND hwnd = this->hwnd;
-#endif
     ExWidget::destroy();
 
     // Now, member variables are not accessible.
+    if (hwnd != None) { // is not detached ?
+        // exWndProcMap.detach(hwnd);
 #ifdef WIN32
-    if (hwnd != NULL) { // is not detached ?
-        detachWindow(hwnd);
         DestroyWindow(hwnd); // send WM_DESTROY
-    }
 #endif
+#ifdef CONF_X11
+        ExApp::EnvX11& x11 = ExApp::x11;
+        XDestroyWindow(x11.display, hwnd);
+        //ExEmitMessage(1, WM_DESTROY, 0, 0); // tbd - type
+        #if 0
+        do { // emul XDestroyWindow
+            ExEvent ev(None);
+            ev.message = WM_DESTROY;
+            ExCbInfo cbinfo(0U, 0U, &ev);
+            (void)window->invokeFilter(&cbinfo);
+            (void)DefWndProc(ev); // send WM_DESTROY
+            (void)window->invokeHandler(&cbinfo);
+        } while (false);
+        #endif
+#endif
+    }
     return 0;
 }
 
@@ -158,13 +116,16 @@ bool ExWindow::showWindow(DWORD dwExStyle, DWORD dwStyle, int32 x, int32 y) {
 }
 
 bool ExWindow::showWindow() {
-    if (hwnd == NULL)
+    if (hwnd == NULL) {
         return false;
-    if (!ShowWindow(hwnd, (dwStyle & WS_CHILD) ? SW_SHOW : SW_SHOWNORMAL))
+    }
+    if (!ShowWindow(hwnd, (dwStyle & WS_CHILD) ? SW_SHOW : SW_SHOWNORMAL)) {
         return false;
+    }
     // send WM_PAINT if the window's update region is not empty
-    if (!UpdateWindow(hwnd)) // can be skip
+    if (!UpdateWindow(hwnd)) { // can be skip
         return false;
+    }
     return true;
 }
 
@@ -177,19 +138,90 @@ bool ExWindow::hideWindow() {
 }
 #endif
 
+#ifdef CONF_X11 // __linux__
+bool ExWindow::showWindow(ulong type, int32 x, int32 y) {
+    ExApp::EnvX11& x11 = ExApp::x11;
+
+    int64 event_mask = 0;
+    event_mask |= KeyPressMask | KeyReleaseMask;
+    event_mask |= ButtonPressMask | ButtonReleaseMask | PointerMotionMask;
+    event_mask |= EnterWindowMask | LeaveWindowMask | FocusChangeMask;
+    event_mask |= ExposureMask | ResizeRedirectMask;
+    event_mask |= StructureNotifyMask;
+    // event_mask |= SubstructureNotifyMask;
+
+    uint64 value_mask = 0;
+    value_mask |= CWBackPixmap | CWBackPixel;
+    value_mask |= CWBorderPixel | CWBackingStore;
+    value_mask |= CWEventMask;
+    // value_mask |= CWColormap; // only if 8-bpp mode
+
+    // create parent window
+    XSetWindowAttributes attr;
+    attr.background_pixmap = None; //ParentRelative;
+    attr.background_pixel = BlackPixel(x11.display, 0);
+    //attr.border_pixmap = CopyFromParent;
+    attr.border_pixel = WhitePixel(x11.display, 0);
+    //attr.bit_gravity = ForgetGravity;
+    //attr.win_gravity = NorthWestGravity;
+    attr.backing_store = Always; //NotUseful;
+    //attr.backing_planes = All ones;
+    //attr.backing_pixel = zero;
+    //attr.save_under = False;
+    attr.event_mask = event_mask;
+    //attr.do_not_propagate_mask = empty set;
+    //attr.override_redirect = False;
+    attr.colormap = CopyFromParent;
+    //attr.cursor = None;
+    hwnd = XCreateWindow(x11.display, x11.root,
+        x, y, this->area.w, this->area.h, 2, x11.depth,
+        InputOutput, x11.visual, value_mask, &attr);
+
+    XSetWMProtocols(x11.display, hwnd, x11.wm_atom, ExApp::WM_MAX);
+    if (1) {
+        Atom* pa = 0;
+        int32 cnt = 0;
+        XGetWMProtocols(x11.display, hwnd, &pa, &cnt);
+        dprint("XGetWMProtocols: cnt=%d\n", cnt);
+        for (int32 i = 0; i < cnt; i++) {
+            dprint("atom[%d]=%lu:%s\n", i, pa[i], XGetAtomName(x11.display, pa[i]));
+        }
+        if (pa) {
+            XFree(pa);
+        }
+    }
+    XStoreName(x11.display, hwnd, this->name);
+    return showWindow();
+}
+
+bool ExWindow::showWindow() {
+    ExApp::EnvX11& x11 = ExApp::x11;
+    XMapWindow(x11.display, hwnd);
+    return true;
+}
+
+bool ExWindow::hideWindow() {
+    // tbd - type
+    return true;
+}
+#endif
+
 ExWidget* ExWindow::giveFocus(ExWidget* newFocus) {
-    if (newFocus == wgtFocused)
+    if (newFocus == wgtFocused) {
         return wgtFocused;
+    }
     if (newFocus != NULL) {
-        if (newFocus->getFlags(Ex_Blocked) ||
-            !newFocus->isVisible())
+        if ((newFocus->getFlags(Ex_Blocked) != 0U) ||
+            !newFocus->isVisible()) {
             return wgtFocused;
+        }
     }
 
     ExWidgetList got;
     if (newFocus) {
-        for (ExWidget* w = newFocus; w; w = w->parent)
+        for (ExWidget* w = newFocus; w != nullptr; w = w->parent) {
             got.push_front(w);
+        }
         if (got.front() != this) {
             exerror("can't give focus %s to %s different parent\n", newFocus->name, name);
             return wgtFocused;
@@ -197,19 +229,22 @@ ExWidget* ExWindow::giveFocus(ExWidget* newFocus) {
     }
     ExWidgetList lost;
     if (wgtFocused) {
-        for (ExWidget* w = wgtFocused; w; w = w->parent)
+        for (ExWidget* w = wgtFocused; w != nullptr; w = w->parent) {
             lost.push_front(w);
+        }
     }
 
     ExWidgetList::iterator got_i = got.begin();
     ExWidgetList::iterator lost_i = lost.begin();
     while (got_i != got.end() && lost_i != lost.end()) {
         dprint("compare %s %s\n", (*got_i)->name, (*lost_i)->name);
-        if (*lost_i != *got_i)
+        if (*lost_i != *got_i) {
             break;
+        }
         ++lost_i;
-        if (*got_i == newFocus)
+        if (*got_i == newFocus) {
             break;
+        }
         ++got_i;
     }
     lost.erase(lost.begin(), lost_i);
@@ -220,16 +255,18 @@ ExWidget* ExWindow::giveFocus(ExWidget* newFocus) {
     while (lost_i != lost.begin()) {
         ExWidget* w = *--lost_i;
         w->flags &= ~Ex_Focused;
-        if (w->getFlags(Ex_FocusRender))
+        if (w->getFlags(Ex_FocusRender) != 0U) {
             w->damage();
+        }
         dprint("lost focus %s\n", w->name);
     }
     got_i = got.begin();
     while (got_i != got.end()) {
         ExWidget* w = *got_i++;
         w->flags |= Ex_Focused;
-        if (w->getFlags(Ex_FocusRender))
+        if (w->getFlags(Ex_FocusRender) != 0U) {
             w->damage();
+        }
         dprint("got focus %s\n", w->name);
     }
 
@@ -255,23 +292,36 @@ ExWidget* ExWindow::giveFocus(ExWidget* newFocus) {
 
 ExWidget* ExWindow::moveFocus(uint32 dir) { // sample
     if (wgtFocused == NULL) {
-        if (dir == Ex_DirUp || dir == Ex_DirLeft)
+        if (dir == Ex_DirUp || dir == Ex_DirLeft) {
             return giveFocus(this);
+        }
         return giveFocus(last());
     }
     switch (dir) {
-        case Ex_DirUp:
-            if (wgtFocused->broPrev && wgtFocused->broPrev != wgtFocused)
+        case Ex_DirUp: {
+            if (wgtFocused->broPrev && wgtFocused->broPrev != wgtFocused) {
                 return giveFocus(wgtFocused->broPrev);
-        case Ex_DirDown:
-            if (wgtFocused->broNext && wgtFocused->broNext != wgtFocused)
+            }
+            break;
+        }
+        case Ex_DirDown: {
+            if (wgtFocused->broNext && wgtFocused->broNext != wgtFocused) {
                 return giveFocus(wgtFocused->broNext);
-        case Ex_DirLeft:
-            if (wgtFocused->parent)
+            }
+            break;
+        }
+        case Ex_DirLeft: {
+            if (wgtFocused->parent) {
                 return giveFocus(wgtFocused->parent);
-        case Ex_DirRight:
-            if (wgtFocused->childHead)
+            }
+            break;
+        }
+        case Ex_DirRight: {
+            if (wgtFocused->childHead) {
                 return giveFocus(wgtFocused->childHead);
+            }
+            break;
+        }
     }
     return wgtFocused;
 }
@@ -399,399 +449,6 @@ uint32 ExWindow::onRepeatKey(ExTimer* timer, ExCbInfo* cbinfo) {
     return Ex_Continue;
 }
 
-uint32 ExWindow::basicWndProc(ExCbInfo* cbinfo) {
-#ifdef WIN32
-    UINT& message = cbinfo->event->message;
-    WPARAM& wParam = cbinfo->event->wParam;
-    LPARAM& lParam = cbinfo->event->lParam;
-
-    switch (message) {
-        case WM_PAINT: {
-            this->paint();
-            // An application should return zero if it processes this message.
-            //cbinfo->event->lResult = 0;
-            return Ex_Break;
-        }
-        case WM_ERASEBKGND: {
-#if 0
-            HDC hdc = (HDC)wParam;
-            logproc("[0x%p] WM_ERASEBKGND hdc=0x%p\n", hwnd, hdc);
-#endif
-            // An application should return nonzero if it erases the background;
-            // otherwise, it should return zero.
-            cbinfo->event->lResult = 1;
-            return Ex_Break;
-        }
-#if 0
-        case WM_NCCALCSIZE: {
-            RECT* r = (RECT*)lParam;
-            //NCCALCSIZE_PARAMS* rc = (NCCALCSIZE_PARAMS*)lParam;
-            logproc("[0x%p] WM_NCCALCSIZE wParam=%d %d,%d-%d,%d\n", hwnd, wParam,
-                    r->left, r->top, r->right, r->bottom);
-            cbinfo->event->lResult = 0;
-            return Ex_Break;
-        }
-#endif
-        case WM_GETMINMAXINFO: {
-            MINMAXINFO* mmi = (MINMAXINFO*)lParam;
-            logproc("[0x%p] WM_GETMINMAXINFO %d %d,%d\n", hwnd, wParam,
-                    mmi->ptMinTrackSize.x, mmi->ptMinTrackSize.y);
-            mmi->ptMinTrackSize.x = 640 + 16;
-            mmi->ptMinTrackSize.y = 360 + 39;
-            return Ex_Continue;
-        }
-        case WM_SIZE: {
-            int32 width = LOWORD(lParam);
-            int32 height = HIWORD(lParam);
-            logproc("[0x%p] WM_SIZE wParam=0x%d w=%u h=%u\n", hwnd, wParam, width, height);
-            if (wParam != SIZE_MINIMIZED) {
-                if (width < 640)
-                    width = 640;
-                if (height < 360)
-                    height = 360;
-                ExSize sz(width, height);
-                if (this->area.u.sz != sz) {
-                    ExRect ar(this->area.u.pt, sz);
-                    layout(ar);
-                }
-            }
-            return Ex_Continue;
-        }
-        case WM_MOUSEMOVE: {
-            UINT fwKeys = (UINT)wParam;
-            int32 xPos = LOWORD(lParam);
-            int32 yPos = HIWORD(lParam);
-            logpro0("[0x%p] WM_MOUSEMOVE     fwKeys=0x%p xPos=%d yPos=%d\n", hwnd, fwKeys, xPos, yPos);
-            if (wgtCapture != NULL) {
-                if (wgtCapture == wgtEntered &&
-                    wgtCapture == wgtPressed &&
-                    wgtCapture->getFlags(Ex_Visible)) {
-                    return wgtCapture->invokeListener(Ex_CbActivate, cbinfo->set(Ex_CbPtrMove, 0));
-                }
-                wgtCapture = NULL;
-            }
-            ExWidget* wgttmp = NULL;
-            ExWidget* widget = getSelectable(ExPoint(xPos, yPos));
-            if (wgtEntered != widget) {
-                wgttmp = wgtEntered;
-                wgtEntered = widget;
-                if (wgttmp != NULL) {
-                    wgttmp->flags &= ~Ex_PtrEntered;
-                    wgttmp->invokeListener(Ex_CbActivate, cbinfo->set(Ex_CbPtrLeave, 0));
-                    // tbd - check return code
-                    if (wgttmp->getFlags(Ex_Highlighted | Ex_AutoHighlight) == Ex_AutoHighlight)
-                        wgttmp->damage();
-                }
-                if (widget != NULL &&
-                    widget == wgtEntered) {
-                    widget->flags |= Ex_PtrEntered;
-                    widget->invokeListener(Ex_CbActivate, cbinfo->set(Ex_CbPtrEnter, 0));
-                    // tbd - check return code
-                    if (widget->getFlags(Ex_Highlighted | Ex_AutoHighlight) == Ex_AutoHighlight)
-                        widget->damage();
-                } else {
-                    widget = NULL; // cancel event
-                }
-                //ExApp::butRepeatCnt() = 0; // tbd
-            }
-            if (widget != NULL) {
-                widget->invokeListener(Ex_CbActivate, cbinfo->set(Ex_CbPtrMove, 0));
-                // tbd - check return code
-            }
-            // An application should return zero if it processes this message.
-            //cbinfo->event->lResult = 0;
-            return Ex_Continue;
-        }
-        case WM_LBUTTONDOWN: {
-            UINT fwKeys = (UINT)wParam;
-            int32 xPos = LOWORD(lParam);
-            int32 yPos = HIWORD(lParam);
-            logpro0("[0x%p] WM_LBUTTONDOWN   fwKeys=0x%p xPos=%d yPos=%d\n", hwnd, fwKeys, xPos, yPos);
-            ExWidget* wgttmp = NULL;
-            ExWidget* widget = getSelectable(ExPoint(xPos, yPos));
-            ExApp::button_x[0] = ExApp::button_x[1];
-            ExApp::button_x[1] = xPos;
-            ExApp::button_y[0] = ExApp::button_y[1];
-            ExApp::button_y[1] = yPos;
-            ExApp::button_click_time[0] = ExApp::button_click_time[1];
-            ExApp::button_click_time[1] = exWatchDisp->getTick();
-            ExApp::button_widget[0] = ExApp::button_widget[1];
-            ExApp::button_widget[1] = widget;
-            ExApp::button_window[0] = ExApp::button_window[1];
-            ExApp::button_window[1] = this;
-            if (widget && widget ==
-                ExApp::button_widget[0] &&
-                ExApp::double_click_time >
-                ExApp::button_click_time[1] -
-                ExApp::button_click_time[0] &&
-                ExApp::double_click_distance >
-                std::abs(ExApp::button_x[1] - ExApp::button_x[0]) +
-                std::abs(ExApp::button_y[1] - ExApp::button_y[0])) {
-                // tbd: proc double_click_event callback
-                ExApp::double_click_count++;
-                cbinfo->event->message = WM_LBUTTONDBLCLK;
-            } else {
-                ExApp::double_click_count = 0;
-                if (widget && widget !=
-                    ExApp::button_widget[0] &&
-                    ExApp::button_react_delay >
-                    ExApp::button_click_time[1] -
-                    ExApp::button_click_time[0]) {
-                    return Ex_Continue;
-                }
-            }
-            if (wgtEntered != widget) {
-                wgttmp = wgtEntered;
-                wgtEntered = widget;
-                if (wgttmp != NULL) {
-                    wgttmp->flags &= ~Ex_PtrEntered;
-                    wgttmp->invokeListener(Ex_CbActivate, cbinfo->set(Ex_CbPtrLeave, 0));
-                    // tbd: proc double_click_event callback
-                    if (wgttmp->getFlags(Ex_Highlighted | Ex_AutoHighlight) == Ex_AutoHighlight)
-                        wgttmp->damage();
-                }
-                if (widget != NULL &&
-                    widget == wgtEntered) {
-                    widget->flags |= Ex_PtrEntered;
-                    widget->invokeListener(Ex_CbActivate, cbinfo->set(Ex_CbPtrEnter, 0));
-                    // tbd: proc double_click_event callback
-                    if (widget->getFlags(Ex_Highlighted | Ex_AutoHighlight) == Ex_AutoHighlight)
-                        widget->damage();
-                } else {
-                    widget = NULL; // cancel event
-                }
-            }
-            wgtPressed = widget;
-            if (widget != NULL) {
-                ex_but_timer_instant_initial = ex_but_timer_default_initial;
-                ex_but_timer_instant_repeat = ex_but_timer_default_repeat;
-                widget->flags |= Ex_ButPressed;
-                widget->invokeListener(Ex_CbActivate, cbinfo->set(Ex_CbButPress, 0));
-                // tbd: proc double_click_event callback
-                if (widget->getFlags(Ex_Highlighted | Ex_AutoHighlight) == Ex_AutoHighlight)
-                    widget->damage();
-                if (widget == wgtPressed) {
-                    //SetTimer(hwnd, ID_TIMER_REPEAT_BUT, 99, NULL);
-                    ExApp::but_timer.init(exWatchDisp, this, &ExWindow::onRepeatBut);
-                    ExApp::but_timer.start(ex_but_timer_instant_initial, ex_but_timer_instant_repeat);
-                    ExApp::butRepeatCnt() = 0;//-2;
-                }
-            }
-            // An application should return zero if it processes this message.
-            //cbinfo->event->lResult = 0;
-            return Ex_Continue;
-        }
-#if 0
-        case WM_LBUTTONDBLCLK: {
-            UINT fwKeys = (UINT)wParam;
-            int32 xPos = LOWORD(lParam);
-            int32 yPos = HIWORD(lParam);
-            logproc("[0x%p] WM_LBUTTONDBLCLK fwKeys=0x%p xPos=%d yPos=%d\n", hwnd, fwKeys, xPos, yPos);
-            /*	Only windows that have the CS_DBLCLKS style can receive WM_LBUTTONDBLCLK
-                messages, which the OS generates when the user presses, releases, and
-                again presses the left mouse button within the time limit for double-clicks
-                for the system. Double-clicking the left mouse button actually generates
-                the following series of four messages:
-                    1. WM_LBUTTONDOWN
-                    2. WM_LBUTTONUP
-                    3. WM_LBUTTONDBLCLK
-                    4. WM_LBUTTONUP
-            */
-            return Ex_Continue;
-        }
-#endif
-        case WM_LBUTTONUP: {
-            UINT fwKeys = (UINT)wParam;
-            int32 xPos = LOWORD(lParam);
-            int32 yPos = HIWORD(lParam);
-            logpro0("[0x%p] WM_LBUTTONUP     fwKeys=0x%p xPos=%d yPos=%d\n", hwnd, fwKeys, xPos, yPos);
-            ExWidget* wgttmp = wgtPressed;
-            ExApp::but_timer.stop();
-            if (wgttmp != NULL) {
-                wgttmp->flags &= ~Ex_ButPressed;
-                wgttmp->invokeListener(Ex_CbActivate, cbinfo->set(Ex_CbButRelease, 0));
-                // tbd: proc double_click_event callback
-                if (wgttmp->getFlags(Ex_Highlighted | Ex_AutoHighlight) == Ex_AutoHighlight)
-                    wgttmp->damage();
-                if (wgttmp != wgtPressed)
-                    wgttmp = NULL; // cancel event
-                else
-                    wgtPressed = NULL;
-            }
-            if (wgttmp != NULL &&
-                wgttmp == getSelectable(ExPoint(xPos, yPos))) {
-                if (ExApp::butRepeatCnt() < 0)
-                    ExApp::butRepeatCnt() = 0;
-                wgttmp->invokeListener(Ex_CbActivate, cbinfo->set(Ex_CbActivate, ExApp::butRepeatCnt()));
-                // tbd: proc double_click_event callback
-                //if (ExApp::butRepeatCnt() == 0)
-                //  ExApp::button_click_time[1] = exWatchDisp->getTick();
-            }
-            // An application should return zero if it processes this message.
-            //cbinfo->event->lResult = 0;
-            return Ex_Continue;
-        }
-        case WM_ACTIVATE: {
-            WORD fActive = LOWORD(wParam);
-            BOOL fMinimized = (BOOL)HIWORD(wParam);
-            HWND hwndPrevious = (HWND)lParam;
-            logproc("[0x%p] WM_ACTIVATE fActive=%d fMinimized=%d hwndPrevious=0x%p\n",
-                    hwnd, fActive, fMinimized, hwndPrevious);
-#if 0
-            // tbd: set widget flags
-            if (fMinimized)
-                ExWidget::unrealize();
-            else
-                ExWidget::realize();
-#endif
-            // An application should return zero if it processes this message.
-            //cbinfo->event->lResult = 0;
-            return Ex_Continue;
-        }
-        case WM_KEYDOWN: {
-            if (ExApp::key_state == (uint32)wParam &&
-                (lParam & 0xC0000000) == 0x40000000) {
-                lParam = ((lParam & 0xFFFF0000) | (++ExApp::keyRepeatCnt() & 0xFFFF));
-            } else {
-                ExApp::keyRepeatCnt() = 1;
-                ExApp::key_state = (uint32)wParam;
-            }
-            return Ex_Continue;
-        }
-        case WM_KEYUP: {
-            ExApp::keyRepeatCnt() = 0;
-            ExApp::key_state = 0;
-            return Ex_Continue;
-        }
-#if 0
-        case WM_TIMER: {
-            //logproc("[0x%p] WM_TIMER wParam=%d\n", hwnd, wParam);
-            //window->onWmTimer((UINT)wParam);
-            // An application should return zero if it processes this message.
-            //cbinfo->event->lResult = 0;
-            return Ex_Break; // skip handler
-        }
-#endif
-#if 0 // secure FindWindow()
-        case WM_GETTEXTLENGTH: {
-            return Ex_Break; // skip handler
-        }
-        case WM_GETTEXT: {
-            return Ex_Break; // skip handler
-        }
-#endif
-    } // end switch
-    LRESULT lResult;
-    exWatchDisp->leave();
-    lResult = DefWindowProc(hwnd, message, wParam, lParam);
-    exWatchDisp->enter();
-    cbinfo->event->lResult = lResult;
-#if 0 // tbd - pass to handler ?
-    if (cbinfo->event->lResult != 0) {
-        logproc("hwnd=%p msg=%p lResult=%d\n",
-                hwnd, message, cbinfo->event->lResult);
-        return Ex_Break;
-    }
-#endif
-#endif // WIN32
-    return Ex_Continue;
-}
-
-#ifdef WIN32
-LRESULT CALLBACK // static
-ExWindow::sysWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
-    ExWindow* window = NULL;
-    exWatchDisp->enter();
-#if 0
-    MSG& m = ExApp::event.msg;
-    logproc("hwnd=%p,%p msg=%p,%p wp=%p,%p lp=%p,%p\n",
-            m.hwnd, hwnd, m.message, message, m.wParam, wParam, m.lParam, lParam);
-#endif
-
-    // attach
-#ifdef _WIN32_WCE
-    if (message == WM_CREATE) {
-        window = (ExWindow*)((LPCREATESTRUCT)lParam)->lpCreateParams;
-        exassert(window && !window->hwnd);
-        attachWindow(hwnd, window);
-        window->hwnd = hwnd;
-        logproc("[0x%p][0x%p] WM_CREATE\n", hwnd, window);
-        // If an application processes this message, it should return 0 to continue creation of the window.
-        // If the application returns -1, the window is destroyed and the CreateWindowEx or CreateWindow function returns a NULL handle.
-        exWatchDisp->leave();
-        return 0;
-    }
-#else
-    if (message == WM_NCCREATE) {
-        window = (ExWindow*)((LPCREATESTRUCT)lParam)->lpCreateParams;
-        exassert(window && !window->hwnd);
-        attachWindow(hwnd, window);
-        window->hwnd = hwnd;
-        logproc("[0x%p][0x%p] WM_NCCREATE\n", hwnd, window);
-        exWatchDisp->leave();
-        return TRUE;
-    }
-#endif
-
-    //window = (ExWindow*)GetWindowLong(hwnd, GWL_USERDATA);
-    window = attachWindowMap[hwnd];
-    if (!(window && window->hwnd == hwnd)) {
-        logproc("[0x%p] WM_0x%04x\n", hwnd, message);
-        exWatchDisp->leave();
-        return DefWindowProc(hwnd, message, wParam, lParam);
-    }
-
-    // detach
-    if (message == WM_DESTROY) {
-        logproc("[0x%p][0x%p] WM_DESTROY\n", hwnd, window);
-        exassert(window && window->hwnd == hwnd);
-        window->hwnd = NULL;
-        detachWindow(hwnd);
-        detachWindowList.push_back(window);
-        if (ExApp::mainWnd == window) {
-            ExApp::mainWnd = NULL; // stop timer/flush/input exlib proc
-            PostQuitMessage(ExApp::retCode); // stop main loop
-        }
-        exWatchDisp->leave();
-        // An application should return zero if it processes this message.
-        return 0;
-    }
-
-    // setup cbinfo->event
-    ExCbInfo msginfo(0);
-    ExCbInfo* cbinfo = &msginfo;
-    window->event = &ExApp::event;
-    cbinfo->event = &ExApp::event;
-    cbinfo->event->hwnd = hwnd;
-    cbinfo->event->message = message;
-    cbinfo->event->wParam = wParam;
-    cbinfo->event->lParam = lParam;
-    cbinfo->event->lResult = 0;
-    //exassert(cbinfo->event->msg.time == window->event->msg.time);
-    //exassert(cbinfo->event->msg.pt == window->event->msg.pt);
-#if 0 // deprecated
-    if (message == WM_ExEvEmit) { // emitted msg is key,btn,...
-        window->event = (ExEvent*)lParam;
-        cbinfo->event = window->event; // replace...
-        exassert(hwnd == window->event->hwnd);
-    }
-#endif
-
-    cbinfo->type = Ex_CbFilter;
-    if (window->invokeFilter(cbinfo) & Ex_Break)
-        goto leave;
-    cbinfo->type = Ex_CbUnknown;
-    if (window->basicWndProc(cbinfo) & Ex_Break)
-        goto leave;
-    cbinfo->type = Ex_CbHandler;
-    if (window->invokeHandler(cbinfo) & Ex_Break)
-        goto leave;
-leave:
-    exWatchDisp->leave();
-    return cbinfo->event->lResult;
-}
-#endif // WIN32
-
 #ifdef WIN32
 ATOM // static
 ExWindow::classInit(HINSTANCE hInstance) {
@@ -800,7 +457,7 @@ ExWindow::classInit(HINSTANCE hInstance) {
     if (wcid == 0) {
         WNDCLASS wc;
         wc.style = /*CS_DBLCLKS | */CS_HREDRAW | CS_VREDRAW;
-        wc.lpfnWndProc = (WNDPROC)sysWndProc;
+        wc.lpfnWndProc = (WNDPROC)&DefWndProc;
         wc.cbClsExtra = 0;
         wc.cbWndExtra = 0;
         wc.hInstance = hInstance;
@@ -817,44 +474,3 @@ ExWindow::classInit(HINSTANCE hInstance) {
 #endif // WIN32
 
 ExDrawFunc exDrawFuncTrap;
-
-// test
-//
-#ifdef WIN32
-#if 0
-extern ExWindowMap attachWindowMap;
-
-void      ExWindowMapInsert(HWND hwnd, ExWindow* window);
-void      ExWindowMapRemove(HWND hwnd);
-ExWindow* ExWindowMapSearch(HWND hwnd);
-
-void
-ExWindowMapInsert(HWND hwnd, ExWindow* window) {
-    exassert(hwnd && window);
-    exassert(attachWindowMap.find(hwnd) == attachWindowMap.end());
-    //attachWindowMap[hwnd] = window;
-    //attachWindowMap.insert(ExWindowMap::value_type(hwnd, window));
-    std::pair<ExWindowMap::iterator, bool> pr;
-    pr = attachWindowMap.insert(ExWindowMap::value_type(hwnd, window));
-    exassert(pr.second == false && pr.first->second == window);
-    exassert(pr.second == true);
-}
-
-void
-ExWindowMapRemove(HWND hwnd) {
-    exassert(hwnd);
-    //attachWindowMap.erase(hwnd);
-    ExWindowMap::iterator i = attachWindowMap.find(hwnd);
-    exassert(attachWindowMap.end() != i);
-    if (attachWindowMap.end() != i)
-        attachWindowMap.erase(i);
-}
-
-ExWindow*
-ExWindowMapSearch(HWND hwnd) {
-    exassert(hwnd);
-    ExWindowMap::iterator i = attachWindowMap.find(hwnd);
-    return attachWindowMap.end() != i ? i->second : NULL;
-}
-#endif
-#endif

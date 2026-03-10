@@ -3,7 +3,8 @@
 // SPDX-License-Identifier:     GPL-2.0+
 //
 
-#pragma once
+#ifndef _wgtsetup_h_
+#define _wgtsetup_h_
 
 #include <ex.h>
 #include <list>
@@ -42,7 +43,7 @@ public:
 };
 
 class WgtSetup : public ExWidget {
-    const UINT WM_APP_SETUP = ExRegAppMessage();
+    const uint32 WM_APP_SETUP = ExRegAppMessage();
 public:
     ExWidget title;
     ExWidget close;
@@ -66,3 +67,5 @@ public:
     void fini();
     void init(ExWidget* parent, int x, int y);
 };
+
+#endif // _wgtsetup_h_

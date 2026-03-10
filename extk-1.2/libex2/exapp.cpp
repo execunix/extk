@@ -36,16 +36,27 @@ uint32 ex_key_timer_instant_repeat = 0;
 // class ExApp
 //
 const char*  ExApp::appName = "ExApp";
-ExWindow*    ExApp::mainWnd = NULL;
+ExWindow*    ExApp::mainWnd = nullptr;
 #ifdef WIN32
 HINSTANCE    ExApp::hInstance = 0;
 HINSTANCE    ExApp::hPrevInstance = 0;
 LPSTR        ExApp::lpCmdLine = NULL;
 int32        ExApp::nCmdShow = 0;
 #endif
+#ifdef CONF_X11
+ExApp::EnvX11 ExApp::x11 = {
+    .wm_atom = { None },
+    .display = nullptr,
+    .visual = nullptr,
+    .screen = -1,
+    .depth = 0,
+    .root = None,
+    .ximg = nullptr,
+};
+#endif // CONF_X11
 int32        ExApp::retCode = 0;            // 0:EXIT_SUCCESS,1:EXIT_FAILURE
 ExSize       ExApp::smSize(0);              // SystemMetrics
-ExEvent      ExApp::event(NULL);
+ExEvent      ExApp::event(None);
 
 ExTimer      ExApp::but_timer;
 ExTimer      ExApp::key_timer;
@@ -60,30 +71,9 @@ uint32       ExApp::double_click_time;      /* Maximum time between clicks in ms
 uint32       ExApp::button_number[2];       /* The last 2 buttons to be pressed. */
 ExWidget*    ExApp::button_widget[2];       /* The last 2 widgets to receive button presses. */
 ExWindow*    ExApp::button_window[2];       /* The last 2 windows to receive button presses. */
-#ifdef WIN32
-UINT         ExApp::regAppMsgIndex = WM_APP;
+#ifdef OSAL_WIN32
+uint32       ExApp::regAppMsgIndex = 0x8000U; // WM_APP 0x8000
 #endif
-
-bool ExEventPeek(ExEvent* event)
-{
-#ifdef WIN32
-    BOOL bRet;
-
-    exWatchDisp->leave();
-    if ((bRet = GetMessage(&event->msg, NULL, 0, 0)) != TRUE) {
-        exassert(event->msg.message == WM_QUIT);
-        // WM_DESTROY => PostQuitMessage
-        bRet = TRUE;
-    }
-    exWatchDisp->enter();
-
-    return bRet;
-#else
-    return false; // tbd
-#endif
-}
-
-ExEventFunc exEventFunc = &ExEventPeek;
 
 #ifdef WIN32
 // ExModalCtrl - tbd
@@ -138,8 +128,9 @@ Returns:
 void* ExModalBlock(ExModalCtrl* ctrl, long flags)
 {
 #if 0 // tbd
+    MSG msg;
     uint32 waittick;
-    ExEvent* event = &ExApp::event;
+    //ExEvent* event = &ExApp::event;
     ctrl->flags = flags | 0x80000000;
     ctrl->result = NULL;
     ctrl->cond = NULL;
@@ -150,25 +141,25 @@ void* ExModalBlock(ExModalCtrl* ctrl, long flags)
         dprint0("waittick=%d\n", waittick);
         if (exWatchDisp->getHalt()) // is halt ?
             break; // stop event loop
-        if (ExApp::mainWnd != NULL)
+        if (ExApp::mainWnd != nullptr)
             ExApp::mainWnd->flush();
         ExInput::invoke(waittick); // The only waiting point.
         if (exWatchDisp->getHalt()) // is halt ?
             break; // stop event loop
         while ((ctrl->flags & 0x80000000) &&
-            exEventFunc(event) == true) { // is message available ?
-            if (event->msg.message == WM_ExEvWake) {
+            exEventFunc(msg) == true) { // is message available ?
+            if (msg.message == WM_ExEvWake) {
                 dprint("message == WM_ExEvWake\n");
                 break;
             }
-            if (event->msg.message == WM_QUIT) { // WM_DESTROY => PostQuitMessage
+            if (msg.message == WM_QUIT) { // WM_DESTROY => PostQuitMessage
                 dprint("message == WM_QUIT tick=%d\n", exWatchDisp->getTick());
-                ExApp::retCode = (int32)event->msg.wParam; // cause DestroyWindow
+                ExApp::retCode = (int32)msg.wParam; // cause DestroyWindow
                 exWatchDisp->setHalt(Ex_Halt); // stop event loop
                 break;
             }
             //exWatchDisp->leave(); // tbd ctrl->leave()
-            ExApp::dispatch(event->msg);
+            ExApp::dispatch(msg);
             //exWatchDisp->enter(); // tbd ctrl->enter()
             ExApp::collect();
         }
@@ -188,26 +179,25 @@ Description:
 */
 void ExMainLoop()
 {
-    ExEvent* event = &ExApp::event;
-
-    while (exWatchDisp->getHalt() == 0 &&
-           exEventFunc(event) == true) { // is message available ?
 #ifdef WIN32
-        if (event->msg.message == WM_ExEvWake) {
+    MSG msg;
+    while (exWatchDisp->getHalt() == 0 &&
+        exEventFunc(msg) == true) { // is message available ?
+        if (msg.message == WM_ExEvWake) {
             dprint("message == WM_ExEvWake\n");
             continue;
         }
-        if (event->msg.message == WM_QUIT) { // WM_DESTROY => PostQuitMessage
+        if (msg.message == WM_QUIT) { // WM_DESTROY => PostQuitMessage
             dprint("message == WM_QUIT tick=%d\n", exWatchDisp->getTick());
-            ExApp::retCode = (int32)event->msg.wParam; // cause DestroyWindow
+            ExApp::retCode = (int32)msg.wParam; // cause DestroyWindow
             exWatchDisp->setHalt(Ex_Halt); // stop event loop
             break;
         }
-        ExApp::dispatch(event->msg);
-#endif
+        ExApp::dispatch(msg);
         ExApp::collect();
     }
     ExApp::collect();
+#endif
 }
 
 /**
@@ -242,8 +232,45 @@ void ExApp::dispatch(ExEvent& ev)
 }
 #endif
 
-void collectWindow();
-void collectWidget();
+typedef std::list<ExWidget*> ExWidgetList;
+typedef std::list<ExWindow*> ExWindowList;
+
+static ExWidgetList deleteWidgetList;
+static ExWindowList detachWindowList;
+
+static void collectWidget() {
+    while (!deleteWidgetList.empty()) {
+        ExWidget* w = deleteWidgetList.front();
+        deleteWidgetList.pop_front();
+
+        dprint1("collectWidget %s\n", w->getName());
+        delete w;
+        //
+        // After destroy, can't access callback list...
+        // Be careful not to access member variables any more.
+        //
+    }
+}
+
+static void collectWindow() {
+    while (!detachWindowList.empty()) {
+        ExWindow* w = detachWindowList.front();
+        detachWindowList.pop_front();
+
+        dprint1("collectWindow %s\n", w->getName());
+        w->destroy();
+    }
+}
+
+void ExApp::addCollectWidget(ExWidget* widget)
+{
+    deleteWidgetList.push_back(widget);
+}
+
+void ExApp::addCollectWindow(ExWindow* window)
+{
+    detachWindowList.push_back(window);
+}
 
 void ExApp::collect()
 {
@@ -265,7 +292,7 @@ void ExApp::exit(int32 retCode)
     }
     // When the system window manager closed the app, mainWnd was destroyed.
 #if 1 // It's not essential, but it's better to keep it clean.
-    if (ExApp::mainWnd != NULL) { // When the halt flag is set inside the app.
+    if (ExApp::mainWnd != nullptr) { // When the halt flag is set inside the app.
         ExApp::mainWnd->destroy();
         ExApp::collect();
     }
@@ -279,10 +306,10 @@ void ExApp::exit(int32 retCode)
 }
 
 #ifdef WIN32
-int32 ExApp::init(HINSTANCE hInstance,
-    HINSTANCE hPrevInstance,
-    LPSTR lpCmdLine,
-    int32 nCmdShow)
+bool ExApp::init(HINSTANCE hInstance,
+                 HINSTANCE hPrevInstance,
+                 LPSTR lpCmdLine,
+                 int32 nCmdShow)
 {
     // init lib
     ExInitProcess();
@@ -308,11 +335,76 @@ int32 ExApp::init(HINSTANCE hInstance,
     dprint("%s() width=%d height=%d\n", __func__, smSize.w, smSize.h);
     // memset(&ExApp::event, 0, sizeof(ExEvent));
 
-    if (ExWindow::classInit(hInstance) != Ex_Continue)
-        return retCode;
-
-    retCode = EXIT_SUCCESS;
-
-    return retCode;
+    if (ExWindow::classInit(hInstance) != 0) {
+        retCode = EXIT_SUCCESS;
+    }
+    return (retCode == EXIT_SUCCESS);
 }
-#endif
+#endif // WIN32
+
+#ifdef CONF_X11
+static int32 x_error_handler(Display* d, XErrorEvent* e)
+{
+    char buffer[256];
+    XGetErrorText(d, e->error_code, buffer, 256);
+    dprint("X-ERR %d: %s\n", e->type, buffer);
+    return 0;
+}
+
+bool ExApp::initX11()
+{
+    int32 r = 0;
+    do {
+        XSetErrorHandler(x_error_handler);
+
+        // connect to the display
+        const char* const disp = getenv("DISPLAY");
+        x11.display = XOpenDisplay((disp == nullptr) ? ":0.0" : disp);
+        dprint("XOpenDisplay(0)=0x%p\n", x11.display);
+        if (x11.display == nullptr) {
+            r = -1;
+            break;
+        }
+        // get display info : "$ xwininfo"
+        x11.screen = XDefaultScreen(x11.display);
+        dprint("XDefaultScreen()=%d\n", x11.screen);
+        x11.depth = XDefaultDepth(x11.display, x11.screen);
+        dprint("XDefaultDepth()=%d\n", x11.depth);
+        if (!(x11.depth == 32 || x11.depth == 24)) {
+            dprint("Check your X Server Configuration!!!\n");
+            dprint("This program requires 32bit-color-depth of Screen.\n");
+            r = -1;
+            break;
+        }
+        x11.visual = XDefaultVisual(x11.display, x11.screen);
+        dprint("visual=0x%p, visual_class=%d\n", x11.visual, x11.visual->c_class);
+        if (x11.visual->c_class != TrueColor) {
+            dprint("Check your X Server Configuration!!!\n");
+            dprint("This program requires TrueColor Visual Type.\n");
+            r = -1;
+            break;
+        }
+        // get root window
+        x11.root = XDefaultRootWindow(x11.display);
+        dprint("XDefaultRootWindow()=%ld\n", x11.root);
+        if (x11.root == None) {
+            dprint("Cannot find root window.\n");
+            r = -1;
+            break;
+        }
+        x11.wm_atom[ExApp::WM_PROTOCOLS] = XInternAtom(ExApp::x11.display, "WM_PROTOCOLS", True);
+        x11.wm_atom[ExApp::WM_TAKE_FOCUS] = XInternAtom(ExApp::x11.display, "WM_TAKE_FOCUS", True);
+        x11.wm_atom[ExApp::WM_SAVE_YOURSELF] = XInternAtom(ExApp::x11.display, "WM_SAVE_YOURSELF", True); // deprecated
+        x11.wm_atom[ExApp::WM_DELETE_WINDOW] = XInternAtom(ExApp::x11.display, "WM_DELETE_WINDOW", True);
+        // x11.fb0_w = x11.sm_w;
+        // x11.fb0_h = x11.sm_h;
+        // x11.fb0_rotate = 0;
+    } while (false);
+    return (r == 0);
+}
+#else // CONF_X11
+bool ExApp::initX11()
+{
+    return true;
+}
+#endif // CONF_X11

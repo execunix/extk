@@ -3,7 +3,8 @@
 // SPDX-License-Identifier:     GPL-2.0+
 //
 
-#pragma once
+#ifndef _wndtest_h_
+#define _wndtest_h_
 
 #include <ex.h>
 
@@ -11,7 +12,9 @@ class WndTest : public ExWindow {
 public:
     ExWidget btns0[5];
     ExWidget edit;
+    #ifdef WIN32
     HWND hwndEdit;
+    #endif // WIN32
     ExTimer timer;
 public:
     ~WndTest() {}
@@ -29,3 +32,5 @@ public:
     uint32 onFilter(WndTest* w, ExCbInfo* cbinfo);
     uint32 onTimer(ExTimer* timer, ExCbInfo* cbinfo);
 };
+
+#endif // _wndtest_h_

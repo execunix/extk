@@ -10,6 +10,9 @@
 #error FrameWork of the Widget requires C++ compilation (use a *.cpp suffix)
 #endif
 
+#define OSAL_LINUX
+#define OSAL_WIN32
+
 #if defined(_MSC_VER)
 #define _CRT_NON_CONFORMING_SWPRINTFS
 #define _CRT_NONSTDC_NO_DEPRECATE
@@ -111,7 +114,7 @@ typedef           double float64_t;
 typedef        float64_t float64;
 typedef      long double float64x_t;
 typedef       float64x_t float64x;
-#ifdef ARCH_X86_64
+#if defined(__GNUC__) && (__GNUC__ >= 5) && defined(__FLOAT128__)
 typedef       __float128 float128_t;
 typedef       float128_t float128;
 #endif
@@ -124,6 +127,8 @@ typedef         uint16_t ucs2_t;
 typedef          wchar_t ucs4_t;
 #endif
 typedef          wchar_t wchar;
+
+#include "excompat.h"
 
 #ifdef __cplusplus
 }

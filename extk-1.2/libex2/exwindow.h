@@ -8,9 +8,7 @@
 
 #include "exwidget.h"
 #include "excanvas.h"
-#ifdef WIN32
 #include "exthread.h"
-#endif
 
 // Window constants definition
 //
@@ -23,8 +21,8 @@ enum ExRenderFlags {
 //
 class ExWindow : public ExWidget {
 protected:
-#ifdef WIN32
     HWND        hwnd;
+#ifdef WIN32
     DWORD       dwStyle;
     DWORD       dwExStyle;
 #endif
@@ -32,16 +30,16 @@ protected:
     uint32      renderFlags;    // tbd - remove
     //ExRegion    exposeAcc;  // tbd - replace Ex_RenderRebuild
     //ExRegion    opaqueAcc;
-public: // protected:
+protected:
     ExWidget*   wgtCapture;
     ExWidget*   wgtEntered;
     ExWidget*   wgtPressed;
     ExWidget*   wgtFocused; // focused child
 public:
-    ExWidget* getCapture() const;
-    ExWidget* getEntered() const;
-    ExWidget* getPressed() const;
-    ExWidget* getFocused() const;
+    ExWidget* getCapture() const { return wgtCapture; }
+    ExWidget* getEntered() const { return wgtEntered; }
+    ExWidget* getPressed() const { return wgtPressed; }
+    ExWidget* getFocused() const { return wgtFocused; }
     void setCapture(ExWidget* wgt) { wgtCapture = wgt; }
     void setEntered(ExWidget* wgt) { wgtEntered = wgt; }
     void setPressed(ExWidget* wgt) { wgtPressed = wgt; }
@@ -73,6 +71,11 @@ public:
     bool showWindow(); // ShowWindow(hwnd, SW_SHOWNORMAL); flush();
     bool hideWindow(); // ShowWindow(hwnd, SW_HIDE);
 #endif
+#ifdef CONF_X11 // __linux__
+    bool showWindow(ulong type, int32 x = 0, int32 y = 0);
+    bool showWindow(); // XMapWindow(...)
+    bool hideWindow(); // XUnmapWindow(...);
+#endif
 protected:
     virtual uint32 getClassFlags(uint32 masks = Ex_BitTrue) const {
         return (masks & (Ex_RECTANGULAR | Ex_CONTAINER | Ex_DISJOINT));
@@ -85,9 +88,8 @@ protected:
 public:
     //void enter() { mutex.lock(); }
     //void leave() { mutex.unlock(); }
-#ifdef WIN32
-    HWND getHwnd() const { return this ? hwnd : NULL; }
-#endif
+    HWND getHwnd() const { return (this != nullptr) ? hwnd : None; }
+    void setHwnd(HWND h) { hwnd = h; }
     ExWidget* giveFocus(ExWidget* newFocus);
     ExWidget* moveFocus(uint32 dir); // sample
 public:
@@ -176,12 +178,10 @@ public:
     void onWmPaint(ExWindow* window, const ExRegion* updateRgn);
     uint32 onRepeatBut(ExTimer* timer, ExCbInfo* cbinfo);
     uint32 onRepeatKey(ExTimer* timer, ExCbInfo* cbinfo);
-protected:
-    virtual uint32 basicWndProc(ExCbInfo* cbinfo);
+public:
 #ifdef WIN32
-    static LRESULT CALLBACK sysWndProc(HWND, UINT, WPARAM, LPARAM);
     static LPCSTR getClassName() { return "ExWindow"; }
-    static ATOM classInit(HINSTANCE hInstance);
+    static ATOM classInit(HINSTANCE hInstance); // customizable
 #endif
 public:
     friend class ExWidget;

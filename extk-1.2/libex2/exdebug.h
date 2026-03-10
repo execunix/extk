@@ -55,11 +55,13 @@ void debug_print(const char* fmt, ...);
         "Assertion failed %s:%d (%s)\n", __FILE__, __LINE__, #expr))
 #endif//DEBUG
 
-#if __cplusplus >= 201103L // assertion c++11
+#if 1 // __cplusplus >= 201103L // assertion c++11
 inline void exassert2(bool expr, const char* msg = "THROW") {
     if (expr == false) {
         dprint1("Assertion failed: %s\n", msg);
+        #ifdef __linux__
         __builtin_trap();
+        #endif // __linux__
         throw msg;
     }
 }

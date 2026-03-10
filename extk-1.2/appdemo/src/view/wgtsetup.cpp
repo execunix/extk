@@ -3,8 +3,10 @@
 // SPDX-License-Identifier:     GPL-2.0+
 //
 
-#include "framework.h"
+#include "osal/osal.h"
 #include "wgtsetup.h"
+#include "event.h"
+#include "res.h"
 
 static void
 fillRect(void* data, ExCanvas* canvas, const ExWgtRes* wgtres, const ExRegion* damage) {
@@ -84,11 +86,11 @@ uint32 WgtSetup::onTitleMove(ExWidget* widget, ExCbInfo* cbinfo) {
     ExWindow* window = getWindow();
     if (widget == &title && window) {
         static ExPoint but_pt(0);
-        ExPoint msg_pt(cbinfo->event->msg.pt);
+        ExPoint msg_pt(cbinfo->event->pt);
         if (cbinfo->type == Ex_CbButPress) {
             but_pt = msg_pt; // memory press point
             toFront();
-            window->wgtCapture = widget;
+            window->setCapture(widget);
         }
         else if (cbinfo->type == Ex_CbPtrMove &&
             widget->getFlags(Ex_ButPressed)) {
@@ -105,13 +107,13 @@ uint32 WgtSetup::onTitleMove(ExWidget* widget, ExCbInfo* cbinfo) {
 uint32 WgtSetup::onActivate(ExWidget* widget, ExCbInfo* cbinfo) {
     if (widget == &close) {
         if (cbinfo->type == Ex_CbActivate) {
-#if 1
+            #if 1 // test
             PostMessage(getWindow()->getHwnd(), WM_CbRemove, 0, (LPARAM)this);
-#else
+            #else
             ExWindow* window = parent->getWindow();
             window->removeHandler(ExCallback(this, &WgtSetup::onHandler));
             window->removeFilter(ExCallback(this, &WgtSetup::onFilter));
-#endif
+            #endif
             destroy();
             return Ex_Continue;
         }
@@ -221,4 +223,3 @@ void WgtSetup::init(ExWidget* parent, int x, int y) {
     page2.init(this, rc);
     page3.init(this, rc);
 }
-

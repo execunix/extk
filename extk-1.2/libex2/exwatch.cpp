@@ -13,6 +13,22 @@
 #undef dprint1
 #define dprint1(...) printf("ExWatch@" __VA_ARGS__)
 
+uint64 ExGetMonoClock() {
+    struct timespec ts;
+    (void)clock_gettime(CLOCK_MONOTONIC, &ts);
+    uint64 usec = (static_cast<uint64>(ts.tv_sec) * 1000000UL);
+    usec += (static_cast<uint64>(ts.tv_nsec) / 1000UL);
+    return usec;
+}
+
+uint32 ExGetTickCount() {
+    struct timespec ts;
+    (void)clock_gettime(CLOCK_MONOTONIC, &ts);
+    uint64 msec = (static_cast<uint64>(ts.tv_sec) * 1000UL);
+    msec += (static_cast<uint64>(ts.tv_nsec) / 1000000UL);
+    return static_cast<uint32>(msec);
+}
+
 // Iomux
 //
 void ExWatch::IomuxMap::fini() {
@@ -20,13 +36,9 @@ void ExWatch::IomuxMap::fini() {
         free(events);
         events = NULL;
     }
-    if (epfd != -1) {
-        close(epfd);
-        epfd = -1;
-    }
-    iterator i = begin();
-    for (; i != end(); ++i) {
-        delete i->second;
+    if (ep_fd != -1) {
+        close(ep_fd);
+        ep_fd = -1;
     }
     clear();
     if (maxevents != 0U) {
@@ -36,8 +48,8 @@ void ExWatch::IomuxMap::fini() {
 
 void ExWatch::IomuxMap::init(size_t max) {
     maxevents = max;
-    epfd = epoll_create(maxevents);
-    exassert(epfd != -1);
+    ep_fd = epoll_create(maxevents);
+    exassert(ep_fd != -1);
     events = (epoll_event*)malloc(sizeof(epoll_event) * maxevents);
     exassert(events != NULL);
 }
@@ -52,11 +64,11 @@ void ExWatch::IomuxMap::leave_mux() const {
 }
 #endif
 
-const ExWatch::Iomux* ExWatch::IomuxMap::search(int32 fd) const {
+const ExWatch::Iomux* ExWatch::IomuxMap::search(int32 mux_fd) const {
     const Iomux* iomux = NULL;
-    const_iterator i = find(fd);
+    const_iterator i = find(mux_fd);
     if (i != end()) {
-        iomux = i->second;
+        iomux = &i->second;
     }
     return iomux;
 }
@@ -64,7 +76,7 @@ const ExWatch::Iomux* ExWatch::IomuxMap::search(int32 fd) const {
 uint32 ExWatch::IomuxMap::probe(const ExCallback& callback, void* cbinfo) {
     uint32 r = Ex_Continue;
     for (iterator i = begin(); i != end(); ++i) {
-        Iomux* iomux = i->second;
+        Iomux* iomux = &i->second;
         r = callback(iomux, cbinfo);
         if (r != Ex_Continue) {
             break;
@@ -73,57 +85,54 @@ uint32 ExWatch::IomuxMap::probe(const ExCallback& callback, void* cbinfo) {
     return r;
 }
 
-bool ExWatch::IomuxMap::add(int32 fd, uint32 events, const ExNotify& notify) {
+bool ExWatch::IomuxMap::add(int32 mux_fd, uint32 events, const ExNotify& notify) {
     int32 r = -1;
     if (size() < maxevents) {
-        Iomux* iomux = new Iomux();
-        exassert(iomux != NULL);
+        Iomux* iomux = nullptr;
         std::pair<iterator, bool> pr;
-        pr = insert(value_type(fd, iomux));
+        pr = insert(value_type(mux_fd, Iomux(mux_fd)));
+        iomux = &pr.first->second;
         if (pr.second == false) {
-            dprint1("IomuxMap::add: duplicate fd:%d\n", fd);
-            delete iomux;
-            iomux = pr.first->second;
+            dprint1("IomuxMap::add: duplicate mux_fd:%zu\n", (size_t)mux_fd);
         }
-        iomux->fd = fd;
+        exassert(iomux->mux_fd == mux_fd);
         iomux->notify = notify;
         iomux->event.events = events;
         iomux->event.data.ptr = iomux;
-        r = epoll_ctl(epfd, EPOLL_CTL_ADD, fd, &iomux->event);
+        r = epoll_ctl(ep_fd, EPOLL_CTL_ADD, mux_fd, &iomux->event);
     } else {
         dprint1("IomuxMap::add: maxevents:%zu\n", maxevents);
     }
     return (r == 0);
 }
 
-bool ExWatch::IomuxMap::mod(int32 fd, uint32 events, const ExNotify& notify) {
+bool ExWatch::IomuxMap::mod(int32 mux_fd, uint32 events, const ExNotify& notify) {
     int32 r = -1;
-    iterator i = find(fd);
+    iterator i = find(mux_fd);
     if (i != end()) {
-        Iomux* iomux = i->second;
-        exassert(iomux->fd == fd);
+        Iomux* iomux = &i->second;
+        exassert(iomux->mux_fd == mux_fd);
         iomux->notify = notify;
         iomux->event.events = events;
         exassert(iomux->event.data.ptr == iomux);
-        r = epoll_ctl(epfd, EPOLL_CTL_MOD, fd, &iomux->event);
+        r = epoll_ctl(ep_fd, EPOLL_CTL_MOD, mux_fd, &iomux->event);
     } else {
-        dprint1("IomuxMap::mod: invalid fd:%d\n", fd);
+        dprint1("IomuxMap::mod: invalid mux_fd:%zu\n", (size_t)mux_fd);
     }
     return (r == 0);
 }
 
-bool ExWatch::IomuxMap::del(int32 fd) {
+bool ExWatch::IomuxMap::del(int32 mux_fd) {
     int32 r = -1;
-    iterator i = find(fd);
+    iterator i = find(mux_fd);
     if (i != end()) {
-        Iomux* iomux = i->second;
-        exassert(iomux->fd == fd);
+        Iomux* iomux = &i->second;
+        exassert(iomux->mux_fd == mux_fd);
         exassert(iomux->event.data.ptr == iomux);
-        r = epoll_ctl(epfd, EPOLL_CTL_DEL, fd, &iomux->event);
+        r = epoll_ctl(ep_fd, EPOLL_CTL_DEL, mux_fd, &iomux->event);
         erase(i);
-        delete iomux;
     } else {
-        dprint1("IomuxMap::del: invalid fd:%d\n", fd);
+        dprint1("IomuxMap::del: invalid mux_fd:%zu\n", (size_t)mux_fd);
     }
     return (r == 0);
 }
@@ -131,14 +140,14 @@ bool ExWatch::IomuxMap::del(int32 fd) {
 uint32 ExWatch::IomuxMap::invoke(uint32 waittick) {
     watch->leave();
     //pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
-    int32 cnt = epoll_wait(epfd, events, (int)maxevents, (int)waittick);
+    int32 cnt = epoll_wait(ep_fd, events, (int)maxevents, (int)waittick);
     //pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
     watch->enter();
-    watch->tickCount = getTickCount(); // update tick
+    watch->tickCount = ExGetTickCount(); // update tick
     for (int32 i = 0; i < cnt; i++) {
         Iomux* iomux = (Iomux*)events[i].data.ptr;
         epoll_event ev;
-        ev.data.fd = iomux->fd;
+        ev.data.fd = iomux->mux_fd;
         ev.events = events[i].events;
         uint32 r = iomux->notify(&ev);
         if (r & Ex_Halt) {
@@ -154,15 +163,7 @@ uint32 ExWatch::IomuxMap::invoke(uint32 waittick) {
 
 // Watch thread
 //
-uint32 ExWatch::getTickCount() {
-    struct timespec ts;
-    clock_gettime(CLOCK_MONOTONIC, &ts);
-    uint32 msec = (uint32)(ts.tv_sec * 1000);
-    msec += (uint32)(ts.tv_nsec / 1000000);
-    return msec;
-}
-
-uint32 ExWatch::tickAppLaunch = ExWatch::getTickCount();
+uint32 ExWatch::tickAppLaunch = ExGetTickCount();
 
 pthread_key_t ExWatch::tls_key = (pthread_key_t)-1;
 
@@ -171,7 +172,7 @@ void ExWatch::tls_specific(const char* name)
     if (tls_key == (pthread_key_t)-1) {
         pthread_key_create(&tls_key, NULL);
     }
-    pthread_setspecific(tls_key, malloc(256));
+    pthread_setspecific(tls_key, malloc(256UL));
     strcpy((char*)pthread_getspecific(tls_key), name);
 }
 
@@ -216,7 +217,7 @@ bool ExWatch::init(size_t max_iomux, size_t stacksize) {
     exassert(efd != -1);
     ioAdd(this, &ExWatch::onEvent, efd);
 
-    tickCount = getTickCount(); // update tick
+    tickCount = ExGetTickCount(); // update tick
 
     pthread_attr_t attr;
     pthread_attr_init(&attr);
@@ -258,11 +259,6 @@ uint32 ExWatch::setHalt(uint32 r)
     return (halt |= r);
 }
 
-uint32 ExWatch::getHalt() const
-{
-    return halt;
-}
-
 bool ExWatch::getEvent(uint64* u64) const {
     ssize_t r = 0;
     exassert(efd != -1);
@@ -279,39 +275,6 @@ bool ExWatch::setEvent(uint64 u64) const {
     return (r == ssizeof(u64));
 }
 
-uint32 ExWatch::proc() {
-    pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
-    tls_specific(name);
-    dprint("%s: tickAppLaunch=%d tickCount=%d\n", name, tickAppLaunch, tickCount);
-    ExCbInfo cbinfo(0);
-    enter();
-    if (hookStart) {
-        hookStart(this, &cbinfo(HookStart));
-    }
-    while (getHalt() == 0U) {
-        uint32 waittick = timerset.invoke(tickCount);
-        if (getHalt() != 0U) { // is halt ?
-            break; // stop event loop
-        }
-        if (hookTimer) {
-            hookTimer(this, &cbinfo(HookTimer));
-        }
-        // blocked
-        iomuxmap.invoke(waittick); // The only waiting point.
-        if (getHalt() != 0U) { // is halt ?
-            break; // stop event loop
-        }
-        if (hookIomux) {
-            hookIomux(this, &cbinfo(HookIomux));
-        }
-    }
-    if (hookClean) {
-        hookClean(this, &cbinfo(HookClean));
-    }
-    leave();
-    return 0U;
-}
-
 uint32 ExWatch::onEvent(const epoll_event* const ev) {
     dprint0("%s: fd:%d ev:%d\n", __func__, ev->data.fd, ev->events);
     exassert(efd == ev->data.fd);
@@ -326,6 +289,49 @@ uint32 ExWatch::onEvent(const epoll_event* const ev) {
 
 #endif // __linux__
 
+uint32 ExWatch::proc() {
+#ifdef __linux__
+    pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
+#endif // __linux__
+    tls_specific(name);
+    dprint("%s: tickAppLaunch=%d tickCount=%d\n", name, tickAppLaunch, tickCount);
+    (void)enter();
+    // seq-1 : prepare resources
+    if (procStartup) {
+        (void)procStartup(HookStartup);
+    }
+    while (getHalt() == 0U) {
+        // seq-2 : dispatch event
+        if (procDispatch) {
+            uint32 r = procDispatch(HookDispatch);
+            if (((r & Ex_Halt) != 0U) || (getHalt() != 0U)) {
+                break;
+            }
+        }
+        // seq-3 : invoke timer callback
+        uint32 waittick = timerset.invoke(tickCount);
+        if (getHalt() != 0U) { // is halt ?
+            break; // stop event loop
+        }
+        // seq-4 : collect resources, flush gui, ...
+        if (procMaintain) {
+            uint32 r = procMaintain(HookMaintain);
+            if (((r & Ex_Halt) != 0U) || (getHalt() != 0U)) {
+                break;
+            }
+        }
+        // seq-5 : wait blocked iomux for waittick msec and update tick count
+        (void)iomuxmap.invoke(waittick); // The only waiting point.
+    }
+    // seq-6 : cleanup resources
+    if (procCleanup) {
+        (void)procCleanup(HookCleanup);
+    }
+    (void)leave();
+    return 0U;
+}
+
 static ExWatch exWatchDflt("exWatchDflt");
 ExWatch* exWatchMain = &exWatchDflt;
 ExWatch* exWatchLast = &exWatchDflt;
+ExWatch* exWatchDisp = nullptr; // tbd - assign individual window watch

@@ -3,10 +3,12 @@
 // SPDX-License-Identifier:     GPL-2.0+
 //
 
-#include "framework.h"
+#include "osal/osal.h"
 #include "wgtmenu.h"
+#include "event.h"
+#include "res.h"
 
-const UINT IDM_EXIT = 100;
+const uint32 IDM_EXIT = 100;
 
 void Menu::detach() {
     if (parent == NULL)
@@ -65,7 +67,7 @@ Menu::Menu()
 
 Menu* Menu::add(const char* text, int id, int flag) {
     Menu* menu = new Menu;
-    strncpy(menu->text, text, 255);
+    exstrncpy(menu->text, text, 255);
     menu->text[255] = 0;
     menu->flag = flag;
     menu->id = id;
@@ -223,22 +225,20 @@ uint32 WgtMenu::onFilter(ExWidget* widget, ExCbInfo* cbinfo) {
     if (cbinfo->event->message == WM_MOUSEMOVE) {
         if (popList.empty())
             return Ex_Continue;
-        int xPos = LOWORD(cbinfo->event->lParam);
-        int yPos = HIWORD(cbinfo->event->lParam);
-        Menu* menu = findMenu(ExPoint(xPos, yPos));
+        Menu* menu = findMenu(cbinfo->event->pt);
         if (menu) {
-            if (window->wgtEntered != menu->view) {
+            if (window->getEntered() != menu->view) {
                 showPopup(menu);
             }
         }
 #if 1 // like modal loop
         if (menu) {
-            if (window->wgtEntered != menu->view) {
-                if (window->wgtEntered) {
-                    window->wgtEntered->setFlags(Ex_PtrEntered, Ex_BitFalse);
-                    window->wgtEntered->damage();
+            if (window->getEntered() != menu->view) {
+                if (window->getEntered()) {
+                    window->getEntered()->setFlags(Ex_PtrEntered, Ex_BitFalse);
+                    window->getEntered()->damage();
                 }
-                window->wgtEntered = menu->view;
+                window->setEntered(menu->view);
                 menu->view->setFlags(Ex_PtrEntered, Ex_BitTrue);
                 menu->view->damage();
             }
@@ -249,9 +249,7 @@ uint32 WgtMenu::onFilter(ExWidget* widget, ExCbInfo* cbinfo) {
 #endif
     }
     if (cbinfo->event->message == WM_LBUTTONDOWN) {
-        int xPos = LOWORD(cbinfo->event->lParam);
-        int yPos = HIWORD(cbinfo->event->lParam);
-        Menu* menu = findMenu(ExPoint(xPos, yPos));
+        Menu* menu = findMenu(cbinfo->event->pt);
         int popcnt = (int)popList.size();
         showPopup(menu);
         if (menu) {
@@ -312,7 +310,11 @@ uint32 WgtMenu::onFilter(ExWidget* widget, ExCbInfo* cbinfo) {
                 break;
             }
             case VK_TAB: {
+                #ifdef WIN32
                 SHORT ks = GetKeyState(VK_SHIFT);
+                #else // WIN32
+                int32 ks = 0; // tbd
+                #endif // WIN32
                 moveMenuFocus(ks & 0x100 ? Ex_DirTabPrev : Ex_DirTabNext);
                 break;
             }
@@ -422,7 +424,7 @@ Menu* WgtMenu::findMenu(const ExPoint& pt) {
 void WgtMenu::menuFocus(Menu* menu) {
     if (menu != NULL) {
         if (oldFocus == NULL)
-            oldFocus = window->wgtFocused;
+            oldFocus = window->getFocused();
         window->giveFocus(menu->view);
     } else {
         window->giveFocus(oldFocus);
@@ -591,4 +593,3 @@ void WgtMenu::load() {
     menu2 = menu1->add("Manage Visual Studio Performance", 5008);
     menu2 = menu1->add("Check for Updates", 5009);
 }
-

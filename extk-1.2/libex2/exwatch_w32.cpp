@@ -9,6 +9,22 @@
 
 #define EVENTPROC_HAVETHREAD
 
+uint64 ExGetMonoClock() {
+    LARGE_INTEGER freq, tick;
+    QueryPerformanceFrequency(&freq);
+    QueryPerformanceCounter(&tick);
+    double usec = 1000000.0;
+    usec *= static_cast<double>(tick.QuadPart);
+    usec /= static_cast<double>(freq.QuadPart);
+    return static_cast<uint64>(usec);
+}
+
+uint32 ExGetTickCount() {
+    uint32 msec;
+    msec = GetTickCount();
+    return msec;
+}
+
 // Iomux
 //
 void ExWatch::IomuxMap::fini() {
@@ -17,7 +33,7 @@ void ExWatch::IomuxMap::fini() {
 }
 
 void ExWatch::IomuxMap::init(size_t max) {
-    max = max;
+    max = max; // compat linux
 }
 
 DWORD ExWatch::IomuxMap::setup() {
@@ -27,16 +43,16 @@ DWORD ExWatch::IomuxMap::setup() {
         int32 cnt = 0U;
         for (const_iterator i = begin(); i != end(); ++i) {
             const Iomux& iomux = i->second;
-            handles[cnt++] = iomux.handle;
+            handles[cnt++] = iomux.mux_fd;
         }
         exassert(cnt < MAXIMUM_WAIT_OBJECTS);
     }
     return static_cast<DWORD>(ret);
 }
 
-const ExWatch::Iomux* ExWatch::IomuxMap::search(HANDLE handle) const {
+const ExWatch::Iomux* ExWatch::IomuxMap::search(HANDLE mux_fd) const {
     const Iomux* iomux = NULL;
-    const_iterator i = find(handle);
+    const_iterator i = find(mux_fd);
     if (i != end()) {
         iomux = &i->second;
     }
@@ -55,17 +71,17 @@ uint32 ExWatch::IomuxMap::probe(const ExCallback& callback, void* cbinfo) {
     return r;
 }
 
-bool ExWatch::IomuxMap::add(HANDLE handle, const ExNotify& notify) {
+bool ExWatch::IomuxMap::add(HANDLE mux_fd, const ExNotify& notify) {
     int32 r = -1;
     if (size() < MAXIMUM_WAIT_OBJECTS) {
         Iomux* iomux = nullptr;
         std::pair<iterator, bool> pr;
-        pr = insert(value_type(handle, Iomux(handle)));
+        pr = insert(value_type(mux_fd, Iomux(mux_fd)));
         iomux = &pr.first->second;
         if (pr.second == false) {
-            dprint1("IomuxMap::add: duplicate handle:%p\n", handle);
+            dprint1("IomuxMap::add: duplicate mux_fd:%zu\n", (size_t)mux_fd);
         }
-        exassert(iomux->handle == handle);
+        exassert(iomux->mux_fd == mux_fd);
         iomux->notify = notify;
         dirty++;
         r = 0;
@@ -75,31 +91,31 @@ bool ExWatch::IomuxMap::add(HANDLE handle, const ExNotify& notify) {
     return (r == 0);
 }
 
-bool ExWatch::IomuxMap::mod(HANDLE handle, const ExNotify& notify) {
+bool ExWatch::IomuxMap::mod(HANDLE mux_fd, const ExNotify& notify) {
     int32 r = -1;
-    iterator i = find(handle);
+    iterator i = find(mux_fd);
     if (i != end()) {
         Iomux* iomux = &i->second;
-        exassert(iomux->handle == handle);
+        exassert(iomux->mux_fd == mux_fd);
         iomux->notify = notify;
         r = 0;
     } else {
-        dprint1("IomuxMap::mod: invalid handle:%p\n", handle);
+        dprint1("IomuxMap::mod: invalid mux_fd:%zu\n", (size_t)mux_fd);
     }
     return (r == 0);
 }
 
-bool ExWatch::IomuxMap::del(HANDLE handle) {
+bool ExWatch::IomuxMap::del(HANDLE mux_fd) {
     int32 r = -1;
-    iterator i = find(handle);
+    iterator i = find(mux_fd);
     if (i != end()) {
         Iomux* iomux = &i->second;
-        exassert(iomux->handle == handle);
+        exassert(iomux->mux_fd == mux_fd);
         erase(i);
         dirty++;
         r = 0;
     } else {
-        dprint1("IomuxMap::del: invalid handle:%p\n", handle);
+        dprint1("IomuxMap::del: invalid mux_fd:%zu\n", (size_t)mux_fd);
     }
     return (r == 0);
 }
@@ -140,22 +156,22 @@ uint32 ExWatch::IomuxMap::invoke(uint32 waittick) {
         for (DWORD n = 0U; n < nCount; n++) {
             const Iomux* iomux = search(pHandles[n]);
             if (iomux == nullptr) { // is removed ?
-                dprint("IomuxMap: handle:%p removed\n", iomux->handle);
+                dprint("IomuxMap: mux_fd:%p removed\n", iomux->mux_fd);
                 continue; // discard
             }
-            // check handle is signaled
+            // check mux_fd is signaled
             if ((n != (dwWaitRet - WAIT_OBJECT_0)) &&
-                (WaitForSingleObject(iomux->handle, 0U) != WAIT_OBJECT_0)) {
+                (WaitForSingleObject(iomux->mux_fd, 0U) != WAIT_OBJECT_0)) {
                 continue; // not signaled
             }
             // proc iomux handler
             exassert(iomux->notify.func);
-            uint32 r = iomux->notify(iomux->handle);
+            uint32 r = iomux->notify(iomux->mux_fd);
             if (r & Ex_Halt) {
                 return watch->setHalt(r);
             }
             if ((r & Ex_Remove) != 0U) {
-                del(iomux->handle);
+                del(iomux->mux_fd);
                 dirty++;
             }
             cnt++;
@@ -168,13 +184,7 @@ uint32 ExWatch::IomuxMap::invoke(uint32 waittick) {
 
 // Watch thread
 //
-uint32 ExWatch::getTickCount() {
-    uint32 msec;
-    msec = GetTickCount();
-    return msec;
-}
-
-uint32 ExWatch::tickAppLaunch = ExWatch::getTickCount();
+uint32 ExWatch::tickAppLaunch = ExGetTickCount();
 
 DWORD ExWatch::tls_key = TLS_OUT_OF_INDEXES;
 
@@ -215,9 +225,9 @@ bool ExWatch::fini() {
     }
     iomuxmap.fini();
     timerset.clearAll();
-    if (hev != NULL) {
-        CloseHandle(hev);
-        hev = NULL;
+    if (efd != NULL) {
+        CloseHandle(efd);
+        efd = NULL;
     }
     return (r == 0);
 }
@@ -226,9 +236,9 @@ bool ExWatch::init(size_t max_iomux, size_t stacksize) {
     exassert(hThread == NULL);
     iomuxmap.init(max_iomux);
 
-    hev = CreateEvent(NULL, FALSE, FALSE, NULL);
-    exassert(hev != NULL);
-    ioAdd(this, &ExWatch::onEvent, hev);
+    efd = CreateEvent(NULL, FALSE, FALSE, NULL); // hev
+    exassert(efd != NULL);
+    ioAdd(this, &ExWatch::onEvent, efd);
 
     tickCount = GetTickCount(); // update tick
 
@@ -279,57 +289,20 @@ uint32 ExWatch::setHalt(uint32 r)
     return (halt |= r);
 }
 
-uint32 ExWatch::getHalt() const
-{
-    return halt;
-}
-
 bool ExWatch::getEvent(uint64* u64) const {
     u64 = u64;
-    BOOL ret = ResetEvent(hev);
+    BOOL ret = ResetEvent(efd);
     return (ret != 0);
 }
 
 bool ExWatch::setEvent(uint64 u64) const {
     u64 = u64;
-    BOOL ret = SetEvent(hev);
+    BOOL ret = SetEvent(efd);
     return (ret != 0);
 }
 
-uint32 ExWatch::proc() {
-    tls_specific(name);
-    dprint("%s: tickAppLaunch=%d tickCount=%d\n", name, tickAppLaunch, tickCount);
-    ExCbInfo cbinfo(0);
-    enter();
-    if (hookStart) {
-        hookStart(this, &cbinfo(HookStart));
-    }
-    while (getHalt() == 0U) {
-        uint32 waittick = timerset.invoke(tickCount);
-        if (getHalt() != 0U) { // is halt ?
-            break; // stop event loop
-        }
-        if (hookTimer) {
-            hookTimer(this, &cbinfo(HookTimer));
-        }
-        // blocked
-        iomuxmap.invoke(waittick); // The only waiting point.
-        if (getHalt() != 0U) { // is halt ?
-            break; // stop event loop
-        }
-        if (hookIomux) {
-            hookIomux(this, &cbinfo(HookIomux));
-        }
-    }
-    if (hookClean) {
-        hookClean(this, &cbinfo(HookClean));
-    }
-    leave();
-    return 0U;
-}
-
-uint32 ExWatch::onEvent(HANDLE handle) {
-    dprint0("%s: handle:%p\n", __func__, handle);
+uint32 ExWatch::onEvent(HANDLE hev) {
+    dprint0("%s: hev:%p\n", __func__, hev);
 
     #if 0 // for manual reset
     uint64 u64 = 0UL;
