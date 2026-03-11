@@ -307,8 +307,8 @@ public:
 extern ExEventFifo exEventList;
 
 ExEvent* ExGetMessage(ExEvent* ev = nullptr);
-ExEvent* ExPostPtrMsg(const int32 message, const int32 pt_x, const int32 pt_y);
-bool PostMessage(HWND hwnd, const int32 message, const int32 wparam = 0, const int64 lparam = 0L);
+ExEvent* ExPostPtrMsg(int32 message, int32 pt_x, int32 pt_y);
+bool PostMessage(HWND hwnd, int32 message, uint32 wparam = 0U, int64 lparam = 0LL);
 #endif // __linux__
 
 /**
@@ -329,18 +329,15 @@ typedef bool (*ExEventFunc)(ExEvent* event);
 bool ExEventPeek(ExEvent* event);
 #endif // __linux__
 extern ExEventFunc exEventFunc;
+extern ExEventFunc exCalibFunc;
 
 // ExEmit APIs - deprecated => Call the callback function directly.
 //
+bool ExEmitMessage(HWND hwnd, int32 message, uint32 wParam, int64 lParam);
+bool ExEmitPtrEvent(HWND hwnd, int32 message, int32 pt_x, int32 pt_y);
 #ifdef WIN32
-bool ExEmitMessage(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
-bool ExEmitKeyEvent(ExWidget* widget, UINT message, int32 virtkey, long keydata);
-bool ExEmitPtrEvent(ExWidget* widget, UINT message, WPARAM wParam, int32 x, int32 y);
-bool ExEmitButPress(ExWidget* widget, int32 x, int32 y);
-bool ExEmitButRelease(ExWidget* widget, int32 x, int32 y);
+bool ExEmitButPress(ExWidget* w, int32 x, int32 y);
+bool ExEmitButRelease(ExWidget* w, int32 x, int32 y);
 #endif // WIN32
-#ifdef __linux__
-bool ExEmitMessage(const int32 type, const int32 message, const int32 wParam, const int64 lParam);
-#endif // __linux__
 
 #endif//__exevent_h__

@@ -343,6 +343,8 @@ bool ExApp::init(HINSTANCE hInstance,
 #endif // WIN32
 
 #ifdef CONF_X11
+static uint32 onXevent(void* data, const epoll_event* const ev);
+
 static int32 x_error_handler(Display* d, XErrorEvent* e)
 {
     char buffer[256];
@@ -351,9 +353,11 @@ static int32 x_error_handler(Display* d, XErrorEvent* e)
     return 0;
 }
 
-bool ExApp::initX11()
+bool ExApp::initX11(ExWatch* watch)
 {
-    int32 r = 0;
+    int32 r = -1;
+    button_click_time[0] = ExGetTickCount();
+    button_click_time[1] = ExGetTickCount();
     do {
         XSetErrorHandler(x_error_handler);
 
@@ -362,7 +366,6 @@ bool ExApp::initX11()
         x11.display = XOpenDisplay((disp == nullptr) ? ":0.0" : disp);
         dprint("XOpenDisplay(0)=0x%p\n", x11.display);
         if (x11.display == nullptr) {
-            r = -1;
             break;
         }
         // get display info : "$ xwininfo"
@@ -373,7 +376,6 @@ bool ExApp::initX11()
         if (!(x11.depth == 32 || x11.depth == 24)) {
             dprint("Check your X Server Configuration!!!\n");
             dprint("This program requires 32bit-color-depth of Screen.\n");
-            r = -1;
             break;
         }
         x11.visual = XDefaultVisual(x11.display, x11.screen);
@@ -381,7 +383,6 @@ bool ExApp::initX11()
         if (x11.visual->c_class != TrueColor) {
             dprint("Check your X Server Configuration!!!\n");
             dprint("This program requires TrueColor Visual Type.\n");
-            r = -1;
             break;
         }
         // get root window
@@ -389,7 +390,6 @@ bool ExApp::initX11()
         dprint("XDefaultRootWindow()=%ld\n", x11.root);
         if (x11.root == None) {
             dprint("Cannot find root window.\n");
-            r = -1;
             break;
         }
         x11.wm_atom[ExApp::WM_PROTOCOLS] = XInternAtom(ExApp::x11.display, "WM_PROTOCOLS", True);
@@ -399,11 +399,143 @@ bool ExApp::initX11()
         // x11.fb0_w = x11.sm_w;
         // x11.fb0_h = x11.sm_h;
         // x11.fb0_rotate = 0;
+        const int32 xd_fd = ConnectionNumber(x11.display);
+        if (watch->ioAdd(&onXevent, watch, xd_fd)) {
+            r = 0;
+        }
     } while (false);
     return (r == 0);
 }
+
+bool ExApp::finiX11(ExWatch* watch)
+{
+    ExApp::EnvX11& x11 = ExApp::x11;
+    const int32 xd_fd = ConnectionNumber(x11.display);
+    (void)watch->ioDel(xd_fd);
+    if (x11.display != nullptr) {
+        XCloseDisplay(x11.display);
+        x11.display = nullptr;
+    }
+    return true;
+}
+
+uint32 onXevent(void* data, const epoll_event* const ev)
+{
+    ExApp::EnvX11& x11 = ExApp::x11;
+    ExWatch* watch = static_cast<ExWatch*>(data);
+    const int32 xd_fd = ConnectionNumber(x11.display);
+    dprint0("%s: xd_fd=%d\n", __func__, xd_fd);
+    exassert(ev->data.fd == xd_fd);
+
+    while (XPending(x11.display)) {
+        XEvent e;
+        XNextEvent(x11.display, &e);
+        switch (e.type) {
+            case ClientMessage: {
+                if ((e.xclient.message_type == x11.wm_atom[ExApp::WM_PROTOCOLS]) &&
+                    (e.xclient.format == 32)) {
+                    Atom protocol = e.xclient.data.l[0];
+                    if (protocol == x11.wm_atom[ExApp::WM_DELETE_WINDOW]) {
+                        dprint("ClientMessage.WM_DELETE_WINDOW\n");
+                        #if 1
+                        watch->setHalt();
+                        #else
+                        XDestroyWindow(x11.display, env.top);
+                        dprint("XDestroyWindow()\n");
+                        #endif
+                    }
+                    if (protocol == x11.wm_atom[ExApp::WM_TAKE_FOCUS]) {
+                        dprint("ClientMessage.WM_TAKE_FOCUS\n");
+                    }
+                }
+            } break;
+            case DestroyNotify: {
+                dprint("DestroyNotify\n");
+            } break;
+            case CreateNotify: {
+                dprint("CreateNotify\n");
+            } break;
+            case ButtonPress: {
+                dprint0("ButtonPress state:%d button:%d pos:%d,%d\n", e.xbutton.state, e.xbutton.button, e.xbutton.x, e.xbutton.y);
+                (void)ExEmitPtrEvent(None, WM_LBUTTONDOWN, e.xbutton.x, e.xbutton.y);
+            } break;
+            case ButtonRelease: {
+                dprint0("ButtonRelease state:%d button:%d pos:%d,%d\n", e.xbutton.state, e.xbutton.button, e.xbutton.x, e.xbutton.y);
+                (void)ExEmitPtrEvent(None, WM_LBUTTONUP, e.xbutton.x, e.xbutton.y);
+            } break;
+            case MotionNotify: {
+                dprint0("MotionNotify state:%d button:%d pos:%d,%d\n", e.xbutton.state, e.xbutton.button, e.xbutton.x, e.xbutton.y);
+                (void)ExEmitPtrEvent(None, WM_MOUSEMOVE, e.xbutton.x, e.xbutton.y);
+            } break;
+            case EnterNotify: {
+                dprint("EnterNotify\n");
+            } break;
+            case LeaveNotify: {
+                dprint("LeaveNotify\n");
+            } break;
+            case KeyPress: {
+                dprint("KeyPress\n");
+                //uint32 state = e.xkey.state;
+                uint32 keycode = e.xkey.keycode; // KeyCode: uint32
+                int32 keysyms_per_keycode = 0;
+                KeySym* keysym = XGetKeyboardMapping(x11.display, keycode, 1, &keysyms_per_keycode);
+                switch (*keysym) {
+                    case XK_Escape: {
+                        watch->setHalt(); //XDestroyWindow(x11.display, env.top);
+                    } break;
+                    case XK_Return: break;
+                    case XK_BackSpace: break;
+                    case XK_0: break;
+                    case XK_1: break;
+                    case XK_2: break;
+                    case XK_3: break;
+                    case XK_4: break;
+                    case XK_5: break;
+                    case XK_6: break;
+                    case XK_7: break;
+                    case XK_8: break;
+                    case XK_9: break;
+                }
+                XFree(keysym);
+            } break;
+            case KeyRelease: {
+                dprint("KeyRelease\n");
+            } break;
+            case FocusIn: {
+                dprint("FocusIn\n");
+            } break;
+            case FocusOut: {
+                dprint("FocusOut\n");
+            } break;
+            case Expose: {
+                dprint("Expose count:%d\n", e.xexpose.count);
+            } break;
+            case GraphicsExpose: {
+                dprint("GraphicsExpose count:%d\n", e.xgraphicsexpose.count);
+            } break;
+            case ResizeRequest: {
+                dprint("ResizeRequest\n");
+            } break;
+            case MapNotify: {
+                dprint("MapNotify\n");
+            } break;
+            case UnmapNotify: {
+                dprint("UnmapNotify\n");
+            } break;
+            default: {
+                dprint("Unhandled XEvent.type=%d\n", e.type);
+            } break;
+        }
+    }
+    return 0U;
+}
 #else // CONF_X11
-bool ExApp::initX11()
+bool ExApp::initX11(ExWatch* watch)
+{
+    return true;
+}
+
+bool ExApp::finiX11(ExWatch* watch)
 {
     return true;
 }

@@ -61,7 +61,6 @@ bool initEnv() noexcept
     env.rel_y_min = 0;
     env.rel_y_max = 0;
 
-    env.tch_tick = 0U;
     env.tch_flip_h = 0;
     env.tch_flip_v = 0;
     env.tch_rotate = 0;

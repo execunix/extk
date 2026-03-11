@@ -225,7 +225,7 @@ int32 DefWndProc(ExEvent& ev)
         window = static_cast<ExWindow*>(ev.collector);
         exassert2(window != nullptr, __FILE__ "@" Ex_STRINGIFY(__LINE__));
         ExApp::mainWnd = window;
-        //goto leave_proc;
+        goto setup_proc;
     }
 
     // pdu - has single window
@@ -245,6 +245,7 @@ int32 DefWndProc(ExEvent& ev)
 
     *gWatchApp.get_def_event() = ev;
 
+setup_proc:
     // setup cbinfo->event
     window->event = gWatchApp.get_def_event();
     cbinfo->event->hwnd = window->getHwnd();

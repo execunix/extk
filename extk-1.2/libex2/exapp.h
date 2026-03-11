@@ -85,8 +85,10 @@ public:
 #ifdef WIN32
     static bool init(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int32 nCmdShow);
 #endif
-    static bool initX11();
+    static bool initX11(ExWatch* watch);
+    static bool finiX11(ExWatch* watch);
 public:
+    static uint32 btnClickTime() { return button_click_time[1]; }
     static uint32& butRepeatCnt() { return but_timer.u32[0]; };
     static uint32& keyRepeatCnt() { return key_timer.u32[0]; };
 public:

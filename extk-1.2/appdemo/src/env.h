@@ -37,7 +37,6 @@ struct Env {
     int32 rel_y_min;
     int32 rel_y_max;
 
-    uint32 tch_tick;
     int32 tch_flip_h;
     int32 tch_flip_v;
     int32 tch_rotate; // 0:landscape, 1:portrait

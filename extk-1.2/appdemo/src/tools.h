@@ -8,6 +8,7 @@
 
 #include <exdebug.h>
 #include <exmemory.h>
+#include <exiconv.h>
 #include <vector>
 #include <array>
 #include "event.h"
@@ -52,14 +53,6 @@ bool systemf(const char* const fmt, Args&&... arg) {
     (void)snprintf(&cmdbuf[0], 1024UL, fmt, arg...); // slm-3840 as a pointer type argument
     return system1(&cmdbuf[0]);
 }
-
-const char* wcs2utf8(const ucs2_t* wcs); // thread un-safe
-const char* wcs2utf8(const ucs4_t* wcs); // thread un-safe
-
-int32 strsplit(char** const toc, const int tno, char* src, const char del);
-char* strltrim(char* src, const char* const tch);
-char* strrtrim(char* src, const char* const tch);
-char* strtrim(char* src, const char* const tch);
 
 // tstring - template for string with stack allocated buffer
 // for avoiding misra c++ rules

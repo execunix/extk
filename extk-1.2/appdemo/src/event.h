@@ -132,10 +132,8 @@ constexpr int32 DEBRIEF_STOP = 8;
 const uint32 Ex_CbEditChange = (Ex_CbUser + 1U);
 const uint32 Ex_CbPopupClose = (Ex_CbUser + 1U);
 
+bool TouchCalib(ExEvent* event);
 int32 DefWndProc(ExEvent& ev);
-
-bool PostPtrMsg(const int32 message, const int32 pt_x, const int32 pt_y);
-void EmitTouchEvent(const uint32 tickCount, const int32 message, int32 pt_x, int32 pt_y);
 
 #endif // __linux__
 

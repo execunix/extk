@@ -81,7 +81,7 @@ uint32 ExWindow::destroy() {
 #ifdef CONF_X11
         ExApp::EnvX11& x11 = ExApp::x11;
         XDestroyWindow(x11.display, hwnd);
-        //ExEmitMessage(1, WM_DESTROY, 0, 0); // tbd - type
+        //ExEmitMessage(hwnd, WM_DESTROY, 0U, 0); // tbd - type
         #if 0
         do { // emul XDestroyWindow
             ExEvent ev(None);

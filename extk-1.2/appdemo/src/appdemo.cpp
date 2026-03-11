@@ -717,9 +717,6 @@ int main(int argc, char* argv[])
 
     (void)initEnv();
     (void)initRes();
-#ifdef CONF_X11
-    (void)ExApp::initX11();
-#endif
     (void)gWatchApp.startup();
     (void)gWatchApp.enter();
     (void)gWatchDev.init(); // start watch thread for gps and etc
@@ -807,10 +804,9 @@ int main(int argc, char* argv[])
     //
     // app cleanup end
 
+    (void)gLcdOut.fini();
     (void)gWatchDev.fini();
     (void)gWatchApp.cleanup();
-
-    (void)gLcdOut.fini();
     (void)finiRes();
     (void)saveEnv();
     sync();

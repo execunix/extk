@@ -7,6 +7,7 @@
 #include "extimer.h"
 #include "exwatch.h"
 #include "exwindow.h"
+#include "exwndproc.h"
 
 #ifdef __linux__
 ExEventFifo exEventList;
@@ -61,7 +62,6 @@ ExEvent* ExEventFifo::add(HWND hwnd, int32 message, uint32 wParam, int64 lParam)
 ExEvent* ExGetMessage(ExEvent* ev)
 {
     ExEvent* front;
-    bool hasEvent = false;
     (void)exEventList.enter();
     front = exEventList.popFront();
     if ((ev != nullptr) && (front != nullptr)) {
@@ -71,7 +71,7 @@ ExEvent* ExGetMessage(ExEvent* ev)
     return front;
 }
 
-ExEvent* ExPostPtrMsg(const int32 message, const int32 pt_x, const int32 pt_y)
+ExEvent* ExPostPtrMsg(int32 message, int32 pt_x, int32 pt_y)
 {
     ExEvent* back = exEventList.add(None, message);
     if (back != nullptr) {
@@ -82,7 +82,7 @@ ExEvent* ExPostPtrMsg(const int32 message, const int32 pt_x, const int32 pt_y)
     return back;
 }
 
-bool PostMessage(HWND hwnd, const int32 message, const int32 wparam, const int64 lparam)
+bool PostMessage(HWND hwnd, int32 message, uint32 wparam, int64 lparam)
 {
     ExEvent ev(None);
     ExEvent* back = exEventList.add(&ev.set(hwnd, message, wparam, lparam));
@@ -111,51 +111,86 @@ bool ExEventPeek(ExEvent* event)
 #endif
 
 ExEventFunc exEventFunc = &ExEventPeek;
+ExEventFunc exCalibFunc = nullptr;
 
 // ExEmit APIs - deprecated
 //
 
+#ifdef __linux__
+static bool PostPtrMsg(int32 message, int32 pt_x, int32 pt_y)
+{
+    ExEvent ev(None);
+    ev.message = message;
+    ev.pt.x = pt_x;
+    ev.pt.y = pt_y;
+    ev.time = exWatchDisp->getTick();
+    if (exCalibFunc != nullptr) {
+        (void)exCalibFunc(&ev);
+    }
+    ExEvent* back = exEventList.add(&ev);
+    return (back != nullptr);
+}
+
+bool ExEmitMessage(HWND hwnd, int32 message, uint32 wParam, int64 lParam)
+{
+    return PostMessage(hwnd, message, wParam, lParam);
+}
+
+bool ExEmitPtrEvent(HWND hwnd, int32 message, int32 pt_x, int32 pt_y)
+{
+    bool r = true;
+    //int32_t origin_x = pt_x, origin_y = pt_y;
+    //ExWindow* window = exWndProcMap.search(hwnd);
+    if ((exEventList.size() > 2UL) && (message == WM_MOUSEMOVE)) {
+        dprint0("skip frequent move event\n");
+    } else {
+        r = PostPtrMsg(message, pt_x, pt_y);
+    }
+    return r;
+}
+#endif // __linux__
+
 #ifdef WIN32
-bool ExEmitMessage(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
+bool ExEmitMessage(HWND hwnd, int32 message, uint32 wParam, int64 lParam) {
     BOOL r = PostMessage(hwnd, message, wParam, lParam);
     return r ? true : false;
 }
 
-bool ExEmitKeyEvent(ExWidget* widget, UINT message, int32 virtkey, long keydata) {
-    HWND hwnd;
-    if ((widget != nullptr) && (widget->getFlags(Ex_Realized) != 0U) &&
-        (hwnd = widget->getWindow()->getHwnd()) != NULL) {
-        return ExEmitMessage(hwnd, message, virtkey, keydata);
-    }
-    return false;
+bool ExEmitPtrEvent(HWND hwnd, int32 message, int32 x, int32 y) {
+    LPARAM lParam = MAKELPARAM(x, y);
+    return ExEmitMessage(hwnd, message, 0U, lParam);
 }
 
-bool ExEmitPtrEvent(ExWidget* widget, UINT message, WPARAM wParam, int32 x, int32 y) {
-    HWND hwnd;
-    if ((widget != nullptr) && (widget->getFlags(Ex_Realized) != 0U) &&
-        (hwnd = widget->getWindow()->getHwnd()) != NULL) {
-        ExPoint pt(widget->getRect().center());
+bool ExEmitButPress(ExWidget* w, int32 x, int32 y) {
+    bool r;
+    ExWindow* window = w->getWindow();
+    HWND hwnd = (window != nullptr) ? window->getHwnd() : None;
+    if (hwnd != None) {
+        ExPoint pt(w->getRect().center());
         x += pt.x;
         y += pt.y;
         SetCursorPos(x, y);
-        LPARAM lParam = MAKELPARAM(x, y);
-        return ExEmitMessage(hwnd, message, wParam, lParam);
+        r = (ExEmitPtrEvent(hwnd, WM_MOUSEMOVE, x, y) &&
+             ExEmitPtrEvent(hwnd, WM_LBUTTONDOWN, x, y));
+    } else {
+        r = false;
     }
-    return false;
+    return r;
 }
 
-bool ExEmitButPress(ExWidget* widget, int32 x, int32 y) {
-    return (ExEmitPtrEvent(widget, WM_MOUSEMOVE, 0, x, y) &&
-            ExEmitPtrEvent(widget, WM_LBUTTONDOWN, 0, x, y));
-}
-
-bool ExEmitButRelease(ExWidget* widget, int32 x, int32 y) {
-    return ExEmitPtrEvent(widget, WM_LBUTTONUP, 0, x, y);
+bool ExEmitButRelease(ExWidget* w, int32 x, int32 y) {
+    bool r;
+    ExWindow* window = w->getWindow();
+    HWND hwnd = (window != nullptr) ? window->getHwnd() : None;
+    if (hwnd != None) {
+        ExPoint pt(w->getRect().center());
+        x += pt.x;
+        y += pt.y;
+        SetCursorPos(x, y);
+        r = ExEmitPtrEvent(hwnd, WM_LBUTTONUP, x, y);
+    } else {
+        r = false;
+    }
+    return r;
 }
 #endif
-
-#ifdef __linux__
-bool ExEmitMessage(const int32 type, const int32 message, const int32 wParam, const int64 lParam) {
-    return false;
-}
-#endif // __linux__
