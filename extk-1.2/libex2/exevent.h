@@ -8,6 +8,7 @@
 
 #include "excallback.h"
 #include "exgeomet.h"
+#include "exmemory.h"
 #ifdef __linux__
 #include <pthread.h>
 #endif // __linux__
@@ -224,15 +225,12 @@ struct ExEvent {
 };
 
 #ifdef __linux__
-class ExEventFifo {
-    static constexpr size_t Capacity = static_cast<size_t>(64);
-    static constexpr size_t Zero = static_cast<size_t>(0);
-    static_assert(Capacity > Zero, "Capacity is zero");
-    std::array<ExEvent, Capacity> pool;
-    size_t dataCnt;
-    size_t headIdx;
+class ExEventFifo : public tmemfifo<ExEvent> {
+private:
     mutable pthread_mutex_t mutex;
-    ExEvent& at(int32 i) { return pool.at(static_cast<size_t>(i)); }
+    ExEvent& at(int32 i) {
+        return repository.at(static_cast<size_t>(i));
+    }
 public:
     int32 enter() const {
         return pthread_mutex_lock(&mutex);
@@ -244,59 +242,18 @@ public:
     ~ExEventFifo() noexcept {
         (void)pthread_mutex_destroy(&mutex);
     }
-    ExEventFifo() noexcept : pool(), dataCnt(Zero), headIdx(Zero) {
+    ExEventFifo() noexcept : tmemfifo<ExEvent>() {
         (void)pthread_mutex_init(&mutex, nullptr);
     }
 public:
-    void clear() {
-        dataCnt = Zero;
-        headIdx = Zero;
-    }
-    bool empty() const {
-        return (dataCnt == Zero);
-    }
-    size_t capacity() const {
-        return Capacity;
-    }
-    size_t size() const {
-        return dataCnt;
-    }
-    ExEvent* back() { // peek tail
-        size_t tailIdx = headIdx + dataCnt;
-        if (tailIdx >= Capacity) {
-            tailIdx -= Capacity;
-        }
-        return &pool.at(tailIdx);
-    }
-    ExEvent* front() { // peek head
-        return (dataCnt != Zero) ? &pool.at(headIdx) : nullptr;
-    }
-    ExEvent* pushBack() { // push tail
-        ExEvent* event;
-        if (dataCnt < Capacity) {
-            size_t tailIdx = headIdx + dataCnt;
-            if (tailIdx >= Capacity) {
-                tailIdx -= Capacity;
-            }
-            dataCnt++;
-            event = &pool.at(tailIdx);
-        } else {
-            dprint1("ExEventFifo::pushBack overflow - discard head\n");
-            event = nullptr;
-        }
+    ExEvent* pull_head_event() { // pull head
+        ExEvent* event = empty() ? nullptr : &pull_head();
         return event;
     }
-    ExEvent* popFront() { // pop head
-        ExEvent* event;
-        if (dataCnt > Zero) {
-            event = &pool.at(headIdx);
-            headIdx++;
-            if (headIdx >= Capacity) {
-                headIdx = Zero;
-            }
-            dataCnt--;
-        } else {
-            event = nullptr;
+    ExEvent* push_tail_event() { // push tail
+        ExEvent* event = is_full() ? nullptr : &push_tail();
+        if (event == nullptr) {
+            dprint1("ExEventFifo::push_tail_event overflow - discard head\n");
         }
         return event;
     }

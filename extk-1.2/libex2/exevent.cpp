@@ -33,7 +33,7 @@ ExEvent* ExEventFifo::add(ExEvent* const ev)
 {
     ExEvent* back;
     (void)enter();
-    back = pushBack();
+    back = push_tail_event();
     if (back != nullptr) {
         *back = *ev;
     }
@@ -46,7 +46,7 @@ ExEvent* ExEventFifo::add(HWND hwnd, int32 message, uint32 wParam, int64 lParam)
 {
     ExEvent* back;
     (void)enter();
-    back = pushBack();
+    back = push_tail_event();
     if (back != nullptr) {
         back->clear();
         back->hwnd = hwnd;
@@ -63,7 +63,7 @@ ExEvent* ExGetMessage(ExEvent* ev)
 {
     ExEvent* front;
     (void)exEventList.enter();
-    front = exEventList.popFront();
+    front = exEventList.pull_head_event();
     if ((ev != nullptr) && (front != nullptr)) {
         *ev = *front;
     }

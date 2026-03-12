@@ -9,6 +9,181 @@
 #include "extypes.h"
 #include <memory>
 
+// tmemfifo - stream memory as fifo (circular queue)
+//
+template <typename T, size_t Capacity = 64UL>
+class tmemfifo {
+public:
+    static constexpr size_t Zero = static_cast<size_t>(0);
+    static_assert(Capacity > Zero, "Capacity is zero");
+protected:
+    std::array<T, Capacity> repository;
+    size_t data_count;
+    size_t head_index;
+    static size_t seek_index(size_t seek, const size_t index) {
+        exassert(seek <= Capacity);
+        seek += index;
+        return (seek < Capacity) ? seek : (seek - Capacity);
+    }
+public:
+    tmemfifo() noexcept : repository(), data_count(Zero), head_index(Zero) {
+#ifdef _DEBUG
+        const bool simple = std::is_standard_layout<T>::value;
+        //const bool simple = std::is_trivial<T>::value; // (std::is_pod<T>::value && __is_trivial(T))
+        //const bool simple = std::is_pod<T>::value;
+        static_assert(simple, "type is not simple");
+#endif
+    }
+public:
+    size_t size() const {
+        return data_count;
+    }
+    size_t capacity() const {
+        return Capacity;
+    }
+    size_t spare() const {
+        return (Capacity - data_count);
+    }
+    bool is_full() const {
+        return (data_count == Capacity);
+    }
+    bool empty() const {
+        return (data_count == Zero);
+    }
+    void clear() {
+        data_count = Zero;
+        head_index = Zero;
+    }
+    T& head() { // peek head
+        exassert(!empty());
+        return repository[head_index];
+    }
+    T& tail() { // peek tail
+        exassert(!empty());
+        size_t tail_index = head_index + data_count;
+        if (tail_index >= Capacity) {
+            tail_index -= Capacity;
+        }
+        return repository[tail_index];
+    }
+    const T& head() const { // peek head
+        exassert(!empty());
+        return repository[head_index];
+    }
+    const T& tail() const { // peek tail
+        exassert(!empty());
+        size_t tail_index = head_index + data_count;
+        if (tail_index >= Capacity) {
+            tail_index -= Capacity;
+        }
+        return repository[tail_index];
+    }
+    T& pull_head() {
+        exassert(!empty());
+        T& ref_val = repository[head_index];
+        head_index = seek_index(1UL, head_index);
+        data_count--;
+        return ref_val;
+    }
+    T& push_tail() {
+        exassert(!is_full());
+        size_t tail_index = head_index + data_count;
+        if (tail_index >= Capacity) {
+            tail_index -= Capacity;
+        }
+        T& ref_val = repository[tail_index];
+        data_count++;
+        return ref_val;
+    }
+    size_t truncat2(size_t len) {
+        if (len > data_count) {
+            len = data_count;
+        }
+        if (len > Zero) {
+            const size_t split_half = Capacity - head_index;
+            if (split_half < len) { // is split ?
+                const size_t split_rest = len - split_half;
+                head_index = split_rest;
+            } else { // no split. rewinds when past the end of the repository.
+                head_index = seek_index(len, head_index);
+            }
+            data_count -= len;
+        }
+        return len;
+    }
+    size_t peek(T* const buf, size_t len) const {
+        if (len > data_count) {
+            len = data_count;
+        }
+        if (len > Zero) {
+            const size_t split_half = Capacity - head_index;
+            if (split_half < len) { // is split ?
+                const size_t split_rest = len - split_half;
+                // std::copy(src.begin(), src.end(), dst.begin())
+                std::copy(repository.begin() + head_index, repository.end(), &buf[0]);
+                std::copy(repository.begin(), repository.begin() + split_rest, &buf[split_half]);
+                //(void)memcpy(&buf[0], &repository[head_index], split_half * sizeof(T));
+                //(void)memcpy(&buf[split_half], &repository[0], split_rest * sizeof(T));
+            } else {
+                std::copy(repository.begin() + head_index, repository.begin() + head_index + len, &buf[0]);
+                //(void)memcpy(&buf[0], &repository[head_index], len * sizeof(T));
+            }
+        }
+        return len;
+    }
+    size_t pull(T* const buf, size_t len) {
+        if (len > data_count) {
+            len = data_count;
+        }
+        if (len > Zero) {
+            const size_t split_half = Capacity - head_index; // qac: subtraction underflow
+            if (split_half < len) { // is split ?
+                const size_t split_rest = len - split_half;
+                // std::copy(src.begin(), src.end(), dst.begin())
+                std::copy(repository.begin() + head_index, repository.end(), &buf[0]);
+                std::copy(repository.begin(), repository.begin() + split_rest, &buf[split_half]);
+                //(void)memcpy(&buf[0], &repository[head_index], split_half * sizeof(T));
+                //(void)memcpy(&buf[split_half], &repository[0], split_rest * sizeof(T));
+                head_index = split_rest;
+            } else { // no split. rewinds when past the end of the repository.
+                std::copy(repository.begin() + head_index, repository.begin() + head_index + len, &buf[0]);
+                //(void)memcpy(&buf[0], &repository[head_index], len * sizeof(T));
+                head_index = seek_index(len, head_index);
+            }
+            data_count -= len;
+        }
+        return len;
+    }
+    size_t push(const T* const buf, size_t len) {
+        if (len > spare()) {
+            dprint("tmemfifo: fill overflow. drop %lu bytes\n", len - spare());
+            len = spare();
+        }
+        if (len > Zero) {
+            size_t tail_index = head_index + data_count;
+            if (tail_index >= Capacity) {
+                tail_index -= Capacity;
+            }
+            const size_t split_half = Capacity - tail_index;
+            if (split_half < len) { // is split ?
+                const size_t split_rest = len - split_half;
+                // std::copy(src.begin(), src.end(), dst.begin())
+                std::copy(&buf[0], &buf[split_half], repository.begin() + tail_index);
+                std::copy(&buf[split_half], &buf[len], repository.begin());
+                //(void)memcpy(&repository[tail_index], &buf[0], split_half * sizeof(T));
+                //(void)memcpy(&repository[0], &buf[split_half], split_rest * sizeof(T)); // slm-2843 an invalid pointer value
+                tail_index = split_rest;
+            } else { // no split. rewinds when past the end of the repository.
+                std::copy(&buf[0], &buf[len], repository.begin() + tail_index);
+                //(void)memcpy(&repository[tail_index], &buf[0], len * sizeof(T));
+                tail_index = seek_index(len, tail_index);
+            }
+            data_count += len;
+        }
+        return len;
+    }
+};
+
 #ifdef WIN32
 /*
 ExShmemCreate()
