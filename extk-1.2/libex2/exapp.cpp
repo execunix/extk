@@ -54,25 +54,24 @@ ExApp::EnvX11 ExApp::x11 = {
     .ximg = nullptr,
 };
 #endif // CONF_X11
-int32        ExApp::retCode = 0;            // 0:EXIT_SUCCESS,1:EXIT_FAILURE
-ExSize       ExApp::smSize(0);              // SystemMetrics
-ExEvent      ExApp::event(None);
-
+int32        ExApp::retCode = 0;                // 0:EXIT_SUCCESS,1:EXIT_FAILURE
+ExSize       ExApp::smSize(0);                  // SystemMetrics
 ExTimer      ExApp::but_timer;
 ExTimer      ExApp::key_timer;
-uint32       ExApp::key_state = 0;
-int32        ExApp::button_x[2];            /* The last 2 button click positions. */
+uint64       ExApp::key_flags = 0UL;
+uint32       ExApp::key_state = 0U;
+int32        ExApp::button_x[2];                /* The last 2 button click positions. */
 int32        ExApp::button_y[2];
-uint32       ExApp::double_click_distance;  /* Maximum distance between clicks in pixels */
+uint32       ExApp::double_click_distance;      /* Maximum distance between clicks in pixels */
 uint32       ExApp::double_click_count;
 uint32       ExApp::button_react_delay;
-uint32       ExApp::button_click_time[2];   /* The last 2 button click times. */
-uint32       ExApp::double_click_time;      /* Maximum time between clicks in msecs */
-uint32       ExApp::button_number[2];       /* The last 2 buttons to be pressed. */
-ExWidget*    ExApp::button_widget[2];       /* The last 2 widgets to receive button presses. */
-ExWindow*    ExApp::button_window[2];       /* The last 2 windows to receive button presses. */
+uint32       ExApp::button_click_time[2];       /* The last 2 button click times. */
+uint32       ExApp::double_click_time;          /* Maximum time between clicks in msecs */
+uint32       ExApp::button_number[2];           /* The last 2 buttons to be pressed. */
+ExWidget*    ExApp::button_widget[2];           /* The last 2 widgets to receive button presses. */
+ExWindow*    ExApp::button_window[2];           /* The last 2 windows to receive button presses. */
 #ifdef OSAL_WIN32
-uint32       ExApp::regAppMsgIndex = 0x8000U; // WM_APP 0x8000
+uint32       ExApp::regAppMsgIndex = 0x8000U;   // WM_APP 0x8000
 #endif
 
 #ifdef WIN32
@@ -130,7 +129,6 @@ void* ExModalBlock(ExModalCtrl* ctrl, long flags)
 #if 0 // tbd
     MSG msg;
     uint32 waittick;
-    //ExEvent* event = &ExApp::event;
     ctrl->flags = flags | 0x80000000;
     ctrl->result = NULL;
     ctrl->cond = NULL;
@@ -333,7 +331,6 @@ bool ExApp::init(HINSTANCE hInstance,
     }
 #endif
     dprint("%s() width=%d height=%d\n", __func__, smSize.w, smSize.h);
-    // memset(&ExApp::event, 0, sizeof(ExEvent));
 
     if (ExWindow::classInit(hInstance) != 0) {
         retCode = EXIT_SUCCESS;

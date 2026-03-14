@@ -133,7 +133,6 @@ const uint32 Ex_CbEditChange = (Ex_CbUser + 1U);
 const uint32 Ex_CbPopupClose = (Ex_CbUser + 1U);
 
 bool TouchCalib(ExEvent* event);
-int32 DefWndProc(ExEvent& ev);
 
 #endif // __linux__
 

@@ -110,7 +110,6 @@
     <ClCompile Include="../../appdemo/src/wdmgr.cpp" />
     <ClCompile Include="../../appdemo/src/event.cpp" />
     <ClCompile Include="../../appdemo/src/lcdout.cpp" />
-    <ClCompile Include="../../appdemo/src/wndproc.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="../../appdemo/src/appdemo.h" />

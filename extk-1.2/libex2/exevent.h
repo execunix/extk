@@ -27,13 +27,16 @@ constexpr int32 WM_KILLFOCUS        = (WM_NULL + 0x0008);
 constexpr int32 WM_PAINT            = (WM_NULL + 0x000F);
 constexpr int32 WM_CLOSE            = (WM_NULL + 0x0010);
 constexpr int32 WM_QUIT             = (WM_NULL + 0x0012);
+constexpr int32 WM_ERASEBKGND       = (WM_NULL + 0x0014);
 constexpr int32 WM_SHOWWINDOW       = (WM_NULL + 0x0018);
+constexpr int32 WM_GETMINMAXINFO    = (WM_NULL + 0x0024);
 
 constexpr int32 WM_KEYDOWN          = (WM_NULL + 0x0100);
 constexpr int32 WM_KEYUP            = (WM_NULL + 0x0101);
 constexpr int32 WM_CHAR             = (WM_NULL + 0x0102);
 constexpr int32 WM_COMMAND          = (WM_NULL + 0x0111);
 
+constexpr int32 WM_MOUSEFIRST       = (WM_NULL + 0x0200);
 constexpr int32 WM_MOUSEMOVE        = (WM_NULL + 0x0200);
 constexpr int32 WM_LBUTTONDOWN      = (WM_NULL + 0x0201);
 constexpr int32 WM_LBUTTONUP        = (WM_NULL + 0x0202);
@@ -44,6 +47,16 @@ constexpr int32 WM_RBUTTONDBLCLK    = (WM_NULL + 0x0206);
 constexpr int32 WM_MBUTTONDOWN      = (WM_NULL + 0x0207);
 constexpr int32 WM_MBUTTONUP        = (WM_NULL + 0x0208);
 constexpr int32 WM_MBUTTONDBLCLK    = (WM_NULL + 0x0209);
+constexpr int32 WM_MOUSELAST        = (WM_NULL + 0x020E);
+
+/*
+ * WM_SIZE message wParam values
+ */
+constexpr int32 SIZE_RESTORED       = 0;
+constexpr int32 SIZE_MINIMIZED      = 1;
+constexpr int32 SIZE_MAXIMIZED      = 2;
+constexpr int32 SIZE_MAXSHOW        = 3;
+constexpr int32 SIZE_MAXHIDE        = 4;
 
 /*
  * Virtual Keys, Standard Set
@@ -193,8 +206,8 @@ struct ExEvent {
     ExObject*   collector;
     void*       data;
     ExEvent() noexcept {}
-    ExEvent(HWND hwnd) noexcept
-        : hwnd(hwnd), message(0), wParam(0U), lParam(0LL)
+    ExEvent(HWND hwnd, int32 message = 0, uint32 wParam = 0U, int64 lParam = 0LL) noexcept
+        : hwnd(hwnd), message(message), wParam(wParam), lParam(lParam)
         , lResult(0LL), time(0U), flag(0U), pt(0), sz(0), u64{0ULL,}
         , emitter(nullptr), collector(nullptr), data(nullptr) {
     }

@@ -7,6 +7,7 @@
 #define _watch_h_
 
 #include <exdebug.h>
+#include <exwndproc.h>
 #ifdef __linux__
 #include <sys/types.h>
 #include <sys/stat.h>
