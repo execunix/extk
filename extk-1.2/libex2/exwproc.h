@@ -36,17 +36,9 @@ struct ExWindowMap : public std::map<const HWND, const ExWindow*> {
 
 extern ExWindowMap exWndProcMap;
 
-// custom usage:
-// #pragma comment(linker, "/alternatename:procWndEvent=ProcWndEvent")
-// #pragma comment(linker, "/alternatename:defWndProc=DefWndProc")
-
-#ifdef CONF_X11 // __linux__
-__attribute__((weak))
-#endif // CONF_X11 // __linux__
 uint32 ProcWndEvent(ExWindow* window, ExCbInfo* cbinfo);
 
 #ifdef CONF_X11 // __linux__
-//__attribute__((weak))
 int64 DefWndProc(ExEvent& ev);
 #endif // CONF_X11 // __linux__
 

@@ -32,9 +32,9 @@ uint32 ExGetTickCount() {
 // Iomux
 //
 void ExWatch::IomuxMap::fini() {
-    if (events != NULL) {
+    if (events != nullptr) {
         free(events);
-        events = NULL;
+        events = nullptr;
     }
     if (ep_fd != -1) {
         close(ep_fd);
@@ -51,7 +51,7 @@ void ExWatch::IomuxMap::init(size_t max) {
     ep_fd = epoll_create(maxevents);
     exassert(ep_fd != -1);
     events = (epoll_event*)malloc(sizeof(epoll_event) * maxevents);
-    exassert(events != NULL);
+    exassert(events != nullptr);
 }
 
 #if EX2CONF_ENABLE_IOMUX_LOCK
@@ -65,7 +65,7 @@ void ExWatch::IomuxMap::leave_mux() const {
 #endif
 
 const ExWatch::Iomux* ExWatch::IomuxMap::search(int32 mux_fd) const {
-    const Iomux* iomux = NULL;
+    const Iomux* iomux = nullptr;
     const_iterator i = find(mux_fd);
     if (i != end()) {
         iomux = &i->second;
@@ -139,9 +139,9 @@ bool ExWatch::IomuxMap::del(int32 mux_fd) {
 
 uint32 ExWatch::IomuxMap::invoke(uint32 waittick) {
     watch->leave();
-    //pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
+    //pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, nullptr);
     int32 cnt = epoll_wait(ep_fd, events, (int)maxevents, (int)waittick);
-    //pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
+    //pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, nullptr);
     watch->enter();
     watch->tickCount = ExGetTickCount(); // update tick
     for (int32 i = 0; i < cnt; i++) {
@@ -150,7 +150,7 @@ uint32 ExWatch::IomuxMap::invoke(uint32 waittick) {
         ev.data.fd = iomux->mux_fd;
         ev.events = events[i].events;
         uint32 r = iomux->notify(&ev);
-        if (r & Ex_Halt) {
+        if ((r & Ex_Halt) != 0U) {
             return watch->setHalt(r);
         }
     }
@@ -170,7 +170,7 @@ pthread_key_t ExWatch::tls_key = (pthread_key_t)-1;
 void ExWatch::tls_specific(const char* name)
 {
     if (tls_key == (pthread_key_t)-1) {
-        pthread_key_create(&tls_key, NULL);
+        pthread_key_create(&tls_key, nullptr);
     }
     pthread_setspecific(tls_key, malloc(256UL));
     strcpy((char*)pthread_getspecific(tls_key), name);
@@ -180,7 +180,7 @@ void* ExWatch::start(void* arg) {
     ExWatch* watch = (ExWatch*)arg;
     uint32 r = watch->proc();
     exassert(r == 0);
-    return NULL;
+    return nullptr;
 }
 
 bool ExWatch::fini() {
@@ -193,7 +193,7 @@ bool ExWatch::fini() {
         exassert(r == 0);
         #endif
         leave();
-        r = pthread_join(tid, NULL);
+        r = pthread_join(tid, nullptr);
         enter();
         exassert(r == 0);
         tid = 0;
@@ -291,42 +291,35 @@ uint32 ExWatch::onEvent(const epoll_event* const ev) {
 
 uint32 ExWatch::proc() {
 #ifdef __linux__
-    pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
+    pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, nullptr);
 #endif // __linux__
     tls_specific(name);
     dprint("%s: tickAppLaunch=%d tickCount=%d\n", name, tickAppLaunch, tickCount);
     (void)enter();
     // seq-1 : prepare resources
-    if (procStartup) {
-        (void)procStartup(HookStartup);
-    }
+    (void)procStartup(ExHookProc::Startup);
     while (getHalt() == 0U) {
+        uint32 r;
         // seq-2 : dispatch event
-        if (procDispatch) {
-            uint32 r = procDispatch(HookDispatch);
-            if (((r & Ex_Halt) != 0U) || (getHalt() != 0U)) {
-                break;
-            }
+        r = procDispatch(ExHookProc::Dispatch);
+        if (((r & Ex_Halt) != 0U) || (getHalt() != 0U)) {
+            break;
         }
         // seq-3 : invoke timer callback
-        uint32 waittick = timerset.invoke(tickCount);
+        const uint32 waittick = timerset.invoke(tickCount);
         if (getHalt() != 0U) { // is halt ?
             break; // stop event loop
         }
         // seq-4 : collect resources, flush gui, ...
-        if (procMaintain) {
-            uint32 r = procMaintain(HookMaintain);
-            if (((r & Ex_Halt) != 0U) || (getHalt() != 0U)) {
-                break;
-            }
+        r = procMaintain(ExHookProc::Maintain);
+        if (((r & Ex_Halt) != 0U) || (getHalt() != 0U)) {
+            break;
         }
         // seq-5 : wait blocked iomux for waittick msec and update tick count
         (void)iomuxmap.invoke(waittick); // The only waiting point.
     }
     // seq-6 : cleanup resources
-    if (procCleanup) {
-        (void)procCleanup(HookCleanup);
-    }
+    (void)procCleanup(ExHookProc::Cleanup);
     (void)leave();
     return 0U;
 }

@@ -339,6 +339,16 @@ bool ExApp::init(HINSTANCE hInstance,
 }
 #endif // WIN32
 
+#ifdef __linux
+bool ExApp::init(int argc, char* argv[])
+{
+    // init vars
+    ExApp::retCode = EXIT_FAILURE;
+
+    return (retCode == EXIT_SUCCESS);
+}
+#endif // __linux
+
 #ifdef CONF_X11
 static uint32 onXevent(void* data, const epoll_event* const ev);
 
@@ -437,7 +447,7 @@ uint32 onXevent(void* data, const epoll_event* const ev)
                         #if 1
                         watch->setHalt();
                         #else
-                        XDestroyWindow(x11.display, env.top);
+                        (void)XDestroyWindow(x11.display, env.top);
                         dprint("XDestroyWindow()\n");
                         #endif
                     }

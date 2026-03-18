@@ -179,7 +179,7 @@ ExRender::Draw::Draw(ExCanvas* canvas, ExWidget* w)
 // ExRender
 //
 void ExRender::render(ExCanvas* canvas, ExWidget* w, uint32 flags) {
-    if (flags & Ex_RenderRebuild) {
+    if ((flags & Ex_RenderRebuild) != 0U) {
         Build build(w);
         w->damageRgn.combine(build.exposeAcc);
         //Build4MT build(w);

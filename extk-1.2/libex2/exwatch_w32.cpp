@@ -4,8 +4,9 @@
  */
 
 #include "exwatch.h"
+#include "extimer.h"
+
 #ifdef WIN32
-//#include "extimer.h"
 
 #define EVENTPROC_HAVETHREAD
 
@@ -51,7 +52,7 @@ DWORD ExWatch::IomuxMap::setup() {
 }
 
 const ExWatch::Iomux* ExWatch::IomuxMap::search(HANDLE mux_fd) const {
-    const Iomux* iomux = NULL;
+    const Iomux* iomux = nullptr;
     const_iterator i = find(mux_fd);
     if (i != end()) {
         iomux = &i->second;
@@ -167,7 +168,7 @@ uint32 ExWatch::IomuxMap::invoke(uint32 waittick) {
             // proc iomux handler
             exassert(iomux->notify.func);
             uint32 r = iomux->notify(iomux->mux_fd);
-            if (r & Ex_Halt) {
+            if ((r & Ex_Halt) != 0U) {
                 return watch->setHalt(r);
             }
             if ((r & Ex_Remove) != 0U) {
@@ -194,7 +195,7 @@ void ExWatch::tls_specific(const char* name)
         tls_key = TlsAlloc();
     }
     exassert(tls_key != TLS_OUT_OF_INDEXES);
-    exassert(TlsGetValue(tls_key) == NULL);
+    exassert(TlsGetValue(tls_key) == nullptr);
     LPVOID key_name = strdup(name);
     TlsSetValue(tls_key, key_name);
 }
@@ -209,7 +210,7 @@ DWORD WINAPI ExWatch::start(_In_ LPVOID arg) {
 bool ExWatch::fini() {
     int32 r = 0;
     idThread = 0;
-    if (hThread != NULL) {
+    if (hThread != nullptr) {
         setHalt(Ex_Halt);
         leave();
         if (WaitForSingleObject(hThread, INFINITE) == WAIT_FAILED) {
@@ -221,32 +222,32 @@ bool ExWatch::fini() {
             exerror("%s - CloseHandle fail.\n", __func__);
             r -= 1;
         }
-        hThread = NULL;
+        hThread = nullptr;
     }
     iomuxmap.fini();
     timerset.clearAll();
-    if (efd != NULL) {
+    if (efd != nullptr) {
         CloseHandle(efd);
-        efd = NULL;
+        efd = nullptr;
     }
     return (r == 0);
 }
 
 bool ExWatch::init(size_t max_iomux, size_t stacksize) {
-    exassert(hThread == NULL);
+    exassert(hThread == nullptr);
     iomuxmap.init(max_iomux);
 
-    efd = CreateEvent(NULL, FALSE, FALSE, NULL); // hev
-    exassert(efd != NULL);
+    efd = CreateEvent(nullptr, FALSE, FALSE, nullptr); // hev
+    exassert(efd != nullptr);
     ioAdd(this, &ExWatch::onEvent, efd);
 
     tickCount = GetTickCount(); // update tick
 
-    hThread = CreateThread(NULL, stacksize, start, this, 0, &idThread);
+    hThread = CreateThread(nullptr, stacksize, start, this, 0, &idThread);
     dprint1("CreateThread: hThread=%p idThread=%p\n", hThread, idThread);
-    exassert(hThread != NULL);
+    exassert(hThread != nullptr);
 
-    return (hThread != NULL);
+    return (hThread != nullptr);
 }
 
 bool ExWatch::enter() const {

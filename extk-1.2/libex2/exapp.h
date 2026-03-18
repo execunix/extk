@@ -85,6 +85,9 @@ public:
 #ifdef WIN32
     static bool init(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int32 nCmdShow);
 #endif
+#ifdef __linux__
+    static bool init(int argc, char* argv[]);
+#endif
     static bool initX11(ExWatch* watch);
     static bool finiX11(ExWatch* watch);
 public:

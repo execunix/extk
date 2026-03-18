@@ -270,7 +270,7 @@ public:
         }
         return event;
     }
-    ExEvent* add(ExEvent* const ev);
+    ExEvent* add(ExEvent* const ev = nullptr);
     ExEvent* add(HWND hwnd, int32 message, uint32 wParam = 0U, int64 lParam = 0LL);
 };
 

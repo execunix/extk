@@ -7,7 +7,7 @@
 #include "extimer.h"
 #include "exwatch.h"
 #include "exwindow.h"
-#include "exwndproc.h"
+#include "exwproc.h"
 
 #ifdef __linux__
 ExEventFifo exEventList;
@@ -34,7 +34,7 @@ ExEvent* ExEventFifo::add(ExEvent* const ev)
     ExEvent* back;
     (void)enter();
     back = push_tail_event();
-    if (back != nullptr) {
+    if ((back != nullptr) && (ev != nullptr)) {
         *back = *ev;
     }
     (void)leave();

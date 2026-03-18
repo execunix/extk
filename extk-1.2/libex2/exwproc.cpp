@@ -3,7 +3,7 @@
  * SPDX-License-Identifier:     GPL-2.0+
  */
 
-#include "exwndproc.h"
+#include "exwproc.h"
 #include "exwatch.h"
 #include "exapp.h"
 
@@ -58,9 +58,6 @@ static int64 procPtrLeaveEnter(ExWindow* const window, ExWidget* const widget, E
     return lResult;
 }
 
-#ifdef CONF_X11 // __linux__
-__attribute__((weak))
-#endif // CONF_X11 // __linux__
 uint32 ProcWndEvent(ExWindow* const window, ExCbInfo* const cbinfo)
 {
     uint32 cbret_code;
@@ -333,6 +330,7 @@ uint32 ProcWndEvent(ExWindow* const window, ExCbInfo* const cbinfo)
 #endif // WIN32
 #ifdef CONF_X11 // __linux__
             // tbd - lResult = DefWindowProc(cbinfo->event);
+            lResult = 0; // tbd
 #endif // CONF_X11 // __linux__
             exWatchDisp->enter();
             cbinfo->event->lResult = lResult;
@@ -350,11 +348,10 @@ uint32 ProcWndEvent(ExWindow* const window, ExCbInfo* const cbinfo)
 }
 
 #ifdef CONF_X11 // __linux__
-//__attribute__((weak))
 int64 DefWndProc(ExEvent& ev)
 #endif // CONF_X11 // __linux__
 #ifdef WIN32
-LRESULT CALLBACK // static
+LRESULT CALLBACK
 DefWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 #endif // WIN32
 {
@@ -383,7 +380,7 @@ DefWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
     if (message == wm_create) {
         window = (ExWindow*)((LPCREATESTRUCT)lParam)->lpCreateParams;
         exassert((window != nullptr) && (window->getHwnd() == nullptr));
-        exWndProcMap.attach(hwnd, window);
+        (void)exWndProcMap.attach(hwnd, window);
         window->setHwnd(hwnd);
         logproc("[0x%p][0x%p] WM_CREATE\n", hwnd, window);
 #ifdef _WIN32_WCE
@@ -396,33 +393,26 @@ DefWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         goto setup_proc;
     }
 #endif // WIN32
-#ifdef CONF_X11 // __linux__
-    if (ev.message == WM_CREATE) {
-        window = static_cast<ExWindow*>(ev.collector);
-        exassert2(window != nullptr, __FILE__ "@" Ex_STRINGIFY(__LINE__));
-        exWndProcMap.attach(ev.hwnd, window);
-        window->setHwnd(ev.hwnd);
-        if (ExApp::mainWnd == nullptr) {
-            ExApp::mainWnd = window; // tbd
-        }
-        goto setup_proc;
-    }
-#endif // CONF_X11 // __linux__
 
-    //window = (ExWindow*)GetWindowLong(hwnd, GWL_USERDATA); // WIN32
-    window = exWndProcMap.search(ev.hwnd);
+    if ((ev.hwnd == None) && (ExApp::mainWnd != nullptr)) {
+        ev.hwnd = ExApp::mainWnd->getHwnd();
+    }
+    window = (ev.hwnd != None) ? exWndProcMap.search(ev.hwnd) : nullptr;
+    // WIN32 usage: window = (ExWindow*)GetWindowLong(hwnd, GWL_USERDATA);
     if ((window == nullptr) || (window->getHwnd() != ev.hwnd)) {
         logproc("[0x%p] WM_0x%04x\n", ev.hwnd, ev.message);
 #ifdef WIN32
         cbinfo.event->lResult = DefWindowProc(hwnd, message, wParam, lParam);
 #else // linux
-        goto leave_proc;
+        ;
 #endif // WIN32
+        goto leave_proc;
     }
 
     window->event = &ev; // valid only within the event callback
 
     // detach
+#ifdef WIN32
     if (ev.message == WM_DESTROY) {
         logproc("[0x%p][0x%p] WM_DESTROY\n", ev.hwnd, window);
         exassert((window != nullptr) && (window->getHwnd() == ev.hwnd));
@@ -431,17 +421,16 @@ DefWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         ExApp::addCollectWindow(window);
         if (ExApp::mainWnd == window) {
             ExApp::mainWnd = nullptr; // stop timer/flush/input exlib proc
-#ifdef WIN32
             PostQuitMessage(ExApp::retCode); // stop main loop
-#endif // WIN32
         }
         // An application should return zero if it processes this message.
         goto leave_proc;
     }
+#endif // WIN32
 
-setup_proc:
-    // setup cbinfo
 #ifdef WIN32
+    // setup cbinfo
+setup_proc:
     if ((ev.message >= WM_MOUSEFIRST) &&
         (ev.message <= WM_MOUSELAST)) {
         cbinfo.event->pt.x = LOWORD(ev.lParam);
@@ -468,3 +457,11 @@ leave_proc:
     (void)exWatchDisp->leave();
     return cbinfo.event->lResult;
 }
+
+// custom usage:
+// #ifdef CONF_X11 // __linux__
+//__attribute__((weak))
+// #else
+// #pragma comment(linker, "/alternatename:procWndEvent=ProcWndEvent")
+// #pragma comment(linker, "/alternatename:defWndProc=DefWndProc")
+// #endif // CONF_X11 // __linux__

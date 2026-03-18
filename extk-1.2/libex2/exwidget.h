@@ -184,7 +184,7 @@ protected:
     ExWidget* broPrev;
     ExWidget* childHead;
     ExWidget* childTail() {
-        return childHead ? childHead->broPrev : NULL;
+        return childHead ? childHead->broPrev : nullptr;
     }
 public:
     virtual ~ExWidget() noexcept;
@@ -196,7 +196,7 @@ public:
                 return (ExWindow*)w;
             }
         }
-        return NULL;
+        return nullptr;
     }
     ExWidget* getParent() const { return parent; }
     void detachAll();
@@ -209,11 +209,11 @@ public:
     ExWidget* next() { return seekNext(this); }
     ExWidget* prev() { return seekPrev(this); }
     ExWidget* last() { return seekLast(this); }
-    void dumpBackToFront(ExWidget* end = NULL);
-    void dumpFrontToBack(ExWidget* end = NULL);
+    void dumpBackToFront(ExWidget* end = nullptr);
+    void dumpFrontToBack(ExWidget* end = nullptr);
 
-    uint32 init(ExWidget* parent, const char* name = NULL, const ExRect* area = NULL);
-    static ExWidget* create(ExWidget* parent, const char* name = NULL, const ExRect* area = NULL);
+    uint32 init(ExWidget* parent, const char* name = nullptr, const ExRect* area = nullptr);
+    static ExWidget* create(ExWidget* parent, const char* name = nullptr, const ExRect* area = nullptr);
     virtual uint32 destroy(); // the widget family hierarchy marks Ex_Destroyed, broadcast Ex_CbDestroyed
 #if 1 // deprecated - traditional legacy compatibility.
     virtual uint32 realize(); // visible widgets only, marks Ex_Realized and broadcast Ex_CbRealized.
@@ -246,9 +246,9 @@ public:
     ExWidget* getPointOwner(const ExPoint& pt);
     ExWidget* getSelectable(const ExPoint& pt);
     ExWidget* getChildHead() { return childHead; }
-    ExWidget* getChildTail() { return childHead ? childHead->broPrev : NULL; }
-    ExWidget* getBroPrev() { return (this != parent->getChildHead()) ? broPrev : NULL; }
-    ExWidget* getBroNext() { return (this != parent->getChildTail()) ? broNext : NULL; }
+    ExWidget* getChildTail() { return childHead ? childHead->broPrev : nullptr; }
+    ExWidget* getBroPrev() { return (this != parent->getChildHead()) ? broPrev : nullptr; }
+    ExWidget* getBroNext() { return (this != parent->getChildTail()) ? broNext : nullptr; }
     ExBox& getBox(ExBox& bx) const; // for event processing
     ExRect& getRect(ExRect& rc) const; // for event processing
     ExBox getBox() const { ExBox bx; return getBox(bx); }
