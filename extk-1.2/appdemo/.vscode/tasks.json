@@ -1,0 +1,86 @@
+{
+	// See https://go.microsoft.com/fwlink/?LinkId=733558
+	// for the documentation about the tasks.json format
+	"version": "2.0.0",
+	/* Configure Yocto SDK Constants from settings.json */
+	"options": {
+		"env": {
+			//"SDKTARGETSYSROOT": "${config:EXTK.SDKTARGETSYSROOT}", /* Used by Makefile */
+			//"CXX": "${config:EXTK.CXX}", /* Used by Makefile */
+			//"CC": "${config:EXTK.CC}", /* Used by Makefile */
+			"CONF_X11": "y", /* Used by Makefile */
+		}
+	},
+	"tasks": [
+		{
+			"label": "deploy",
+			"type": "shell",
+			"command": "rm",
+			"args": [
+				"-f",
+				"/tmp/app.fifo",
+			],
+			"dependsOn": [
+				"build debug",
+			],
+		},
+		/* Configure Build Task */
+		{
+			"label": "clean",
+			"type": "shell",
+			"command": "make -C .. clean",
+			"problemMatcher": [
+				"$gcc"
+			],
+			"group": {
+				"kind": "build"
+			}
+		},
+		{
+			"label": "build debug",
+			"type": "shell",
+			"command": "make -C .. -j$(nproc)",
+			"problemMatcher": [
+				"$gcc"
+			],
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			}
+		},
+		{
+			"label": "build release",
+			"type": "shell",
+			"command": "make -C .. RELEASE_BUILD=y -j$(nproc)",
+			"problemMatcher": [
+				"$gcc"
+			],
+			"group": {
+				"kind": "build"
+			}
+		},
+		{
+			"label": "rebuild debug",
+			"type": "shell",
+			"command": "make -C .. clean; make -C .. -j$(nproc)",
+			"problemMatcher": [
+				"$gcc"
+			],
+			"group": {
+				"kind": "build",
+				//"isDefault": true
+			}
+		},
+		{
+			"label": "rebuild release",
+			"type": "shell",
+			"command": "make -C .. clean; make -C .. RELEASE_BUILD=y -j$(nproc)",
+			"problemMatcher": [
+				"$gcc"
+			],
+			"group": {
+				"kind": "build"
+			}
+		},
+	]
+}
