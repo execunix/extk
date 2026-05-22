@@ -93,7 +93,10 @@
     <ClInclude Include="..\..\libex2\exiconv.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\libex2\exwndproc.h">
+    <ClInclude Include="..\..\libex2\exwproc.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\libex2\extools.h">
       <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -173,7 +176,10 @@
     <ClCompile Include="..\..\libex2\exiconv.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\libex2\exwndproc.cpp">
+    <ClCompile Include="..\..\libex2\exwproc.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libex2\extools.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

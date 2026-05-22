@@ -7,6 +7,7 @@
 #define _watch_h_
 
 #include <exdebug.h>
+#include <exwproc.h>
 #ifdef __linux__
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -72,7 +73,6 @@ private:
         return ExWatch::onEvent(ev);
     }
 private:
-    uint32 on_xdisp(const epoll_event* const ev);
     uint32 on_ev2dev(const epoll_event* const ev);
     uint32 on_cmdline(const epoll_event* const ev);
     void fini_fifo();
@@ -82,7 +82,6 @@ private:
     int32 fb0dev_fd;
     int32 fb1dev_fd;
     int32 ev2dev_fd;
-    int32 xdisp_fd;
     ExEvent def_event;
     int32 ev_serial; // for misra rules
 public:
@@ -97,7 +96,7 @@ public:
 #ifdef __linux__
     WatchApp() noexcept : ExWatch("Gui"), app_fifo(0)
         , fb0dev_fd(0), fb1dev_fd(0), ev2dev_fd(0)
-        , xdisp_fd(0), def_event(), ev_serial(0) {}
+        , def_event(), ev_serial(0) {}
 #else // __linux__
     WatchApp() noexcept : ExWatch("Gui") {
     }

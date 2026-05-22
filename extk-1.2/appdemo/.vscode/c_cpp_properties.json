@@ -1,0 +1,21 @@
+{
+    "configurations": [
+        {
+            "name": "Linux",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "${workspaceFolder}/../libex2/**",
+                "${config:EXTK.SDKTARGETSYSROOT}/usr/include/**"
+            ],
+            "defines": [
+                "_DEBUG",
+                "DPRINT",
+                "CONF_X11",
+                "LIBEX2=2",
+                "_GNU_SOURCE"
+            ],
+            "configurationProvider": "ms-vscode.makefile-tools"
+        }
+    ],
+    "version": 4
+}

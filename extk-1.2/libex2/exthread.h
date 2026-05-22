@@ -100,7 +100,7 @@ public:
     Proc        userproc;
     void*       userdata;
 public:
-    ExThread() : errcode(0), hThread(NULL), idThread(0),
+    ExThread() : errcode(0), hThread(NULL), idThread(0U),
         joinable(false), priority(PrioNormal), userproc(), userdata(NULL) {}
 public:
     int join(int wait = 4000/*INFINITE*/);

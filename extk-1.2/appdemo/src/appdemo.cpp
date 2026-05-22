@@ -20,7 +20,7 @@
 #include "res.h"
 #include "env.h"
 
-#ifdef CONF_ARM
+#if defined(__aarch64__)
 //x
 #endif
 
@@ -411,9 +411,9 @@ int app_test() {
         dprint1("\n*** anonymous func data=%p timer=%4u type=%d\n",
                data, ((uint32)*timer) % 10000U, cbinfo->type);
         return 0U; }, (void*)0xaaaa);
-    timer1.enter();
-    timer1.start(1, 1233);
-    timer1.leave();
+    //timer1.enter();
+    timer1.start_ex(1, 1233);
+    //timer1.leave();
     #endif
 
     return 0;
@@ -493,7 +493,7 @@ void poly_test()
 }
 
 static uint32 flushMainWnd(void* data, uint32 hook) {
-    if (hook != ExWatch::HookMaintain) {
+    if (hook != ExHookProc::Maintain) {
         return -1;
     }
     if (ExApp::mainWnd != NULL) {
@@ -712,14 +712,14 @@ int main(int argc, char* argv[])
         return 0;
     };
     (void)func1((void*)0x1234);
+    cb_test();
+    app_test();
+    flt_test();
 
     (void)init_signal();
 
     (void)initEnv();
     (void)initRes();
-#ifdef CONF_X11
-    (void)ExApp::initX11();
-#endif
     (void)gWatchApp.startup();
     (void)gWatchApp.enter();
     (void)gWatchDev.init(); // start watch thread for gps and etc
@@ -750,18 +750,6 @@ int main(int argc, char* argv[])
         goto on_failure;
     }
 #ifdef __linux__
-    (void)gWatchApp.leave();
-    do { // emul XCreateWindow
-        ExEvent ev(None);
-        ev.collector = static_cast<ExObject*>(gWndMain);
-        ev.emitter = static_cast<ExObject*>(&gWatchApp);
-        ev.message = WM_CREATE;
-        (void)DefWndProc(ev);
-        ev.sz = ExSize(env.wnd.w, env.wnd.h);
-        ev.message = WM_SIZE;
-        (void)DefWndProc(ev);
-    } while (false);
-    (void)gWatchApp.enter();
     (void)gWndMain->flush();
 #else
     CreateWindowEx(klass, name, style, x, y, ...);
@@ -787,10 +775,6 @@ int main(int argc, char* argv[])
     if (ExApp::mainWnd != nullptr) { // If the halt flag is set inside the app,
         (void)ExApp::mainWnd->destroy(); // then, mainWnd was not destroyed yet.
         // call XDestroyWindow, emit WM_DESTROY, and post WM_QUIT.
-        #if 1 // test
-        ExApp::mainWnd->setHwnd(None);
-        ExApp::mainWnd = nullptr; // stop timer/flush/input exlib proc
-        #endif
         ExApp::collect(); // call delete gWndMain
     }
     exassert2(ExApp::mainWnd == nullptr, __FILE__ "@" Ex_STRINGIFY(__LINE__));
@@ -807,10 +791,9 @@ int main(int argc, char* argv[])
     //
     // app cleanup end
 
+    (void)gLcdOut.fini();
     (void)gWatchDev.fini();
     (void)gWatchApp.cleanup();
-
-    (void)gLcdOut.fini();
     (void)finiRes();
     (void)saveEnv();
     sync();
@@ -837,7 +820,7 @@ int APIENTRY WinMain(_In_ HINSTANCE hInstance,
     (void)initRes();
 
     exWatchDisp->enter();
-    exWatchDisp->procMaintain = ExWatch::HookProc(&flushMainWnd, (void*)NULL);
+    exWatchDisp->procMaintain = ExHookProc(&flushMainWnd, (void*)NULL);
     exWatchDisp->init();
 
     // startup

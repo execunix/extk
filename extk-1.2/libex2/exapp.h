@@ -52,22 +52,22 @@ public:
     };
     static EnvX11       x11;
 #endif // CONF_X11
-    static int32        retCode;                // 0:EXIT_SUCCESS,1:EXIT_FAILURE
-    static ExSize       smSize;                 // SystemMetrics
-    static ExEvent      event;
+    static int32        retCode;                    // 0:EXIT_SUCCESS,1:EXIT_FAILURE
+    static ExSize       smSize;                     // SystemMetrics
     static ExTimer      but_timer;
     static ExTimer      key_timer;
+    static uint64       key_flags;
     static uint32       key_state;
-    static int32        button_x[2];            /* The last 2 button click positions. */
+    static int32        button_x[2];                /* The last 2 button click positions. */
     static int32        button_y[2];
-    static uint32       double_click_distance;  /* Maximum distance between clicks in pixels */
+    static uint32       double_click_distance;      /* Maximum distance between clicks in pixels */
     static uint32       double_click_count;
     static uint32       button_react_delay;
-    static uint32       button_click_time[2];   /* The last 2 button click times. */
-    static uint32       double_click_time;      /* Maximum time between clicks in msecs */
-    static uint32       button_number[2];       /* The last 2 buttons to be pressed. */
-    static ExWidget*    button_widget[2];       /* The last 2 widgets to receive button presses. */
-    static ExWindow*    button_window[2];       /* The last 2 windows to receive button presses. */
+    static uint32       button_click_time[2];       /* The last 2 button click times. */
+    static uint32       double_click_time;          /* Maximum time between clicks in msecs */
+    static uint32       button_number[2];           /* The last 2 buttons to be pressed. */
+    static ExWidget*    button_widget[2];           /* The last 2 widgets to receive button presses. */
+    static ExWindow*    button_window[2];           /* The last 2 windows to receive button presses. */
 #ifdef OSAL_WIN32
     static uint32       regAppMsgIndex;
 #endif
@@ -85,8 +85,13 @@ public:
 #ifdef WIN32
     static bool init(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int32 nCmdShow);
 #endif
-    static bool initX11();
+#ifdef __linux__
+    static bool init(int argc, char* argv[]);
+#endif
+    static bool initX11(ExWatch* watch);
+    static bool finiX11(ExWatch* watch);
 public:
+    static uint32 btnClickTime() { return button_click_time[1]; }
     static uint32& butRepeatCnt() { return but_timer.u32[0]; };
     static uint32& keyRepeatCnt() { return key_timer.u32[0]; };
 public:

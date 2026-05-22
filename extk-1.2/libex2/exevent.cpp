@@ -7,6 +7,7 @@
 #include "extimer.h"
 #include "exwatch.h"
 #include "exwindow.h"
+#include "exwproc.h"
 
 #ifdef __linux__
 ExEventFifo exEventList;
@@ -15,78 +16,103 @@ ExEventFifo exEventList;
 static ExEvent* new_event()
 {
     std::allocator<ExEvent> ev_allocator;
-    ExEvent* const ev = ev_allocator.allocate(1U);
-    ev_allocator.construct(ev, ExEvent(None));
-    return ev;
+    ExEvent* const event = ev_allocator.allocate(1U);
+    ev_allocator.construct(event, ExEvent(None));
+    return event;
 }
 
-static void delete_event(ExEvent* const ev)
+static void delete_event(ExEvent* const event)
 {
     std::allocator<ExEvent> ev_allocator;
-    // ev_allocator.destroy(ev); // hasnt destructor
-    ev_allocator.deallocate(ev, 1UL);
+    // ev_allocator.destroy(event); // hasnt destructor
+    ev_allocator.deallocate(event, 1UL);
 }
 #endif
 
-ExEvent* ExEventFifo::add(ExEvent* const ev)
+ExEvent* ExEventFifo::get_event(ExEvent* const event)
 {
-    ExEvent* back;
+    ExEvent* evref = nullptr;
     (void)enter();
-    back = pushBack();
-    if (back != nullptr) {
-        *back = *ev;
+    if (!empty()) {
+        evref = &pull_head();
+        if (event != nullptr) {
+            *event = *evref;
+        }
     }
     (void)leave();
-    (void)exWatchDisp->wakeup(); // tbd
-    return back;
+    return evref;
 }
 
-ExEvent* ExEventFifo::add(HWND hwnd, int32 message, uint32 wParam, int64 lParam)
+ExEvent* ExEventFifo::peek_event(ExEvent* const event)
 {
-    ExEvent* back;
+    ExEvent* evref = nullptr;
     (void)enter();
-    back = pushBack();
-    if (back != nullptr) {
-        back->clear();
-        back->hwnd = hwnd;
-        back->message = message;
-        back->wParam = wParam;
-        back->lParam = lParam;
+    if (!empty()) {
+        evref = &head();
+        if (event != nullptr) {
+            *event = *evref;
+        }
     }
     (void)leave();
-    (void)exWatchDisp->wakeup(); // tbd
-    return back;
+    return evref;
 }
 
-ExEvent* ExGetMessage(ExEvent* ev)
+ExEvent* ExEventFifo::post_event(const ExEvent* const event)
 {
-    ExEvent* front;
-    bool hasEvent = false;
-    (void)exEventList.enter();
-    front = exEventList.popFront();
-    if ((ev != nullptr) && (front != nullptr)) {
-        *ev = *front;
+    ExEvent* evref = nullptr;
+    (void)enter();
+    if (!is_full()) {
+        evref = &push_tail();
+        if (event != nullptr) {
+            *evref = *event;
+        }
+    } else {
+        dprint1("ExEventFifo::post_event() full\n");
     }
-    (void)exEventList.leave();
-    return front;
+    (void)leave();
+    return evref;
 }
 
-ExEvent* ExPostPtrMsg(const int32 message, const int32 pt_x, const int32 pt_y)
+ExEvent* ExEventFifo::post_event(HWND hwnd, int32 message, uint32 wParam, int64 lParam)
 {
-    ExEvent* back = exEventList.add(None, message);
-    if (back != nullptr) {
-        back->pt.x = static_cast<int16>(pt_x);
-        back->pt.y = static_cast<int16>(pt_y);
-        back->time = exWatchDisp->getTick();
+    #if 1
+    ExEvent event(hwnd, message, wParam, lParam);
+    return exEventList.post_event(&event);
+    #else
+    ExEvent* evref = exEventList.post_event(nullptr);
+    if (evref != nullptr) {
+        evref->clear();
+        evref->hwnd = hwnd;
+        evref->message = message;
+        evref->wParam = wParam;
+        evref->lParam = lParam;
     }
-    return back;
+    return evref;
+    #endif
 }
 
-bool PostMessage(HWND hwnd, const int32 message, const int32 wparam, const int64 lparam)
+ExEvent* ExGetMessage(ExEvent* event)
 {
-    ExEvent ev(None);
-    ExEvent* back = exEventList.add(&ev.set(hwnd, message, wparam, lparam));
-    return (back != nullptr);
+    return exEventList.get_event(event);
+}
+
+ExEvent* ExPostPtrMsg(int32 message, int32 pt_x, int32 pt_y)
+{
+    ExEvent* evref = exEventList.post_event(None, message);
+    if (evref != nullptr) {
+        evref->pt.x = static_cast<int16>(pt_x);
+        evref->pt.y = static_cast<int16>(pt_y);
+        evref->time = exWatchDisp->getTick();
+    }
+    (void)exWatchDisp->wakeup();
+    return evref;
+}
+
+bool PostMessage(HWND hwnd, int32 message, uint32 wparam, int64 lparam)
+{
+    ExEvent* evref = exEventList.post_event(hwnd, message, wparam, lparam);
+    (void)exWatchDisp->wakeup();
+    return (evref != nullptr);
 }
 #endif // __linux__
 
@@ -111,51 +137,86 @@ bool ExEventPeek(ExEvent* event)
 #endif
 
 ExEventFunc exEventFunc = &ExEventPeek;
+ExEventFunc exCalibFunc = nullptr;
 
 // ExEmit APIs - deprecated
 //
 
+#ifdef __linux__
+static bool PostPtrMsg(int32 message, int32 pt_x, int32 pt_y)
+{
+    ExEvent event(None);
+    event.message = message;
+    event.pt.x = pt_x;
+    event.pt.y = pt_y;
+    event.time = exWatchDisp->getTick();
+    if (exCalibFunc != nullptr) {
+        (void)exCalibFunc(&event);
+    }
+    ExEvent* back = exEventList.post_event(&event);
+    return (back != nullptr);
+}
+
+bool ExEmitMessage(HWND hwnd, int32 message, uint32 wParam, int64 lParam)
+{
+    return PostMessage(hwnd, message, wParam, lParam);
+}
+
+bool ExEmitPtrEvent(HWND hwnd, int32 message, int32 pt_x, int32 pt_y)
+{
+    bool r = true;
+    //int32_t origin_x = pt_x, origin_y = pt_y;
+    //ExWindow* window = exWndProcMap.search(hwnd);
+    if ((exEventList.size() > 2UL) && (message == WM_MOUSEMOVE)) {
+        dprint0("skip frequent move event\n");
+    } else {
+        r = PostPtrMsg(message, pt_x, pt_y);
+    }
+    return r;
+}
+#endif // __linux__
+
 #ifdef WIN32
-bool ExEmitMessage(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
+bool ExEmitMessage(HWND hwnd, int32 message, uint32 wParam, int64 lParam) {
     BOOL r = PostMessage(hwnd, message, wParam, lParam);
     return r ? true : false;
 }
 
-bool ExEmitKeyEvent(ExWidget* widget, UINT message, int32 virtkey, long keydata) {
-    HWND hwnd;
-    if ((widget != nullptr) && (widget->getFlags(Ex_Realized) != 0U) &&
-        (hwnd = widget->getWindow()->getHwnd()) != NULL) {
-        return ExEmitMessage(hwnd, message, virtkey, keydata);
-    }
-    return false;
+bool ExEmitPtrEvent(HWND hwnd, int32 message, int32 x, int32 y) {
+    LPARAM lParam = MAKELPARAM(x, y);
+    return ExEmitMessage(hwnd, message, 0U, lParam);
 }
 
-bool ExEmitPtrEvent(ExWidget* widget, UINT message, WPARAM wParam, int32 x, int32 y) {
-    HWND hwnd;
-    if ((widget != nullptr) && (widget->getFlags(Ex_Realized) != 0U) &&
-        (hwnd = widget->getWindow()->getHwnd()) != NULL) {
-        ExPoint pt(widget->getRect().center());
+bool ExEmitButPress(ExWidget* w, int32 x, int32 y) {
+    bool r;
+    ExWindow* window = w->getWindow();
+    HWND hwnd = (window != nullptr) ? window->getHwnd() : None;
+    if (hwnd != None) {
+        ExPoint pt(w->getRect().center());
         x += pt.x;
         y += pt.y;
         SetCursorPos(x, y);
-        LPARAM lParam = MAKELPARAM(x, y);
-        return ExEmitMessage(hwnd, message, wParam, lParam);
+        r = (ExEmitPtrEvent(hwnd, WM_MOUSEMOVE, x, y) &&
+             ExEmitPtrEvent(hwnd, WM_LBUTTONDOWN, x, y));
+    } else {
+        r = false;
     }
-    return false;
+    return r;
 }
 
-bool ExEmitButPress(ExWidget* widget, int32 x, int32 y) {
-    return (ExEmitPtrEvent(widget, WM_MOUSEMOVE, 0, x, y) &&
-            ExEmitPtrEvent(widget, WM_LBUTTONDOWN, 0, x, y));
-}
-
-bool ExEmitButRelease(ExWidget* widget, int32 x, int32 y) {
-    return ExEmitPtrEvent(widget, WM_LBUTTONUP, 0, x, y);
+bool ExEmitButRelease(ExWidget* w, int32 x, int32 y) {
+    bool r;
+    ExWindow* window = w->getWindow();
+    HWND hwnd = (window != nullptr) ? window->getHwnd() : None;
+    if (hwnd != None) {
+        ExPoint pt(w->getRect().center());
+        x += pt.x;
+        y += pt.y;
+        SetCursorPos(x, y);
+        r = ExEmitPtrEvent(hwnd, WM_LBUTTONUP, x, y);
+    } else {
+        r = false;
+    }
+    return r;
 }
 #endif
-
-#ifdef __linux__
-bool ExEmitMessage(const int32 type, const int32 message, const int32 wParam, const int64 lParam) {
-    return false;
-}
-#endif // __linux__

@@ -3,7 +3,7 @@
  * SPDX-License-Identifier:     GPL-2.0+
  */
 
-#include "exwndproc.h"
+#include "exwproc.h"
 #include "exwatch.h"
 #include "exapp.h"
 
@@ -12,7 +12,6 @@
 
 ExWindowMap exWndProcMap;
 
-#ifdef WIN32
 static uint32 getDoubleClickDiff(const uint32 (&click_time)[2])
 {
     const uint32 diff = static_cast<uint32>(click_time[1] - click_time[0]);
@@ -75,39 +74,45 @@ uint32 ProcWndEvent(ExWindow* const window, ExCbInfo* const cbinfo)
             break;
         }
         case WM_ERASEBKGND: {
-    #if 0
+#if 0
             HDC hdc = (HDC)wParam;
             logproc("[0x%p] WM_ERASEBKGND hdc=0x%p\n", hwnd, hdc);
-    #endif
+#endif
             // An application should return nonzero if it erases the background;
             // otherwise, it should return zero.
             cbinfo->event->lResult = 1;
             cbret_code = Ex_Break;
             break;
         }
-    #if 0
+#if 0
         case WM_NCCALCSIZE: {
             RECT* r = (RECT*)lParam;
             //NCCALCSIZE_PARAMS* rc = (NCCALCSIZE_PARAMS*)lParam;
             logproc("[0x%p] WM_NCCALCSIZE wParam=%d %d,%d-%d,%d\n", hwnd, wParam,
-                r->left, r->top, r->right, r->bottom);
+                    r->left, r->top, r->right, r->bottom);
             cbinfo->event->lResult = 0;
             cbret_code = Ex_Break;
             break;
         }
-    #endif
+#endif
         case WM_GETMINMAXINFO: {
+#ifdef WIN32
             MINMAXINFO* mmi = (MINMAXINFO*)lParam;
             logproc("[0x%p] WM_GETMINMAXINFO %d %d,%d\n", window->getHwnd(), wParam,
-                mmi->ptMinTrackSize.x, mmi->ptMinTrackSize.y);
+                    mmi->ptMinTrackSize.x, mmi->ptMinTrackSize.y);
             mmi->ptMinTrackSize.x = 640 + 16;
             mmi->ptMinTrackSize.y = 360 + 39;
+#endif // WIN32
+#ifdef __linux__
+            ExSize* sz = (ExSize*)lParam;
+            logproc("[0x%p] WM_GETMINMAXINFO %d %d,%d\n", window->getHwnd(), wParam, sz->w, sz->h);
+            sz->w = 640 + 16;
+            sz->h = 360 + 39;
+#endif // __linux__
             cbret_code = Ex_Continue;
             break;
         }
         case WM_SIZE: {
-            //int32 width = LOWORD(lParam);
-            //int32 height = HIWORD(lParam);
             ExSize sz = cbinfo->event->sz;
             logproc("[0x%p] WM_SIZE wParam=0x%d w=%u h=%u\n", window->getHwnd(), wParam, sz.w, sz.h);
             if (wParam != SIZE_MINIMIZED) {
@@ -127,8 +132,6 @@ uint32 ProcWndEvent(ExWindow* const window, ExCbInfo* const cbinfo)
         }
         case WM_MOUSEMOVE: {
             UINT fwKeys = (UINT)wParam;
-            //int32 xPos = LOWORD(lParam);
-            //int32 yPos = HIWORD(lParam);
             ExPoint pt = cbinfo->event->pt;
             logpro0("[0x%p] WM_MOUSEMOVE     fwKeys=0x%p xPos=%d yPos=%d\n", hwnd, fwKeys, pt.x, pt.y);
             ExWidget* widget;
@@ -157,8 +160,6 @@ uint32 ProcWndEvent(ExWindow* const window, ExCbInfo* const cbinfo)
         }
         case WM_LBUTTONDOWN: {
             UINT fwKeys = (UINT)wParam;
-            //int32 xPos = LOWORD(lParam);
-            //int32 yPos = HIWORD(lParam);
             ExPoint pt = cbinfo->event->pt;
             logpro0("[0x%p] WM_LBUTTONDOWN   fwKeys=0x%p xPos=%d yPos=%d\n", hwnd, fwKeys, pt.x, pt.y);
             ExWidget* widget;
@@ -210,11 +211,9 @@ uint32 ProcWndEvent(ExWindow* const window, ExCbInfo* const cbinfo)
             cbret_code = Ex_Continue;
             break;
         }
-    #if 0
+#if 0
         case WM_LBUTTONDBLCLK: {
             UINT fwKeys = (UINT)wParam;
-            //int32 xPos = LOWORD(lParam);
-            //int32 yPos = HIWORD(lParam);
             ExPoint pt = cbinfo->event->pt;
             logproc("[0x%p] WM_LBUTTONDBLCLK fwKeys=0x%p xPos=%d yPos=%d\n", hwnd, fwKeys, pt.x, pt.y);
             /*  Only windows that have the CS_DBLCLKS style can receive WM_LBUTTONDBLCLK
@@ -230,11 +229,9 @@ uint32 ProcWndEvent(ExWindow* const window, ExCbInfo* const cbinfo)
             cbret_code = Ex_Continue;
             break;
         }
-    #endif
+#endif
         case WM_LBUTTONUP: {
             UINT fwKeys = (UINT)wParam;
-            //int32 xPos = LOWORD(lParam);
-            //int32 yPos = HIWORD(lParam);
             ExPoint pt = cbinfo->event->pt;
             logpro0("[0x%p] WM_LBUTTONUP     fwKeys=0x%p xPos=%d yPos=%d\n", hwnd, fwKeys, pt.x, pt.y);
             ExWidget* widget;
@@ -267,27 +264,31 @@ uint32 ProcWndEvent(ExWindow* const window, ExCbInfo* const cbinfo)
             break;
         }
         case WM_ACTIVATE: {
-            WORD fActive = LOWORD(wParam);
-            BOOL fMinimized = (BOOL)HIWORD(wParam);
+            uint16 fActive = LOWORD(wParam);
+            bool fMinimized = (bool)HIWORD(wParam);
             HWND hwndPrevious = (HWND)lParam;
             logproc("[0x%p] WM_ACTIVATE fActive=%d fMinimized=%d hwndPrevious=0x%p\n",
-                window->getHwnd(), fActive, fMinimized, hwndPrevious);
-    #if 0
+                    window->getHwnd(), fActive, fMinimized, hwndPrevious);
+#if 0
             // tbd: set widget flags
-            if (fMinimized)
+            if (fMinimized) {
                 ExWidget::unrealize();
-            else
+            } else {
                 ExWidget::realize();
-    #endif
+            }
+#endif
             // An application should return zero if it processes this message.
             //cbinfo->event->lResult = 0;
             cbret_code = Ex_Continue;
             break;
         }
         case WM_KEYDOWN: {
-            if (ExApp::key_state == (uint32)wParam &&
-                (lParam & 0xC0000000) == 0x40000000) {
-                lParam = ((lParam & 0xFFFF0000) | (++ExApp::keyRepeatCnt() & 0xFFFF));
+            const uint64 key_flags = static_cast<uint64>(lParam);
+            if ((ExApp::key_state == static_cast<uint32>(wParam)) &&
+                ((key_flags & 0xC0000000UL) == 0x40000000UL)) {
+                ++ExApp::keyRepeatCnt();
+                const uint32 key_repeat_cnt = (ExApp::keyRepeatCnt() & 0xFFFFU);
+                ExApp::key_flags = ((key_flags & 0xFFFF0000UL) | static_cast<uint64>(key_repeat_cnt));
             } else {
                 ExApp::keyRepeatCnt() = 1U;
                 ExApp::key_state = static_cast<uint32>(wParam);
@@ -324,14 +325,19 @@ uint32 ProcWndEvent(ExWindow* const window, ExCbInfo* const cbinfo)
         default: {
             LRESULT lResult;
             exWatchDisp->leave();
+#ifdef WIN32
             lResult = DefWindowProc(window->getHwnd(), message, wParam, lParam);
+#endif // WIN32
+#ifdef __linux__
+            // tbd - lResult = DefWindowProc(cbinfo->event);
+            lResult = 0; // tbd
+#endif // __linux__
             exWatchDisp->enter();
             cbinfo->event->lResult = lResult;
             cbret_code = Ex_Continue;
 #if 0 // tbd - pass to handler ?
             if (cbinfo->event->lResult != 0) {
-                logproc("hwnd=%p msg=%p lResult=%d\n",
-                    hwnd, message, cbinfo->event->lResult);
+                logproc("hwnd=%p msg=%p lResult=%d\n", hwnd, message, cbinfo->event->lResult);
                 cbret_code = Ex_Break;
             }
 #endif
@@ -341,120 +347,121 @@ uint32 ProcWndEvent(ExWindow* const window, ExCbInfo* const cbinfo)
     return cbret_code;
 }
 
-LRESULT CALLBACK // static
-DefWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
+#ifdef __linux__
+int64 DefWndProc(ExEvent& ev)
+#endif // __linux__
+#ifdef WIN32
+LRESULT CALLBACK
+DefWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
+#endif // WIN32
+{
     ExWindow* window;
+    ExCbInfo cbinfo(0U);
+#ifdef WIN32
+    ExEvent ev(hwnd, message, wParam, lParam);
+#endif // WIN32
+
+    cbinfo.event = &ev;
+    cbinfo.event->lResult = 0;
+
     (void)exWatchDisp->enter();
+
 #if 0
-    MSG& m = ExApp::event.msg;
-    logproc("hwnd=%p,%p msg=%p,%p wp=%p,%p lp=%p,%p\n",
-            m.hwnd, hwnd, m.message, message, m.wParam, wParam, m.lParam, lParam);
+    logproc("hwnd:%p msg:%p wp:%p lp:%p\n", hwnd, message, wParam, lParam);
 #endif
 
     // attach
+#ifdef WIN32
 #ifdef _WIN32_WCE
-    if (message == WM_CREATE) {
+    constexpr uint32 wm_create = WM_CREATE;
+#else
+    constexpr uint32 wm_create = WM_NCCREATE;
+#endif
+    if (message == wm_create) {
         window = (ExWindow*)((LPCREATESTRUCT)lParam)->lpCreateParams;
-        exassert(window && !window->hwnd);
-        exWndProcMap.attach(hwnd, window);
-        window->hwnd = hwnd;
+        exassert((window != nullptr) && (window->getHwnd() == nullptr));
+        (void)exWndProcMap.attach(hwnd, window);
+        window->setHwnd(hwnd);
         logproc("[0x%p][0x%p] WM_CREATE\n", hwnd, window);
+#ifdef _WIN32_WCE
         // If an application processes this message, it should return 0 to continue creation of the window.
         // If the application returns -1, the window is destroyed and the CreateWindowEx or CreateWindow function returns a NULL handle.
-        exWatchDisp->leave();
-        return 0;
-    }
+        // cbinfo.event->lResult = 0;
 #else
-    if (message == WM_NCCREATE) {
-        window = (ExWindow*)((LPCREATESTRUCT)lParam)->lpCreateParams;
-        exassert(window && (window->getHwnd() != nullptr));
-        exWndProcMap.attach(hwnd, window);
-        window->setHwnd(hwnd);
-        logproc("[0x%p][0x%p] WM_NCCREATE\n", hwnd, window);
-        exWatchDisp->leave();
-        return TRUE;
-    }
+        cbinfo.event->lResult = 1;
 #endif
-
-    //window = (ExWindow*)GetWindowLong(hwnd, GWL_USERDATA);
-    window = exWndProcMap.search(hwnd);
-    if (!(window && (window->getHwnd() == hwnd))) {
-        logproc("[0x%p] WM_0x%04x\n", hwnd, message);
-        exWatchDisp->leave();
-        return DefWindowProc(hwnd, message, wParam, lParam);
+        goto setup_proc;
     }
+#endif // WIN32
+
+    if ((ev.hwnd == None) && (ExApp::mainWnd != nullptr)) {
+        ev.hwnd = ExApp::mainWnd->getHwnd();
+    }
+    window = (ev.hwnd != None) ? exWndProcMap.search(ev.hwnd) : nullptr;
+    // WIN32 usage: window = (ExWindow*)GetWindowLong(hwnd, GWL_USERDATA);
+    if ((window == nullptr) || (window->getHwnd() != ev.hwnd)) {
+        logproc("[0x%p] WM_0x%04x\n", ev.hwnd, ev.message);
+#ifdef WIN32
+        cbinfo.event->lResult = DefWindowProc(hwnd, message, wParam, lParam);
+#else // linux
+        ;
+#endif // WIN32
+        goto leave_proc;
+    }
+
+    window->event = &ev; // valid only within the event callback
 
     // detach
-    if (message == WM_DESTROY) {
-        logproc("[0x%p][0x%p] WM_DESTROY\n", hwnd, window);
-        exassert(window && (window->getHwnd() == hwnd));
+#ifdef WIN32
+    if (ev.message == WM_DESTROY) {
+        logproc("[0x%p][0x%p] WM_DESTROY\n", ev.hwnd, window);
+        exassert((window != nullptr) && (window->getHwnd() == ev.hwnd));
         window->setHwnd(None);
-        exWndProcMap.detach(hwnd);
+        (void)exWndProcMap.detach(ev.hwnd);
         ExApp::addCollectWindow(window);
         if (ExApp::mainWnd == window) {
-            ExApp::mainWnd = NULL; // stop timer/flush/input exlib proc
+            ExApp::mainWnd = nullptr; // stop timer/flush/input exlib proc
             PostQuitMessage(ExApp::retCode); // stop main loop
         }
-        exWatchDisp->leave();
         // An application should return zero if it processes this message.
-        return 0;
-    }
-
-    // setup cbinfo->event
-    ExCbInfo msginfo(0U);
-    ExCbInfo* cbinfo = &msginfo;
-    window->event = &ExApp::event;
-    cbinfo->event = &ExApp::event;
-    cbinfo->event->hwnd = hwnd;
-    cbinfo->event->message = message;
-    cbinfo->event->wParam = wParam;
-    cbinfo->event->lParam = lParam;
-    cbinfo->event->lResult = 0;
-    if ((message >= WM_MOUSEFIRST) &&
-        (message <= WM_MOUSELAST)) {
-        cbinfo->event->pt.x = LOWORD(lParam);
-        cbinfo->event->pt.y = HIWORD(lParam);
-    } else if (message == WM_SIZE) {
-        cbinfo->event->sz.w = LOWORD(lParam);
-        cbinfo->event->sz.h = HIWORD(lParam);
-    }
-    //exassert(cbinfo->event->time == window->event->time);
-    //exassert(cbinfo->event->pt == window->event->pt);
-#if 0 // deprecated
-    if (message == WM_ExEvEmit) { // emitted msg is key,btn,...
-        window->event = (ExEvent*)lParam;
-        cbinfo->event = window->event; // replace...
-        exassert(hwnd == window->event->hwnd);
-    }
-#endif
-
-    cbinfo->type = Ex_CbFilter;
-    if ((window->invokeFilter(cbinfo) & Ex_Break) != 0U) {
         goto leave_proc;
     }
-    cbinfo->type = Ex_CbUnknown;
-    if ((ProcWndEvent(window, cbinfo) & Ex_Break) != 0U) {
+#endif // WIN32
+
+#ifdef WIN32
+    // setup cbinfo
+setup_proc:
+    if ((ev.message >= WM_MOUSEFIRST) &&
+        (ev.message <= WM_MOUSELAST)) {
+        cbinfo.event->pt.x = LOWORD(ev.lParam);
+        cbinfo.event->pt.y = HIWORD(ev.lParam);
+    } else if (ev.message == WM_SIZE) {
+        cbinfo.event->sz.w = LOWORD(ev.lParam);
+        cbinfo.event->sz.h = HIWORD(ev.lParam);
+    }
+#endif // WIN32
+
+    cbinfo.type = Ex_CbFilter;
+    if ((window->invokeFilter(&cbinfo) & Ex_Break) != 0U) {
         goto leave_proc;
     }
-    cbinfo->type = Ex_CbHandler;
-    if ((window->invokeHandler(cbinfo) & Ex_Break) != 0U) {
+    cbinfo.type = Ex_CbUnknown;
+    if ((ProcWndEvent(window, &cbinfo) & Ex_Break) != 0U) {
+        goto leave_proc;
+    }
+    cbinfo.type = Ex_CbHandler;
+    if ((window->invokeHandler(&cbinfo) & Ex_Break) != 0U) {
         // fallthrough: goto leave_proc;
     }
 leave_proc:
     (void)exWatchDisp->leave();
-    return cbinfo->event->lResult;
-}
-#endif // WIN32
-
-#ifdef CONF_X11 // __linux__
-uint32 __attribute__((weak))
-ProcWndEvent(ExWindow* window, ExCbInfo* cbinfo)
-{
-    return Ex_Continue;
+    return cbinfo.event->lResult;
 }
 
-int64 __attribute__((weak))
-DefWndProc(ExEvent& ev) {
-    return 0;
-}
-#endif // CONF_X11 // __linux__
+// custom usage:
+// #ifdef __linux__
+//__attribute__((weak))
+// #else
+// #pragma comment(linker, "/alternatename:procWndEvent=ProcWndEvent")
+// #pragma comment(linker, "/alternatename:defWndProc=DefWndProc")
+// #endif // __linux__

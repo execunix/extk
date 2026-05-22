@@ -57,9 +57,6 @@
     <ClCompile Include="../../appdemo/src/lcdout.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="../../appdemo/src/wndproc.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Resource.h">

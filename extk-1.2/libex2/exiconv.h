@@ -41,4 +41,12 @@ public:
     operator const wchar* () const { return wcs; }
 };
 
+const char* wcs2utf8(const ucs2_t* wcs); // thread un-safe
+const char* wcs2utf8(const ucs4_t* wcs); // thread un-safe
+
+int32 strsplit(char** const toc, const int tno, char* src, const char del);
+char* strltrim(char* src, const char* const tch);
+char* strrtrim(char* src, const char* const tch);
+char* strtrim(char* const src, const char* const tch);
+
 #endif//__exiconv_h__

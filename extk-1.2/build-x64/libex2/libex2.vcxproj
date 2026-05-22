@@ -114,11 +114,12 @@ xcopy "$(OutDir)$(TargetFileName)" "..\extk\$(OutDir)" /d /y
     <ClInclude Include="..\..\libex2\exrender.h" />
     <ClInclude Include="..\..\libex2\exthread.h" />
     <ClInclude Include="..\..\libex2\extimer.h" />
+    <ClInclude Include="..\..\libex2\extools.h" />
     <ClInclude Include="..\..\libex2\extypes.h" />
     <ClInclude Include="..\..\libex2\exwatch.h" />
     <ClInclude Include="..\..\libex2\exwidget.h" />
     <ClInclude Include="..\..\libex2\exwindow.h" />
-    <ClInclude Include="..\..\libex2\exwndproc.h" />
+    <ClInclude Include="..\..\libex2\exwproc.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\libex2\exapp.cpp" />
@@ -142,11 +143,12 @@ xcopy "$(OutDir)$(TargetFileName)" "..\extk\$(OutDir)" /d /y
     <ClCompile Include="..\..\libex2\exrender.cpp" />
     <ClCompile Include="..\..\libex2\exthread.cpp" />
     <ClCompile Include="..\..\libex2\extimer.cpp" />
+    <ClCompile Include="..\..\libex2\extools.cpp" />
     <ClCompile Include="..\..\libex2\exwatch.cpp" />
     <ClCompile Include="..\..\libex2\exwatch_w32.cpp" />
     <ClCompile Include="..\..\libex2\exwidget.cpp" />
     <ClCompile Include="..\..\libex2\exwindow.cpp" />
-    <ClCompile Include="..\..\libex2\exwndproc.cpp" />
+    <ClCompile Include="..\..\libex2\exwproc.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />

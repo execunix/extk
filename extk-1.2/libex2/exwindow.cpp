@@ -3,7 +3,7 @@
  * SPDX-License-Identifier:     GPL-2.0+
  */
 
-#include "exwndproc.h"
+#include "exwproc.h"
 #include "exrender.h"
 #include "exwatch.h"
 #include "exiconv.h"
@@ -34,14 +34,14 @@ ExWindow::ExWindow() noexcept
 #endif
     , notifyFlags(0)
     , renderFlags(0)
-    , wgtCapture(NULL)
-    , wgtEntered(NULL)
-    , wgtPressed(NULL)
-    , wgtFocused(NULL)
+    , wgtCapture(nullptr)
+    , wgtEntered(nullptr)
+    , wgtPressed(nullptr)
+    , wgtFocused(nullptr)
     , flushFunc()
     , paintFunc()
-    , canvas(NULL)
-    , event(NULL)
+    , canvas(nullptr)
+    , event(nullptr)
     , filterList()
     , handlerList() {
     flags |= Ex_HasOwnGC;
@@ -51,7 +51,7 @@ ExWindow::ExWindow() noexcept
 
 uint32 ExWindow::init(const char* name, int32 w, int32 h) {
     ExRect rc(0, 0, w, h);
-    ExWidget::init(NULL/*parent*/, name, &rc);
+    ExWidget::init(nullptr/*parent*/, name, &rc);
     renderFlags |= Ex_RenderRebuild;
     return 0;
 }
@@ -59,7 +59,7 @@ uint32 ExWindow::init(const char* name, int32 w, int32 h) {
 ExWindow* // static
 ExWindow::create(const char* name, int32 w, int32 h) {
     ExWindow* window = new ExWindow();
-    exassert(window != NULL);
+    exassert(window != nullptr);
     window->flags |= Ex_FreeMemory;
     window->init(name, w, h);
     return window;
@@ -74,25 +74,29 @@ uint32 ExWindow::destroy() {
 
     // Now, member variables are not accessible.
     if (hwnd != None) { // is not detached ?
-        // exWndProcMap.detach(hwnd);
+        // (void)exWndProcMap.detach(hwnd);
 #ifdef WIN32
         DestroyWindow(hwnd); // send WM_DESTROY
 #endif
+#ifdef __linux__
 #ifdef CONF_X11
         ExApp::EnvX11& x11 = ExApp::x11;
-        XDestroyWindow(x11.display, hwnd);
-        //ExEmitMessage(1, WM_DESTROY, 0, 0); // tbd - type
-        #if 0
-        do { // emul XDestroyWindow
-            ExEvent ev(None);
-            ev.message = WM_DESTROY;
-            ExCbInfo cbinfo(0U, 0U, &ev);
-            (void)window->invokeFilter(&cbinfo);
-            (void)DefWndProc(ev); // send WM_DESTROY
-            (void)window->invokeHandler(&cbinfo);
-        } while (false);
-        #endif
+        (void)XDestroyWindow(x11.display, hwnd);
 #endif
+        (void)exWndProcMap.detach(hwnd);
+        ExApp::addCollectWindow(this);
+
+        ExEvent ev(hwnd, WM_DESTROY, 0, reinterpret_cast<int64>(this));
+        ExCbInfo cbinfo(Ex_CbFilter, 0U, &ev);
+        if ((invokeFilter(&cbinfo) & Ex_Break) == 0U) {
+            (void)invokeHandler(&cbinfo(Ex_CbHandler));
+        }
+        hwnd = None;
+        if (ExApp::mainWnd == this) {
+            ExApp::mainWnd = nullptr; // stop timer/flush/input exlib proc
+            (void)PostMessage(None, WM_QUIT, ExApp::retCode); // stop main loop
+        }
+#endif // __linux__
     }
     return 0;
 }
@@ -103,20 +107,20 @@ bool ExWindow::showWindow(DWORD dwExStyle, DWORD dwStyle, int32 x, int32 y) {
     this->dwExStyle = dwExStyle;
     this->dwStyle = dwStyle;
 
-    HWND hwnd = NULL;
-    HWND hwndParent = NULL;
+    HWND hwnd = nullptr;
+    HWND hwndParent = nullptr;
     LPCSTR lpWindowName = name;
     HINSTANCE hInstance = ExApp::hInstance;
     //if (parent) hwndParent = parent->getWindow()->getHwnd(); // tbd
     hwnd = CreateWindowEx(dwExStyle, getClassName(), lpWindowName, dwStyle,
                           x, y, this->area.w, this->area.h,
-                          hwndParent, NULL, hInstance, (PVOID)this);
+                          hwndParent, nullptr, hInstance, (PVOID)this);
     exassert(this->hwnd && this->hwnd == hwnd);
     return showWindow();
 }
 
 bool ExWindow::showWindow() {
-    if (hwnd == NULL) {
+    if (hwnd == nullptr) {
         return false;
     }
     if (!ShowWindow(hwnd, (dwStyle & WS_CHILD) ? SW_SHOW : SW_SHOWNORMAL)) {
@@ -131,15 +135,16 @@ bool ExWindow::showWindow() {
 
 bool ExWindow::hideWindow() {
     bool r = false;
-    if (hwnd != NULL) {
+    if (hwnd != nullptr) {
         r = ShowWindow(hwnd, SW_HIDE);
     }
     return r;
 }
 #endif
 
-#ifdef CONF_X11 // __linux__
+#ifdef __linux__
 bool ExWindow::showWindow(ulong type, int32 x, int32 y) {
+#ifdef CONF_X11
     ExApp::EnvX11& x11 = ExApp::x11;
 
     int64 event_mask = 0;
@@ -191,12 +196,25 @@ bool ExWindow::showWindow(ulong type, int32 x, int32 y) {
         }
     }
     XStoreName(x11.display, hwnd, this->name);
+#endif
+    (void)exWndProcMap.attach(hwnd, this);
+
+    ExEvent ev(hwnd, WM_CREATE, 0, reinterpret_cast<int64>(this));
+    ExCbInfo cbinfo(Ex_CbFilter, 0U, &ev);
+    if ((invokeFilter(&cbinfo) & Ex_Break) == 0U) {
+        (void)invokeHandler(&cbinfo(Ex_CbHandler));
+    }
+    // tbd - send_message(WM_SIZE, area.w, area.h); // layout
+    exEventList.post_event(hwnd, WM_SIZE)->sz = area.u.sz; // layout
+    (void)exWatchDisp->wakeup();
     return showWindow();
 }
 
 bool ExWindow::showWindow() {
+#ifdef CONF_X11
     ExApp::EnvX11& x11 = ExApp::x11;
     XMapWindow(x11.display, hwnd);
+#endif
     return true;
 }
 
@@ -204,13 +222,13 @@ bool ExWindow::hideWindow() {
     // tbd - type
     return true;
 }
-#endif
+#endif // __linux__
 
 ExWidget* ExWindow::giveFocus(ExWidget* newFocus) {
     if (newFocus == wgtFocused) {
         return wgtFocused;
     }
-    if (newFocus != NULL) {
+    if (newFocus != nullptr) {
         if ((newFocus->getFlags(Ex_Blocked) != 0U) ||
             !newFocus->isVisible()) {
             return wgtFocused;
@@ -271,7 +289,7 @@ ExWidget* ExWindow::giveFocus(ExWidget* newFocus) {
     }
 
     // invoke callback
-    ExCbInfo cbinfo(0, 0, NULL, newFocus);
+    ExCbInfo cbinfo(0, 0, nullptr, newFocus);
     lost_i = lost.end();
     cbinfo.type = Ex_CbLostFocus;
     while (lost_i != lost.begin()) {
@@ -291,7 +309,7 @@ ExWidget* ExWindow::giveFocus(ExWidget* newFocus) {
 }
 
 ExWidget* ExWindow::moveFocus(uint32 dir) { // sample
-    if (wgtFocused == NULL) {
+    if (wgtFocused == nullptr) {
         if (dir == Ex_DirUp || dir == Ex_DirLeft) {
             return giveFocus(this);
         }
@@ -376,12 +394,12 @@ void ExWindow::onExFlush(ExWindow* window, const ExRegion* updateRgn) {
     SetDIBitsToDevice(hdc, 0, 0, canvas->gc->width, canvas->gc->height,
                       0, 0, 0, canvas->gc->height, canvas->gc->bits, &bmi, DIB_RGB_COLORS);
 #ifdef GDICLIP_FLUSH
-    SelectClipRgn(hdc, NULL);
+    SelectClipRgn(hdc, nullptr);
     DeleteObject(hrgn);
 #endif
     ReleaseDC(hwnd, hdc);
 #if 1
-    ValidateRect(hwnd, NULL);
+    ValidateRect(hwnd, nullptr);
 #else
     RECT clip;
     clip.left = updateRgn->extent.l;
@@ -425,7 +443,7 @@ void ExWindow::onWmPaint(ExWindow* window, const ExRegion* updateRgn) {
                       0, 0, 0, canvas->gc->height, canvas->gc->bits, &bmi, DIB_RGB_COLORS);
 
 #ifdef GDICLIP_PAINT
-    SelectClipRgn(hdc, NULL);
+    SelectClipRgn(hdc, nullptr);
     DeleteObject(hrgn);
 #endif
     EndPaint(hwnd, &ps);
@@ -462,7 +480,7 @@ ExWindow::classInit(HINSTANCE hInstance) {
         wc.cbWndExtra = 0;
         wc.hInstance = hInstance;
         wc.hIcon = 0;//LoadIcon(hInstance, MAKEINTRESOURCE(IDI_APPWGT));
-        wc.hCursor = LoadCursor(NULL, IDC_ARROW);
+        wc.hCursor = LoadCursor(nullptr, IDC_ARROW);
         wc.hbrBackground = 0;//(HBRUSH)GetStockObject(HOLLOW_BRUSH);
         wc.lpszMenuName = 0;//MAKEINTRESOURCE(IDC_APPDEMO);
         wc.lpszClassName = getClassName();

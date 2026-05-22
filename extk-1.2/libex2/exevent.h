@@ -8,6 +8,7 @@
 
 #include "excallback.h"
 #include "exgeomet.h"
+#include "exmemory.h"
 #ifdef __linux__
 #include <pthread.h>
 #endif // __linux__
@@ -26,13 +27,16 @@ constexpr int32 WM_KILLFOCUS        = (WM_NULL + 0x0008);
 constexpr int32 WM_PAINT            = (WM_NULL + 0x000F);
 constexpr int32 WM_CLOSE            = (WM_NULL + 0x0010);
 constexpr int32 WM_QUIT             = (WM_NULL + 0x0012);
+constexpr int32 WM_ERASEBKGND       = (WM_NULL + 0x0014);
 constexpr int32 WM_SHOWWINDOW       = (WM_NULL + 0x0018);
+constexpr int32 WM_GETMINMAXINFO    = (WM_NULL + 0x0024);
 
 constexpr int32 WM_KEYDOWN          = (WM_NULL + 0x0100);
 constexpr int32 WM_KEYUP            = (WM_NULL + 0x0101);
 constexpr int32 WM_CHAR             = (WM_NULL + 0x0102);
 constexpr int32 WM_COMMAND          = (WM_NULL + 0x0111);
 
+constexpr int32 WM_MOUSEFIRST       = (WM_NULL + 0x0200);
 constexpr int32 WM_MOUSEMOVE        = (WM_NULL + 0x0200);
 constexpr int32 WM_LBUTTONDOWN      = (WM_NULL + 0x0201);
 constexpr int32 WM_LBUTTONUP        = (WM_NULL + 0x0202);
@@ -43,6 +47,16 @@ constexpr int32 WM_RBUTTONDBLCLK    = (WM_NULL + 0x0206);
 constexpr int32 WM_MBUTTONDOWN      = (WM_NULL + 0x0207);
 constexpr int32 WM_MBUTTONUP        = (WM_NULL + 0x0208);
 constexpr int32 WM_MBUTTONDBLCLK    = (WM_NULL + 0x0209);
+constexpr int32 WM_MOUSELAST        = (WM_NULL + 0x020E);
+
+/*
+ * WM_SIZE message wParam values
+ */
+constexpr int32 SIZE_RESTORED       = 0;
+constexpr int32 SIZE_MINIMIZED      = 1;
+constexpr int32 SIZE_MAXIMIZED      = 2;
+constexpr int32 SIZE_MAXSHOW        = 3;
+constexpr int32 SIZE_MAXHIDE        = 4;
 
 /*
  * Virtual Keys, Standard Set
@@ -169,6 +183,18 @@ constexpr int32 VK_F24              = (VK_NULL + 0x87);
 
 constexpr int32 WM_APP              = (WM_NULL + 0x8000);
 
+/*
+ * Message structure
+ */
+typedef struct tagMSG {
+    HWND        hwnd;
+    int32       message;
+    uint32      wParam;
+    int64       lParam;
+    uint32      time;
+    ExPoint     pt;
+} MSG, *PMSG;
+
 #endif // __linux__
 
 constexpr int32 WM_CbRemove         = (WM_APP + 0x3FFD);
@@ -192,8 +218,8 @@ struct ExEvent {
     ExObject*   collector;
     void*       data;
     ExEvent() noexcept {}
-    ExEvent(HWND hwnd) noexcept
-        : hwnd(hwnd), message(0), wParam(0U), lParam(0LL)
+    ExEvent(HWND hwnd, int32 message = 0, uint32 wParam = 0U, int64 lParam = 0LL) noexcept
+        : hwnd(hwnd), message(message), wParam(wParam), lParam(lParam)
         , lResult(0LL), time(0U), flag(0U), pt(0), sz(0), u64{0ULL,}
         , emitter(nullptr), collector(nullptr), data(nullptr) {
     }
@@ -224,15 +250,9 @@ struct ExEvent {
 };
 
 #ifdef __linux__
-class ExEventFifo {
-    static constexpr size_t Capacity = static_cast<size_t>(64);
-    static constexpr size_t Zero = static_cast<size_t>(0);
-    static_assert(Capacity > Zero, "Capacity is zero");
-    std::array<ExEvent, Capacity> pool;
-    size_t dataCnt;
-    size_t headIdx;
+class ExEventFifo : public tmemfifo<ExEvent, 256U> {
+private:
     mutable pthread_mutex_t mutex;
-    ExEvent& at(int32 i) { return pool.at(static_cast<size_t>(i)); }
 public:
     int32 enter() const {
         return pthread_mutex_lock(&mutex);
@@ -244,71 +264,21 @@ public:
     ~ExEventFifo() noexcept {
         (void)pthread_mutex_destroy(&mutex);
     }
-    ExEventFifo() noexcept : pool(), dataCnt(Zero), headIdx(Zero) {
+    ExEventFifo() noexcept : tmemfifo<ExEvent, 256U>() {
         (void)pthread_mutex_init(&mutex, nullptr);
     }
 public:
-    void clear() {
-        dataCnt = Zero;
-        headIdx = Zero;
-    }
-    bool empty() const {
-        return (dataCnt == Zero);
-    }
-    size_t capacity() const {
-        return Capacity;
-    }
-    size_t size() const {
-        return dataCnt;
-    }
-    ExEvent* back() { // peek tail
-        size_t tailIdx = headIdx + dataCnt;
-        if (tailIdx >= Capacity) {
-            tailIdx -= Capacity;
-        }
-        return &pool.at(tailIdx);
-    }
-    ExEvent* front() { // peek head
-        return (dataCnt != Zero) ? &pool.at(headIdx) : nullptr;
-    }
-    ExEvent* pushBack() { // push tail
-        ExEvent* event;
-        if (dataCnt < Capacity) {
-            size_t tailIdx = headIdx + dataCnt;
-            if (tailIdx >= Capacity) {
-                tailIdx -= Capacity;
-            }
-            dataCnt++;
-            event = &pool.at(tailIdx);
-        } else {
-            dprint1("ExEventFifo::pushBack overflow - discard head\n");
-            event = nullptr;
-        }
-        return event;
-    }
-    ExEvent* popFront() { // pop head
-        ExEvent* event;
-        if (dataCnt > Zero) {
-            event = &pool.at(headIdx);
-            headIdx++;
-            if (headIdx >= Capacity) {
-                headIdx = Zero;
-            }
-            dataCnt--;
-        } else {
-            event = nullptr;
-        }
-        return event;
-    }
-    ExEvent* add(ExEvent* const ev);
-    ExEvent* add(HWND hwnd, int32 message, uint32 wParam = 0U, int64 lParam = 0LL);
+    ExEvent* get_event(ExEvent* const event = nullptr);
+    ExEvent* peek_event(ExEvent* const event = nullptr);
+    ExEvent* post_event(const ExEvent* const event = nullptr);
+    ExEvent* post_event(HWND hwnd, int32 message, uint32 wParam = 0U, int64 lParam = 0LL);
 };
 
 extern ExEventFifo exEventList;
 
-ExEvent* ExGetMessage(ExEvent* ev = nullptr);
-ExEvent* ExPostPtrMsg(const int32 message, const int32 pt_x, const int32 pt_y);
-bool PostMessage(HWND hwnd, const int32 message, const int32 wparam = 0, const int64 lparam = 0L);
+ExEvent* ExGetMessage(ExEvent* event = nullptr);
+ExEvent* ExPostPtrMsg(int32 message, int32 pt_x, int32 pt_y);
+bool PostMessage(HWND hwnd, int32 message, uint32 wparam = 0U, int64 lparam = 0LL);
 #endif // __linux__
 
 /**
@@ -329,18 +299,15 @@ typedef bool (*ExEventFunc)(ExEvent* event);
 bool ExEventPeek(ExEvent* event);
 #endif // __linux__
 extern ExEventFunc exEventFunc;
+extern ExEventFunc exCalibFunc;
 
 // ExEmit APIs - deprecated => Call the callback function directly.
 //
+bool ExEmitMessage(HWND hwnd, int32 message, uint32 wParam, int64 lParam);
+bool ExEmitPtrEvent(HWND hwnd, int32 message, int32 pt_x, int32 pt_y);
 #ifdef WIN32
-bool ExEmitMessage(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
-bool ExEmitKeyEvent(ExWidget* widget, UINT message, int32 virtkey, long keydata);
-bool ExEmitPtrEvent(ExWidget* widget, UINT message, WPARAM wParam, int32 x, int32 y);
-bool ExEmitButPress(ExWidget* widget, int32 x, int32 y);
-bool ExEmitButRelease(ExWidget* widget, int32 x, int32 y);
+bool ExEmitButPress(ExWidget* w, int32 x, int32 y);
+bool ExEmitButRelease(ExWidget* w, int32 x, int32 y);
 #endif // WIN32
-#ifdef __linux__
-bool ExEmitMessage(const int32 type, const int32 message, const int32 wParam, const int64 lParam);
-#endif // __linux__
 
 #endif//__exevent_h__

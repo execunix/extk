@@ -8,9 +8,10 @@
 
 #include "excallback.h"
 #include "exobject.h"
+#include "exwatch.h"
 
-class ExWatch;
-extern ExWatch* exWatchLast;
+// class ExWatch;
+// extern ExWatch* exWatchLast;
 
 // class ExTimer
 //
@@ -33,39 +34,42 @@ public:
     // usage: Type* t = timer->userdata_of<Type>();
     template <typename T> T& userdata_of() const { T* t = (T*)u64; return *t; }
 public:
-    virtual ~ExTimer() noexcept { stop(); }
+    virtual ~ExTimer() noexcept;
     explicit ExTimer() noexcept : ExObject()
-        , watch(NULL), value(0), repeat(0), callback(), fActived(0)
-        , object(NULL), u64 { 0ull, } {}
+        , watch(nullptr), value(0), repeat(0), callback(), fActived(0)
+        , object(nullptr), u64 { 0ull, } {}
 public:
-    void setup(ExWatch* watch, const ExCallback& callback, const void* object = NULL) {
-        this->watch = watch ? watch : exWatchLast;
+    void setup(ExWatch* watch, const ExCallback& callback, const void* object = nullptr) {
+        this->watch = (watch != nullptr) ? watch : exWatchLast;
         this->callback = callback;
         this->object = object;
     }
 public:
-    void init(ExWatch* watch, uint32(*f)(void*, ExWidget*, ExCbInfo*), void* d, const ExWidget* wgt) { // lambda
-        setup(watch, ExCallback(f, d), wgt);
+    void init(ExWatch* watch, uint32(*f)(void*, ExWidget*, ExCbInfo*), void* d, const ExWidget* widget) { // lambda
+        setup(watch, ExCallback(f, d), widget);
     }
     void init(ExWatch* watch, uint32(*f)(void*, ExTimer*, ExCbInfo*), void* d) { // lambda
-        setup(watch, ExCallback(f, d), NULL);
+        setup(watch, ExCallback(f, d), nullptr);
     }
     template <typename A, typename B, typename C>
-    void init(ExWatch* watch, uint32 (*f)(A*, B*, C*), A* d, B* obj = NULL) {
+    void init(ExWatch* watch, uint32 (*f)(A*, B*, C*), A* d, B* obj = nullptr) {
         static_assert(std::is_base_of<ExCbInfo, C>::value, "C must be derived from ExCbInfo");
         setup(watch, ExCallback(f, d), obj);
     }
     template <typename A, typename B, typename C>
-    void init(ExWatch* watch, A* d, uint32 (A::*f)(B*, C*), B* obj = NULL) {
+    void init(ExWatch* watch, A* d, uint32 (A::*f)(B*, C*), B* obj = nullptr) {
         static_assert(std::is_base_of<ExCbInfo, C>::value, "C must be derived from ExCbInfo");
         setup(watch, ExCallback(d, f), obj);
     }
     void stop(); // notes: clear fActived by remove from timerlist.
     void start(uint32 initial); // notes: set fActived by insert to timerlist.
     void start(uint32 initial, uint32 repeat) { this->repeat = repeat; start(initial); }
+    void stop_ex();
+    void start_ex(uint32 initial);
+    void start_ex(uint32 initial, uint32 repeat) { this->repeat = repeat; start_ex(initial); }
+    bool enter_ex() const { return watch->enter(); }
+    bool leave_ex() const { return watch->leave(); }
     operator uint32 () const { return value; }
-    bool enter() const;
-    bool leave() const;
 protected:
     friend class ExWatch;
 public:

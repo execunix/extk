@@ -41,117 +41,6 @@ WatchNet gWatchNet;
 //
 
 #ifdef CONF_X11
-uint32 WatchApp::on_xdisp(const epoll_event* const ev)
-{
-    exassert2(ev->data.fd == xdisp_fd, __FILE__ "@" Ex_STRINGIFY(__LINE__));
-    dprint0("%s: xdisp_fd=%d\n", __func__, xdisp_fd);
-    ExApp::EnvX11& x11 = ExApp::x11;
-
-    while (XPending(x11.display)) {
-        XEvent e;
-        XNextEvent(x11.display, &e);
-        switch (e.type) {
-            case ClientMessage: {
-                if ((e.xclient.message_type == x11.wm_atom[ExApp::WM_PROTOCOLS]) &&
-                    (e.xclient.format == 32)) {
-                    Atom protocol = e.xclient.data.l[0];
-                    if (protocol == x11.wm_atom[ExApp::WM_DELETE_WINDOW]) {
-                        dprint("ClientMessage.WM_DELETE_WINDOW\n");
-                        #if 1
-                        setHalt();
-                        #else
-                        XDestroyWindow(x11.display, env.top);
-                        dprint("XDestroyWindow()\n");
-                        #endif
-                    }
-                    if (protocol == x11.wm_atom[ExApp::WM_TAKE_FOCUS]) {
-                        dprint("ClientMessage.WM_TAKE_FOCUS\n");
-                    }
-                }
-            } break;
-            case DestroyNotify: {
-                dprint("DestroyNotify\n");
-            } break;
-            case CreateNotify: {
-                dprint("CreateNotify\n");
-            } break;
-            case ButtonPress: {
-                dprint0("ButtonPress state:%d button:%d pos:%d,%d\n", e.xbutton.state, e.xbutton.button, e.xbutton.x, e.xbutton.y);
-                EmitTouchEvent(tickCount, WM_LBUTTONDOWN, e.xbutton.x, e.xbutton.y);
-                touch_ic_overheat_dataset.push(1U, tickCount);
-            } break;
-            case ButtonRelease: {
-                dprint0("ButtonRelease state:%d button:%d pos:%d,%d\n", e.xbutton.state, e.xbutton.button, e.xbutton.x, e.xbutton.y);
-                EmitTouchEvent(tickCount, WM_LBUTTONUP, e.xbutton.x, e.xbutton.y);
-                touch_ic_overheat_dataset.push(1U, tickCount);
-            } break;
-            case MotionNotify: {
-                dprint0("MotionNotify state:%d button:%d pos:%d,%d\n", e.xbutton.state, e.xbutton.button, e.xbutton.x, e.xbutton.y);
-                EmitTouchEvent(tickCount, WM_MOUSEMOVE, e.xbutton.x, e.xbutton.y);
-                touch_ic_overheat_dataset.push(1U, tickCount);
-            } break;
-            case EnterNotify: {
-                dprint("EnterNotify\n");
-            } break;
-            case LeaveNotify: {
-                dprint("LeaveNotify\n");
-            } break;
-            case KeyPress: {
-                dprint("KeyPress\n");
-                //uint32 state = e.xkey.state;
-                uint32 keycode = e.xkey.keycode; // KeyCode: uint32
-                int32 keysyms_per_keycode = 0;
-                KeySym* keysym = XGetKeyboardMapping(x11.display, keycode, 1, &keysyms_per_keycode);
-                switch (*keysym) {
-                    case XK_Escape: {
-                        setHalt(); //XDestroyWindow(x11.display, env.top);
-                    } break;
-                    case XK_Return: break;
-                    case XK_BackSpace: break;
-                    case XK_0: break;
-                    case XK_1: break;
-                    case XK_2: break;
-                    case XK_3: break;
-                    case XK_4: break;
-                    case XK_5: break;
-                    case XK_6: break;
-                    case XK_7: break;
-                    case XK_8: break;
-                    case XK_9: break;
-                }
-                XFree(keysym);
-            } break;
-            case KeyRelease: {
-                dprint("KeyRelease\n");
-            } break;
-            case FocusIn: {
-                dprint("FocusIn\n");
-            } break;
-            case FocusOut: {
-                dprint("FocusOut\n");
-            } break;
-            case Expose: {
-                dprint("Expose count:%d\n", e.xexpose.count);
-            } break;
-            case GraphicsExpose: {
-                dprint("GraphicsExpose count:%d\n", e.xgraphicsexpose.count);
-            } break;
-            case ResizeRequest: {
-                dprint("ResizeRequest\n");
-            } break;
-            case MapNotify: {
-                dprint("MapNotify\n");
-            } break;
-            case UnmapNotify: {
-                dprint("UnmapNotify\n");
-            } break;
-            default: {
-                dprint("Unhandled XEvent.type=%d\n", e.type);
-            } break;
-        }
-    }
-    return 0U;
-}
 #else // CONF_X11
 uint32 WatchApp::on_ev2dev(const epoll_event* const ev)
 {
@@ -200,7 +89,7 @@ uint32 WatchApp::on_ev2dev(const epoll_event* const ev)
             }
         } else if ((ev2.type == static_cast<uint16>(EV_SYN)) || (((pt_x != pt0_x) || (pt_y != pt0_y)) && (xy == 3U))) {
             dprint0("%s.%d: %d - %d,%d\n", __func__, tickCount, msg, pt_x, pt_y);
-            EmitTouchEvent(tickCount, msg, pt_x, pt_y);
+            (void)ExEmitPtrEvent(None, msg, pt_x, pt_y);
             pt0_x = pt_x;
             pt0_y = pt_y;
             xy = 0U;
@@ -220,7 +109,7 @@ uint32 WatchApp::on_ev2dev(const epoll_event* const ev)
 
     if (((pt_x != pt0_x) || (pt_y != pt0_y)) && (xy != 0U)) { // check broken event
         dprint0("%s.%d: %d - %d,%d\n", __func__, tickCount, msg, pt_x, pt_y);
-        EmitTouchEvent(tickCount, msg, pt_x, pt_y);
+        (void)ExEmitPtrEvent(None, msg, pt_x, pt_y);
         pt0_x = pt_x;
         pt0_y = pt_y;
     }
@@ -239,15 +128,7 @@ bool WatchApp::cleanup()
     ExHeapManager<uint8>::deallocate(env.fb1_bits);
     env.fb1_bits = nullptr;
 #ifdef CONF_X11
-    if (xdisp_fd > 0) {
-        (void)ioDel(xdisp_fd);
-        xdisp_fd = 0;
-    }
-    ExApp::EnvX11& x11 = ExApp::x11;
-    if (x11.display != nullptr) {
-        XCloseDisplay(x11.display);
-        x11.display = nullptr;
-    }
+    (void)ExApp::finiX11(this);
 #else // CONF_X11
     if (fb0dev_fd > 0) {
         const int32 fb0_fill = static_cast<int32>(0x7F);
@@ -267,7 +148,7 @@ bool WatchApp::cleanup()
 
     tid = 0UL;
     iomuxmap.fini();
-    timerset.clearAll();
+    timerset.fini();
     if (efd != -1) {
         (void)close(efd);
         efd = -1;
@@ -291,7 +172,6 @@ bool WatchApp::startup()
     (void)ioAdd(this, &WatchApp::onEvent, efd);
 
     tickCount = ExGetTickCount(); // update tick
-    env.tch_tick = tickCount;
 
     tid = pthread_self();
 
@@ -302,7 +182,8 @@ bool WatchApp::startup()
     (void)ioAdd(this, &WatchApp::on_cmdline, STDIN_FILENO, EPOLLIN);
 
 #ifdef CONF_X11
-    ExApp::EnvX11& x11 = ExApp::x11;
+    (void)ExApp::initX11(this);
+    exCalibFunc = &TouchCalib;
 
     env.fb0_w = env.sm_w;
     env.fb0_h = env.sm_h;
@@ -335,10 +216,6 @@ bool WatchApp::startup()
     env.fb1_bits = ExHeapManager<uint8>::allocate(static_cast<size_t>(fb1_size));
 
 #ifdef CONF_X11
-    if (x11.display != nullptr) {
-        xdisp_fd = ConnectionNumber(x11.display);
-        (void)ioAdd(this, &WatchApp::on_xdisp, xdisp_fd);
-    }
     //env.tch_flip_h = 0;
     //env.tch_flip_v = 0;
     env.tch_rotate = 0;

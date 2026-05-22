@@ -1,0 +1,23 @@
+{
+    "EXTK": {
+        /* Yocto SDK Configuration */
+        "SDKTARGETSYSROOT": "/opt/fslc-xwayland/3.3/sysroots/cortexa53-crypto-fslc-linux",
+        /* Target Device Settings */
+        "TARGET_IP": "192.168.99.205",
+        /* Project Settings */
+        "PROGRAM": "ex2demo_x11_x64.bin",
+    },
+    "files.trimTrailingWhitespace": true,
+    "editor.insertSpaces": true,
+    "editor.detectIndentation": false,
+    "editor.renderWhitespace": "all",
+    "C_Cpp.clang_format_style": "WebKit",
+    "C_Cpp.clang_format_fallbackStyle": "WebKit",
+    "C_Cpp.vcFormat.indent.preserveComments": true,
+    "files.associations": {
+        "*.txt": "log",
+        "*.h*": "cpp",
+        "*.c*": "cpp",
+    },
+    "C_Cpp.errorSquiggles": "disabled",
+}

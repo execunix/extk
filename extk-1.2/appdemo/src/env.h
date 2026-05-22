@@ -37,7 +37,6 @@ struct Env {
     int32 rel_y_min;
     int32 rel_y_max;
 
-    uint32 tch_tick;
     int32 tch_flip_h;
     int32 tch_flip_v;
     int32 tch_rotate; // 0:landscape, 1:portrait
@@ -64,7 +63,7 @@ struct Env {
     int32 dp_pkt; // 5
 };
 
-static constexpr const char* const def_envfile = "./appenv.ini";
+static constexpr const char* const def_envfile = "./ex2demo.ini";
 
 bool initEnv() noexcept;
 bool loadEnv(const char* const envfile = def_envfile) noexcept;

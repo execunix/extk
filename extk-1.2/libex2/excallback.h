@@ -19,10 +19,10 @@ struct ExCbInfo {
                        //   that caused this callback to be invoked.
     void*       data;  // A pointer to callback-specific data.
 
-    ExCbInfo(uint32 t, uint32 s = 0, ExEvent* e = NULL, void* d = NULL) noexcept
+    ExCbInfo(uint32 t, uint32 s = 0, ExEvent* e = nullptr, void* d = nullptr) noexcept
         : type(t), subtype(s), event(e), data(d) {}
     // pointer
-    ExCbInfo* set(uint32 t, uint32 s, ExEvent* e, void* d = NULL) {
+    ExCbInfo* set(uint32 t, uint32 s, ExEvent* e, void* d = nullptr) {
         type = t; subtype = s; event = e; data = d;
         return this;
     }
@@ -35,7 +35,7 @@ struct ExCbInfo {
         return this;
     }
     // reference
-    ExCbInfo& operator () (uint32 t, uint32 s, ExEvent* e, void* d = NULL) {
+    ExCbInfo& operator () (uint32 t, uint32 s, ExEvent* e, void* d = nullptr) {
         type = t; subtype = s; event = e; data = d;
         return *this;
     }
@@ -81,13 +81,13 @@ struct ExPolyFunc {
         #endif
     }
     ExPolyFunc(void* data) noexcept
-        : data(data), func(NULL) {
+        : data(data), func(nullptr) {
         #if EX2CONF_DISABLE_STDCALL
         invoker = &thisfunc; // default
         #endif
     }
     ExPolyFunc() noexcept
-        : data(NULL), func(NULL) {
+        : data(nullptr), func(nullptr) {
         #if EX2CONF_DISABLE_STDCALL
         invoker = &thisfunc; // default
         #endif
@@ -112,7 +112,7 @@ struct ExPolyFunc {
         #endif
     }
     operator bool () const {
-        return (func != NULL);
+        return (func != nullptr);
     }
 };
 
