@@ -1,32 +1,23 @@
 {
-	"EXTK": {
-		/* Target Device Settings */
-		"TARGET_IP":"192.168.99.229",
-
-		/* Project Settings */
-		"PROGRAM":"ex2demo",
-
-		/* Yocto SDK Configuration */
-		"ARCH":"arm-poky-linux-gnueabi",
-		"OECORE_NATIVE_SYSROOT":"/mnt/work/opt/fsl-imx-xwayland/5.15-kirkstone/sysroots/x86_64-pokysdk-linux",
-		"SDKTARGETSYSROOT":"/mnt/work/opt/fsl-imx-xwayland/5.15-kirkstone/sysroots/cortexa9t2hf-neon-poky-linux-gnueabi",
-		"SDKFLAGS":"-mthumb -mfpu=neon -mfloat-abi=hard -mcpu=cortex-a9 -fstack-protector-strong  -O2 -D_FORTIFY_SOURCE=2 -Wformat -Wformat-security -Werror=format-security",
-
-		/* Yocto SDK Constants */
-		"CC_PREFIX": "${config:EXTK.OECORE_NATIVE_SYSROOT}/usr/bin/${config:EXTK.ARCH}/${config:EXTK.ARCH}-",
-		"CXX": "${config:EXTK.CC_PREFIX}g++ ${config:EXTK.SDKFLAGS} --sysroot=${config:EXTK.SDKTARGETSYSROOT}",
-		"CC": "${config:EXTK.CC_PREFIX}gcc ${config:EXTK.SDKFLAGS} --sysroot=${config:EXTK.SDKTARGETSYSROOT}",
-	},
-	"files.trimTrailingWhitespace": true,
-	"editor.insertSpaces": true,
-	"editor.detectIndentation": false,
-	"editor.renderWhitespace": "all",
-	"C_Cpp.clang_format_style": "WebKit",
-	"C_Cpp.clang_format_fallbackStyle": "WebKit",
-	"C_Cpp.vcFormat.indent.preserveComments": true,
-	"files.associations": {
-		"*.txt": "log",
-		"*.c*": "cpp",
-		"*.h*": "cpp",
-	},
+    "EXTK": {
+        /* Yocto SDK Configuration */
+        "SDKTARGETSYSROOT": "/opt/fslc-xwayland/3.3/sysroots/cortexa53-crypto-fslc-linux",
+        /* Target Device Settings */
+        "TARGET_IP": "192.168.99.205",
+        /* Project Settings */
+        "PROGRAM": "ex2demo_x11_x64.bin",
+    },
+    "files.trimTrailingWhitespace": true,
+    "editor.insertSpaces": true,
+    "editor.detectIndentation": false,
+    "editor.renderWhitespace": "all",
+    "C_Cpp.clang_format_style": "WebKit",
+    "C_Cpp.clang_format_fallbackStyle": "WebKit",
+    "C_Cpp.vcFormat.indent.preserveComments": true,
+    "files.associations": {
+        "*.txt": "log",
+        "*.h*": "cpp",
+        "*.c*": "cpp",
+    },
+    "C_Cpp.errorSquiggles": "disabled",
 }

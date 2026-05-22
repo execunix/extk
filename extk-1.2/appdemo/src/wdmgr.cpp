@@ -11,7 +11,7 @@
 #include "watch.h"
 #include "wdmgr.h"
 
-#ifdef CONF_ARM
+#if defined(__aarch64__)
 //x
 #endif
 

@@ -148,7 +148,7 @@ bool WatchApp::cleanup()
 
     tid = 0UL;
     iomuxmap.fini();
-    timerset.clearAll();
+    timerset.fini();
     if (efd != -1) {
         (void)close(efd);
         efd = -1;

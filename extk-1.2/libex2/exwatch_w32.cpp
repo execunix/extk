@@ -209,7 +209,7 @@ DWORD WINAPI ExWatch::start(_In_ LPVOID arg) {
 
 bool ExWatch::fini() {
     int32 r = 0;
-    idThread = 0;
+    idThread = 0U;
     if (hThread != nullptr) {
         setHalt(Ex_Halt);
         leave();
@@ -225,7 +225,7 @@ bool ExWatch::fini() {
         hThread = nullptr;
     }
     iomuxmap.fini();
-    timerset.clearAll();
+    timerset.fini();
     if (efd != nullptr) {
         CloseHandle(efd);
         efd = nullptr;
@@ -272,12 +272,8 @@ bool ExWatch::leave() const {
     return true;
 }
 
-bool ExWatch::wakeup() const {
-    if (idThread != GetCurrentThreadId()) {
-        setEvent(1UL);
-        return true;
-    }
-    return false;
+bool ExWatch::isSelf() const {
+    return ((idThread == 0U) || (idThread == GetCurrentThreadId()));
 }
 
 uint32 ExWatch::setHalt(uint32 r)

@@ -1,0 +1,8 @@
+#!/bin/bash
+
+# usage: $ . envldlib
+
+#export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:.
+LIBDIR="$( cd "$( dirname "$BASH_SOURCE" )" && pwd -P )"
+echo "Add $LIBDIR/lib:$LIBDIR/out to LD_LIBRARY_PATH"
+export LD_LIBRARY_PATH=.:$LIBDIR/lib:$LIBDIR/out:$LD_LIBRARY_PATH

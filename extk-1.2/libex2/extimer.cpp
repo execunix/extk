@@ -19,7 +19,7 @@ bool ExWatch::TickCompare::operator () (const ExTimer* l, const ExTimer* r) cons
     return (ldiff < rdiff);
 }
 
-void ExWatch::TimerSet::clearAll() {
+void ExWatch::TimerSet::fini() {
     iterator i = begin();
     for (; i != end(); ++i) {
         (*i)->fActived = 0U;
@@ -126,22 +126,51 @@ bool ExInitTimer(DWORD duetime, DWORD period) {
 
 // ExTimer
 //
+ExTimer::~ExTimer() noexcept {
+    if ((watch != nullptr) &&
+        (fActived != 0U)) {
+        if (watch->isSelf()) {
+            watch->timerset.remove(this);
+        } else { // should lock
+            watch->enter();
+            watch->timerset.remove(this);
+            watch->leave();
+        }
+    }
+}
+
 void ExTimer::stop() {
+    exassert(watch->isSelf());
     if (fActived != 0U) {
         watch->timerset.remove(this);
     }
 }
 
 void ExTimer::start(uint32 initial) {
-    stop();
+    exassert(watch->isSelf());
+    if (fActived != 0U) { // stop()
+        watch->timerset.remove(this);
+    }
     value = watch->tickCount + initial;
     watch->timerset.active(this);
 }
 
-bool ExTimer::enter() const {
-    return watch->enter();
+void ExTimer::stop_ex() {
+    exassert(!watch->isSelf());
+    watch->enter();
+    if (fActived != 0U) {
+        watch->timerset.remove(this);
+    }
+    watch->leave();
 }
 
-bool ExTimer::leave() const {
-    return watch->leave();
+void ExTimer::start_ex(uint32 initial) {
+    exassert(!watch->isSelf());
+    watch->enter();
+    if (fActived != 0U) { // stop()
+        watch->timerset.remove(this);
+    }
+    value = watch->tickCount + initial;
+    watch->timerset.active(this);
+    watch->leave();
 }

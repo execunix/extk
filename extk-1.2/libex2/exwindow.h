@@ -71,7 +71,7 @@ public:
     bool showWindow(); // ShowWindow(hwnd, SW_SHOWNORMAL); flush();
     bool hideWindow(); // ShowWindow(hwnd, SW_HIDE);
 #endif
-#ifdef CONF_X11 // __linux__
+#ifdef __linux__
     bool showWindow(ulong type, int32 x = 0, int32 y = 0);
     bool showWindow(); // XMapWindow(...)
     bool hideWindow(); // XUnmapWindow(...);

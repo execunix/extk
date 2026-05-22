@@ -183,6 +183,18 @@ constexpr int32 VK_F24              = (VK_NULL + 0x87);
 
 constexpr int32 WM_APP              = (WM_NULL + 0x8000);
 
+/*
+ * Message structure
+ */
+typedef struct tagMSG {
+    HWND        hwnd;
+    int32       message;
+    uint32      wParam;
+    int64       lParam;
+    uint32      time;
+    ExPoint     pt;
+} MSG, *PMSG;
+
 #endif // __linux__
 
 constexpr int32 WM_CbRemove         = (WM_APP + 0x3FFD);
@@ -238,12 +250,9 @@ struct ExEvent {
 };
 
 #ifdef __linux__
-class ExEventFifo : public tmemfifo<ExEvent> {
+class ExEventFifo : public tmemfifo<ExEvent, 256U> {
 private:
     mutable pthread_mutex_t mutex;
-    ExEvent& at(int32 i) {
-        return repository.at(static_cast<size_t>(i));
-    }
 public:
     int32 enter() const {
         return pthread_mutex_lock(&mutex);
@@ -255,28 +264,19 @@ public:
     ~ExEventFifo() noexcept {
         (void)pthread_mutex_destroy(&mutex);
     }
-    ExEventFifo() noexcept : tmemfifo<ExEvent>() {
+    ExEventFifo() noexcept : tmemfifo<ExEvent, 256U>() {
         (void)pthread_mutex_init(&mutex, nullptr);
     }
 public:
-    ExEvent* pull_head_event() { // pull head
-        ExEvent* event = empty() ? nullptr : &pull_head();
-        return event;
-    }
-    ExEvent* push_tail_event() { // push tail
-        ExEvent* event = is_full() ? nullptr : &push_tail();
-        if (event == nullptr) {
-            dprint1("ExEventFifo::push_tail_event overflow - discard head\n");
-        }
-        return event;
-    }
-    ExEvent* add(ExEvent* const ev = nullptr);
-    ExEvent* add(HWND hwnd, int32 message, uint32 wParam = 0U, int64 lParam = 0LL);
+    ExEvent* get_event(ExEvent* const event = nullptr);
+    ExEvent* peek_event(ExEvent* const event = nullptr);
+    ExEvent* post_event(const ExEvent* const event = nullptr);
+    ExEvent* post_event(HWND hwnd, int32 message, uint32 wParam = 0U, int64 lParam = 0LL);
 };
 
 extern ExEventFifo exEventList;
 
-ExEvent* ExGetMessage(ExEvent* ev = nullptr);
+ExEvent* ExGetMessage(ExEvent* event = nullptr);
 ExEvent* ExPostPtrMsg(int32 message, int32 pt_x, int32 pt_y);
 bool PostMessage(HWND hwnd, int32 message, uint32 wparam = 0U, int64 lparam = 0LL);
 #endif // __linux__

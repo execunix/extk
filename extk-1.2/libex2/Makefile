@@ -15,7 +15,7 @@
 # make RELEASE_BUILD=y -j$(nproc)
 # make CONF_X11=y -j$(nproc)
 
-SUBDIRS := libex2 appdemo
+SUBDIRS := target-ar target-so
 
 #############################################################################
 # Targets start here
@@ -25,6 +25,6 @@ all clean release install: $(SUBDIRS)
 $(SUBDIRS):
 	$(MAKE) -C $@ $(MAKECMDGOALS)
 
-appdemo: libex2
+# target-so: target-ar
 
 .PHONY: all clean release install $(SUBDIRS)

@@ -11,8 +11,8 @@ echo "Deploying to target"
 ssh ${SSH_USER}@${TARGET_IP} "sh -c '/usr/bin/killall -q gdbserver; rm -rf ${TARGET_DIR}/${PROGRAM}; rm -rf /tmp/app.fifo; exit 0'"
 
 # send the program to the target
-scp libex2/bin/libgeminit-gn-gdc_arm.so ${SSH_USER}@${TARGET_IP}:${TARGET_DIR}
-scp appmain/${PROGRAM} ${SSH_USER}@${TARGET_IP}:${TARGET_DIR}
+scp out/libex2_x11_arm.so ${SSH_USER}@${TARGET_IP}:${TARGET_DIR}
+scp out/${PROGRAM} ${SSH_USER}@${TARGET_IP}:${TARGET_DIR}
 
 # Must match endsPattern in tasks.json
 echo "Starting GDB Server on Target"

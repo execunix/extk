@@ -20,7 +20,7 @@
 #include "res.h"
 #include "env.h"
 
-#ifdef CONF_ARM
+#if defined(__aarch64__)
 //x
 #endif
 
@@ -411,9 +411,9 @@ int app_test() {
         dprint1("\n*** anonymous func data=%p timer=%4u type=%d\n",
                data, ((uint32)*timer) % 10000U, cbinfo->type);
         return 0U; }, (void*)0xaaaa);
-    timer1.enter();
-    timer1.start(1, 1233);
-    timer1.leave();
+    //timer1.enter();
+    timer1.start_ex(1, 1233);
+    //timer1.leave();
     #endif
 
     return 0;
@@ -712,6 +712,9 @@ int main(int argc, char* argv[])
         return 0;
     };
     (void)func1((void*)0x1234);
+    cb_test();
+    app_test();
+    flt_test();
 
     (void)init_signal();
 

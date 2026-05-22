@@ -8,9 +8,10 @@
 
 #include "excallback.h"
 #include "exobject.h"
+#include "exwatch.h"
 
-class ExWatch;
-extern ExWatch* exWatchLast;
+// class ExWatch;
+// extern ExWatch* exWatchLast;
 
 // class ExTimer
 //
@@ -33,7 +34,7 @@ public:
     // usage: Type* t = timer->userdata_of<Type>();
     template <typename T> T& userdata_of() const { T* t = (T*)u64; return *t; }
 public:
-    virtual ~ExTimer() noexcept { stop(); }
+    virtual ~ExTimer() noexcept;
     explicit ExTimer() noexcept : ExObject()
         , watch(nullptr), value(0), repeat(0), callback(), fActived(0)
         , object(nullptr), u64 { 0ull, } {}
@@ -63,9 +64,12 @@ public:
     void stop(); // notes: clear fActived by remove from timerlist.
     void start(uint32 initial); // notes: set fActived by insert to timerlist.
     void start(uint32 initial, uint32 repeat) { this->repeat = repeat; start(initial); }
+    void stop_ex();
+    void start_ex(uint32 initial);
+    void start_ex(uint32 initial, uint32 repeat) { this->repeat = repeat; start_ex(initial); }
+    bool enter_ex() const { return watch->enter(); }
+    bool leave_ex() const { return watch->leave(); }
     operator uint32 () const { return value; }
-    bool enter() const;
-    bool leave() const;
 protected:
     friend class ExWatch;
 public:

@@ -77,7 +77,7 @@ protected:
     public:
         TimerSet() noexcept : std::multiset<ExTimer*, TickCompare>() {}
     public:
-        void clearAll();
+        void fini();
         void remove(ExTimer* timer);
         void active(ExTimer* timer);
         uint32 invoke(uint32 tick_count);
@@ -233,7 +233,8 @@ public:
     bool init(size_t max_iomux = 256UL, size_t stacksize = 1048576UL);
     bool enter() const;
     bool leave() const;
-    bool wakeup() const;
+    bool isSelf() const;
+    bool wakeup() const { return isSelf() ? false : setEvent(1UL); }
     uint32 setHalt(uint32 r = Ex_Halt);
     uint32 getHalt() const { return halt; }
     uint32 getTick() const { return tickCount; }
@@ -289,7 +290,7 @@ public:
 protected:
 #if 0 // tbd
     // export api for inheritance
-    void timerset_clearAll() { timerset.clearAll(); }
+    void timerset_fini() { timerset.fini(); }
     void iomuxmap_fini() { iomuxmap.fini(); }
     void iomuxmap_init(uint32 max) { iomuxmap.init(max); }
     uint32 timerset_invoke(uint32 tick_count) { return timerset.invoke(tick_count); }

@@ -5,13 +5,42 @@
 	/* Configure Yocto SDK Constants from settings.json */
 	"options": {
 		"env": {
-			//"SDKTARGETSYSROOT": "${config:EXTK.SDKTARGETSYSROOT}", /* Used by Makefile */
-			//"CXX": "${config:EXTK.CXX}", /* Used by Makefile */
-			//"CC": "${config:EXTK.CC}", /* Used by Makefile */
+			//"CONF_SDK": "MX8", /* Used by Makefile */
 			"CONF_X11": "y", /* Used by Makefile */
 		}
 	},
+	/* Configure integrated VS Code Terminal */
+	"presentation": {
+		"echo": false,
+		"reveal": "always",
+		"focus": true,
+		"panel": "dedicated",
+		"showReuseMessage": true,
+	},
 	"tasks": [
+		/* Configure launch.json (debug) preLaunchTask Task */
+		{
+			"label": "deploy-remote-arm",
+			"isBackground": true,
+			"problemMatcher": {
+				"base": "$gcc",
+				"background": {
+					"activeOnStart": true,
+					"beginsPattern": "Deploying to target",
+					"endsPattern": "Starting GDB Server on Target"
+				}
+			},
+			"type": "shell",
+			"command": "sh",
+			"args": [
+				"deploy-remote-arm.sh",
+				"${config:EXTK.TARGET_IP}",
+				"${config:EXTK.PROGRAM}"
+			],
+			"dependsOn": [
+				"build debug",
+			],
+		},
 		{
 			"label": "deploy",
 			"type": "shell",

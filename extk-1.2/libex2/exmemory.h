@@ -9,6 +9,8 @@
 #include "extypes.h"
 #include <memory>
 
+// proto - std::copy(src.begin(), src.end(), dst.begin())
+
 // tmemfifo - stream memory as fifo (circular queue)
 //
 template <typename T, size_t Capacity = 64UL>
@@ -20,10 +22,17 @@ protected:
     std::array<T, Capacity> repository;
     size_t data_count;
     size_t head_index;
-    static size_t seek_index(size_t seek, const size_t index) {
-        exassert(seek <= Capacity);
-        seek += index;
-        return (seek < Capacity) ? seek : (seek - Capacity);
+    static size_t seek(size_t index, const size_t offset) {
+        exassert(offset <= Capacity);
+        index += offset;
+        // return (index < Capacity) ? index : (index - Capacity);
+        if (index >= Capacity) {
+            index -= Capacity;
+        }
+        return index;
+    }
+    size_t tail_index() const {
+        return seek(head_index, data_count);
     }
 public:
     tmemfifo() noexcept : repository(), data_count(Zero), head_index(Zero) {
@@ -54,17 +63,21 @@ public:
         data_count = Zero;
         head_index = Zero;
     }
+    T& at(size_t i) {
+        i = seek(head_index, i);
+        return repository.at(i);
+    }
     T& head() { // peek head
         exassert(!empty());
         return repository[head_index];
     }
     T& tail() { // peek tail
         exassert(!empty());
-        size_t tail_index = head_index + data_count;
-        if (tail_index >= Capacity) {
-            tail_index -= Capacity;
-        }
-        return repository[tail_index];
+        return repository[tail_index()];
+    }
+    const T& at(size_t i) const {
+        i = seek(head_index, i);
+        return repository.at(i);
     }
     const T& head() const { // peek head
         exassert(!empty());
@@ -72,26 +85,18 @@ public:
     }
     const T& tail() const { // peek tail
         exassert(!empty());
-        size_t tail_index = head_index + data_count;
-        if (tail_index >= Capacity) {
-            tail_index -= Capacity;
-        }
-        return repository[tail_index];
+        return repository[tail_index()];
     }
     T& pull_head() {
         exassert(!empty());
         T& ref_val = repository[head_index];
-        head_index = seek_index(1UL, head_index);
+        head_index = seek(head_index, 1UL);
         data_count--;
         return ref_val;
     }
     T& push_tail() {
         exassert(!is_full());
-        size_t tail_index = head_index + data_count;
-        if (tail_index >= Capacity) {
-            tail_index -= Capacity;
-        }
-        T& ref_val = repository[tail_index];
+        T& ref_val = repository[tail_index()];
         data_count++;
         return ref_val;
     }
@@ -105,7 +110,7 @@ public:
                 const size_t split_rest = len - split_half;
                 head_index = split_rest;
             } else { // no split. rewinds when past the end of the repository.
-                head_index = seek_index(len, head_index);
+                head_index = seek(head_index, len);
             }
             data_count -= len;
         }
@@ -119,14 +124,13 @@ public:
             const size_t split_half = Capacity - head_index;
             if (split_half < len) { // is split ?
                 const size_t split_rest = len - split_half;
-                // std::copy(src.begin(), src.end(), dst.begin())
+                // (void)memcpy(&buf[0], &repository[head_index], split_half * sizeof(T));
                 std::copy(repository.begin() + head_index, repository.end(), &buf[0]);
+                // (void)memcpy(&buf[split_half], &repository[0], split_rest * sizeof(T));
                 std::copy(repository.begin(), repository.begin() + split_rest, &buf[split_half]);
-                //(void)memcpy(&buf[0], &repository[head_index], split_half * sizeof(T));
-                //(void)memcpy(&buf[split_half], &repository[0], split_rest * sizeof(T));
             } else {
+                // (void)memcpy(&buf[0], &repository[head_index], len * sizeof(T));
                 std::copy(repository.begin() + head_index, repository.begin() + head_index + len, &buf[0]);
-                //(void)memcpy(&buf[0], &repository[head_index], len * sizeof(T));
             }
         }
         return len;
@@ -139,16 +143,15 @@ public:
             const size_t split_half = Capacity - head_index; // qac: subtraction underflow
             if (split_half < len) { // is split ?
                 const size_t split_rest = len - split_half;
-                // std::copy(src.begin(), src.end(), dst.begin())
+                // (void)memcpy(&buf[0], &repository[head_index], split_half * sizeof(T));
                 std::copy(repository.begin() + head_index, repository.end(), &buf[0]);
+                // (void)memcpy(&buf[split_half], &repository[0], split_rest * sizeof(T));
                 std::copy(repository.begin(), repository.begin() + split_rest, &buf[split_half]);
-                //(void)memcpy(&buf[0], &repository[head_index], split_half * sizeof(T));
-                //(void)memcpy(&buf[split_half], &repository[0], split_rest * sizeof(T));
                 head_index = split_rest;
             } else { // no split. rewinds when past the end of the repository.
+                // (void)memcpy(&buf[0], &repository[head_index], len * sizeof(T));
                 std::copy(repository.begin() + head_index, repository.begin() + head_index + len, &buf[0]);
-                //(void)memcpy(&buf[0], &repository[head_index], len * sizeof(T));
-                head_index = seek_index(len, head_index);
+                head_index = seek(head_index, len);
             }
             data_count -= len;
         }
@@ -160,23 +163,17 @@ public:
             len = spare();
         }
         if (len > Zero) {
-            size_t tail_index = head_index + data_count;
-            if (tail_index >= Capacity) {
-                tail_index -= Capacity;
-            }
-            const size_t split_half = Capacity - tail_index;
+            const size_t tail_idx = tail_index();
+            const size_t split_half = Capacity - tail_idx;
             if (split_half < len) { // is split ?
                 const size_t split_rest = len - split_half;
-                // std::copy(src.begin(), src.end(), dst.begin())
-                std::copy(&buf[0], &buf[split_half], repository.begin() + tail_index);
+                // (void)memcpy(&repository[tail_idx], &buf[0], split_half * sizeof(T));
+                std::copy(&buf[0], &buf[split_half], repository.begin() + tail_idx);
+                // (void)memcpy(&repository[0], &buf[split_half], split_rest * sizeof(T)); // slm-2843 an invalid pointer value
                 std::copy(&buf[split_half], &buf[len], repository.begin());
-                //(void)memcpy(&repository[tail_index], &buf[0], split_half * sizeof(T));
-                //(void)memcpy(&repository[0], &buf[split_half], split_rest * sizeof(T)); // slm-2843 an invalid pointer value
-                tail_index = split_rest;
             } else { // no split. rewinds when past the end of the repository.
-                std::copy(&buf[0], &buf[len], repository.begin() + tail_index);
-                //(void)memcpy(&repository[tail_index], &buf[0], len * sizeof(T));
-                tail_index = seek_index(len, tail_index);
+                // (void)memcpy(&repository[tail_idx], &buf[0], len * sizeof(T));
+                std::copy(&buf[0], &buf[len], repository.begin() + tail_idx);
             }
             data_count += len;
         }

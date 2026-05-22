@@ -10,8 +10,8 @@ echo "Deploying to target"
 /usr/bin/killall -q gdbserver; rm -rf ${TARGET_DIR}/${PROGRAM}; rm -rf /tmp/app.fifo
 
 # send the program to the target
-#cp ../libex2/bin/libgeminit-gn-gdc_x86.so ${TARGET_DIR}
-cp ${PROGRAM} ${TARGET_DIR}
+#cp ../out/libex2_x11_x64.so ${TARGET_DIR}
+cp ../out/${PROGRAM} ${TARGET_DIR}
 
 # Must match endsPattern in tasks.json
 echo "Starting GDB Server on Target"

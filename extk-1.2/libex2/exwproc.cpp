@@ -103,12 +103,12 @@ uint32 ProcWndEvent(ExWindow* const window, ExCbInfo* const cbinfo)
             mmi->ptMinTrackSize.x = 640 + 16;
             mmi->ptMinTrackSize.y = 360 + 39;
 #endif // WIN32
-#ifdef CONF_X11 // __linux__
+#ifdef __linux__
             ExSize* sz = (ExSize*)lParam;
             logproc("[0x%p] WM_GETMINMAXINFO %d %d,%d\n", window->getHwnd(), wParam, sz->w, sz->h);
             sz->w = 640 + 16;
             sz->h = 360 + 39;
-#endif // CONF_X11 // __linux__
+#endif // __linux__
             cbret_code = Ex_Continue;
             break;
         }
@@ -328,10 +328,10 @@ uint32 ProcWndEvent(ExWindow* const window, ExCbInfo* const cbinfo)
 #ifdef WIN32
             lResult = DefWindowProc(window->getHwnd(), message, wParam, lParam);
 #endif // WIN32
-#ifdef CONF_X11 // __linux__
+#ifdef __linux__
             // tbd - lResult = DefWindowProc(cbinfo->event);
             lResult = 0; // tbd
-#endif // CONF_X11 // __linux__
+#endif // __linux__
             exWatchDisp->enter();
             cbinfo->event->lResult = lResult;
             cbret_code = Ex_Continue;
@@ -347,9 +347,9 @@ uint32 ProcWndEvent(ExWindow* const window, ExCbInfo* const cbinfo)
     return cbret_code;
 }
 
-#ifdef CONF_X11 // __linux__
+#ifdef __linux__
 int64 DefWndProc(ExEvent& ev)
-#endif // CONF_X11 // __linux__
+#endif // __linux__
 #ifdef WIN32
 LRESULT CALLBACK
 DefWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
@@ -459,9 +459,9 @@ leave_proc:
 }
 
 // custom usage:
-// #ifdef CONF_X11 // __linux__
+// #ifdef __linux__
 //__attribute__((weak))
 // #else
 // #pragma comment(linker, "/alternatename:procWndEvent=ProcWndEvent")
 // #pragma comment(linker, "/alternatename:defWndProc=DefWndProc")
-// #endif // CONF_X11 // __linux__
+// #endif // __linux__

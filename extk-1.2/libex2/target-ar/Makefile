@@ -4,69 +4,47 @@
 
 #############################################################################
 # Tool Chain
-#SDKTARGETSYSROOT = /opt/fslc-xwayland/3.3/sysroots/cortexa53-crypto-fslc-linux
-#SDKFLAGS = -mcpu=cortex-a53 -march=armv8-a+crc+crypto -fstack-protector-strong -Wformat -Wformat-security -Werror=format-security
-#CCPREFIX = /opt/fslc-xwayland/3.3/sysroots/x86_64-fslcsdk-linux/usr/bin/aarch64-fslc-linux/aarch64-fslc-linux-
-#CXX = $(CCPREFIX)g++ $(SDKFLAGS) --sysroot=$(SDKTARGETSYSROOT)
-#CC = $(CCPREFIX)gcc $(SDKFLAGS) --sysroot=$(SDKTARGETSYSROOT)
-ifneq ($(SDKTARGETSYSROOT),)
-CC := $(filter-out -O2 -D_FORTIFY_SOURCE=2,$(CC))
-CPP := $(filter-out -O2 -D_FORTIFY_SOURCE=2,$(CPP))
-CXX := $(filter-out -O2 -D_FORTIFY_SOURCE=2,$(CXX))
-endif
+TOPDIR := ../..
+include $(TOPDIR)/mkcore/config.mk
+
+# Should be setup first the toolchain.
+# . /opt/fsl-imx-xwayland/5.15-kirkstone/environment-setup-cortexa9t2hf-neon-poky-linux-gnueabi
+# . /opt/fslc-xwayland/3.3/environment-setup-cortexa53-crypto-fslc-linux
 
 #############################################################################
 # Make options
 
-# Should be setup first the toolchain.
-# . /opt/fslc-xwayland/3.3/environment-setup-cortexa53-crypto-fslc-linux
-
 # make RELEASE_BUILD=y -j$(nproc)
+# make CONF_X11=y -j$(nproc)
 
-#RELEASE_BUILD = y
-CONF_ARM ?= $(if $(SDKTARGETSYSROOT),y,)
-CONF_X11 ?= $(if $(filter y,$(CONF_ARM)),,y)
-MACH := $(if $(filter y,$(CONF_ARM)),_arm,_x86)
+OBJDIR := $(OUTDIR)/$(TGTDIR)$(CONF)$(MACH)/_
+TARGET := $(OUTDIR)/libex2$(CONF)$(MACH).a
 
-LIBNAME = ../bin/libgeminit-gn-gdc$(MACH).a
-OBJDIR := out/lbex2$(MACH)/_
-
-#DFLAG = -Wall -fshort-wchar
-DFLAG = -Wall
+DFLAG += -Wall
+#DFLAG += -fshort-wchar
 ifeq ($(RELEASE_BUILD), y)
 DFLAG += -O2 -D_FORTIFY_SOURCE=2 -D_DEBUG -DDPRINT
 else
 DFLAG += -O0 -g -D_FORTIFY_SOURCE=0 -D_DEBUG -DDPRINT
 endif
-ifeq ($(CONF_ARM), y)
-DFLAG += -DSTDCPP_EABI -DCONF_ARM
-else
-DFLAG += -DSTDCPP_EABIx -DCONF_X86
-endif
+DFLAG += $(if $(filter _a64 _arm,$(MACH)),-DSTDCPP_EABI,)
 ifeq ($(CONF_X11), y)
 DFLAG += -DCONF_X11
 endif
-DFLAG += -DLOG_BACKTRACE=1 -DLIBEX2
+DFLAG += -DLIBEX2
 DFLAG += -DGTK3_CFLAGS -DLINUX -DWL_EGL_PLATFORM
 #DFLAG += -D_ADD_DEF_TEMPLATE_ # Keep the line.
 
 CSRCS += $(sort $(wildcard ../*.c))
-CSRCS += $(sort $(wildcard ../pdupdfr-24.03.0/pdupdfr/*.c))
-#CSRCS += $(sort $(wildcard template/*.c)) # Keep the line.
-
-CCSRCS += $(sort $(wildcard ../pdupdfr-24.03.0/fofi/*.cc))
-CCSRCS += $(sort $(wildcard ../pdupdfr-24.03.0/goo/*.cc))
-CCSRCS += $(sort $(wildcard ../pdupdfr-24.03.0/pdupdfr/*.cc))
-CCSRCS += $(sort $(wildcard ../pdupdfr-24.03.0/spladt/*.cc))
-
+CCSRCS += $(sort $(wildcard ../*.cc))
 CXXSRCS += $(sort $(wildcard ../*.cpp))
 #CXXSRCS += $(sort $(wildcard template/*.cpp)) # Keep the line.
 
 COBJS = $(addprefix $(OBJDIR)/, $(addsuffix .o, $(basename $(CSRCS))))
-CCOBJS = $(addprefix $(OBJDIR)/, $(addsuffix .o, $(basename $(CCSRCS))))
-CXXOBJS = $(addprefix $(OBJDIR)/, $(addsuffix .o, $(basename $(CXXSRCS))))
+CXXOBJS = $(addprefix $(OBJDIR)/, $(addsuffix .o, $(basename $(CCSRCS))))
+CXXOBJS += $(addprefix $(OBJDIR)/, $(addsuffix .o, $(basename $(CXXSRCS))))
 
-INCS = -I..
+INCS += -I..
 ifeq ($(CONF_X11), y)
 INCS += -I$(SDKTARGETSYSROOT)/usr/include/X11
 endif
@@ -83,7 +61,7 @@ INCS += -I$(SDKTARGETSYSROOT)/usr/include/gdk-pixbuf-2.0
 INCS += -I$(SDKTARGETSYSROOT)/usr/include/libmount
 INCS += -I$(SDKTARGETSYSROOT)/usr/include/blkid
 INCS += -I$(SDKTARGETSYSROOT)/usr/include/glib-2.0
-ifeq ($(CONF_ARM), y)
+ifeq ($(if $(filter _a64 _arm,$(MACH)),y,), y)
 INCS += -I$(SDKTARGETSYSROOT)/usr/lib/glib-2.0/include
 else
 INCS += -I/usr/lib/x86_64-linux-gnu/glib-2.0/include
@@ -97,7 +75,7 @@ INCS += -I../pdupdfr-24.03.0/fofi -I../pdupdfr-24.03.0/goo
 INCS += -I../pdupdfr-24.03.0/pdupdfr -I../pdupdfr-24.03.0/spladt
 #INCS += -Itemplate/include # Keep the line.
 
-LIBS = -L..
+LIBS += -L..
 LIBS += -lpthread -lm
 LIBS += -lz -lpng16 -ljpeg -lcairo -lpixman-1 -lfreetype -lfontconfig
 LIBS += -lcairo-gobject -lgio-2.0 -lgdk_pixbuf-2.0 -lgobject-2.0 -lglib-2.0
@@ -114,7 +92,7 @@ CXXFLAGS = $(CFLAGS) -std=c++17
 #############################################################################
 # Targets start here
 
-all: $(LIBNAME)
+all: $(TARGET)
 
 $(OBJDIR)/%.o: %.c
 $(OBJDIR)/%.o: %.c $(OBJDIR)/%.d
@@ -131,25 +109,20 @@ $(OBJDIR)/%.o: %.cpp $(OBJDIR)/%.d
 	@mkdir -p $(dir $@)
 	$(CXX) $(DEPFLAGS) $(CXXFLAGS) -c $< -o $@
 
-$(LIBNAME): $(COBJS) $(CCOBJS) $(CXXOBJS)
-	$(AR) rc $(LIBNAME) $(COBJS) $(CCOBJS) $(CXXOBJS)
+$(TARGET): $(COBJS) $(CXXOBJS)
+	$(AR) rcs $@ $?
 
 strip: all
-	$(STRIP) -d $(LIBNAME)
+	$(STRIP) -d $(TARGET)
 
 clean:
-	rm -fr out/lbex2$(MACH)
-	rm -f *.o *.err $(LIBNAME)
+	rm -fr $(dir $(OBJDIR))
+	rm -f *.o *.err $(TARGET)
 
 release: all strip
 
 install: all strip
-	-cp -v $(LIBNAME) ../../../../pdu-deploy/pkgfiles
+	@mkdir -p $(PKGDIR)
+	-cp -v $(TARGET) $(PKGDIR)/
 
-DEPFILES := $(CSRCS:%.c=$(OBJDIR)/%.d)
-DEPFILES += $(CCSRCS:%.cc=$(OBJDIR)/%.d)
-DEPFILES += $(CXXSRCS:%.cpp=$(OBJDIR)/%.d)
-DEPFLAGS = -MT $@ -MMD -MP -MF $(OBJDIR)/$*.d
-
-$(DEPFILES):
-include $(wildcard $(DEPFILES))
+include $(TOPDIR)/mkcore/depend.mk

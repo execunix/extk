@@ -16,77 +16,103 @@ ExEventFifo exEventList;
 static ExEvent* new_event()
 {
     std::allocator<ExEvent> ev_allocator;
-    ExEvent* const ev = ev_allocator.allocate(1U);
-    ev_allocator.construct(ev, ExEvent(None));
-    return ev;
+    ExEvent* const event = ev_allocator.allocate(1U);
+    ev_allocator.construct(event, ExEvent(None));
+    return event;
 }
 
-static void delete_event(ExEvent* const ev)
+static void delete_event(ExEvent* const event)
 {
     std::allocator<ExEvent> ev_allocator;
-    // ev_allocator.destroy(ev); // hasnt destructor
-    ev_allocator.deallocate(ev, 1UL);
+    // ev_allocator.destroy(event); // hasnt destructor
+    ev_allocator.deallocate(event, 1UL);
 }
 #endif
 
-ExEvent* ExEventFifo::add(ExEvent* const ev)
+ExEvent* ExEventFifo::get_event(ExEvent* const event)
 {
-    ExEvent* back;
+    ExEvent* evref = nullptr;
     (void)enter();
-    back = push_tail_event();
-    if ((back != nullptr) && (ev != nullptr)) {
-        *back = *ev;
+    if (!empty()) {
+        evref = &pull_head();
+        if (event != nullptr) {
+            *event = *evref;
+        }
     }
     (void)leave();
-    (void)exWatchDisp->wakeup(); // tbd
-    return back;
+    return evref;
 }
 
-ExEvent* ExEventFifo::add(HWND hwnd, int32 message, uint32 wParam, int64 lParam)
+ExEvent* ExEventFifo::peek_event(ExEvent* const event)
 {
-    ExEvent* back;
+    ExEvent* evref = nullptr;
     (void)enter();
-    back = push_tail_event();
-    if (back != nullptr) {
-        back->clear();
-        back->hwnd = hwnd;
-        back->message = message;
-        back->wParam = wParam;
-        back->lParam = lParam;
+    if (!empty()) {
+        evref = &head();
+        if (event != nullptr) {
+            *event = *evref;
+        }
     }
     (void)leave();
-    (void)exWatchDisp->wakeup(); // tbd
-    return back;
+    return evref;
 }
 
-ExEvent* ExGetMessage(ExEvent* ev)
+ExEvent* ExEventFifo::post_event(const ExEvent* const event)
 {
-    ExEvent* front;
-    (void)exEventList.enter();
-    front = exEventList.pull_head_event();
-    if ((ev != nullptr) && (front != nullptr)) {
-        *ev = *front;
+    ExEvent* evref = nullptr;
+    (void)enter();
+    if (!is_full()) {
+        evref = &push_tail();
+        if (event != nullptr) {
+            *evref = *event;
+        }
+    } else {
+        dprint1("ExEventFifo::post_event() full\n");
     }
-    (void)exEventList.leave();
-    return front;
+    (void)leave();
+    return evref;
+}
+
+ExEvent* ExEventFifo::post_event(HWND hwnd, int32 message, uint32 wParam, int64 lParam)
+{
+    #if 1
+    ExEvent event(hwnd, message, wParam, lParam);
+    return exEventList.post_event(&event);
+    #else
+    ExEvent* evref = exEventList.post_event(nullptr);
+    if (evref != nullptr) {
+        evref->clear();
+        evref->hwnd = hwnd;
+        evref->message = message;
+        evref->wParam = wParam;
+        evref->lParam = lParam;
+    }
+    return evref;
+    #endif
+}
+
+ExEvent* ExGetMessage(ExEvent* event)
+{
+    return exEventList.get_event(event);
 }
 
 ExEvent* ExPostPtrMsg(int32 message, int32 pt_x, int32 pt_y)
 {
-    ExEvent* back = exEventList.add(None, message);
-    if (back != nullptr) {
-        back->pt.x = static_cast<int16>(pt_x);
-        back->pt.y = static_cast<int16>(pt_y);
-        back->time = exWatchDisp->getTick();
+    ExEvent* evref = exEventList.post_event(None, message);
+    if (evref != nullptr) {
+        evref->pt.x = static_cast<int16>(pt_x);
+        evref->pt.y = static_cast<int16>(pt_y);
+        evref->time = exWatchDisp->getTick();
     }
-    return back;
+    (void)exWatchDisp->wakeup();
+    return evref;
 }
 
 bool PostMessage(HWND hwnd, int32 message, uint32 wparam, int64 lparam)
 {
-    ExEvent ev(None);
-    ExEvent* back = exEventList.add(&ev.set(hwnd, message, wparam, lparam));
-    return (back != nullptr);
+    ExEvent* evref = exEventList.post_event(hwnd, message, wparam, lparam);
+    (void)exWatchDisp->wakeup();
+    return (evref != nullptr);
 }
 #endif // __linux__
 
@@ -119,15 +145,15 @@ ExEventFunc exCalibFunc = nullptr;
 #ifdef __linux__
 static bool PostPtrMsg(int32 message, int32 pt_x, int32 pt_y)
 {
-    ExEvent ev(None);
-    ev.message = message;
-    ev.pt.x = pt_x;
-    ev.pt.y = pt_y;
-    ev.time = exWatchDisp->getTick();
+    ExEvent event(None);
+    event.message = message;
+    event.pt.x = pt_x;
+    event.pt.y = pt_y;
+    event.time = exWatchDisp->getTick();
     if (exCalibFunc != nullptr) {
-        (void)exCalibFunc(&ev);
+        (void)exCalibFunc(&event);
     }
-    ExEvent* back = exEventList.add(&ev);
+    ExEvent* back = exEventList.post_event(&event);
     return (back != nullptr);
 }
 

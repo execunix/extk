@@ -63,7 +63,7 @@ struct Env {
     int32 dp_pkt; // 5
 };
 
-static constexpr const char* const def_envfile = "./appenv.ini";
+static constexpr const char* const def_envfile = "./ex2demo.ini";
 
 bool initEnv() noexcept;
 bool loadEnv(const char* const envfile = def_envfile) noexcept;

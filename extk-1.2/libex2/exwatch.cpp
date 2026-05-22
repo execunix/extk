@@ -185,7 +185,7 @@ void* ExWatch::start(void* arg) {
 
 bool ExWatch::fini() {
     int32 r = 0;
-    if (tid != 0) {
+    if (tid != 0UL) {
         #if 1
         setHalt(Ex_Halt);
         #else
@@ -196,10 +196,10 @@ bool ExWatch::fini() {
         r = pthread_join(tid, nullptr);
         enter();
         exassert(r == 0);
-        tid = 0;
+        tid = 0UL;
     }
     iomuxmap.fini();
-    timerset.clearAll();
+    timerset.fini();
     if (efd != -1) {
         close(efd);
         efd = -1;
@@ -210,7 +210,7 @@ bool ExWatch::fini() {
 bool ExWatch::init(size_t max_iomux, size_t stacksize) {
     int32 r = 0;
 
-    exassert(tid == 0);
+    exassert(tid == 0UL);
     iomuxmap.init(max_iomux);
 
     efd = eventfd(0U, 0);
@@ -241,12 +241,8 @@ bool ExWatch::leave() const {
     return (r == 0);
 }
 
-bool ExWatch::wakeup() const {
-    if (tid != pthread_self()) {
-        setEvent(1UL);
-        return true;
-    }
-    return false;
+bool ExWatch::isSelf() const {
+    return ((tid == 0UL) || (tid == pthread_self()));
 }
 
 uint32 ExWatch::setHalt(uint32 r)

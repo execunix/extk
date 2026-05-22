@@ -5,10 +5,33 @@
 	"version": "0.2.0",
 	"configurations": [
 		{
+			"name": "ARM Remote GDB Debug",
+			"type": "cppdbg",
+			"request": "launch",
+			"program": "${workspaceFolder}/../out/${config:EXTK.PROGRAM}",
+			"args": [],
+			"stopAtEntry": true,
+			"cwd": "${workspaceFolder}",
+			"environment": [],
+			"console": "integratedTerminal",
+			"MIMode": "gdb",
+			"targetArchitecture": "arm64",
+			"preLaunchTask": "deploy-remote-arm",
+			"setupCommands": [
+				{
+					"description": "Enable pretty-printing for gdb",
+					"text": "-enable-pretty-printing",
+					"ignoreFailures": true
+				}
+			],
+			"miDebuggerPath": "/usr/bin/gdb-multiarch",
+			"miDebuggerServerAddress": "${config:EXTK.TARGET_IP}:3000",
+		},
+		{
 			"name": "(gdb) Attach",
 			"type": "cppdbg",
 			"request": "attach",
-			"program": "${workspaceFolder}/ex2demo_x86.bin",
+			"program": "${workspaceFolder}/../out/${config:EXTK.PROGRAM}",
 			"MIMode": "gdb",
 			"setupCommands": [
 				{
@@ -27,10 +50,10 @@
 			"name": "(gdb) Launch",
 			"type": "cppdbg",
 			"request": "launch",
-			"program": "${workspaceFolder}/ex2demo_x86.bin",
+			"program": "${workspaceFolder}/../out/${config:EXTK.PROGRAM}",
 			"args": [],
 			"stopAtEntry": true,
-            "cwd": "${workspaceFolder}",
+			"cwd": "${workspaceFolder}",
 			//"cwd": "${fileDirname}",
 			"environment": [],
 			"externalConsole": false,

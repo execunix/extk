@@ -11,7 +11,7 @@ echo "Deploying to target"
 ssh ${SSH_USER}@${TARGET_IP} "sh -c '/usr/bin/killall -q gdbserver; rm -rf ${TARGET_DIR}/${PROGRAM}; rm -rf /tmp/app.fifo; exit 0'"
 
 # send the program to the target
-scp ${PROGRAM} ${SSH_USER}@${TARGET_IP}:${TARGET_DIR}
+scp ../out/${PROGRAM} ${SSH_USER}@${TARGET_IP}:${TARGET_DIR}
 
 # Must match endsPattern in tasks.json
 echo "Starting GDB Server on Target"

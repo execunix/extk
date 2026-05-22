@@ -205,7 +205,8 @@ bool ExWindow::showWindow(ulong type, int32 x, int32 y) {
         (void)invokeHandler(&cbinfo(Ex_CbHandler));
     }
     // tbd - send_message(WM_SIZE, area.w, area.h); // layout
-    exEventList.add(hwnd, WM_SIZE)->sz = area.u.sz; // layout
+    exEventList.post_event(hwnd, WM_SIZE)->sz = area.u.sz; // layout
+    (void)exWatchDisp->wakeup();
     return showWindow();
 }
 
