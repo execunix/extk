@@ -226,10 +226,7 @@ bool ExWatch::fini() {
     }
     iomuxmap.fini();
     timerset.fini();
-    if (efd != nullptr) {
-        CloseHandle(efd);
-        efd = nullptr;
-    }
+    evWake.fini();
     return (r == 0);
 }
 
@@ -237,9 +234,8 @@ bool ExWatch::init(size_t max_iomux, size_t stacksize) {
     exassert(hThread == nullptr);
     iomuxmap.init(max_iomux);
 
-    efd = CreateEvent(nullptr, FALSE, FALSE, nullptr); // hev
-    exassert(efd != nullptr);
-    ioAdd(this, &ExWatch::onEvent, efd);
+    evWake.init();
+    ioAdd(this, &ExWatch::onEvent, evWake);
 
     tickCount = GetTickCount(); // update tick
 
@@ -254,7 +250,7 @@ bool ExWatch::enter() const {
     DWORD dwWaitRet;
 #ifdef DEBUG
     for (int32 i = 0; i < 100; i++) {
-        dwWaitRet = WaitForSingleObject(mutex, 3000);
+        dwWaitRet = WaitForSingleObject(mutex, 3000U);
         if (dwWaitRet == WAIT_OBJECT_0) {
             break;
         }
@@ -281,33 +277,16 @@ uint32 ExWatch::setHalt(uint32 r)
     exassert((halt | r) & Ex_Halt);
     if (!(halt & 0x80000000)) {
         halt |= 0x80000000;
-        setEvent(1UL);
+        evWake.signal();
     }
     return (halt |= r);
 }
 
-bool ExWatch::getEvent(uint64* u64) const {
-    u64 = u64;
-    BOOL ret = ResetEvent(efd);
-    return (ret != 0);
-}
-
-bool ExWatch::setEvent(uint64 u64) const {
-    u64 = u64;
-    BOOL ret = SetEvent(efd);
-    return (ret != 0);
-}
-
 uint32 ExWatch::onEvent(HANDLE hev) {
     dprint0("%s: hev:%p\n", __func__, hev);
-
-    #if 0 // for manual reset
-    uint64 u64 = 0UL;
-    if (getEvent(&u64)) {
-        dprint0("%s: got event %lu\n", __func__, u64);
-    } else {
-        dprint1("%s: got event fail.\n", __func__);
-    }
+    exassert(evWake == hev);
+    #if 1 // for manual reset
+    (void)evWake.reset();
     #endif
 
     #if 0 // tbd - cond wait and signal

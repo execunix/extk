@@ -5,7 +5,7 @@
 
 #include "osal/osal.h"
 #include "wgtsetup.h"
-#include "event.h"
+#include "message.h"
 #include "res.h"
 
 static void
@@ -86,7 +86,7 @@ uint32 WgtSetup::onTitleMove(ExWidget* widget, ExCbInfo* cbinfo) {
     ExWindow* window = getWindow();
     if (widget == &title && window) {
         static ExPoint but_pt(0);
-        ExPoint msg_pt(cbinfo->event->pt);
+        ExPoint msg_pt(cbinfo->exmsg->pt);
         if (cbinfo->type == Ex_CbButPress) {
             but_pt = msg_pt; // memory press point
             toFront();
@@ -126,32 +126,32 @@ uint32 WgtSetup::onFocused(ExWidget* widget, ExCbInfo* cbinfo) {
 }
 
 uint32 WgtSetup::onHandler(ExWidget* widget, ExCbInfo* cbinfo) {
-    if (cbinfo->event->message == WM_CbRemove &&
-        cbinfo->event->lParam == (LPARAM)this) {
+    if (cbinfo->exmsg->message == WM_CbRemove &&
+        cbinfo->exmsg->lParam == (LPARAM)this) {
         dprint("WgtSetup::onHandler - WM_CbRemove\n");
         return Ex_Remove;
     }
-    if (cbinfo->event->message == WM_COMMAND) {
-        dprint("WM_COMMAND: %d\n", cbinfo->event->wParam);
+    if (cbinfo->exmsg->message == WM_COMMAND) {
+        dprint("WM_COMMAND: %d\n", cbinfo->exmsg->wParam);
         return Ex_Continue;
     }
     return Ex_Continue;
 }
 
 uint32 WgtSetup::onFilter(ExWidget* widget, ExCbInfo* cbinfo) {
-    if (cbinfo->event->message == WM_CbRemove &&
-        cbinfo->event->lParam == (LPARAM)this) {
+    if (cbinfo->exmsg->message == WM_CbRemove &&
+        cbinfo->exmsg->lParam == (LPARAM)this) {
         dprint("WgtSetup::onFilter - WM_CbRemove\n");
         return Ex_Remove;
     }
-    if (cbinfo->event->message == WM_MOUSEMOVE) {
+    if (cbinfo->exmsg->message == WM_MOUSEMOVE) {
         return Ex_Continue;
     }
-    if (cbinfo->event->message == WM_LBUTTONDOWN) {
+    if (cbinfo->exmsg->message == WM_LBUTTONDOWN) {
         return Ex_Continue;
     }
-    if (cbinfo->event->message == WM_KEYDOWN) {
-        switch (cbinfo->event->wParam) {
+    if (cbinfo->exmsg->message == WM_KEYDOWN) {
+        switch (cbinfo->exmsg->wParam) {
         case VK_UP:
             break;
         case VK_DOWN:

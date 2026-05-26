@@ -149,10 +149,7 @@ bool WatchApp::cleanup()
     tid = 0UL;
     iomuxmap.fini();
     timerset.fini();
-    if (efd != -1) {
-        (void)close(efd);
-        efd = -1;
-    }
+    evWake.fini();
     return true;
 }
 
@@ -167,9 +164,8 @@ bool WatchApp::startup()
     exassert2(tid == 0UL, __FILE__ "@" Ex_STRINGIFY(__LINE__));
     iomuxmap.init(256UL);
 
-    efd = eventfd(0U, 0);
-    exassert2(efd != -1, __FILE__ "@" Ex_STRINGIFY(__LINE__));
-    (void)ioAdd(this, &WatchApp::onEvent, efd);
+    evWake.init();
+    (void)ioAdd(this, &WatchApp::onEvent, evWake);
 
     tickCount = ExGetTickCount(); // update tick
 
@@ -262,22 +258,22 @@ bool WatchApp::startup()
 
 void WatchApp::mainloop()
 {
-    ExEvent ev(None);
+    ExMsg em(None);
 
     (void)enter();
     while (getHalt() == 0U) {
         while (true) {
-            if (ExGetMessage(&ev) == nullptr) {
+            if (ExGetMessage(&em) == nullptr) {
                 break;
             }
-            // ev message is available
-            if (ev.message == WM_QUIT) {
+            // em message is available
+            if (em.message == WM_QUIT) {
                 dprint("WM_QUIT tick=%d\n", tickCount);
-                (void)setHalt(Ex_Halt); // stop event loop
+                (void)setHalt(Ex_Halt); // stop exmsg loop
                 goto end_loop;
             }
             (void)exWatchDisp->leave();
-            (void)DefWndProc(ev); // dispatch
+            (void)DefWndProc(em); // dispatch
             (void)exWatchDisp->enter();
             if (getHalt() != 0U) {
                 goto end_loop;
@@ -303,18 +299,18 @@ end_loop:
 #if 0
 int32 WatchApp::modal_loop(void* ctrl)
 {
-    ExEvent ev(None);
+    ExMsg em(None);
 
     (void)enter();
     while (getHalt() == 0U) {
-        while (ExGetMessage(&ev) != nullptr) { // is message available ?
-            if ((ev.message == WM_CLOSE) || (ctrl->done != 0)) {
+        while (ExGetMessage(&em) != nullptr) { // is message available ?
+            if ((em.message == WM_CLOSE) || (ctrl->done != 0)) {
                 dprint("WM_CLOSE tick=%d\n", tickCount);
-                (void)setHalt(Ex_Halt); // stop event loop
+                (void)setHalt(Ex_Halt); // stop exmsg loop
                 goto end_loop;
             }
             (void)exWatchDisp->leave();
-            (void)DefWndProc(ev); // dispatch
+            (void)DefWndProc(em); // dispatch
             (void)exWatchDisp->enter();
             if (getHalt() != 0U) {
                 goto end_loop;

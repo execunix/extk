@@ -8,12 +8,7 @@
 
 #include "excallback.h"
 #include "exobject.h"
-#ifdef WIN32
-#include "exthread.h"
-#else // __linux__
-#include <sys/epoll.h>
-#include <pthread.h>
-#endif
+#include "exevent.h"
 #include <map>
 #include <set>
 
@@ -185,11 +180,10 @@ protected:
     #ifdef WIN32
     DWORD           idThread;
     HANDLE          hThread;
-    HANDLE          efd;    // event fd to wakeup this watch
     #else // __linux__
     pthread_t       tid;
-    int32           efd;    // event fd to wakeup this watch
     #endif
+    ExEvent         evWake; // event to wakeup this watch
     uint32          halt;
     uint32          tickCount;
     #ifdef WIN32
@@ -210,7 +204,7 @@ public:
         CloseHandle(mutex);
     }
     explicit ExWatch(const char* name) noexcept : name(name)
-        , iomuxmap(this), timerset(), idThread(0U), hThread(nullptr), efd(nullptr), halt(0U), tickCount(0U)
+        , iomuxmap(this), timerset(), idThread(0U), hThread(nullptr), evWake(), halt(0U), tickCount(0U)
         , procStartup(), procDispatch(), procMaintain(), procCleanup() {
         mutex = CreateMutex(nullptr, FALSE, nullptr);
         tickCount = tickAppLaunch;
@@ -222,7 +216,7 @@ public:
         pthread_mutex_destroy(&mutex);
     }
     explicit ExWatch(const char* name) noexcept : name(name)
-        , iomuxmap(this), timerset(), tid(0U), efd(-1), halt(0U), tickCount(0U)
+        , iomuxmap(this), timerset(), tid(0U), evWake(), halt(0U), tickCount(0U)
         , procStartup(), procDispatch(), procMaintain(), procCleanup() {
         pthread_mutex_init(&mutex, nullptr);
         pthread_cond_init(&cond, nullptr);
@@ -234,13 +228,11 @@ public:
     bool enter() const;
     bool leave() const;
     bool isSelf() const;
-    bool wakeup() const { return isSelf() ? false : setEvent(1UL); }
+    bool wakeup() const { return isSelf() ? false : evWake.signal(); }
     uint32 setHalt(uint32 r = Ex_Halt);
     uint32 getHalt() const { return halt; }
     uint32 getTick() const { return tickCount; }
 protected:
-    bool setEvent(uint64 u64) const;
-    bool getEvent(uint64* u64) const;
     #ifdef WIN32
     uint32 onEvent(HANDLE hev);
     #else // __linux__

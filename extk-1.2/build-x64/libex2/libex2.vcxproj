@@ -106,6 +106,7 @@ xcopy "$(OutDir)$(TargetFileName)" "..\extk\$(OutDir)" /d /y
     <ClInclude Include="..\..\libex2\eximage.h" />
     <ClInclude Include="..\..\libex2\exmacro.h" />
     <ClInclude Include="..\..\libex2\exmemory.h" />
+    <ClInclude Include="..\..\libex2\exmessage.h" />
     <ClInclude Include="..\..\libex2\exobject.h" />
     <ClInclude Include="..\..\libex2\expackpop.h" />
     <ClInclude Include="..\..\libex2\expackpush.h" />
@@ -138,6 +139,7 @@ xcopy "$(OutDir)$(TargetFileName)" "..\extk\$(OutDir)" /d /y
     <ClCompile Include="..\..\libex2\exim-io-png.cpp" />
     <ClCompile Include="..\..\libex2\eximage.cpp" />
     <ClCompile Include="..\..\libex2\exmemory.cpp" />
+    <ClCompile Include="..\..\libex2\exmessage.cpp" />
     <ClCompile Include="..\..\libex2\exobject.cpp" />
     <ClCompile Include="..\..\libex2\exregion.cpp" />
     <ClCompile Include="..\..\libex2\exrender.cpp" />

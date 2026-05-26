@@ -39,7 +39,7 @@ extern ExWindowMap exWndProcMap;
 uint32 ProcWndEvent(ExWindow* window, ExCbInfo* cbinfo);
 
 #ifdef __linux__
-int64 DefWndProc(ExEvent& ev);
+int64 DefWndProc(ExMsg& em);
 #endif // __linux__
 #ifdef WIN32
 LRESULT CALLBACK DefWndProc(HWND, UINT, WPARAM, LPARAM);

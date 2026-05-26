@@ -15,15 +15,15 @@
 struct ExCbInfo {
     uint32      type;
     uint32      subtype;
-    ExEvent*    event; // A pointer to a ExEvent structure that describes the event
+    ExMsg*      exmsg; // A pointer to a ExMsg structure that describes the exmsg
                        //   that caused this callback to be invoked.
     void*       data;  // A pointer to callback-specific data.
 
-    ExCbInfo(uint32 t, uint32 s = 0, ExEvent* e = nullptr, void* d = nullptr) noexcept
-        : type(t), subtype(s), event(e), data(d) {}
+    ExCbInfo(uint32 t, uint32 s = 0, ExMsg* e = nullptr, void* d = nullptr) noexcept
+        : type(t), subtype(s), exmsg(e), data(d) {}
     // pointer
-    ExCbInfo* set(uint32 t, uint32 s, ExEvent* e, void* d = nullptr) {
-        type = t; subtype = s; event = e; data = d;
+    ExCbInfo* set(uint32 t, uint32 s, ExMsg* e, void* d = nullptr) {
+        type = t; subtype = s; exmsg = e; data = d;
         return this;
     }
     ExCbInfo* set(uint32 t, uint32 s) {
@@ -35,8 +35,8 @@ struct ExCbInfo {
         return this;
     }
     // reference
-    ExCbInfo& operator () (uint32 t, uint32 s, ExEvent* e, void* d = nullptr) {
-        type = t; subtype = s; event = e; data = d;
+    ExCbInfo& operator () (uint32 t, uint32 s, ExMsg* e, void* d = nullptr) {
+        type = t; subtype = s; exmsg = e; data = d;
         return *this;
     }
     ExCbInfo& operator () (uint32 t, uint32 s) {

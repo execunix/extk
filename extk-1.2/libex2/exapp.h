@@ -9,6 +9,7 @@
 #include "extypes.h"
 #include "extimer.h"
 #include "exevent.h"
+#include "exmessage.h"
 #include "exwindow.h"
 
 extern uint32 ex_but_timer_default_initial;
@@ -76,7 +77,7 @@ public:
     static void dispatch(MSG& msg);
 #endif
 #ifdef __linux__
-    static void dispatch(ExEvent& ev);
+    static void dispatch(ExMsg& em);
 #endif
     static void addCollectWidget(ExWidget* widget);
     static void addCollectWindow(ExWindow* window);

@@ -18,6 +18,7 @@
 //#include "exlabel.h"
 //#include "exlist.h"
 #include "exmemory.h"
+#include "exmessage.h"
 #include "exobject.h"
 #include "exregion.h"
 #include "exrender.h"

@@ -3,10 +3,10 @@
 // SPDX-License-Identifier:     GPL-2.0+
 //
 
-#ifndef _event_h_
-#define _event_h_
+#ifndef _message_h_
+#define _message_h_
 
-#include <exevent.h>
+#include <exmessage.h>
 #include <list>
 
 #ifdef __linux__
@@ -132,8 +132,8 @@ constexpr int32 DEBRIEF_STOP = 8;
 const uint32 Ex_CbEditChange = (Ex_CbUser + 1U);
 const uint32 Ex_CbPopupClose = (Ex_CbUser + 1U);
 
-bool TouchCalib(ExEvent* event);
+bool TouchCalib(ExMsg* em);
 
 #endif // __linux__
 
-#endif // _event_h_
+#endif // _message_h_

@@ -2,17 +2,16 @@
     "configurations": [
         {
             "name": "Linux",
-            "includePath": [
-                "${workspaceFolder}/**",
-                "${workspaceFolder}/../libex2/**",
-                "${config:EXTK.SDKTARGETSYSROOT}/usr/include/**"
-            ],
             "defines": [
                 "_DEBUG",
                 "DPRINT",
                 "CONF_X11",
-                "LIBEX2=2",
                 "_GNU_SOURCE"
+            ],
+            "includePath": [
+                "${workspaceFolder}/**",
+                "${workspaceFolder}/../libex2/**",
+                "${config:EXTK.SDKTARGETSYSROOT}/usr/include/**"
             ],
             "configurationProvider": "ms-vscode.makefile-tools"
         }

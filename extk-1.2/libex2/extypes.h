@@ -22,7 +22,7 @@ struct ExTile;
 struct ExRegion;
 struct ExRender;
 struct ExColor;
-struct ExEvent;
+struct ExMsg;
 struct ExInput;
 
 class ExApp;

@@ -3,7 +3,6 @@
  * SPDX-License-Identifier:     GPL-2.0+
  */
 
-#include "exevent.h"
 #include "extimer.h"
 #include "exwatch.h"
 

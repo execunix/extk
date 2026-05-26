@@ -4,20 +4,20 @@
 //
 
 #include <exwindow.h>
-#include <exevent.h>
+#include <exmessage.h>
+#include "message.h"
 #include <cstring>
 #include "watch.h"
-#include "event.h"
 #include "env.h"
 
 #ifdef __linux__
 
-bool TouchCalib(ExEvent* event)
+bool TouchCalib(ExMsg* em)
 {
-    int32 pt_x = event->pt.x;
-    int32 pt_y = event->pt.y;
+    int32 pt_x = em->pt.x;
+    int32 pt_y = em->pt.y;
 
-    // translate event
+    // translate em
     int32 raw_x;
     int32 raw_y;
     const int32 x_min = env.abs_x_min + env.rel_x_min;
@@ -41,8 +41,8 @@ bool TouchCalib(ExEvent* event)
         //dprint("%d,%d,%d,%d,%d,%d,%d,%d,%d,%d\n", origin_y, origin_x, env.abs_x_max, env.rel_x_max, env.abs_x_min, env.rel_x_min, env.abs_y_max, env.rel_y_max, env.abs_y_min, env.rel_y_min);
         raw_x = ((raw_x < 0) ? 0 : ((raw_x >= env.sm_w) ? (env.sm_w - 1) : raw_x));
         raw_y = ((raw_y < 0) ? 0 : ((raw_y >= env.sm_h) ? (env.sm_h - 1) : raw_y));
-        event->pt.x = raw_x;
-        event->pt.y = raw_y;
+        em->pt.x = raw_x;
+        em->pt.y = raw_y;
     } else {
         int32_t cal_y;
         int32_t cal_x;
@@ -53,19 +53,19 @@ bool TouchCalib(ExEvent* event)
         //dprint("%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d\n", origin_y, origin_x, cal_x, cal_y, env.abs_x_max, env.rel_x_max, env.abs_x_min, env.rel_x_min, env.abs_y_max, env.rel_y_max, env.abs_y_min, env.rel_y_min);
         cal_x = ((cal_x < 0) ? 0 : ((cal_x >= env.sm_w) ? (env.sm_w - 1) : cal_x));
         cal_y = ((cal_y < 0) ? 0 : ((cal_y >= env.sm_h) ? (env.sm_h - 1) : cal_y));
-        event->pt.x = cal_x;
-        event->pt.y = cal_y;
+        em->pt.x = cal_x;
+        em->pt.y = cal_y;
     }
 #else
     raw_x = ((raw_x < 0) ? 0 : ((raw_x >= env.sm_w) ? (env.sm_w - 1) : raw_x));
     raw_y = ((raw_y < 0) ? 0 : ((raw_y >= env.sm_h) ? (env.sm_h - 1) : raw_y));
-    event->pt.x = raw_x;
-    event->pt.y = raw_y;
+    em->pt.x = raw_x;
+    em->pt.y = raw_y;
 #endif
 
-    (void)recordTouchEvent(event);
+    (void)recordTouchEvent(em);
     // record tick on WM_LBUTTONDOWN, WM_LBUTTONUP, WM_MOUSEMOVE
-    touch_ic_overheat_dataset.push(1U, event->time);
+    touch_ic_overheat_dataset.push(1U, em->time);
 
     return true;
 }

@@ -5,7 +5,7 @@
 
 #include "osal/osal.h"
 #include "wgtmenu.h"
-#include "event.h"
+#include "message.h"
 #include "res.h"
 
 const uint32 IDM_EXIT = 100;
@@ -212,9 +212,9 @@ uint32 WgtMenu::onFocused(ExWidget* widget, ExCbInfo* cbinfo) {
 }
 
 uint32 WgtMenu::onHandler(ExWidget* widget, ExCbInfo* cbinfo) {
-    if (cbinfo->event->message == WM_COMMAND) {
-        dprint("WM_COMMAND: %d\n", cbinfo->event->wParam);
-        if (cbinfo->event->wParam == IDM_EXIT)
+    if (cbinfo->exmsg->message == WM_COMMAND) {
+        dprint("WM_COMMAND: %d\n", cbinfo->exmsg->wParam);
+        if (cbinfo->exmsg->wParam == IDM_EXIT)
             return Ex_Halt;
         return Ex_Continue;
     }
@@ -222,10 +222,10 @@ uint32 WgtMenu::onHandler(ExWidget* widget, ExCbInfo* cbinfo) {
 }
 
 uint32 WgtMenu::onFilter(ExWidget* widget, ExCbInfo* cbinfo) {
-    if (cbinfo->event->message == WM_MOUSEMOVE) {
+    if (cbinfo->exmsg->message == WM_MOUSEMOVE) {
         if (popList.empty())
             return Ex_Continue;
-        Menu* menu = findMenu(cbinfo->event->pt);
+        Menu* menu = findMenu(cbinfo->exmsg->pt);
         if (menu) {
             if (window->getEntered() != menu->view) {
                 showPopup(menu);
@@ -248,8 +248,8 @@ uint32 WgtMenu::onFilter(ExWidget* widget, ExCbInfo* cbinfo) {
         return Ex_Continue;
 #endif
     }
-    if (cbinfo->event->message == WM_LBUTTONDOWN) {
-        Menu* menu = findMenu(cbinfo->event->pt);
+    if (cbinfo->exmsg->message == WM_LBUTTONDOWN) {
+        Menu* menu = findMenu(cbinfo->exmsg->pt);
         int popcnt = (int)popList.size();
         showPopup(menu);
         if (menu) {
@@ -271,11 +271,11 @@ uint32 WgtMenu::onFilter(ExWidget* widget, ExCbInfo* cbinfo) {
         }
         return Ex_Continue;
     }
-    if (cbinfo->event->message == WM_KEYDOWN) {
+    if (cbinfo->exmsg->message == WM_KEYDOWN) {
         if (focused == NULL)
             return Ex_Continue;
         Menu* menu = focused;
-        switch (cbinfo->event->wParam) {
+        switch (cbinfo->exmsg->wParam) {
             case VK_UP:
                 moveMenuFocus(Ex_DirUp);
                 break;

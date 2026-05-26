@@ -7,7 +7,6 @@
 #ifdef __linux__
 #include <time.h>
 #include <sys/unistd.h>
-#include <sys/eventfd.h>
 #include <sys/epoll.h>
 
 #undef dprint1
@@ -200,10 +199,7 @@ bool ExWatch::fini() {
     }
     iomuxmap.fini();
     timerset.fini();
-    if (efd != -1) {
-        close(efd);
-        efd = -1;
-    }
+    evWake.fini();
     return (r == 0);
 }
 
@@ -213,9 +209,8 @@ bool ExWatch::init(size_t max_iomux, size_t stacksize) {
     exassert(tid == 0UL);
     iomuxmap.init(max_iomux);
 
-    efd = eventfd(0U, 0);
-    exassert(efd != -1);
-    ioAdd(this, &ExWatch::onEvent, efd);
+    evWake.init();
+    ioAdd(this, &ExWatch::onEvent, evWake);
 
     tickCount = ExGetTickCount(); // update tick
 
@@ -250,36 +245,15 @@ uint32 ExWatch::setHalt(uint32 r)
     exassert((halt | r) & Ex_Halt);
     if (!(halt & 0x80000000)) {
         halt |= 0x80000000;
-        setEvent(1UL);
+        evWake.signal();
     }
     return (halt |= r);
 }
 
-bool ExWatch::getEvent(uint64* u64) const {
-    ssize_t r = 0;
-    exassert(efd != -1);
-    r = read(efd, u64, sizeof(uint64));
-    exassert(r == ssizeof(*u64));
-    return (r == ssizeof(*u64));
-}
-
-bool ExWatch::setEvent(uint64 u64) const {
-    ssize_t r = 0;
-    exassert(efd != -1);
-    r = write(efd, &u64, sizeof(uint64));
-    exassert(r == ssizeof(u64));
-    return (r == ssizeof(u64));
-}
-
 uint32 ExWatch::onEvent(const epoll_event* const ev) {
     dprint0("%s: fd:%d ev:%d\n", __func__, ev->data.fd, ev->events);
-    exassert(efd == ev->data.fd);
-    uint64 u64 = 0UL;
-    if (getEvent(&u64)) {
-        dprint0("%s: got event %lu\n", __func__, u64);
-    } else {
-        dprint1("%s: got event fail.\n", __func__);
-    }
+    exassert(evWake == ev->data.fd);
+    (void)evWake.reset();
     return 0U;
 }
 
@@ -304,7 +278,7 @@ uint32 ExWatch::proc() {
         // seq-3 : invoke timer callback
         const uint32 waittick = timerset.invoke(tickCount);
         if (getHalt() != 0U) { // is halt ?
-            break; // stop event loop
+            break; // stop exmsg loop
         }
         // seq-4 : collect resources, flush gui, ...
         r = procMaintain(ExHookProc::Maintain);

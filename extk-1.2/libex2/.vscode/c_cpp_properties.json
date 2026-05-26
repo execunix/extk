@@ -3,8 +3,10 @@
         {
             "name": "Linux",
             "defines": [
+                "_DEBUG",
+                "DPRINT",
                 "CONF_X11",
-                "LIBEX2=2"
+                "_GNU_SOURCE"
             ],
             "includePath": [
                 "${workspaceFolder}/**",

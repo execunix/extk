@@ -48,7 +48,7 @@ public:
     ExFlushFunc flushFunc;
     ExFlushFunc paintFunc;
     ExCanvas*   canvas;
-    ExEvent*    event;
+    ExMsg*      exmsg;
 #if 0 // Instance management will depend entirely on the programmer.
 protected: // now allow new & delete
     static void operator delete (void* ptr) { free(ptr); }
@@ -123,7 +123,7 @@ protected: // window callback internal
     };
     CallbackList filterList;
     CallbackList handlerList;
-public: // window message callback operation (event filter and handler)
+public: // window message callback operation (exmsg filter and handler)
     void addFilter(uint32(*f)(void*, ExWindow*, ExCbInfo*), void* d, const uint8 prio = 5U) { // lambda
         filterList.push(Callback(ExCallback(f, d), prio));
     }
@@ -195,9 +195,9 @@ ExWindow::giveFocus()
     Give focus to a widget
 Description:
     This function gives focus to the specified widget.
-    The event argument is a pointer to a ExCbInfo structure that describes the event
+    The exmsg argument is a pointer to a ExCbInfo structure that describes the exmsg
     that will be passed to the lost-focus callback of the widget losing focus and
-    to the got-focus callback of the widget getting focus. If event is NULL, this
+    to the got-focus callback of the widget getting focus. If exmsg is NULL, this
     function generates a ExCbInfo structure filled with zeros for you.
 Returns:
     A pointer to the newly focused widget. This is usually the same as the widget

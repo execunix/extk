@@ -138,12 +138,12 @@ void* ExModalBlock(ExModalCtrl* ctrl, long flags)
         waittick = ExTimerListInvoke(exWatchDisp->getTick());
         dprint0("waittick=%d\n", waittick);
         if (exWatchDisp->getHalt()) // is halt ?
-            break; // stop event loop
+            break; // stop exmsg loop
         if (ExApp::mainWnd != nullptr)
             ExApp::mainWnd->flush();
         ExInput::invoke(waittick); // The only waiting point.
         if (exWatchDisp->getHalt()) // is halt ?
-            break; // stop event loop
+            break; // stop exmsg loop
         while ((ctrl->flags & 0x80000000) &&
             exEventFunc(msg) == true) { // is message available ?
             if (msg.message == WM_ExEvWake) {
@@ -153,7 +153,7 @@ void* ExModalBlock(ExModalCtrl* ctrl, long flags)
             if (msg.message == WM_QUIT) { // WM_DESTROY => PostQuitMessage
                 dprint("message == WM_QUIT tick=%d\n", exWatchDisp->getTick());
                 ExApp::retCode = (int32)msg.wParam; // cause DestroyWindow
-                exWatchDisp->setHalt(Ex_Halt); // stop event loop
+                exWatchDisp->setHalt(Ex_Halt); // stop exmsg loop
                 break;
             }
             //exWatchDisp->leave(); // tbd ctrl->leave()
@@ -188,7 +188,7 @@ void ExMainLoop()
         if (msg.message == WM_QUIT) { // WM_DESTROY => PostQuitMessage
             dprint("message == WM_QUIT tick=%d\n", exWatchDisp->getTick());
             ExApp::retCode = (int32)msg.wParam; // cause DestroyWindow
-            exWatchDisp->setHalt(Ex_Halt); // stop event loop
+            exWatchDisp->setHalt(Ex_Halt); // stop exmsg loop
             break;
         }
         ExApp::dispatch(msg);
@@ -225,7 +225,7 @@ void ExApp::dispatch(MSG& msg)
 }
 #endif
 #ifdef __linux__
-void ExApp::dispatch(ExEvent& ev)
+void ExApp::dispatch(ExMsg& em)
 {
 }
 #endif

@@ -41,7 +41,7 @@ ExWindow::ExWindow() noexcept
     , flushFunc()
     , paintFunc()
     , canvas(nullptr)
-    , event(nullptr)
+    , exmsg(nullptr)
     , filterList()
     , handlerList() {
     flags |= Ex_HasOwnGC;
@@ -86,8 +86,8 @@ uint32 ExWindow::destroy() {
         (void)exWndProcMap.detach(hwnd);
         ExApp::addCollectWindow(this);
 
-        ExEvent ev(hwnd, WM_DESTROY, 0, reinterpret_cast<int64>(this));
-        ExCbInfo cbinfo(Ex_CbFilter, 0U, &ev);
+        ExMsg em(hwnd, WM_DESTROY, 0, reinterpret_cast<int64>(this));
+        ExCbInfo cbinfo(Ex_CbFilter, 0U, &em);
         if ((invokeFilter(&cbinfo) & Ex_Break) == 0U) {
             (void)invokeHandler(&cbinfo(Ex_CbHandler));
         }
@@ -199,13 +199,13 @@ bool ExWindow::showWindow(ulong type, int32 x, int32 y) {
 #endif
     (void)exWndProcMap.attach(hwnd, this);
 
-    ExEvent ev(hwnd, WM_CREATE, 0, reinterpret_cast<int64>(this));
-    ExCbInfo cbinfo(Ex_CbFilter, 0U, &ev);
+    ExMsg em(hwnd, WM_CREATE, 0, reinterpret_cast<int64>(this));
+    ExCbInfo cbinfo(Ex_CbFilter, 0U, &em);
     if ((invokeFilter(&cbinfo) & Ex_Break) == 0U) {
         (void)invokeHandler(&cbinfo(Ex_CbHandler));
     }
     // tbd - send_message(WM_SIZE, area.w, area.h); // layout
-    exEventList.post_event(hwnd, WM_SIZE)->sz = area.u.sz; // layout
+    exMsgList.emit_event(hwnd, WM_SIZE)->sz = area.u.sz; // layout
     (void)exWatchDisp->wakeup();
     return showWindow();
 }
@@ -454,7 +454,7 @@ uint32 ExWindow::onRepeatBut(ExTimer* timer, ExCbInfo* cbinfo) {
     if (wgtPressed &&
         wgtPressed == wgtEntered && ++ExApp::butRepeatCnt() > 0) {
         if (!wgtPressed->listenerList.empty()) {
-            cbinfo->event = event; // tbd - backup msg ?
+            cbinfo->exmsg = exmsg; // tbd - backup msg ?
             cbinfo->set(Ex_CbButRepeat, ExApp::butRepeatCnt());
             return wgtPressed->invokeListener(Ex_CbActivate, cbinfo);
         }
