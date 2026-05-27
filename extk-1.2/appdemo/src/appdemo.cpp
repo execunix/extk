@@ -666,7 +666,7 @@ static uint32 cmdline_halt(void* /*data*/, const int32* argc, const char** argv)
         ret = Ex_Break;
     } else if (0 == exstrcmp(argv[0], "scrcap")) {
         #ifdef __linux__
-        (void)PostMessage(None, WM_COMMAND, CMD_SCREEN_CAPTURE);
+        (void)ExEmitMessage(WM_COMMAND, CMD_SCREEN_CAPTURE);
         #endif // __linux__
         ret = Ex_Break;
     }

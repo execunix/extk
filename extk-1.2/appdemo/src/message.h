@@ -12,7 +12,7 @@
 #ifdef __linux__
 
 /*
- * PostMessage(None, WM_COMMAND, CMD_XXXX, ...);
+ * ExEmitMessage(WM_COMMAND, CMD_XXXX, ...);
  */
 // CMD_WPARAM : int32
 constexpr int32 CMD_UNDEF = 0;
@@ -62,7 +62,7 @@ drwxrwxrwt 10 root root   260 Mar 24 12:20 ../
 */
 
 /*
- * PostMessage(None, WM_APP_SHOW, MSGBOX_XXXX, ...);
+ * ExEmitMessage(WM_APP_SHOW, MSGBOX_XXXX, ...);
  */
 constexpr int32 WM_APP_SHOW         = (WM_NULL + 0x8001);
 // APP_WPARAM : int32
@@ -116,7 +116,7 @@ constexpr int32 MAP_ZOOMOUT = 4;
 constexpr int32 MAP_MOVE = 5;
 
 /*
- * PostMessage(None, WM_DEBRIEF_COMMAND, DEBRIEF_XXXX, ...);
+ * ExEmitMessage(WM_DEBRIEF_COMMAND, DEBRIEF_XXXX, ...);
  */
 constexpr int32 WM_DEBRIEF_COMMAND  = (WM_NULL + 0x8004);
 // DEBRIEF_PARAM : int32
@@ -132,8 +132,17 @@ constexpr int32 DEBRIEF_STOP = 8;
 const uint32 Ex_CbEditChange = (Ex_CbUser + 1U);
 const uint32 Ex_CbPopupClose = (Ex_CbUser + 1U);
 
-bool TouchCalib(ExMsg* em);
-
 #endif // __linux__
+
+bool TouchCalib(ExMsg& em);
+bool EmitPtrEvent(ExMsg& em);
+bool EmitPtrEvent(int32 message, int32 pt_x, int32 pt_y);
+
+// ExEmit APIs - deprecated => Call the callback function directly.
+//
+#ifdef WIN32
+bool EmitButPress(ExWidget* w, int32 x, int32 y);
+bool EmitButRelease(ExWidget* w, int32 x, int32 y);
+#endif // WIN32
 
 #endif // _message_h_

@@ -53,16 +53,6 @@ void ExWatch::IomuxMap::init(size_t max) {
     exassert(events != nullptr);
 }
 
-#if EX2CONF_ENABLE_IOMUX_LOCK
-void ExWatch::IomuxMap::enter_mux() const {
-    pthread_mutex_lock(&mutex);
-}
-
-void ExWatch::IomuxMap::leave_mux() const {
-    pthread_mutex_unlock(&mutex);
-}
-#endif
-
 const ExWatch::Iomux* ExWatch::IomuxMap::search(int32 mux_fd) const {
     const Iomux* iomux = nullptr;
     const_iterator i = find(mux_fd);
@@ -136,28 +126,32 @@ bool ExWatch::IomuxMap::del(int32 mux_fd) {
     return (r == 0);
 }
 
-uint32 ExWatch::IomuxMap::invoke(uint32 waittick) {
+int32 ExWatch::IomuxMap::invoke(int32 waittick) {
+    const uint32 tick0 = watch->tickCount; // get current tick
     watch->leave();
     //pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, nullptr);
-    int32 cnt = epoll_wait(ep_fd, events, (int)maxevents, (int)waittick);
+    const int32 cnt = epoll_wait(ep_fd, events, (int)maxevents, waittick);
     //pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, nullptr);
     watch->enter();
-    watch->tickCount = ExGetTickCount(); // update tick
     for (int32 i = 0; i < cnt; i++) {
         Iomux* iomux = (Iomux*)events[i].data.ptr;
         epoll_event ev;
         ev.data.fd = iomux->mux_fd;
         ev.events = events[i].events;
         uint32 r = iomux->notify(&ev);
-        if ((r & Ex_Halt) != 0U) {
-            return watch->setHalt(r);
+        r |= watch->getHalt();
+        if (ExIsHalt(r)) {
+            (void)watch->setHalt(r);
+            break; // stop iomux loop
         }
+        // tbd - manage remove flag
+        // if (r & Ex_Remove) { del(iomux->mux_fd); }
     }
     if (cnt < 0) {
         exerror("IomuxMap: cnt:%d %s\n", cnt, exstrerr());
-        cnt = 0;
     }
-    return static_cast<uint32>(cnt);
+    watch->tickCount = ExGetTickCount(); // update tick
+    return (watch->tickCount - tick0); // return elapsed tick
 }
 
 // Watch thread
@@ -224,25 +218,13 @@ bool ExWatch::init(size_t max_iomux, size_t stacksize) {
     return (r == 0);
 }
 
-bool ExWatch::enter() const {
-    int32 r = pthread_mutex_lock(&mutex);
-    ; // tbd - check cond
-    return (r == 0);
-}
-
-bool ExWatch::leave() const {
-    int32 r = pthread_mutex_unlock(&mutex);
-    ; // tbd - check cond
-    return (r == 0);
-}
-
 bool ExWatch::isSelf() const {
     return ((tid == 0UL) || (tid == pthread_self()));
 }
 
 uint32 ExWatch::setHalt(uint32 r)
 {
-    exassert((halt | r) & Ex_Halt);
+    exassert(((halt | r) & Ex_Halt) != 0U);
     if (!(halt & 0x80000000)) {
         halt |= 0x80000000;
         evWake.signal();
@@ -260,6 +242,7 @@ uint32 ExWatch::onEvent(const epoll_event* const ev) {
 #endif // __linux__
 
 uint32 ExWatch::proc() {
+    int32 waittick = 0;
 #ifdef __linux__
     pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, nullptr);
 #endif // __linux__
@@ -272,21 +255,31 @@ uint32 ExWatch::proc() {
         uint32 r;
         // seq-2 : dispatch event
         r = procDispatch(ExHookProc::Dispatch);
-        if (((r & Ex_Halt) != 0U) || (getHalt() != 0U)) {
+        if (ExIsHalt(r | getHalt())) {
             break;
         }
         // seq-3 : invoke timer callback
-        const uint32 waittick = timerset.invoke(tickCount);
-        if (getHalt() != 0U) { // is halt ?
+        waittick = timerset.invoke(tickCount);
+        if (ExIsHalt(getHalt())) { // is halt ?
             break; // stop exmsg loop
         }
+        #if 1 // adjust for internal timer callback sleep
+        waittick -= (ExGetTickCount() - tickCount);
+        if (waittick < 1) {
+            waittick = 1;
+        }
+        #endif
         // seq-4 : collect resources, flush gui, ...
         r = procMaintain(ExHookProc::Maintain);
-        if (((r & Ex_Halt) != 0U) || (getHalt() != 0U)) {
+        if (ExIsHalt(r | getHalt())) {
             break;
         }
         // seq-5 : wait blocked iomux for waittick msec and update tick count
-        (void)iomuxmap.invoke(waittick); // The only waiting point.
+        waittick = iomuxmap.invoke(waittick); // The only waiting point.
+        // seq-6 : invoked iomux callback
+        #if 1 // adjust for internal epoll callback sleep
+        // waittick : apply epoll callback sleep tick
+        #endif
     }
     // seq-6 : cleanup resources
     (void)procCleanup(ExHookProc::Cleanup);

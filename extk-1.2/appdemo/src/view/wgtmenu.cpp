@@ -214,8 +214,9 @@ uint32 WgtMenu::onFocused(ExWidget* widget, ExCbInfo* cbinfo) {
 uint32 WgtMenu::onHandler(ExWidget* widget, ExCbInfo* cbinfo) {
     if (cbinfo->exmsg->message == WM_COMMAND) {
         dprint("WM_COMMAND: %d\n", cbinfo->exmsg->wParam);
-        if (cbinfo->exmsg->wParam == IDM_EXIT)
+        if (cbinfo->exmsg->wParam == IDM_EXIT) {
             return Ex_Halt;
+        }
         return Ex_Continue;
     }
     return Ex_Continue;

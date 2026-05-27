@@ -134,15 +134,15 @@ void* ExModalBlock(ExModalCtrl* ctrl, long flags)
     ctrl->cond = NULL;
     ctrl->prev = NULL;
     ctrl->next = NULL;
-    while (exWatchDisp->getHalt() == 0 && (ctrl->flags & 0x80000000)) {
+    while ((exWatchDisp->getHalt() == 0U) && (ctrl->flags & 0x80000000)) {
         waittick = ExTimerListInvoke(exWatchDisp->getTick());
         dprint0("waittick=%d\n", waittick);
-        if (exWatchDisp->getHalt()) // is halt ?
+        if (exWatchDisp->getHalt() != 0U) // is halt ?
             break; // stop exmsg loop
         if (ExApp::mainWnd != nullptr)
             ExApp::mainWnd->flush();
         ExInput::invoke(waittick); // The only waiting point.
-        if (exWatchDisp->getHalt()) // is halt ?
+        if (exWatchDisp->getHalt() != 0U) // is halt ?
             break; // stop exmsg loop
         while ((ctrl->flags & 0x80000000) &&
             exEventFunc(msg) == true) { // is message available ?
@@ -179,8 +179,8 @@ void ExMainLoop()
 {
 #ifdef WIN32
     MSG msg;
-    while (exWatchDisp->getHalt() == 0 &&
-        exEventFunc(msg) == true) { // is message available ?
+    while ((exWatchDisp->getHalt() == 0U) &&
+           (exEventFunc(msg) == true)) { // is message available ?
         if (msg.message == WM_ExEvWake) {
             dprint("message == WM_ExEvWake\n");
             continue;
@@ -332,7 +332,7 @@ bool ExApp::init(HINSTANCE hInstance,
 #endif
     dprint("%s() width=%d height=%d\n", __func__, smSize.w, smSize.h);
 
-    if (ExWindow::classInit(hInstance) != 0) {
+    if (ExWindow::initClass(hInstance) != 0) {
         retCode = EXIT_SUCCESS;
     }
     return (retCode == EXIT_SUCCESS);
@@ -464,15 +464,15 @@ uint32 onXevent(void* data, const epoll_event* const ev)
             } break;
             case ButtonPress: {
                 dprint0("ButtonPress state:%d button:%d pos:%d,%d\n", e.xbutton.state, e.xbutton.button, e.xbutton.x, e.xbutton.y);
-                (void)ExEmitPtrEvent(None, WM_LBUTTONDOWN, e.xbutton.x, e.xbutton.y);
+                (void)ExEmitPtrMsg(WM_LBUTTONDOWN, e.xbutton.x, e.xbutton.y);
             } break;
             case ButtonRelease: {
                 dprint0("ButtonRelease state:%d button:%d pos:%d,%d\n", e.xbutton.state, e.xbutton.button, e.xbutton.x, e.xbutton.y);
-                (void)ExEmitPtrEvent(None, WM_LBUTTONUP, e.xbutton.x, e.xbutton.y);
+                (void)ExEmitPtrMsg(WM_LBUTTONUP, e.xbutton.x, e.xbutton.y);
             } break;
             case MotionNotify: {
                 dprint0("MotionNotify state:%d button:%d pos:%d,%d\n", e.xbutton.state, e.xbutton.button, e.xbutton.x, e.xbutton.y);
-                (void)ExEmitPtrEvent(None, WM_MOUSEMOVE, e.xbutton.x, e.xbutton.y);
+                (void)ExEmitPtrMsg(WM_MOUSEMOVE, e.xbutton.x, e.xbutton.y);
             } break;
             case EnterNotify: {
                 dprint("EnterNotify\n");

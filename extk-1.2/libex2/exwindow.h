@@ -181,7 +181,7 @@ public:
 public:
 #ifdef WIN32
     static LPCSTR getClassName() { return "ExWindow"; }
-    static ATOM classInit(HINSTANCE hInstance); // customizable
+    static ATOM initClass(HINSTANCE hInstance); // customizable
 #endif
 public:
     friend class ExWidget;

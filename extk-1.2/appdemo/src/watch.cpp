@@ -44,20 +44,20 @@ WatchNet gWatchNet;
 #else // CONF_X11
 uint32 WatchApp::on_ev2dev(const epoll_event* const ev)
 {
+    static ExMsg em0(None);
+    ExMsg em(None);
     uint32 xy = 0U;
     uint32 packet_count = 0U;
-    struct input_event ev2;
-    static int32 pt0_x;
-    static int32 pt0_y;
-    static int32 msg = 0;
-    int32 pt_x = pt0_x;
-    int32 pt_y = pt0_y;
+    em.message = em0.message;
+    em.pt.x = em0.pt.x;
+    em.pt.y = em0.pt.y;
 
     exassert2(ev->data.fd == ev2dev_fd, __FILE__ "@" Ex_STRINGIFY(__LINE__));
     dprint0("%s: ev2dev_fd=%d\n", __func__, ev2dev_fd);
 
     while (true) {
         ssize_t rsize;
+        struct input_event ev2;
         rsize = read(ev2dev_fd, &ev2, sizeof(ev2));
         if (rsize <= 0) {
             break; // no more input
@@ -72,29 +72,29 @@ uint32 WatchApp::on_ev2dev(const epoll_event* const ev)
         if (ev2.type == static_cast<uint16>(EV_KEY)) {
             if (ev2.code == static_cast<uint16>(BTN_TOUCH)) {
                 if (ev2.value != 0) {
-                    msg = WM_LBUTTONDOWN;
+                    em.message = WM_LBUTTONDOWN;
                 } else {
-                    msg = WM_LBUTTONUP;
+                    em.message = WM_LBUTTONUP;
                 }
             }
         } else if (ev2.type == static_cast<uint16>(EV_ABS)) {
             if ((ev2.code == static_cast<uint16>(ABS_X)) || (ev2.code == static_cast<uint16>(ABS_MT_POSITION_X))) {
-                pt_x = ev2.value;
+                em.pt.x = ev2.value;
                 xy |= 1U;
             } else if ((ev2.code == static_cast<uint16>(ABS_Y)) || (ev2.code == static_cast<uint16>(ABS_MT_POSITION_Y))) {
-                pt_y = ev2.value;
+                em.pt.y = ev2.value;
                 xy |= 2U;
             } else {
                 // defense code
             }
-        } else if ((ev2.type == static_cast<uint16>(EV_SYN)) || (((pt_x != pt0_x) || (pt_y != pt0_y)) && (xy == 3U))) {
-            dprint0("%s.%d: %d - %d,%d\n", __func__, tickCount, msg, pt_x, pt_y);
-            (void)ExEmitPtrEvent(None, msg, pt_x, pt_y);
-            pt0_x = pt_x;
-            pt0_y = pt_y;
+        } else if ((ev2.type == static_cast<uint16>(EV_SYN)) || (((em.pt.x != em0.pt.x) || (em.pt.y != em0.pt.y)) && (xy == 3U))) {
+            dprint0("%s.%d: %d - %d,%d\n", __func__, tickCount, em.message, em.pt.x, em.pt.y);
+            (void)EmitPtrEvent(&em);
+            em0.pt.x = em.pt.x;
+            em0.pt.y = em.pt.y;
             xy = 0U;
-            if (msg == WM_LBUTTONDOWN) {
-                msg = WM_MOUSEMOVE;
+            if (em.message == WM_LBUTTONDOWN) {
+                em.message = WM_MOUSEMOVE;
             }
         } else {
             // defense code
@@ -107,12 +107,13 @@ uint32 WatchApp::on_ev2dev(const epoll_event* const ev)
         touch_ic_overheat_dataset.push(packet_count, tickCount);
     }
 
-    if (((pt_x != pt0_x) || (pt_y != pt0_y)) && (xy != 0U)) { // check broken event
-        dprint0("%s.%d: %d - %d,%d\n", __func__, tickCount, msg, pt_x, pt_y);
-        (void)ExEmitPtrEvent(None, msg, pt_x, pt_y);
-        pt0_x = pt_x;
-        pt0_y = pt_y;
+    if (((em.pt.x != em0.pt.x) || (em.pt.y != em0.pt.y)) && (xy != 0U)) { // check broken event
+        dprint0("%s.%d: %d - %d,%d\n", __func__, tickCount, em.message, em.pt.x, em.pt.y);
+        (void)EmitPtrEvent(&em);
+        em0.pt.x = em.pt.x;
+        em0.pt.y = em.pt.y;
     }
+    em0.message = em.message;
 done:
     return 0U;
 }
@@ -179,7 +180,6 @@ bool WatchApp::startup()
 
 #ifdef CONF_X11
     (void)ExApp::initX11(this);
-    exCalibFunc = &TouchCalib;
 
     env.fb0_w = env.sm_w;
     env.fb0_h = env.sm_h;

@@ -1,0 +1,167 @@
+{
+	"version": "2.0.0",
+	/* Configure Yocto SDK Constants from settings.json */
+	"options": {
+		"env": {
+			//"CONF_SDK": "MX8", /* Used by Makefile */
+			"CONF_X11": "y", /* Used by Makefile */
+		}
+	},
+	/* Configure integrated VS Code Terminal */
+	"presentation": {
+		"echo": false,
+		"reveal": "always",
+		"focus": true,
+		"panel": "dedicated",
+		"showReuseMessage": true,
+	},
+	"tasks": [
+		/* Configure launch.json (debug) preLaunchTask Task */
+		{
+			"label": "deploy-remote-arm",
+			"isBackground": true,
+			"problemMatcher": {
+				"base": "$gcc",
+				"background": {
+					"activeOnStart": true,
+					"beginsPattern": "Deploying to target",
+					"endsPattern": "Starting GDB Server on Target"
+				}
+			},
+			"type": "shell",
+			"command": "sh",
+			"args": [
+				"deploy-remote-arm.sh",
+				"${config:EXTK.TARGET_IP}",
+				"${config:EXTK.PROGRAM}"
+			],
+			"dependsOn": [
+				"build debug",
+			],
+		},
+		{
+			"label": "deploy-remote-x86",
+			"isBackground": true,
+			"problemMatcher": {
+				"base": "$gcc",
+				"background": {
+					"activeOnStart": true,
+					"beginsPattern": "Deploying to target",
+					"endsPattern": "Starting GDB Server on Target"
+				}
+			},
+			"type": "shell",
+			"command": "sh",
+			"args": [
+				"deploy-remote-x86.sh",
+				"${config:EXTK.TARGET_IP}",
+				"${config:EXTK.PROGRAM}"
+			],
+			"dependsOn": [
+				"build debug",
+			],
+		},
+		{
+			"label": "deploy-local-arm",
+			"isBackground": true,
+			"problemMatcher": {
+				"base": "$gcc",
+				"background": {
+					"activeOnStart": true,
+					"beginsPattern": "Deploying to target",
+					"endsPattern": "Starting GDB Server on Target"
+				}
+			},
+			"type": "shell",
+			"command": "sh",
+			"args": [
+				"deploy-local-arm.sh",
+				"localhost",
+				"${config:EXTK.PROGRAM}"
+			],
+			"dependsOn": [
+				"build debug",
+			],
+		},
+		{
+			"label": "deploy-local-x86",
+			"isBackground": true,
+			"problemMatcher": {
+				"base": "$gcc",
+				"background": {
+					"activeOnStart": true,
+					"beginsPattern": "Deploying to target",
+					"endsPattern": "Starting GDB Server on Target"
+				}
+			},
+			"type": "shell",
+			"command": "sh",
+			"args": [
+				"deploy-local-x86.sh",
+				"localhost",
+				"${config:EXTK.PROGRAM}"
+			],
+			"dependsOn": [
+				"build debug",
+			],
+		},
+		/* Configure Build Task */
+		{
+			"label": "clean",
+			"type": "shell",
+			"command": "make clean",
+			"problemMatcher": [
+				"$gcc"
+			],
+			"group": {
+				"kind": "build"
+			}
+		},
+		{
+			"label": "build debug",
+			"type": "shell",
+			"command": "make -j$(nproc)",
+			"problemMatcher": [
+				"$gcc"
+			],
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			}
+		},
+		{
+			"label": "build release",
+			"type": "shell",
+			"command": "make RELEASE_BUILD=y -j$(nproc)",
+			"problemMatcher": [
+				"$gcc"
+			],
+			"group": {
+				"kind": "build"
+			}
+		},
+		{
+			"label": "rebuild debug",
+			"type": "shell",
+			"command": "make clean; make -j$(nproc)",
+			"problemMatcher": [
+				"$gcc"
+			],
+			"group": {
+				"kind": "build",
+				//"isDefault": true
+			}
+		},
+		{
+			"label": "rebuild release",
+			"type": "shell",
+			"command": "make clean; make RELEASE_BUILD=y -j$(nproc)",
+			"problemMatcher": [
+				"$gcc"
+			],
+			"group": {
+				"kind": "build"
+			}
+		},
+	]
+}

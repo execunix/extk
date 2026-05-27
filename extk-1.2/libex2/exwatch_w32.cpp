@@ -121,11 +121,12 @@ bool ExWatch::IomuxMap::del(HANDLE mux_fd) {
     return (r == 0);
 }
 
-uint32 ExWatch::IomuxMap::invoke(uint32 waittick) {
+int32 ExWatch::IomuxMap::invoke(int32 waittick) {
     DWORD nCount = setup();
     LPHANDLE pHandles = handles;
-    DWORD dwMilliseconds = waittick;//INFINITE;
+    DWORD dwMilliseconds = (DWORD)waittick;//INFINITE;
     DWORD dwWaitRet; // signaled number
+    const uint32 tick0 = watch->tickCount; // get current tick
 
     watch->leave();
     //Sleep(1);
@@ -138,17 +139,14 @@ uint32 ExWatch::IomuxMap::invoke(uint32 waittick) {
                                             dwMilliseconds, dwWakeMask, dwFlags);
 #endif
     watch->enter();
-    watch->tickCount = GetTickCount(); // update tick
 
-    if (dwWaitRet == WAIT_TIMEOUT) {
+    if (dwWaitRet == WAIT_TIMEOUT) { // no messages are available
         dprint0("IomuxMap: nCount=%d WAIT_TIMEOUT\n", nCount);
-        return 0U; // no messages are available
-    }
+    } else
 #if !defined(EVENTPROC_HAVETHREAD)
-    if (dwWaitRet == WAIT_OBJECT_0 + nCount) {
+    if (dwWaitRet == (WAIT_OBJECT_0 + nCount)) { // got message from gwes
         dprint0("IomuxMap: nCount=%d GOT_GWES_MSG\n", nCount);
-        return 1U; // got message from gwes
-    }
+    } else
 #endif
     if ((dwWaitRet >= WAIT_OBJECT_0) &&
         (dwWaitRet < (WAIT_OBJECT_0 + nCount))) {
@@ -168,8 +166,10 @@ uint32 ExWatch::IomuxMap::invoke(uint32 waittick) {
             // proc iomux handler
             exassert(iomux->notify.func);
             uint32 r = iomux->notify(iomux->mux_fd);
-            if ((r & Ex_Halt) != 0U) {
-                return watch->setHalt(r);
+            r |= watch->getHalt();
+            if (ExIsHalt(r)) {
+                (void)watch->setHalt(r);
+                break; // stop iomux loop
             }
             if ((r & Ex_Remove) != 0U) {
                 del(iomux->mux_fd);
@@ -177,10 +177,12 @@ uint32 ExWatch::IomuxMap::invoke(uint32 waittick) {
             }
             cnt++;
         }
-        return cnt; // got input signal
+        dprint("IomuxMap: got input signal cnt=%d\n", cnt);
+    } else {
+        exerror("IomuxMap: dwWaitRet:%p GetLastError:0x%p\n", dwWaitRet, GetLastError());
     }
-    exerror("IomuxMap: dwWaitRet:%p GetLastError:0x%p\n", dwWaitRet, GetLastError());
-    return 0U; // error
+    watch->tickCount = GetTickCount(); // update tick
+    return (watch->tickCount - tick0); // return elapsed tick
 }
 
 // Watch thread
@@ -246,35 +248,13 @@ bool ExWatch::init(size_t max_iomux, size_t stacksize) {
     return (hThread != nullptr);
 }
 
-bool ExWatch::enter() const {
-    DWORD dwWaitRet;
-#ifdef DEBUG
-    for (int32 i = 0; i < 100; i++) {
-        dwWaitRet = WaitForSingleObject(mutex, 3000U);
-        if (dwWaitRet == WAIT_OBJECT_0) {
-            break;
-        }
-        exerror("ExWatch::enter(TID=%p) %s %d\n", GetCurrentThreadId(),
-                dwWaitRet == WAIT_TIMEOUT ? "WAIT_TIMEOUT" : "WAIT_FAILED", i);
-    }
-#else
-    dwWaitRet = WaitForSingleObject(mutex, INFINITE);
-#endif
-    return true;
-}
-
-bool ExWatch::leave() const {
-    ReleaseMutex(mutex);
-    return true;
-}
-
 bool ExWatch::isSelf() const {
     return ((idThread == 0U) || (idThread == GetCurrentThreadId()));
 }
 
 uint32 ExWatch::setHalt(uint32 r)
 {
-    exassert((halt | r) & Ex_Halt);
+    exassert(((halt | r) & Ex_Halt) != 0U);
     if (!(halt & 0x80000000)) {
         halt |= 0x80000000;
         evWake.signal();

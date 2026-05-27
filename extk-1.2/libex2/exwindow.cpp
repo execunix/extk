@@ -94,7 +94,7 @@ uint32 ExWindow::destroy() {
         hwnd = None;
         if (ExApp::mainWnd == this) {
             ExApp::mainWnd = nullptr; // stop timer/flush/input exlib proc
-            (void)PostMessage(None, WM_QUIT, ExApp::retCode); // stop main loop
+            (void)ExEmitMessage(WM_QUIT, ExApp::retCode); // stop main loop
         }
 #endif // __linux__
     }
@@ -205,7 +205,7 @@ bool ExWindow::showWindow(ulong type, int32 x, int32 y) {
         (void)invokeHandler(&cbinfo(Ex_CbHandler));
     }
     // tbd - send_message(WM_SIZE, area.w, area.h); // layout
-    exMsgList.emit_event(hwnd, WM_SIZE)->sz = area.u.sz; // layout
+    exMsgList.emitMessage(hwnd, WM_SIZE)->sz = area.u.sz; // layout
     (void)exWatchDisp->wakeup();
     return showWindow();
 }
@@ -469,7 +469,7 @@ uint32 ExWindow::onRepeatKey(ExTimer* timer, ExCbInfo* cbinfo) {
 
 #ifdef WIN32
 ATOM // static
-ExWindow::classInit(HINSTANCE hInstance) {
+ExWindow::initClass(HINSTANCE hInstance) {
     static ATOM wcid = 0;
 
     if (wcid == 0) {
@@ -485,7 +485,7 @@ ExWindow::classInit(HINSTANCE hInstance) {
         wc.lpszMenuName = 0;//MAKEINTRESOURCE(IDC_APPDEMO);
         wc.lpszClassName = getClassName();
         wcid = RegisterClass(&wc);
-        dprint("classInit(0x%p) wcid=0x%p\n", hInstance, wcid);
+        dprint("initClass(0x%p) wcid=0x%p\n", hInstance, wcid);
     }
     return wcid;
 }

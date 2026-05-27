@@ -9,9 +9,7 @@
 #include "excallback.h"
 #include "exgeomet.h"
 #include "exmemory.h"
-#ifdef __linux__
-#include <pthread.h>
-#endif // __linux__
+#include "exevent.h"
 #include <array>
 
 #ifdef __linux__
@@ -249,35 +247,31 @@ struct ExMsg {
     }
 };
 
-#ifdef __linux__
 class ExMsgFifo : public tmemfifo<ExMsg, 256U> {
 private:
-    mutable pthread_mutex_t mutex;
+    ExMutex mutex;
 public:
-    int32 enter() const {
-        return pthread_mutex_lock(&mutex);
-    }
-    int32 leave() const {
-        return pthread_mutex_unlock(&mutex);
-    }
+    bool enter() const { return mutex.lock(); }
+    bool leave() const { return mutex.unlock(); }
 public:
-    ~ExMsgFifo() noexcept {
-        (void)pthread_mutex_destroy(&mutex);
-    }
-    ExMsgFifo() noexcept : tmemfifo<ExMsg, 256U>() {
-        (void)pthread_mutex_init(&mutex, nullptr);
-    }
+    ~ExMsgFifo() noexcept {}
+    ExMsgFifo() noexcept : tmemfifo<ExMsg, 256U>(), mutex() {}
 public:
-    ExMsg* get_event(ExMsg* const em = nullptr);
-    ExMsg* peek_event(ExMsg* const em = nullptr);
-    ExMsg* emit_event(const ExMsg* const em = nullptr);
-    ExMsg* emit_event(HWND hwnd, int32 message, uint32 wParam = 0U, int64 lParam = 0LL);
+    ExMsg* getMessage(ExMsg* const em = nullptr);
+    ExMsg* seekMessage(const size_t seek = 0UL);
+    ExMsg* emitMessage(const ExMsg* const em = nullptr);
+    ExMsg* emitMessage(HWND hwnd, int32 message, uint32 wParam = 0U, int64 lParam = 0LL);
 };
 
 extern ExMsgFifo exMsgList;
 
+// ExGet&EmitMsg APIs
+//
 ExMsg* ExGetMessage(ExMsg* em = nullptr);
-ExMsg* ExPostPtrMsg(int32 message, int32 pt_x, int32 pt_y);
+ExMsg* ExEmitMessage(const ExMsg* const em = nullptr);
+ExMsg* ExEmitMessage(int32 message, uint32 wParam, int64 lParam = 0LL);
+ExMsg* ExEmitPtrMsg(int32 message, int32 pt_x, int32 pt_y);
+#ifdef __linux__
 bool PostMessage(HWND hwnd, int32 message, uint32 wparam = 0U, int64 lparam = 0LL);
 #endif // __linux__
 
@@ -291,23 +285,13 @@ Returns:
     1	a message is available
 */
 #ifdef WIN32
-typedef bool (*ExEventFunc)(MSG& msg);
+typedef bool (*ExMessageFunc)(MSG& msg);
 bool ExEventPeek(MSG& msg);
 #endif // WIN32
 #ifdef __linux__
-typedef bool (*ExEventFunc)(ExMsg* em);
+typedef bool (*ExMessageFunc)(ExMsg* em);
 bool ExEventPeek(ExMsg* em);
 #endif // __linux__
-extern ExEventFunc exEventFunc;
-extern ExEventFunc exCalibFunc;
-
-// ExEmit APIs - deprecated => Call the callback function directly.
-//
-bool ExEmitMessage(HWND hwnd, int32 message, uint32 wParam, int64 lParam);
-bool ExEmitPtrEvent(HWND hwnd, int32 message, int32 pt_x, int32 pt_y);
-#ifdef WIN32
-bool ExEmitButPress(ExWidget* w, int32 x, int32 y);
-bool ExEmitButRelease(ExWidget* w, int32 x, int32 y);
-#endif // WIN32
+extern ExMessageFunc exEventFunc;
 
 #endif//__exmessage_h__

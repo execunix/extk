@@ -70,7 +70,7 @@ uint32 ExCallbackList::CallbackList::invoke(const void* object, const void* cbin
 
         r = cb(object, cbinfo);
 
-        if ((r & Ex_Halt) != 0U) {
+        if (ExIsHalt(r)) {
             return (r | Ex_End);
         }
         // should remove by invoker ?
@@ -151,7 +151,7 @@ uint32 ExListenerList::ListenerList::invoke(uint32 type, const void* object, con
         }
         r = cb(object, cbinfo);
 
-        if ((r & Ex_Halt) != 0U) {
+        if (ExIsHalt(r)) {
             return (r | Ex_End);
         }
         // should remove by invoker ?
@@ -233,11 +233,12 @@ uint32 ExWidget::ListenerList::invoke(ExWatch* watch, const uint32 type, const E
         r = cb(object, cbinfo);
 
         if (watch != nullptr) {
-            if (watch->getHalt() || (r & Ex_Halt)) {
+            r |= watch->getHalt();
+            if (ExIsHalt(r)) {
                 return watch->setHalt(r);
             }
         } else {
-            if ((r & Ex_Halt) != 0U) {
+            if (ExIsHalt(r)) {
                 return (r | Ex_End);
             }
         }
@@ -326,11 +327,12 @@ uint32 ExWindow::CallbackList::invoke(ExWatch* watch, const ExObject* object, co
         r = cb(object, cbinfo);
 
         if (watch != nullptr) {
-            if (watch->getHalt() || (r & Ex_Halt)) {
+            r |= watch->getHalt();
+            if (ExIsHalt(r)) {
                 return watch->setHalt(r);
             }
         } else {
-            if ((r & Ex_Halt) != 0U) {
+            if (ExIsHalt(r)) {
                 return (r | Ex_End);
             }
         }

@@ -71,6 +71,8 @@ const uint32 Ex_Break    = static_cast<uint32>(ExCallbackRet::Break);
 const uint32 Ex_End      = static_cast<uint32>(ExCallbackRet::End);
 const uint32 Ex_Halt     = static_cast<uint32>(ExCallbackRet::Halt);
 
+inline bool ExIsHalt(const uint32 r) { return ((r & Ex_Halt) != 0U); }
+
 enum ExLayoutSubType {
     Ex_LayoutInit,
     Ex_LayoutDone,

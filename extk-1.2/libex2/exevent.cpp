@@ -4,9 +4,11 @@
  */
 
 #include "exevent.h"
+#ifdef __linux__
+#include <sys/eventfd.h>
+#endif // __linux__
 
 #ifdef WIN32
-
 bool ExEvent::fini() noexcept {
     BOOL r = TRUE;
     if (hev != nullptr) {
@@ -45,9 +47,9 @@ bool ExEvent::setEvent(uint64 u64) const {
 bool ExEvent::isSignaled() const {
     return (WaitForSingleObject(hev, 0U) != WAIT_TIMEOUT);
 }
+#endif // WIN32
 
-#else // __linux__
-
+#ifdef __linux__
 bool ExEvent::fini() noexcept {
     int32 r = 0;
     if (efd != -1) {
@@ -88,5 +90,23 @@ bool ExEvent::setEvent(uint64 u64) const {
 bool ExEvent::isSignaled() const {
     return (this->u64 != 0UL); // tbd - check eventfd state
 }
+#endif // __linux__
 
-#endif
+#ifdef WIN32
+bool ExMutex::lock() const noexcept {
+    #ifdef DEBUG
+    DWORD dwWaitRet;
+    for (int32 i = 0; i < 100; i++) {
+        dwWaitRet = WaitForSingleObject(mutex, 3000U);
+        if (WAIT_OBJECT_0 == dwWaitRet) {
+            break;
+        }
+        exerror("ExMutex::lock() TID:%p %s %d\n", GetCurrentThreadId(),
+                dwWaitRet == WAIT_TIMEOUT ? "WAIT_TIMEOUT" : "WAIT_FAILED", i);
+    }
+    return (WAIT_OBJECT_0 == dwWaitRet);
+    #else
+    return (WAIT_OBJECT_0 == WaitForSingleObject(mutex, INFINITE));
+    #endif
+}
+#endif // WIN32

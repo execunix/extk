@@ -46,7 +46,7 @@ void ExWatch::TimerSet::active(ExTimer* timer) {
     }
 }
 
-uint32 ExWatch::TimerSet::invoke(uint32 tick_count) {
+int32 ExWatch::TimerSet::invoke(uint32 tick_count) {
     int32 waittick;
     while (!empty()) {
         ExTimer* timer = *begin();
@@ -55,7 +55,7 @@ uint32 ExWatch::TimerSet::invoke(uint32 tick_count) {
             if (waittick > 60000) {
                 waittick = 60000;
             }
-            return (uint32)waittick; // wait until next tick
+            return waittick; // wait until next tick
         }
         erase(begin());
         timer->fActived = 0U;
@@ -63,7 +63,8 @@ uint32 ExWatch::TimerSet::invoke(uint32 tick_count) {
         const void* object = timer->object ? timer->object : timer;
         ExCbInfo cbinfo(Ex_CbTimer, 0, nullptr, timer);
         uint32 r = timer->callback(object, &cbinfo);
-        if ((r & Ex_Halt) != 0U) {
+        r |= timer->watch->getHalt();
+        if (ExIsHalt(r)) {
             timer->watch->setHalt(r);
             return 60000;
         }
