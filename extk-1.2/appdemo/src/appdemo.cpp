@@ -412,7 +412,7 @@ int app_test() {
                data, ((uint32)*timer) % 10000U, cbinfo->type);
         return 0U; }, (void*)0xaaaa);
     //timer1.enter();
-    timer1.start_ex(1, 1233);
+    timer1.start(1U, 1233U);
     //timer1.leave();
     #endif
 
@@ -688,7 +688,7 @@ int main(int argc, char* argv[])
 {
     int32 result = EXIT_SUCCESS;
 
-    ExWatch::tls_specific(gWatchApp.name);
+    ExWatch::setTlsName(gWatchApp.name);
 #ifdef DPRINT
     dprint_verbose = 3;
     ex_dprint_appinfo = &dprint_appinfo;
@@ -696,15 +696,15 @@ int main(int argc, char* argv[])
         dprint("setlocale(LC_ALL, en_US.UTF-8) failed.\n");
     }
     #if 1 // test
-    dprint(dprint_verbose, "mbs %s\n", "mbs 한글");
-    dprint(dprint_verbose, "mbs %ls\n", L"wcs 한글");
-    dprint(dprint_verbose, L"wcs %s\n", "mbs 한글");
-    dprint(dprint_verbose, L"wcs %ls\n", L"wcs 한글");
+    dprint(dprint_verbose, "mbs 한글 %s\n", "mbs 한글");
+    dprint(dprint_verbose, "mbs 한글 %ls\n", L"wcs 한글");
+    dprint(dprint_verbose, L"wcs 한글 %s\n", "mbs 한글");
+    dprint(dprint_verbose, L"wcs 한글 %ls\n", L"wcs 한글");
     #endif
 #else
     dprint_verbose = 0;
 #endif
-    printf("Welcome to callbacks world...\n");
+    printf("Welcome to callbacks world 콜백 세계로...\n");
     //printf("errno 35 - %s\n", strerror(35)); // test
     poly_test();
     std::function<int32(void*)> func1 = [](void* data)->int32 {
@@ -808,8 +808,23 @@ int APIENTRY WinMain(_In_ HINSTANCE hInstance,
                      _In_ LPSTR     lpCmdLine,
                      _In_ int       nCmdShow)
 {
-    SetConsoleOutputCP(65001); // UTF-8
+    SetConsoleOutputCP(CP_UTF8); // CP_UTF8 | CP_ACP
 
+    ExWatch::setTlsName("AppMain");
+    exWatchMain->name = "ExWatch";
+#ifdef DPRINT
+    dprint_charset = CP_UTF8;
+    dprint_verbose = 3;
+    ex_dprint_appinfo = &dprint_appinfo;
+    #if 1 // test
+    dprint(dprint_verbose, "mbs 한글 %s\n", "mbs 한글");
+    dprint(dprint_verbose, "mbs 한글 %S\n", L"wcs 한글");
+    dprint(dprint_verbose, L"wcs 한글 %s\n", "mbs 한글");
+    dprint(dprint_verbose, L"wcs 한글 %S\n", L"wcs 한글");
+    #endif
+#else
+    dprint_verbose = 0;
+#endif
     //cb_test();
     //app_test();
     //flt_test();

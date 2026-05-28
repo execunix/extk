@@ -117,9 +117,9 @@ int WndMain::initInput()
             if (!(((int&)t->userdata) % 5))
                 SetEvent(hWakeupNoti);
             return Ex_Continue; }, NULL);
-        signalInputTimer.start(1, 1000);
+        signalInputTimer.start(1U, 1000U);
         return Ex_Continue; }, NULL);
-    launchInputTimer.start(1000);
+    launchInputTimer.start(1000U);
     return 0;
 }
 
@@ -589,7 +589,7 @@ int WndMain::build()
 
     (int&)timerVideoRefresh.userdata = 0;
     timerVideoRefresh.setCallback(this, &WndMain::onVideoRefresh, this);
-    timerVideoRefresh.start(1, repeat);
+    timerVideoRefresh.start(1U, repeat);
 
     initInput();
 
@@ -629,7 +629,7 @@ int WndMain::build()
 
     timerMain.setCallback(this, &WndMain::onTimer);
     (int&)timerMain.userdata = 0x1234;
-    timerMain.start(1);
+    timerMain.start(1U);
 
     return 0;
 }

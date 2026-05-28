@@ -487,7 +487,7 @@ WgtMenu::Popup* WgtMenu::popup(int x, int y, Menu* link) {
         pop->menuPop[n].area.w = vert.w; // expand max width
     }
     pop->timerAni.init(NULL, this, &WgtMenu::onTimerAni, pop);
-    pop->timerAni.start(33, 33);
+    pop->timerAni.start(33U, 33U);
     return pop;
 }
 

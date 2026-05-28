@@ -513,7 +513,7 @@ uint32 WndMain::onActBtns(ExWidget* widget, ExCbInfo* cbinfo) {
         if (cbinfo->type == Ex_CbActivate) {
             timer.u32[0] = !timer.u32[0];
             if (timer.u32[0])
-                timer.start(100, 25);
+                timer.start(100U, 25U);
             else
                 timer.stop();
             return Ex_Continue;
@@ -543,7 +543,7 @@ uint32 WndMain::onActBtns(ExWidget* widget, ExCbInfo* cbinfo) {
             }
             if (setCursor.u32[0] == 1) {
                 setCursor.u32[0] = 2;
-                setCursor.start(1000, 1000);
+                setCursor.start(1000U, 1000U);
             } else if (setCursor.u32[0] == 2) {
                 setCursor.u32[0] = 1;
                 setCursor.stop();
@@ -625,9 +625,9 @@ int WndMain::initIomux() {
                 SetEvent(hWakeupNoti);
             }
             return Ex_Continue; }, (void*)0);
-        signalInputTimer.start(1, 1000);
+        signalInputTimer.start(1U, 1000U);
         return Ex_Continue; }, (void*)0);
-    launchInputTimer.start(1000);
+    launchInputTimer.start(1000U);
     #endif // WIN32
     return 0;
 }
@@ -1037,7 +1037,7 @@ int WndMain::start() {
 
     timerToy.u32[0] = 0;
     timerToy.init(NULL, this, &WndMain::onTimerToy, this);
-    timerToy.start(1, 50); // 20Hz
+    timerToy.start(1U, 50U); // 20Hz
 
     addFilter(this, &WndMain::onFilter);
     addHandler(this, &WndMain::onHandler);
@@ -1058,7 +1058,7 @@ int WndMain::start() {
     wgtBackViewer.setFlags(Ex_Selectable);
 
     backBufUpdater.init(NULL, this, &WndMain::onBackBufUpdater);
-    backBufUpdater.start(1, 25); // 40Hz
+    backBufUpdater.start(1U, 25U); // 40Hz
 
     initIomux();
 

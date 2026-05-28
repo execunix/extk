@@ -415,24 +415,22 @@ void WatchApp::open_fifo()
 
 WatchApp gWatchApp;
 
-#ifdef __linux__
 int32 dprint_appinfo(char* const mbs, const int32 len)
 {
     char buf[32];
-    void* tls = nullptr;
-    if (ExWatch::tls_key != static_cast<pthread_key_t>(-1)) {
-        tls = pthread_getspecific(ExWatch::tls_key);
-    }
-    if (tls != nullptr) {
-        (void)exstrncpy(&buf[0], reinterpret_cast<char*>(tls), 31UL);
-        buf[31] = '\0';
-    } else {
-        const pthread_t tid = pthread_self();
+    const char* name = ExWatch::getTlsName();
+    if (name == nullptr) {
+        uint32 tid;
+#ifdef __linux__
+        tid = (uint32)pthread_self();
+#else
+        tid = (uint32)GetCurrentThreadId();
+#endif // __linux__
         (void)snprintf(&buf[0], 32UL, "%03u", static_cast<uint32>(tid % 1000UL));
+        name = buf;
     }
     const uint32 tick = static_cast<uint32>(ExGetTickCount() - ExWatch::tickAppLaunch);
-    return snprintf(mbs, static_cast<size_t>(len), "[%4u.%03u:%s] ", tick / 1000U, tick % 1000U, &buf[0]);
+    return snprintf(mbs, static_cast<size_t>(len), "[%4u.%03u:%s] ", tick / 1000U, tick % 1000U, name);
 }
-#endif // __linux__
 
 ExCallbackList cmdline_callback_list;

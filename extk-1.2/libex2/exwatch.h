@@ -146,11 +146,12 @@ public:
     const char* name; // for debug
     static uint32 tickAppLaunch;
     #ifdef WIN32
-    static DWORD tls_key;
+    static DWORD keyTlsName;
     #else // __linux__
-    static pthread_key_t tls_key;
+    static pthread_key_t keyTlsName;
     #endif
-    static void tls_specific(const char* name); // tbd
+    static const char* getTlsName();
+    static void setTlsName(const char* name);
 protected:
     #ifdef WIN32
     static DWORD WINAPI start(_In_ LPVOID arg);

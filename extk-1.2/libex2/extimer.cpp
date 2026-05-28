@@ -127,50 +127,42 @@ bool ExInitTimer(DWORD duetime, DWORD period) {
 // ExTimer
 //
 ExTimer::~ExTimer() noexcept {
-    if ((watch != nullptr) &&
-        (fActived != 0U)) {
-        if (watch->isSelf()) {
-            watch->timerset.remove(this);
-        } else { // should lock
-            watch->enter();
-            watch->timerset.remove(this);
-            watch->leave();
-        }
-    }
+    stop();
 }
 
 void ExTimer::stop() {
-    exassert(watch->isSelf());
+    //AutoLockWatch lock(watch);
+    bool is_lock = enter_watch();
     if (fActived != 0U) {
+        exassert(watch != nullptr);
         watch->timerset.remove(this);
     }
+    (void)leave_watch(is_lock);
 }
 
-void ExTimer::start(uint32 initial) {
-    exassert(watch->isSelf());
+void ExTimer::start(uint32 initial, uint32 repeat) {
+    exassert(watch != nullptr);
+    //AutoLockWatch lock(watch);
+    bool is_lock = enter_watch();
     if (fActived != 0U) { // stop()
         watch->timerset.remove(this);
     }
+    this->repeat = repeat;
     value = watch->tickCount + initial;
     watch->timerset.active(this);
+    (void)leave_watch(is_lock);
 }
 
-void ExTimer::stop_ex() {
-    exassert(!watch->isSelf());
-    watch->enter();
-    if (fActived != 0U) {
-        watch->timerset.remove(this);
+ExTimer::AutoLockWatch::~AutoLockWatch() {
+    if (is_lock) {
+        (void)watch->leave();
     }
-    watch->leave();
 }
 
-void ExTimer::start_ex(uint32 initial) {
-    exassert(!watch->isSelf());
-    watch->enter();
-    if (fActived != 0U) { // stop()
-        watch->timerset.remove(this);
+ExTimer::AutoLockWatch::AutoLockWatch(ExWatch* watch) : watch(watch) {
+    if ((watch != nullptr) && (!watch->isSelf())) {
+        is_lock = watch->enter();
+    } else {
+        is_lock = false;
     }
-    value = watch->tickCount + initial;
-    watch->timerset.active(this);
-    watch->leave();
 }

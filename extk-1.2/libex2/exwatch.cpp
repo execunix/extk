@@ -158,15 +158,22 @@ int32 ExWatch::IomuxMap::invoke(int32 waittick) {
 //
 uint32 ExWatch::tickAppLaunch = ExGetTickCount();
 
-pthread_key_t ExWatch::tls_key = (pthread_key_t)-1;
+pthread_key_t ExWatch::keyTlsName = (pthread_key_t)-1;
 
-void ExWatch::tls_specific(const char* name)
-{
-    if (tls_key == (pthread_key_t)-1) {
-        pthread_key_create(&tls_key, nullptr);
+const char* ExWatch::getTlsName() {
+    const char* name = nullptr;
+    if (keyTlsName != (pthread_key_t)-1) {
+        name = (const char*)pthread_getspecific(keyTlsName);
     }
-    pthread_setspecific(tls_key, malloc(256UL));
-    strcpy((char*)pthread_getspecific(tls_key), name);
+    return name;
+}
+
+void ExWatch::setTlsName(const char* name) {
+    if (keyTlsName == (pthread_key_t)-1) {
+        pthread_key_create(&keyTlsName, nullptr);
+    }
+    pthread_setspecific(keyTlsName, malloc(256UL));
+    strcpy((char*)pthread_getspecific(keyTlsName), name);
 }
 
 void* ExWatch::start(void* arg) {
@@ -246,7 +253,7 @@ uint32 ExWatch::proc() {
 #ifdef __linux__
     pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, nullptr);
 #endif // __linux__
-    tls_specific(name);
+    setTlsName(name);
     dprint("%s: tickAppLaunch=%d tickCount=%d\n", name, tickAppLaunch, tickCount);
     (void)enter();
     // seq-1 : prepare resources
