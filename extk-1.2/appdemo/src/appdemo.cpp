@@ -1,4 +1,4 @@
-//
+﻿//
 // Copyright (C) 2020 C.H Park <execunix@gmail.com>
 // SPDX-License-Identifier:     GPL-2.0+
 //
@@ -723,10 +723,7 @@ int main(int argc, char* argv[])
     (void)gWatchApp.startup();
     (void)gWatchApp.enter();
     (void)gWatchDev.init(); // start watch thread for gps and etc
-
-    (void)gWatchDev.enter();
     (void)gWatchdog.init();
-    (void)gWatchDev.leave();
     // app startup begin
     //
     //CApp app;
@@ -813,14 +810,13 @@ int APIENTRY WinMain(_In_ HINSTANCE hInstance,
     ExWatch::setTlsName("AppMain");
     exWatchMain->name = "ExWatch";
 #ifdef DPRINT
-    dprint_charset = CP_UTF8;
     dprint_verbose = 3;
     ex_dprint_appinfo = &dprint_appinfo;
     #if 1 // test
     dprint(dprint_verbose, "mbs 한글 %s\n", "mbs 한글");
-    dprint(dprint_verbose, "mbs 한글 %S\n", L"wcs 한글");
-    dprint(dprint_verbose, L"wcs 한글 %s\n", "mbs 한글");
-    dprint(dprint_verbose, L"wcs 한글 %S\n", L"wcs 한글");
+    dprint(dprint_verbose, "mbs 한글 %s\n", ExCPACP0(L"wcs 한글"));
+    dprint(dprint_verbose, L"wcs 한글 %s\n", ExCPACP0("mbs 한글"));
+    dprint(dprint_verbose, L"wcs 한글 %s\n", L"wcs 한글");
     #endif
 #else
     dprint_verbose = 0;

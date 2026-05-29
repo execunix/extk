@@ -8,39 +8,43 @@
 
 #include "extypes.h"
 
-extern uint32 iconv_charset; // default 949
+#ifdef __linux__
+#define CP_UTF8     65001
+#define CP_ACP      0
+#endif
 
 // classes
 //
-class wcsconv {
+class ExCPACP0 {
 public:
     union {
-        wchar* wcs;
         char* mbs;
+        wchar* wcs;
     };
-    ~wcsconv();
-    wcsconv(const wchar* src);
-    wcsconv(const char* src);
-    operator wchar* () { return wcs; }
+    ~ExCPACP0();
+    ExCPACP0(const char* src);
+    ExCPACP0(const wchar* src);
     operator char* () { return mbs; }
+    operator wchar* () { return wcs; }
 };
 
-class wcs2mbs {
+class ExCPUTF8 {
 public:
-    char* mbs;
-    ~wcs2mbs();
-    wcs2mbs(const wchar* wcs);
-    operator const char* () const { return mbs; }
+    union {
+        char* mbs;
+        wchar* wcs;
+    };
+    ~ExCPUTF8();
+    ExCPUTF8(const char* src);
+    ExCPUTF8(const wchar* src);
+    operator char* () { return mbs; }
+    operator wchar* () { return wcs; }
 };
 
-class mbs2wcs {
-public:
-    wchar* wcs;
-    ~mbs2wcs();
-    mbs2wcs(const char* mbs);
-    operator const wchar* () const { return wcs; }
-};
-
+// funcs
+//
+int32 mbs2wcs(wchar* wcs, int wcslen, const char* src, int srclen, uint codepage);
+int32 wcs2mbs(char* mbs, int mbslen, const wchar* src, int srclen, uint codepage);
 const char* wcs2utf8(const ucs2_t* wcs); // thread un-safe
 const char* wcs2utf8(const ucs4_t* wcs); // thread un-safe
 
