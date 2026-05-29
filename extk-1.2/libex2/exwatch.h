@@ -202,10 +202,11 @@ public:
     #endif
     bool fini();
     bool init(size_t max_iomux = 256UL, size_t stacksize = 1048576UL);
-    bool enter() const { return mutex.lock(); }
     bool leave() const { return mutex.unlock(); }
+    bool enter() const { return mutex.lock(); }
     bool isSelf() const;
     bool wakeup() const { return isSelf() ? false : evWake.signal(); }
+    bool isEntered() const { return mutex.islock(); }
     uint32 setHalt(uint32 r = Ex_Halt);
     uint32 getHalt() const { return halt; }
     uint32 getTick() const { return tickCount; }
@@ -265,6 +266,7 @@ protected:
     int32 timerset_invoke(uint32 tick_count) { return timerset.invoke(tick_count); }
     int32 iomuxmap_invoke(int32 waittick = 60000) { return iomuxmap.invoke(waittick); }
 #endif // tbd
+    friend class ExMutex;
     friend class ExTimer;
 public:
     Ex_DECLARE_TYPEINFO(ExWatch, ExObject);

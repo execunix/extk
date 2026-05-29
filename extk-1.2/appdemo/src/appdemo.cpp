@@ -758,9 +758,7 @@ int main(int argc, char* argv[])
     //(void)module.init();
     //
 
-    (void)gWatchApp.leave();
     (void)gWatchApp.mainloop();
-    (void)gWatchApp.enter();
 
     //
     //(void)module.fini();

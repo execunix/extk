@@ -94,6 +94,7 @@ bool ExEvent::isSignaled() const {
 
 #ifdef WIN32
 bool ExMutex::lock() const noexcept {
+    idThread = GetCurrentThreadId();
     #ifdef DEBUG
     DWORD dwWaitRet;
     for (int32 i = 0; i < 100; i++) {

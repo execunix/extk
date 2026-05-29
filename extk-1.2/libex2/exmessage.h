@@ -285,13 +285,10 @@ Returns:
     1	a message is available
 */
 #ifdef WIN32
-typedef bool (*ExMessageFunc)(MSG& msg);
 bool ExEventPeek(MSG& msg);
 #endif // WIN32
 #ifdef __linux__
-typedef bool (*ExMessageFunc)(ExMsg* em);
 bool ExEventPeek(ExMsg* em);
 #endif // __linux__
-extern ExMessageFunc exEventFunc;
 
 #endif//__exmessage_h__

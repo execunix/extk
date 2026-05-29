@@ -89,7 +89,7 @@ uint32 WatchApp::on_ev2dev(const epoll_event* const ev)
             }
         } else if ((ev2.type == static_cast<uint16>(EV_SYN)) || (((em.pt.x != em0.pt.x) || (em.pt.y != em0.pt.y)) && (xy == 3U))) {
             dprint0("%s.%d: %d - %d,%d\n", __func__, tickCount, em.message, em.pt.x, em.pt.y);
-            (void)EmitPtrEvent(&em);
+            (void)EmitPtrEvent(em);
             em0.pt.x = em.pt.x;
             em0.pt.y = em.pt.y;
             xy = 0U;
@@ -109,7 +109,7 @@ uint32 WatchApp::on_ev2dev(const epoll_event* const ev)
 
     if (((em.pt.x != em0.pt.x) || (em.pt.y != em0.pt.y)) && (xy != 0U)) { // check broken event
         dprint0("%s.%d: %d - %d,%d\n", __func__, tickCount, em.message, em.pt.x, em.pt.y);
-        (void)EmitPtrEvent(&em);
+        (void)EmitPtrEvent(em);
         em0.pt.x = em.pt.x;
         em0.pt.y = em.pt.y;
     }
@@ -259,8 +259,7 @@ bool WatchApp::startup()
 void WatchApp::mainloop()
 {
     ExMsg em(None);
-
-    (void)enter();
+    exassert(isEntered());
     while (getHalt() == 0U) {
         while (true) {
             if (ExGetMessage(&em) == nullptr) {
@@ -292,7 +291,6 @@ void WatchApp::mainloop()
     }
 end_loop:
     ExApp::collect();
-    (void)leave();
 }
 #endif // __linux__
 
@@ -300,8 +298,7 @@ end_loop:
 int32 WatchApp::modal_loop(void* ctrl)
 {
     ExMsg em(None);
-
-    (void)enter();
+    exassert(isEntered());
     while (getHalt() == 0U) {
         while (ExGetMessage(&em) != nullptr) { // is message available ?
             if ((em.message == WM_CLOSE) || (ctrl->done != 0)) {
@@ -329,7 +326,6 @@ int32 WatchApp::modal_loop(void* ctrl)
     }
 end_loop:
     ExApp::collect();
-    (void)leave();
     return 0;
 }
 #endif

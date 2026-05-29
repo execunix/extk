@@ -41,35 +41,46 @@ public:
 class ExMutex {
 protected:
     #ifdef WIN32
-    mutable HANDLE  mutex;
+    mutable HANDLE          mutex;
+    mutable DWORD           idThread;
     #else // __linux__
     mutable pthread_mutex_t mutex;
+    mutable pthread_t       tid;
     #endif // __linux__
 public:
     #ifdef WIN32
     ~ExMutex() noexcept {
         CloseHandle(mutex);
     }
-    explicit ExMutex() noexcept : mutex(nullptr) {
+    explicit ExMutex() noexcept : mutex(nullptr), idThread(0U) {
         mutex = CreateMutex(nullptr, FALSE, nullptr);
     }
     bool lock() const noexcept;
     bool unlock() const noexcept {
+        idThread = 0U;
         return (FALSE != ReleaseMutex(mutex));
+    }
+    bool islock() const noexcept {
+        return (idThread == GetCurrentThreadId());
     }
     operator HANDLE () const { return mutex; }
     #else // __linux__
     ~ExMutex() noexcept {
         pthread_mutex_destroy(&mutex);
     }
-    explicit ExMutex() noexcept : mutex() {
+    explicit ExMutex() noexcept : mutex(), tid(0U) {
         pthread_mutex_init(&mutex, nullptr);
     }
     bool lock() const noexcept {
+        tid = pthread_self();
         return (0 == pthread_mutex_lock(&mutex));
     }
     bool unlock() const noexcept {
+        tid = 0U;
         return (0 == pthread_mutex_unlock(&mutex));
+    }
+    bool islock() const noexcept {
+        return (tid == pthread_self());
     }
     #endif // __linux__
 };

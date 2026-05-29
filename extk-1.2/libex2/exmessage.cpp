@@ -146,5 +146,3 @@ bool ExEventPeek(ExMsg* em)
     return false; // tbd
 }
 #endif
-
-ExMessageFunc exEventFunc = &ExEventPeek;
