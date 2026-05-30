@@ -15,6 +15,7 @@ void WgtTitle::init(ExWindow* window) {
     ExRect rc;
     ExWidget::init(window, "WgtTitle", &rc.set(0, 0, 800, 36));
     setTitle(ExCPUTF8(L"Welcome to Rectangles and Callbacks 세계로..."));
+    //setTitle("Welcome to Rectangles and Callbacks 세계로...");
     //setTitle("Welcome to Rectangles and Callbacks World.");
     setFlags(Ex_Selectable);
     addListener(this, &WgtTitle::onLayout, Ex_CbLayout);

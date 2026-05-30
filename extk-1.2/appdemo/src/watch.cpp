@@ -147,7 +147,7 @@ bool WatchApp::cleanup()
 
     fini_fifo();
 
-    tid = 0UL;
+    tid = 0U;
     iomuxmap.fini();
     timerset.fini();
     evWake.fini();
@@ -162,7 +162,7 @@ bool WatchApp::startup()
     exWatchLast = this;
     exWatchDisp = this;
 
-    exassert2(tid == 0UL, __FILE__ "@" Ex_STRINGIFY(__LINE__));
+    exassert2(tid == 0U, __FILE__ "@" Ex_STRINGIFY(__LINE__));
     iomuxmap.init(256UL);
 
     evWake.init();
@@ -262,7 +262,7 @@ void WatchApp::mainloop()
     exassert(isEntered());
     while (getHalt() == 0U) {
         while (true) {
-            if (ExGetMessage(&em) == nullptr) {
+            if (ExPeekMessage(&em) == nullptr) {
                 break;
             }
             // em message is available
@@ -292,6 +292,40 @@ void WatchApp::mainloop()
 end_loop:
     ExApp::collect();
 }
+#else // WIN32
+bool WatchApp::cleanup()
+{
+    idThread = 0U;
+    iomuxmap.fini();
+    timerset.fini();
+    evWake.fini();
+    return true;
+}
+
+bool WatchApp::startup()
+{
+    int32 r = 0;
+
+    exWatchMain = this;
+    exWatchLast = this;
+    exWatchDisp = this;
+
+    exassert2(idThread == 0U, __FILE__ "@" Ex_STRINGIFY(__LINE__));
+    iomuxmap.init(256UL);
+
+    evWake.init();
+    (void)ioAdd((ExWatch*)this, &ExWatch::onEvent, evWake);
+
+    tickCount = ExGetTickCount(); // update tick
+
+    idThread = GetCurrentThreadId();
+
+    return (r == 0);
+}
+void WatchApp::mainloop()
+{
+    ExMainLoop(this);
+}
 #endif // __linux__
 
 #if 0
@@ -300,7 +334,7 @@ int32 WatchApp::modal_loop(void* ctrl)
     ExMsg em(None);
     exassert(isEntered());
     while (getHalt() == 0U) {
-        while (ExGetMessage(&em) != nullptr) { // is message available ?
+        while (ExPeekMessage(&em) != nullptr) { // is message available ?
             if ((em.message == WM_CLOSE) || (ctrl->done != 0)) {
                 dprint("WM_CLOSE tick=%d\n", tickCount);
                 (void)setHalt(Ex_Halt); // stop exmsg loop

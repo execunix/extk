@@ -101,7 +101,7 @@ public:
     friend class ExTimer;
 };
 
-void ExMainLoop();
+void ExMainLoop(ExWatch* const watch);
 void ExQuitMainLoop();
 
 #ifdef OSAL_WIN32

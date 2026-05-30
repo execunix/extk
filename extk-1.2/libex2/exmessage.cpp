@@ -86,11 +86,6 @@ ExMsg* ExMsgFifo::emitMessage(HWND hwnd, int32 message, uint32 wParam, int64 lPa
     #endif
 }
 
-ExMsg* ExGetMessage(ExMsg* em)
-{
-    return exMsgList.getMessage(em);
-}
-
 ExMsg* ExEmitMessage(const ExMsg* const em)
 {
     ExMsg* emref = exMsgList.emitMessage(em);
@@ -128,21 +123,29 @@ bool PostMessage(HWND hwnd, int32 message, uint32 wparam, int64 lparam)
 #endif // __linux__
 
 #ifdef WIN32
-bool ExEventPeek(MSG& msg)
+MSG* ExPeekMessage(MSG* msg)
 {
-    BOOL bRet;
-    exWatchDisp->leave();
-    if ((bRet = GetMessage(&msg, NULL, 0, 0)) != TRUE) {
-        exassert(msg.message == WM_QUIT);
-        // WM_DESTROY => PostQuitMessage
-        bRet = TRUE;
+    ExMsg* em;
+    if ((em = exMsgList.getMessage()) != nullptr) {
+        msg->hwnd = em->hwnd;
+        msg->message = em->message;
+        msg->wParam = em->wParam;
+        msg->lParam = em->lParam;
+        msg->time = em->time;
+        msg->pt.x = em->pt.x;
+        msg->pt.y = em->pt.y;
+    } else {
+        exWatchDisp->leave();
+        if (PeekMessage(msg, NULL, 0U, 0U, PM_REMOVE) == FALSE) {
+            msg = nullptr;
+        }
+        exWatchDisp->enter();
     }
-    exWatchDisp->enter();
-    return bRet;
+    return msg;
 }
 #else
-bool ExEventPeek(ExMsg* em)
+ExMsg* ExPeekMessage(ExMsg* em)
 {
-    return false; // tbd
+    return exMsgList.getMessage(em);
 }
 #endif

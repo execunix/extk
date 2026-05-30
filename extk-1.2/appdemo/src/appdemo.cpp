@@ -492,16 +492,6 @@ void poly_test()
     cblist.invoke(&timer1, &cbinfo);
 }
 
-static uint32 flushMainWnd(void* data, uint32 hook) {
-    if (hook != ExHookProc::Maintain) {
-        return -1;
-    }
-    if (ExApp::mainWnd != NULL) {
-        ExApp::mainWnd->flush();
-    }
-    return 0;
-}
-
 #ifdef __linux__
 constexpr int32 BT_BUF_SIZE = 32;
 
@@ -803,10 +793,10 @@ int APIENTRY WinMain(_In_ HINSTANCE hInstance,
                      _In_ LPSTR     lpCmdLine,
                      _In_ int       nCmdShow)
 {
-    SetConsoleOutputCP(CP_UTF8); // CP_UTF8 | CP_ACP
+    ExApp::retCode = EXIT_SUCCESS;
 
-    ExWatch::setTlsName("AppMain");
-    exWatchMain->name = "ExWatch";
+    ExWatch::setTlsName(gWatchApp.name);
+    SetConsoleOutputCP(CP_UTF8); // CP_UTF8 | CP_ACP
 #ifdef DPRINT
     dprint_verbose = 3;
     ex_dprint_appinfo = &dprint_appinfo;
@@ -824,32 +814,31 @@ int APIENTRY WinMain(_In_ HINSTANCE hInstance,
     //flt_test();
 
     ExApp::init(hInstance, hPrevInstance, lpCmdLine, nCmdShow);
-    exWatchDisp = exWatchMain;
     (void)initEnv();
     (void)initRes();
-
-    exWatchDisp->enter();
-    exWatchDisp->procMaintain = ExHookProc(&flushMainWnd, (void*)NULL);
-    exWatchDisp->init();
+    (void)gWatchApp.startup();
+    (void)gWatchApp.enter();
 
     // startup
-    // tbd - parse args
-    //WndMain gWndMain; // test
-    //WndMain* gWndMain = WndMain::create(...); // test
-    WndMain* gWndMain = new WndMain;
-    gWndMain->setFlags(Ex_FreeMemory); // tbd
+    gWndMain = new WndMain;
+    //gWndMain = WndMain::create(...); // test
+    (void)gWndMain->setFlags(Ex_FreeMemory); // tbd
+    //gWndMain->flushFunc = ExFlushFunc(&gLcdOut, &LcdOut::onFlush);
     if (gWndMain->start() != 0) {
-        return EXIT_FAILURE;
+        ExApp::retCode = EXIT_FAILURE;
+        goto on_failure;
     }
+    (void)gWndMain->flush();
     exassert(ExApp::mainWnd == gWndMain);
-    ExMainLoop();
-    exWatchDisp->fini();
-    exWatchDisp->leave();
+
+    (void)gWatchApp.mainloop(); // ExMainLoop(&gWatchApp);
 
     // cleanup
+    (void)gWatchApp.cleanup();
     (void)finiRes();
     (void)saveEnv();
-    ExApp::exit(1);
+    ExApp::exit(ExApp::retCode);
+on_failure:
     return ExApp::retCode;
 }
 #endif // WIN32

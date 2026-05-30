@@ -145,7 +145,7 @@ void* ExModalBlock(ExModalCtrl* ctrl, long flags)
         if (exWatchDisp->getHalt() != 0U) // is halt ?
             break; // stop exmsg loop
         while ((ctrl->flags & 0x80000000) &&
-            ExEventPeek(msg) == true) { // is message available ?
+            ExPeekMessage(msg) == true) { // is message available ?
             if (msg.message == WM_ExEvWake) {
                 dprint("message == WM_ExEvWake\n");
                 break;
@@ -175,28 +175,65 @@ Description:
     This is a convenience function that implements an application main loop using
     ExEventNext() and ExEventHandler().
 */
-void ExMainLoop()
+void ExMainLoop(ExWatch* const watch)
 {
-#ifdef WIN32
+    int32 waittick = 0;
+    #ifdef __linux__
+    ExMsg msg(None);
+    #else // WIN32
     MSG msg;
-    exassert(exWatchDisp->isEntered());
-    while ((exWatchDisp->getHalt() == 0U) &&
-           (ExEventPeek(msg) == true)) { // is message available ?
-        if (msg.message == WM_ExEvWake) {
-            dprint("message == WM_ExEvWake\n");
-            continue;
+    #endif
+    exassert(watch->isEntered());
+    while ((watch->getHalt() == 0U)) {
+        // seq-2 : dispatch event
+        while (true) {
+            if (ExPeekMessage(&msg) == nullptr) {
+                break;
+            }
+            if (msg.message == WM_ExEvWake) {
+                dprint("message == WM_ExEvWake\n");
+                continue;
+            }
+            // message is available
+            if (msg.message == WM_QUIT) { // WM_DESTROY => PostQuitMessage
+                dprint("WM_QUIT tick=%d\n", watch->getTick());
+                ExApp::retCode = (int32)msg.wParam; // cause DestroyWindow
+                (void)watch->setHalt(Ex_Halt); // stop exmsg loop
+                goto end_loop;
+            }
+            ExApp::dispatch(msg);
+            if (watch->getHalt() != 0U) {
+                goto end_loop;
+            }
         }
-        if (msg.message == WM_QUIT) { // WM_DESTROY => PostQuitMessage
-            dprint("message == WM_QUIT tick=%d\n", exWatchDisp->getTick());
-            ExApp::retCode = (int32)msg.wParam; // cause DestroyWindow
-            exWatchDisp->setHalt(Ex_Halt); // stop exmsg loop
+        // seq-3 : invoke timer callback
+        waittick = watch->timerset.invoke(watch->tickCount);
+        if (watch->getHalt() != 0U) { // is halt ?
+            break; // stop exmsg loop
+        }
+        if (ExApp::mainWnd != NULL) {
+            ExApp::mainWnd->flush();
+        }
+        #if 1 // adjust for internal timer callback sleep
+        waittick -= (ExGetTickCount() - watch->tickCount);
+        if (waittick < 1) {
+            waittick = 1;
+        }
+        #endif
+        // seq-4 : collect resources, flush gui, ...
+        ExApp::collect();
+        if (watch->getHalt() != 0U) {
             break;
         }
-        ExApp::dispatch(msg);
-        ExApp::collect();
+        // seq-5 : wait blocked iomux for waittick msec and update tick count
+        waittick = watch->iomuxmap.invoke(waittick); // The only waiting point.
+        // seq-6 : invoked iomux callback
+        #if 1 // adjust for internal epoll callback sleep
+        // waittick : apply epoll callback sleep tick
+        #endif
     }
+end_loop:
     ExApp::collect();
-#endif
 }
 
 /**

@@ -210,7 +210,6 @@ public:
     uint32 setHalt(uint32 r = Ex_Halt);
     uint32 getHalt() const { return halt; }
     uint32 getTick() const { return tickCount; }
-protected:
     #ifdef WIN32
     uint32 onEvent(HANDLE hev);
     #else // __linux__
@@ -266,6 +265,7 @@ protected:
     int32 timerset_invoke(uint32 tick_count) { return timerset.invoke(tick_count); }
     int32 iomuxmap_invoke(int32 waittick = 60000) { return iomuxmap.invoke(waittick); }
 #endif // tbd
+    friend void ExMainLoop(ExWatch* const watch);
     friend class ExMutex;
     friend class ExTimer;
 public:

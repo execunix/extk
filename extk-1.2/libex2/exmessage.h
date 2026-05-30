@@ -267,7 +267,6 @@ extern ExMsgFifo exMsgList;
 
 // ExGet&EmitMsg APIs
 //
-ExMsg* ExGetMessage(ExMsg* em = nullptr);
 ExMsg* ExEmitMessage(const ExMsg* const em = nullptr);
 ExMsg* ExEmitMessage(int32 message, uint32 wParam, int64 lParam = 0LL);
 ExMsg* ExEmitPtrMsg(int32 message, int32 pt_x, int32 pt_y);
@@ -276,19 +275,19 @@ bool PostMessage(HWND hwnd, int32 message, uint32 wparam = 0U, int64 lparam = 0L
 #endif // __linux__
 
 /**
-ExEventPeek()
+ExPeekMessage()
     Provide asynchronous exmsg notification
 Description:
     This function provides an asynchronous exmsg-notification mechanism.
 Returns:
-    0	no messages are available
-    1	a message is available
+    NULL    no messages are available
+   !NULL    a message is available
 */
 #ifdef WIN32
-bool ExEventPeek(MSG& msg);
+MSG* ExPeekMessage(MSG* msg = nullptr);
 #endif // WIN32
 #ifdef __linux__
-bool ExEventPeek(ExMsg* em);
+ExMsg* ExPeekMessage(ExMsg* em = nullptr);
 #endif // __linux__
 
 #endif//__exmessage_h__
