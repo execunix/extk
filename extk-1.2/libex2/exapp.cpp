@@ -185,6 +185,7 @@ void ExMainLoop(ExWatch* const watch)
     #endif
     exassert(watch->isEntered());
     while ((watch->getHalt() == 0U)) {
+        uint32 r;
         // seq-2 : dispatch event
         while (true) {
             if (ExPeekMessage(&msg) == nullptr) {
@@ -211,9 +212,6 @@ void ExMainLoop(ExWatch* const watch)
         if (watch->getHalt() != 0U) { // is halt ?
             break; // stop exmsg loop
         }
-        if (ExApp::mainWnd != NULL) {
-            ExApp::mainWnd->flush();
-        }
         #if 1 // adjust for internal timer callback sleep
         waittick -= (ExGetTickCount() - watch->tickCount);
         if (waittick < 1) {
@@ -221,8 +219,8 @@ void ExMainLoop(ExWatch* const watch)
         }
         #endif
         // seq-4 : collect resources, flush gui, ...
-        ExApp::collect();
-        if (watch->getHalt() != 0U) {
+        r = watch->procMaintain(ExHookProc::Maintain);
+        if (ExIsHalt(r | watch->getHalt())) {
             break;
         }
         // seq-5 : wait blocked iomux for waittick msec and update tick count

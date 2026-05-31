@@ -492,6 +492,16 @@ void poly_test()
     cblist.invoke(&timer1, &cbinfo);
 }
 
+static uint32 flushMainWnd(void* data, uint32 hook) {
+    if (hook == ExHookProc::Maintain) {
+        if (ExApp::mainWnd != nullptr) {
+            ExApp::mainWnd->flush();
+            ExApp::collect();
+        }
+    }
+    return Ex_Continue;
+}
+
 #ifdef __linux__
 constexpr int32 BT_BUF_SIZE = 32;
 
@@ -818,6 +828,7 @@ int APIENTRY WinMain(_In_ HINSTANCE hInstance,
     (void)initRes();
     (void)gWatchApp.startup();
     (void)gWatchApp.enter();
+    gWatchApp.procMaintain = ExHookProc(&flushMainWnd, (void*)nullptr);
 
     // startup
     gWndMain = new WndMain;

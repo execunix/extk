@@ -210,6 +210,7 @@ public:
     uint32 setHalt(uint32 r = Ex_Halt);
     uint32 getHalt() const { return halt; }
     uint32 getTick() const { return tickCount; }
+public:
     #ifdef WIN32
     uint32 onEvent(HANDLE hev);
     #else // __linux__

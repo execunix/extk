@@ -8,7 +8,7 @@
 
 #ifdef WIN32
 
-//#define IOMUX_WAIT_GWES
+//#define IOMUX_WAIT_NO_GWES
 
 uint64 ExGetMonoClock() {
     LARGE_INTEGER freq, tick;
@@ -130,7 +130,7 @@ int32 ExWatch::IomuxMap::invoke(int32 waittick) {
 
     watch->leave();
     //Sleep(1);
-#if defined(IOMUX_WAIT_GWES)
+#if defined(IOMUX_WAIT_NO_GWES)
     dwWaitRet = WaitForMultipleObjects(nCount, pHandles, FALSE, dwMilliseconds);
 #else
     DWORD dwWakeMask = QS_ALLEVENTS;//QS_ALLINPUT;
@@ -143,7 +143,7 @@ int32 ExWatch::IomuxMap::invoke(int32 waittick) {
     if (dwWaitRet == WAIT_TIMEOUT) { // no messages are available
         dprint0("IomuxMap: nCount=%d WAIT_TIMEOUT\n", nCount);
     } else
-#if !defined(IOMUX_WAIT_GWES)
+#if !defined(IOMUX_WAIT_NO_GWES)
     if (dwWaitRet == (WAIT_OBJECT_0 + nCount)) { // got message from gwes
         dprint0("IomuxMap: nCount=%d GOT_GWES_MSG\n", nCount);
     } else
