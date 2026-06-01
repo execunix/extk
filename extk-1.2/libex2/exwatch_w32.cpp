@@ -205,7 +205,7 @@ void ExWatch::setTlsSpecific(const ExWatch* watch) {
     }
     exassert(keyTlsSpecific != TLS_OUT_OF_INDEXES);
     exassert(TlsGetValue(keyTlsSpecific) == nullptr);
-    TlsSetValue(keyTlsSpecific, watch);
+    TlsSetValue(keyTlsSpecific, (LPVOID)watch);
 }
 
 DWORD WINAPI ExWatch::start(_In_ LPVOID arg) {

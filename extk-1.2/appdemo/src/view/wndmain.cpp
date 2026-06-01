@@ -526,6 +526,8 @@ uint32 WndMain::onActBtns(ExWidget* widget, ExCbInfo* cbinfo) {
             WgtSetup* setup = new WgtSetup;
             setup->setFlags(Ex_FreeMemory);
             setup->init(this, 300, 200);
+            void* r = ExModalBlock(&setup->ctrl);
+            dprint("ExModalBlock r:%p\n", r);
             return Ex_Continue;
         }
     }

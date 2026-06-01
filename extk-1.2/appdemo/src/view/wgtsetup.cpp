@@ -115,6 +115,7 @@ uint32 WgtSetup::onActivate(ExWidget* widget, ExCbInfo* cbinfo) {
             window->removeFilter(ExCallback(this, &WgtSetup::onFilter));
             #endif
             destroy();
+            ExModalUnblock(&ctrl, (void*)0x3f);
             return Ex_Continue;
         }
     }
@@ -200,7 +201,7 @@ void WgtSetup::init(ExWidget* parent, int x, int y) {
     addListener(this, &WgtSetup::onLayout, Ex_CbLayout);
     drawFunc = ExDrawFunc(fillRect, (void*)20);
     setFlags(Ex_Selectable);
-    //select = ExBox(9999);
+    select = ExBox(9999);
 
     title.init(this, "Setup", &rc.set(2, 2, 386, 40));
     title.drawFunc = ExDrawFunc(drawName, (void*)NULL);

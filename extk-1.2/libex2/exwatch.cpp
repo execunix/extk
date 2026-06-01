@@ -338,7 +338,8 @@ void* ExWatch::dispatch(ExModalCtrl* const ctrl) {
 void* ExWatch::modalBlock(ExModalCtrl* const ctrl) {
     int32 waittick = 0;
     exassert(isEntered());
-    mclist.push_back(ctrl);
+    mclist.push_front(ctrl);
+    exassert(ctrl->flags == Ex_Continue);
     while (!ExIsHalt(ctrl->flags | getHalt())) {
         // seq-2 : dispatch event
         (void)dispatch(ctrl);
@@ -371,29 +372,21 @@ void* ExWatch::modalBlock(ExModalCtrl* const ctrl) {
         // waittick : apply epoll callback sleep tick
         #endif
     }
+    void* result = ctrl->result;
     if (ctrl->flags == Ex_Continue) {
         modalUnblock(ctrl, ctrl->result);
     }
-    ExApp::collect();
-    return ctrl->result;
+    ExApp::collect(); // invalidate ctrl
+    return result;
 }
 
 void ExWatch::modalUnblock(ExModalCtrl* const ctrl, void* result) {
     exassert(isEntered());
-    ExModalCtrlList::iterator i = mclist.begin();
-    for (; i != mclist.end(); ++i) {
-        if ((*i) == ctrl) {
-            break;
-        }
-    }
-    exassert(i != mclist.end());
-    while (i != mclist.end()) {
-        if ((*i) == ctrl) {
-            (*i)->result = result;
-        }
-        (*i)->flags |= Ex_Halt;
-        i = mclist.erase(i);
-    }
+    auto front = mclist.front();
+    exassert(front == ctrl);
+    front->flags |= Ex_Halt;
+    front->result = result;
+    mclist.pop_front();
     evWake.signal();
 }
 

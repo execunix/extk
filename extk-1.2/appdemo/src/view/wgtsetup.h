@@ -53,6 +53,7 @@ public:
     WgtPage2 page2;
     ExWidget tab3;
     WgtPage3 page3;
+    ExModalCtrl ctrl;
 public:
     ~WgtSetup() { fini();  }
     WgtSetup() : ExWidget() {}
