@@ -255,43 +255,6 @@ bool WatchApp::startup()
 #endif // CONF_X11
     return (r == 0);
 }
-
-void WatchApp::mainloop()
-{
-    ExMsg em(None);
-    exassert(isEntered());
-    while (getHalt() == 0U) {
-        while (true) {
-            if (ExPeekMessage(&em) == nullptr) {
-                break;
-            }
-            // em message is available
-            if (em.message == WM_QUIT) {
-                dprint("WM_QUIT tick=%d\n", tickCount);
-                (void)setHalt(Ex_Halt); // stop exmsg loop
-                goto end_loop;
-            }
-            (void)exWatchDisp->leave();
-            (void)DefWndProc(em); // dispatch
-            (void)exWatchDisp->enter();
-            if (getHalt() != 0U) {
-                goto end_loop;
-            }
-        }
-        const uint32 waittick = timerset.invoke(tickCount);
-        if (getHalt() != 0U) {
-            break;
-        }
-        ExApp::collect();
-        if (ExApp::mainWnd != nullptr) {
-            (void)ExApp::mainWnd->flush();
-        }
-        // blocked
-        (void)iomuxmap.invoke(waittick);
-    }
-end_loop:
-    ExApp::collect();
-}
 #else // WIN32
 bool WatchApp::cleanup()
 {
@@ -322,47 +285,7 @@ bool WatchApp::startup()
 
     return (r == 0);
 }
-void WatchApp::mainloop()
-{
-    ExMainLoop(this);
-}
 #endif // __linux__
-
-#if 0
-int32 WatchApp::modal_loop(void* ctrl)
-{
-    ExMsg em(None);
-    exassert(isEntered());
-    while (getHalt() == 0U) {
-        while (ExPeekMessage(&em) != nullptr) { // is message available ?
-            if ((em.message == WM_CLOSE) || (ctrl->done != 0)) {
-                dprint("WM_CLOSE tick=%d\n", tickCount);
-                (void)setHalt(Ex_Halt); // stop exmsg loop
-                goto end_loop;
-            }
-            (void)exWatchDisp->leave();
-            (void)DefWndProc(em); // dispatch
-            (void)exWatchDisp->enter();
-            if (getHalt() != 0U) {
-                goto end_loop;
-            }
-        }
-        const uint32 waittick = timerset.invoke(tickCount);
-        if (getHalt() != 0U) {
-            break;
-        }
-        ExApp::collect();
-        if (ExApp::mainWnd != nullptr) {
-            (void)ExApp::mainWnd->flush();
-        }
-        // blocked
-        (void)iomuxmap.invoke(waittick);
-    }
-end_loop:
-    ExApp::collect();
-    return 0;
-}
-#endif
 
 #ifdef __linux__
 uint32 WatchApp::on_cmdline(const epoll_event* const ev)

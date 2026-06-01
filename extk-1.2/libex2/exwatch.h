@@ -9,6 +9,7 @@
 #include "excallback.h"
 #include "exobject.h"
 #include "exevent.h"
+#include <list>
 #include <map>
 #include <set>
 
@@ -17,6 +18,19 @@ class ExTimer;
 uint64 ExGetMonoClock();
 uint32 ExGetTickCount();
 
+// ExModalCtrl - tbd
+//
+struct ExModalCtrl {
+    uint32          flags;
+    void*           result;
+    //ExThreadCond*   cond;
+    ExModalCtrl() noexcept : flags(Ex_Continue), result(nullptr) {}
+};
+
+typedef std::list<ExModalCtrl*> ExModalCtrlList;
+
+// Watch thread hook proc
+//
 struct ExHookProc : public ExPolyFunc<uint32, uint32> {
     template <typename A>
     ExHookProc(A* d, uint32 (A::*f)(uint32)) noexcept // look like data->func(...)
@@ -38,8 +52,7 @@ struct ExHookProc : public ExPolyFunc<uint32, uint32> {
 
     enum : uint32 {
         Startup,
-        Dispatch,
-        Maintain,
+        Process,
         Cleanup,
     };
     template <typename... Arg>
@@ -173,19 +186,20 @@ protected:
     #ifdef __linux__
     mutable pthread_cond_t  cond;
     #endif
+    ExModalCtrlList mclist;
 public:
-    ExHookProc      procStartup;    // startup
-    ExHookProc      procDispatch;   // dispatch event
-    ExHookProc      procMaintain;   // collect resources, flush gui, ...
-    ExHookProc      procCleanup;    // cleanup
+    ExHookProc      hookStartup;    // startup
+    ExHookProc      hookProcess;    // process
+    ExHookProc      hookCleanup;    // cleanup
 public:
     #ifdef WIN32
     virtual ~ExWatch() noexcept {
         fini();
     }
     explicit ExWatch(const char* name) noexcept : name(name)
-        , iomuxmap(this), timerset(), idThread(0U), hThread(nullptr), evWake(), halt(0U), tickCount(0U)
-        , mutex(), procStartup(), procDispatch(), procMaintain(), procCleanup() {
+        , iomuxmap(this), timerset(), idThread(0U), hThread(nullptr)
+        , evWake(), halt(0U), tickCount(0U), mutex(), mclist()
+        , hookStartup(), hookProcess(this, &ExWatch::process), hookCleanup() {
         tickCount = tickAppLaunch;
     }
     #else // __linux__
@@ -194,8 +208,9 @@ public:
         pthread_cond_destroy(&cond);
     }
     explicit ExWatch(const char* name) noexcept : name(name)
-        , iomuxmap(this), timerset(), tid(0U), evWake(), halt(0U), tickCount(0U)
-        , mutex(), procStartup(), procDispatch(), procMaintain(), procCleanup() {
+        , iomuxmap(this), timerset(), tid(0U)
+        , evWake(), halt(0U), tickCount(0U), mutex(), mclist()
+        , hookStartup(), hookProcess(this, &ExWatch::process), hookCleanup() {
         pthread_cond_init(&cond, nullptr);
         tickCount = tickAppLaunch;
     }
@@ -217,6 +232,11 @@ public:
     uint32 onEvent(const epoll_event* ev);
     #endif
     uint32 proc();
+    uint32 process(uint32 hook = ExHookProc::Process);
+    uint32 guiloop(uint32 hook = ExHookProc::Process);
+    void* dispatch(ExModalCtrl* const ctrl);
+    void* modalBlock(ExModalCtrl* const ctrl);
+    void modalUnblock(ExModalCtrl* const ctrl, void* result = nullptr);
 public:
     #ifdef WIN32
     bool ioAdd(uint32 (*f)(void*, const HANDLE), void* d, const HANDLE mux_fd) { // lambda

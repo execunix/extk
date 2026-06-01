@@ -259,16 +259,6 @@ bool ExWatch::isSelf() const {
     return ((idThread == 0U) || (idThread == GetCurrentThreadId()));
 }
 
-uint32 ExWatch::setHalt(uint32 r)
-{
-    exassert(((halt | r) & Ex_Halt) != 0U);
-    if (!(halt & 0x80000000)) {
-        halt |= 0x80000000;
-        evWake.signal();
-    }
-    return (halt |= r);
-}
-
 uint32 ExWatch::onEvent(HANDLE hev) {
     dprint0("%s: hev:%p\n", __func__, hev);
     exassert(evWake == hev);

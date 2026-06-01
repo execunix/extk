@@ -101,6 +101,34 @@ public:
     friend class ExTimer;
 };
 
+/**
+ExModalBlock()
+    Start a modal loop
+Description:
+    ExModalBlock() implements a modal loop.
+    ExModalBlock() doesn't return until ExModalUnblock() is called with the same
+    value of its ctrl argument. The structure pointed to by ctrl doesn't need to
+    be initialized in any special way.
+Returns:
+    NULL on error, or the value passed as the second argument to ExModalUnblock()
+    (don't use NULL or you won't be able to recognize a failure).
+*/
+void* ExModalBlock(ExModalCtrl* const ctrl);
+
+/**
+ExModalUnblock()
+    stop a modal loop
+Description:
+    ExModalUnblock() causes the corresponding ExModalBlock() call to return the
+    value passed to the result argument. If you call PtModalUnblock() more than
+    once before PtModalBlock() returns, only the first call matters; don't call
+    PtModalUnblock() after PtModalBlock() has returned.
+Returns:
+    0	Success.
+    -1	An error occurred.
+*/
+void ExModalUnblock(ExModalCtrl* const ctrl, void* result);
+
 void ExMainLoop(ExWatch* const watch);
 void ExQuitMainLoop();
 

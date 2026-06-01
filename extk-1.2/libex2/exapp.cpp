@@ -74,99 +74,15 @@ ExWindow*    ExApp::button_window[2];           /* The last 2 windows to receive
 uint32       ExApp::regAppMsgIndex = 0x8000U;   // WM_APP 0x8000
 #endif
 
-#ifdef WIN32
-// ExModalCtrl - tbd
-//
-struct ExModalCtrl {
-    uint32          flags;
-    void*           result;
-    ExThreadCond*   cond;
-    ExModalCtrl**   prev;
-    ExModalCtrl*    next;
-};
-
-static ExModalCtrl exModalMain;
-
-int32 ExModalUnblock(ExModalCtrl* ctrl, void* result);
-void* ExModalBlock(ExModalCtrl* ctrl, long flags);
-
-/**
-ExModalUnblock()
-    stop a modal loop
-Description:
-    ExModalUnblock() causes the corresponding ExModalBlock() call to return the
-    value passed to the result argument. If you call PtModalUnblock() more than
-    once before PtModalBlock() returns, only the first call matters; don't call
-    PtModalUnblock() after PtModalBlock() has returned.
-Returns:
-    0	Success.
-    -1	An error occurred.
-*/
-int32 ExModalUnblock(ExModalCtrl* ctrl, void* result)
+void* ExModalBlock(ExModalCtrl* const ctrl)
 {
-    exassert(ctrl->flags & 0x80000000);
-    ctrl->flags = 0;
-    ctrl->result = result;
-    ExWakeupMainThread();
-    //PostThreadMessage(exMainThread.idThread, WM_ExEvWake, 0, 1); // wakeup
-    return 0;
+    return exWatchMain->modalBlock(ctrl);
 }
 
-/**
-ExModalBlock()
-    Start a modal loop
-Description:
-    ExModalBlock() implements a modal loop.
-    ExModalBlock() doesn't return until ExModalUnblock() is called with the same
-    value of its ctrl argument. The structure pointed to by ctrl doesn't need to
-    be initialized in any special way.
-Returns:
-    NULL on error, or the value passed as the second argument to ExModalUnblock()
-    (don't use NULL or you won't be able to recognize a failure).
-*/
-void* ExModalBlock(ExModalCtrl* ctrl, long flags)
+void ExModalUnblock(ExModalCtrl* const ctrl, void* result)
 {
-#if 0 // tbd
-    MSG msg;
-    uint32 waittick;
-    ctrl->flags = flags | 0x80000000;
-    ctrl->result = NULL;
-    ctrl->cond = NULL;
-    ctrl->prev = NULL;
-    ctrl->next = NULL;
-    while ((exWatchDisp->getHalt() == 0U) && (ctrl->flags & 0x80000000)) {
-        waittick = ExTimerListInvoke(exWatchDisp->getTick());
-        dprint0("waittick=%d\n", waittick);
-        if (exWatchDisp->getHalt() != 0U) // is halt ?
-            break; // stop exmsg loop
-        if (ExApp::mainWnd != nullptr)
-            ExApp::mainWnd->flush();
-        ExInput::invoke(waittick); // The only waiting point.
-        if (exWatchDisp->getHalt() != 0U) // is halt ?
-            break; // stop exmsg loop
-        while ((ctrl->flags & 0x80000000) &&
-            ExPeekMessage(msg) == true) { // is message available ?
-            if (msg.message == WM_ExEvWake) {
-                dprint("message == WM_ExEvWake\n");
-                break;
-            }
-            if (msg.message == WM_QUIT) { // WM_DESTROY => PostQuitMessage
-                dprint("message == WM_QUIT tick=%d\n", exWatchDisp->getTick());
-                ExApp::retCode = (int32)msg.wParam; // cause DestroyWindow
-                exWatchDisp->setHalt(Ex_Halt); // stop exmsg loop
-                break;
-            }
-            //exWatchDisp->leave(); // tbd ctrl->leave()
-            ExApp::dispatch(msg);
-            //exWatchDisp->enter(); // tbd ctrl->enter()
-            ExApp::collect();
-        }
-    }
-    ExApp::collect();
-#endif
-    return ctrl->result;
+    exWatchMain->modalUnblock(ctrl, result);
 }
-#endif
 
 /**
 ExMainLoop()
@@ -177,61 +93,7 @@ Description:
 */
 void ExMainLoop(ExWatch* const watch)
 {
-    int32 waittick = 0;
-    #ifdef __linux__
-    ExMsg msg(None);
-    #else // WIN32
-    MSG msg;
-    #endif
-    exassert(watch->isEntered());
-    while ((watch->getHalt() == 0U)) {
-        uint32 r;
-        // seq-2 : dispatch event
-        while (true) {
-            if (ExPeekMessage(&msg) == nullptr) {
-                break;
-            }
-            if (msg.message == WM_ExEvWake) {
-                dprint("message == WM_ExEvWake\n");
-                continue;
-            }
-            // message is available
-            if (msg.message == WM_QUIT) { // WM_DESTROY => PostQuitMessage
-                dprint("WM_QUIT tick=%d\n", watch->getTick());
-                ExApp::retCode = (int32)msg.wParam; // cause DestroyWindow
-                (void)watch->setHalt(Ex_Halt); // stop exmsg loop
-                goto end_loop;
-            }
-            ExApp::dispatch(msg);
-            if (watch->getHalt() != 0U) {
-                goto end_loop;
-            }
-        }
-        // seq-3 : invoke timer callback
-        waittick = watch->timerset.invoke(watch->tickCount);
-        if (watch->getHalt() != 0U) { // is halt ?
-            break; // stop exmsg loop
-        }
-        #if 1 // adjust for internal timer callback sleep
-        waittick -= (ExGetTickCount() - watch->tickCount);
-        if (waittick < 1) {
-            waittick = 1;
-        }
-        #endif
-        // seq-4 : collect resources, flush gui, ...
-        r = watch->procMaintain(ExHookProc::Maintain);
-        if (ExIsHalt(r | watch->getHalt())) {
-            break;
-        }
-        // seq-5 : wait blocked iomux for waittick msec and update tick count
-        waittick = watch->iomuxmap.invoke(waittick); // The only waiting point.
-        // seq-6 : invoked iomux callback
-        #if 1 // adjust for internal epoll callback sleep
-        // waittick : apply epoll callback sleep tick
-        #endif
-    }
-end_loop:
-    ExApp::collect();
+    (void)watch->guiloop(ExHookProc::Process);
 }
 
 /**

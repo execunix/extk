@@ -4,6 +4,8 @@
  */
 
 #include "exwatch.h"
+#include "exwproc.h"
+#include "exapp.h"
 #ifdef __linux__
 #include <time.h>
 #include <sys/unistd.h>
@@ -179,7 +181,7 @@ void ExWatch::setTlsName(const char* name) {
 void* ExWatch::start(void* arg) {
     ExWatch* watch = (ExWatch*)arg;
     uint32 r = watch->proc();
-    exassert(r == 0);
+    exassert(r == 0U);
     return nullptr;
 }
 
@@ -229,16 +231,6 @@ bool ExWatch::isSelf() const {
     return ((tid == 0U) || (tid == pthread_self()));
 }
 
-uint32 ExWatch::setHalt(uint32 r)
-{
-    exassert(((halt | r) & Ex_Halt) != 0U);
-    if (!(halt & 0x80000000)) {
-        halt |= 0x80000000;
-        evWake.signal();
-    }
-    return (halt |= r);
-}
-
 uint32 ExWatch::onEvent(const epoll_event* const ev) {
     dprint0("%s: fd:%d ev:%d\n", __func__, ev->data.fd, ev->events);
     exassert(evWake == ev->data.fd);
@@ -248,8 +240,16 @@ uint32 ExWatch::onEvent(const epoll_event* const ev) {
 
 #endif // __linux__
 
+uint32 ExWatch::setHalt(uint32 r) {
+    exassert(((halt | r) & Ex_Halt) != 0U);
+    if (!(halt & 0x80000000)) {
+        halt |= 0x80000000;
+        evWake.signal();
+    }
+    return (halt |= r);
+}
+
 uint32 ExWatch::proc() {
-    int32 waittick = 0;
 #ifdef __linux__
     pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, nullptr);
 #endif // __linux__
@@ -257,14 +257,21 @@ uint32 ExWatch::proc() {
     dprint("%s: tickAppLaunch=%d tickCount=%d\n", name, tickAppLaunch, tickCount);
     (void)enter();
     // seq-1 : prepare resources
-    (void)procStartup(ExHookProc::Startup);
-    while (getHalt() == 0U) {
-        uint32 r;
+    (void)hookStartup(ExHookProc::Startup);
+    // seq-2 : dispatch... ~ seq-5 : wait blocked iomux...
+    (void)hookProcess(ExHookProc::Process);
+    // seq-6 : cleanup resources
+    (void)hookCleanup(ExHookProc::Cleanup);
+    (void)leave();
+    return 0U;
+}
+
+uint32 ExWatch::process(uint32 hook) {
+    int32 waittick = 0;
+    exassert(isEntered());
+    while (!ExIsHalt(getHalt())) {
         // seq-2 : dispatch event
-        r = procDispatch(ExHookProc::Dispatch);
-        if (ExIsHalt(r | getHalt())) {
-            break;
-        }
+        // n/a
         // seq-3 : invoke timer callback
         waittick = timerset.invoke(tickCount);
         if (ExIsHalt(getHalt())) { // is halt ?
@@ -277,8 +284,83 @@ uint32 ExWatch::proc() {
         }
         #endif
         // seq-4 : collect resources, flush gui, ...
-        r = procMaintain(ExHookProc::Maintain);
-        if (ExIsHalt(r | getHalt())) {
+        // n/a
+        // seq-5 : wait blocked iomux for waittick msec and update tick count
+        waittick = iomuxmap.invoke(waittick); // The only waiting point.
+        // seq-6 : invoked iomux callback
+        #if 1 // adjust for internal epoll callback sleep
+        // waittick : apply epoll callback sleep tick
+        #endif
+    }
+    return 0U;
+}
+
+uint32 ExWatch::guiloop(uint32 hook) {
+    ExModalCtrl ctrl;
+    (void)modalBlock(&ctrl);
+    return 0U;
+}
+
+void* ExWatch::dispatch(ExModalCtrl* const ctrl) {
+    #ifdef __linux__
+    ExMsg msg(None);
+    #else // WIN32
+    MSG msg;
+    #endif
+    do {
+        if (ExPeekMessage(&msg) == nullptr) {
+            break;
+        }
+        if (msg.message == WM_ExEvWake) {
+            dprint("message == WM_ExEvWake\n");
+            continue;
+        }
+        // message is available
+        if (msg.message == WM_QUIT) { // WM_DESTROY => PostQuitMessage
+            dprint("WM_QUIT tick=%d\n", getTick());
+            ExApp::retCode = (int32)msg.wParam; // cause DestroyWindow
+            (void)setHalt(Ex_Halt); // stop exmsg loop
+            break;
+        }
+        leave();
+        #ifdef __linux__
+        (void)DefWndProc(msg); // dispatch message to window procedure
+        #else // WIN32
+        TranslateMessage(&msg);
+        DispatchMessage(&msg);
+        #endif
+        enter();
+    } while (!ExIsHalt(ctrl->flags | getHalt()));
+    return ctrl->result;
+}
+
+void* ExWatch::modalBlock(ExModalCtrl* const ctrl) {
+    int32 waittick = 0;
+    exassert(isEntered());
+    mclist.push_back(ctrl);
+    while (!ExIsHalt(ctrl->flags | getHalt())) {
+        // seq-2 : dispatch event
+        (void)dispatch(ctrl);
+        if (ExIsHalt(ctrl->flags | getHalt())) {
+            break;
+        }
+        // seq-3 : invoke timer callback
+        waittick = timerset.invoke(tickCount);
+        if (ExIsHalt(ctrl->flags | getHalt())) { // is halt ?
+            break; // stop exmsg loop
+        }
+        #if 1 // adjust for internal timer callback sleep
+        waittick -= (ExGetTickCount() - tickCount);
+        if (waittick < 1) {
+            waittick = 1;
+        }
+        #endif
+        // seq-4 : collect resources, flush gui, ...
+        if (ExApp::mainWnd != nullptr) {
+            ExApp::mainWnd->flush();
+            ExApp::collect();
+        }
+        if (ExIsHalt(ctrl->flags | getHalt())) {
             break;
         }
         // seq-5 : wait blocked iomux for waittick msec and update tick count
@@ -288,10 +370,30 @@ uint32 ExWatch::proc() {
         // waittick : apply epoll callback sleep tick
         #endif
     }
-    // seq-6 : cleanup resources
-    (void)procCleanup(ExHookProc::Cleanup);
-    (void)leave();
-    return 0U;
+    if (ctrl->flags == Ex_Continue) {
+        modalUnblock(ctrl, ctrl->result);
+    }
+    ExApp::collect();
+    return ctrl->result;
+}
+
+void ExWatch::modalUnblock(ExModalCtrl* const ctrl, void* result) {
+    exassert(isEntered());
+    ExModalCtrlList::iterator i = mclist.begin();
+    for (; i != mclist.end(); ++i) {
+        if ((*i) == ctrl) {
+            break;
+        }
+    }
+    exassert(i != mclist.end());
+    while (i != mclist.end()) {
+        if ((*i) == ctrl) {
+            (*i)->result = result;
+        }
+        (*i)->flags |= Ex_Halt;
+        i = mclist.erase(i);
+    }
+    evWake.signal();
 }
 
 static ExWatch exWatchDflt("exWatchDflt");

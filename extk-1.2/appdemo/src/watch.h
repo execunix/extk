@@ -89,8 +89,6 @@ public:
 public:
     bool cleanup();
     bool startup();
-    void mainloop();
-    //static void dispatch(ExMsg& em);
 #ifdef __linux__
     WatchApp() noexcept : ExWatch("Gui"), app_fifo(0)
         , fb0dev_fd(0), fb1dev_fd(0), ev2dev_fd(0)
