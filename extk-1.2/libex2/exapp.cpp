@@ -76,12 +76,12 @@ uint32       ExApp::regAppMsgIndex = 0x8000U;   // WM_APP 0x8000
 
 void* ExModalBlock(ExModalCtrl* const ctrl)
 {
-    return exWatchMain->modalBlock(ctrl);
+    return exWatchDisp->modalBlock(ctrl);
 }
 
 void ExModalUnblock(ExModalCtrl* const ctrl, void* result)
 {
-    exWatchMain->modalUnblock(ctrl, result);
+    exWatchDisp->modalUnblock(ctrl, result);
 }
 
 /**
@@ -91,9 +91,9 @@ Description:
     This is a convenience function that implements an application main loop using
     ExEventNext() and ExEventHandler().
 */
-void ExMainLoop(ExWatch* const watch)
+void ExMainLoop()
 {
-    (void)watch->guiloop(ExHookProc::Process);
+    (void)exWatchDisp->guiloop(ExHookProc::Process);
 }
 
 /**
@@ -112,21 +112,6 @@ void ExQuitMainLoop()
     PostQuitMessage(0);
 #endif
 }
-
-#ifdef WIN32
-void ExApp::dispatch(MSG& msg)
-{
-    exWatchDisp->leave();
-    TranslateMessage(&msg);
-    DispatchMessage(&msg);
-    exWatchDisp->enter();
-}
-#endif
-#ifdef __linux__
-void ExApp::dispatch(ExMsg& em)
-{
-}
-#endif
 
 typedef std::list<ExWidget*> ExWidgetList;
 typedef std::list<ExWindow*> ExWindowList;

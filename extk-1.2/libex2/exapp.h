@@ -73,12 +73,6 @@ public:
     static uint32       regAppMsgIndex;
 #endif
 public:
-#ifdef WIN32
-    static void dispatch(MSG& msg);
-#endif
-#ifdef __linux__
-    static void dispatch(ExMsg& em);
-#endif
     static void addCollectWidget(ExWidget* widget);
     static void addCollectWindow(ExWindow* window);
     static void collect();
@@ -129,7 +123,7 @@ Returns:
 */
 void ExModalUnblock(ExModalCtrl* const ctrl, void* result);
 
-void ExMainLoop(ExWatch* const watch);
+void ExMainLoop();
 void ExQuitMainLoop();
 
 #ifdef OSAL_WIN32

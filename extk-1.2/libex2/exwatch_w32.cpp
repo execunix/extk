@@ -189,24 +189,23 @@ int32 ExWatch::IomuxMap::invoke(int32 waittick) {
 //
 uint32 ExWatch::tickAppLaunch = ExGetTickCount();
 
-DWORD ExWatch::keyTlsName = TLS_OUT_OF_INDEXES;
+DWORD ExWatch::keyTlsSpecific = TLS_OUT_OF_INDEXES;
 
-const char* ExWatch::getTlsName() {
-    const char* name = nullptr;
-    if (keyTlsName != TLS_OUT_OF_INDEXES) {
-        name = (const char*)TlsGetValue(keyTlsName);
+const ExWatch* ExWatch::getTlsSpecific() {
+    const ExWatch* watch = nullptr;
+    if (keyTlsSpecific != TLS_OUT_OF_INDEXES) {
+        watch = (const ExWatch*)TlsGetValue(keyTlsSpecific);
     }
-    return name;
+    return watch;
 }
 
-void ExWatch::setTlsName(const char* name) {
-    if (keyTlsName == TLS_OUT_OF_INDEXES) {
-        keyTlsName = TlsAlloc();
+void ExWatch::setTlsSpecific(const ExWatch* watch) {
+    if (keyTlsSpecific == TLS_OUT_OF_INDEXES) {
+        keyTlsSpecific = TlsAlloc();
     }
-    exassert(keyTlsName != TLS_OUT_OF_INDEXES);
-    exassert(TlsGetValue(keyTlsName) == nullptr);
-    LPVOID key_name = strdup(name);
-    TlsSetValue(keyTlsName, key_name);
+    exassert(keyTlsSpecific != TLS_OUT_OF_INDEXES);
+    exassert(TlsGetValue(keyTlsSpecific) == nullptr);
+    TlsSetValue(keyTlsSpecific, watch);
 }
 
 DWORD WINAPI ExWatch::start(_In_ LPVOID arg) {

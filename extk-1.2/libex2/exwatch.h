@@ -159,12 +159,12 @@ public:
     const char* name; // for debug
     static uint32 tickAppLaunch;
     #ifdef WIN32
-    static DWORD keyTlsName;
+    static DWORD keyTlsSpecific;
     #else // __linux__
-    static pthread_key_t keyTlsName;
+    static pthread_key_t keyTlsSpecific;
     #endif
-    static const char* getTlsName();
-    static void setTlsName(const char* name);
+    static const ExWatch* getTlsSpecific();
+    static void setTlsSpecific(const ExWatch* watch);
 protected:
     #ifdef WIN32
     static DWORD WINAPI start(_In_ LPVOID arg);
@@ -286,7 +286,7 @@ protected:
     int32 timerset_invoke(uint32 tick_count) { return timerset.invoke(tick_count); }
     int32 iomuxmap_invoke(int32 waittick = 60000) { return iomuxmap.invoke(waittick); }
 #endif // tbd
-    friend void ExMainLoop(ExWatch* const watch);
+    friend void ExMainLoop();
     friend class ExMutex;
     friend class ExTimer;
 public:

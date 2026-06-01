@@ -371,7 +371,8 @@ WatchApp gWatchApp;
 int32 dprint_appinfo(char* const mbs, const int32 len)
 {
     char buf[32];
-    const char* name = ExWatch::getTlsName();
+    const ExWatch* const watch = ExWatch::getTlsSpecific();
+    const char* name = (watch != nullptr) ? watch->name : nullptr;
     if (name == nullptr) {
         uint32 tid;
 #ifdef __linux__

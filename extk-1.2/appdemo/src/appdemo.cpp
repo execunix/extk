@@ -678,7 +678,7 @@ int main(int argc, char* argv[])
 {
     int32 result = EXIT_SUCCESS;
 
-    ExWatch::setTlsName(gWatchApp.name);
+    ExWatch::setTlsSpecific(&gWatchApp);
 #ifdef DPRINT
     dprint_verbose = 3;
     ex_dprint_appinfo = &dprint_appinfo;
@@ -749,7 +749,7 @@ int main(int argc, char* argv[])
     //
 
     //(void)gWatchApp.guiloop();
-    ExMainLoop(&gWatchApp);
+    ExMainLoop();
 
     //
     //(void)module.fini();
@@ -796,7 +796,7 @@ int APIENTRY WinMain(_In_ HINSTANCE hInstance,
 {
     ExApp::retCode = EXIT_SUCCESS;
 
-    ExWatch::setTlsName(gWatchApp.name);
+    ExWatch::setTlsSpecific(&gWatchApp);
     SetConsoleOutputCP(CP_UTF8); // CP_UTF8 | CP_ACP
 #ifdef DPRINT
     dprint_verbose = 3;
@@ -833,7 +833,7 @@ int APIENTRY WinMain(_In_ HINSTANCE hInstance,
     exassert(ExApp::mainWnd == gWndMain);
 
     //(void)gWatchApp.guiloop();
-    ExMainLoop(&gWatchApp);
+    ExMainLoop();
 
     // cleanup
     (void)gWatchApp.cleanup();
