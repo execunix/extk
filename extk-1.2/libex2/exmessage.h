@@ -261,6 +261,7 @@ public:
     ExMsg* seekMessage(const size_t seek = 0UL);
     ExMsg* emitMessage(const ExMsg* const em = nullptr);
     ExMsg* emitMessage(HWND hwnd, int32 message, uint32 wParam = 0U, int64 lParam = 0LL);
+    uint32 filter(const int32 msg_min, const int32 msg_max);
 };
 
 extern ExMsgFifo exMsgList;

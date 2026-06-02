@@ -86,6 +86,31 @@ ExMsg* ExMsgFifo::emitMessage(HWND hwnd, int32 message, uint32 wParam, int64 lPa
     #endif
 }
 
+uint32 ExMsgFifo::filter(const int32 msg_min, const int32 msg_max)
+{
+    uint32 count = 0;
+    (void)enter();
+    for (size_t i = 0; i < size(); ++i) {
+        ExMsg& em = at(i);
+        if ((msg_min <= em.message) && (em.message <= msg_max)) {
+            dprint("filter em[%u]: 0x%04x\n", count, em.message);
+            em.message = WM_NULL;
+            ++count;
+        }
+    }
+    (void)leave();
+    #ifdef WIN32
+    MSG msg;
+    (void)exWatchDisp->leave();
+    while (PeekMessage(&msg, NULL, (UINT)msg_min, (UINT)msg_max, PM_REMOVE)) {
+        dprint("filter msg[%u]: 0x%04x\n", count, msg.message);
+        ++count;
+    }
+    (void)exWatchDisp->enter();
+    #endif
+    return count;
+}
+
 ExMsg* ExEmitMessage(const ExMsg* const em)
 {
     ExMsg* emref = exMsgList.emitMessage(em);
@@ -135,11 +160,11 @@ MSG* ExPeekMessage(MSG* msg)
         msg->pt.x = em->pt.x;
         msg->pt.y = em->pt.y;
     } else {
-        exWatchDisp->leave();
+        (void)exWatchDisp->leave();
         if (PeekMessage(msg, NULL, 0U, 0U, PM_REMOVE) == FALSE) {
             msg = nullptr;
         }
-        exWatchDisp->enter();
+        (void)exWatchDisp->enter();
     }
     return msg;
 }

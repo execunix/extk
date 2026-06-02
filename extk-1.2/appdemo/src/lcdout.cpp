@@ -55,11 +55,13 @@ void LcdOut::onFlush(WndMain* window, const ExRegion* updateRgn)
 
 #ifdef CONF_X11
     ExApp::EnvX11& x11 = ExApp::x11;
+    XLockDisplay(x11.display);
     GC gc = XCreateGC(x11.display, window->getHwnd(), 0, nullptr);
     XPutImage(x11.display, window->getHwnd(), gc, x11.ximg, 0, 0, 0, 0,
               x11.ximg->width, x11.ximg->height);
     XFlush(x11.display);
     XFreeGC(x11.display, gc);
+    XUnlockDisplay(x11.display);
 #endif // CONF_X11
 
     env.gui_tick = ExGetTickCount() - ExWatch::tickAppLaunch;

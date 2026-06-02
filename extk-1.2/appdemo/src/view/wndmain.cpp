@@ -526,6 +526,12 @@ uint32 WndMain::onActBtns(ExWidget* widget, ExCbInfo* cbinfo) {
             WgtSetup* setup = new WgtSetup;
             setup->setFlags(Ex_FreeMemory);
             setup->init(this, 300, 200);
+            #if 1 // tbd: for test modal block with pending mouse msg
+            (void)exWatchDisp->leave();
+            exsleep(500);
+            (void)exWatchDisp->enter();
+            #endif
+            exMsgList.filter(WM_MOUSEFIRST, WM_MOUSELAST);
             void* r = ExModalBlock(&setup->ctrl);
             dprint("ExModalBlock r:%p\n", r);
             return Ex_Continue;

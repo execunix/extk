@@ -25,7 +25,15 @@ class WatchDev : public ExWatch { // run in watch thread
 private:
     // inherit
 public:
-    // inherit
+    bool init() {
+        hookStartup = ExHookProc(this, &WatchDev::startup);
+        hookProcess = ExHookProc(this, &WatchDev::process);
+        hookCleanup = ExHookProc(this, &WatchDev::cleanup);
+        return ExWatch::init(16UL, 32U*1024U*1024UL);
+    }
+    uint32 cleanup(uint32 hook);
+    uint32 process(uint32 hook);
+    uint32 startup(uint32 hook);
 public:
     WatchDev() noexcept : ExWatch("Dev") {}
 };
@@ -38,10 +46,7 @@ class WatchMap : public ExWatch { // run in watch thread
 private:
     // inherit
 public:
-    bool init() {
-        return ExWatch::init(16UL, 32U*1024U*1024UL);
-    }
-    // inherit
+    // inherit bool init();
 public:
     WatchMap() noexcept : ExWatch("Map") {}
 };
@@ -54,8 +59,7 @@ class WatchNet : public ExWatch { // run in watch thread
 private:
     // inherit
 public:
-    bool init();
-    // inherit
+    // inherit bool init();
 public:
     WatchNet() noexcept : ExWatch("Net") {}
 };

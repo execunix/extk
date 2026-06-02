@@ -233,7 +233,7 @@ bool ExApp::init(int argc, char* argv[])
 #endif // __linux
 
 #ifdef CONF_X11
-static uint32 onXevent(void* data, const epoll_event* const ev);
+uint32 onXevent(void* data, const epoll_event* const ev);
 
 static int32 x_error_handler(Display* d, XErrorEvent* e)
 {
@@ -246,6 +246,9 @@ static int32 x_error_handler(Display* d, XErrorEvent* e)
 bool ExApp::initX11(ExWatch* watch)
 {
     int32 r = -1;
+    if (!XInitThreads()) {
+        dprint("XInitThreads() failed\n");
+    }
     button_click_time[0] = ExGetTickCount();
     button_click_time[1] = ExGetTickCount();
     do {
@@ -289,10 +292,14 @@ bool ExApp::initX11(ExWatch* watch)
         // x11.fb0_w = x11.sm_w;
         // x11.fb0_h = x11.sm_h;
         // x11.fb0_rotate = 0;
+        #if 0 // move to WatchDev::startup()
         const int32 xd_fd = ConnectionNumber(x11.display);
         if (watch->ioAdd(&onXevent, watch, xd_fd)) {
             r = 0;
         }
+        #else
+        r = 0;
+        #endif
     } while (false);
     return (r == 0);
 }
@@ -300,8 +307,10 @@ bool ExApp::initX11(ExWatch* watch)
 bool ExApp::finiX11(ExWatch* watch)
 {
     ExApp::EnvX11& x11 = ExApp::x11;
+    #if 0 // move to WatchDev::cleanup()
     const int32 xd_fd = ConnectionNumber(x11.display);
     (void)watch->ioDel(xd_fd);
+    #endif
     if (x11.display != nullptr) {
         XCloseDisplay(x11.display);
         x11.display = nullptr;
@@ -317,6 +326,7 @@ uint32 onXevent(void* data, const epoll_event* const ev)
     dprint0("%s: xd_fd=%d\n", __func__, xd_fd);
     exassert(ev->data.fd == xd_fd);
 
+    //XLockDisplay(x11.display);
     while (XPending(x11.display)) {
         XEvent e;
         XNextEvent(x11.display, &e);
@@ -327,6 +337,7 @@ uint32 onXevent(void* data, const epoll_event* const ev)
                     Atom protocol = e.xclient.data.l[0];
                     if (protocol == x11.wm_atom[ExApp::WM_DELETE_WINDOW]) {
                         dprint("ClientMessage.WM_DELETE_WINDOW\n");
+                        ExQuitMainLoop();
                         #if 1
                         watch->setHalt();
                         #else
@@ -417,6 +428,7 @@ uint32 onXevent(void* data, const epoll_event* const ev)
             } break;
         }
     }
+    //XUnlockDisplay(x11.display);
     return 0U;
 }
 #else // CONF_X11

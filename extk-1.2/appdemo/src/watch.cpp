@@ -16,7 +16,9 @@
 #include "res.h"
 
 #ifdef __linux__
-#ifndef CONF_X11
+#ifdef CONF_X11
+uint32 onXevent(void* data, const epoll_event* const ev);
+#else
 static const char* const FB0DEV_NAME = "/dev/fb0";
 static const char* const EV2DEV_NAME = "/dev/input/event2";
 #endif // CONF_X11
@@ -24,6 +26,31 @@ static const char* const APP_FIFO = "/tmp/app.fifo";
 
 // WatchDev
 //
+
+uint32 WatchDev::cleanup(uint32 hook)
+{
+    #ifdef CONF_X11
+    ExApp::EnvX11& x11 = ExApp::x11;
+    const int32 xd_fd = ConnectionNumber(x11.display);
+    (void)ioDel(xd_fd);
+    #endif // CONF_X11
+    return 0U;
+}
+
+uint32 WatchDev::process(uint32 hook)
+{
+    return ExWatch::process(hook);
+}
+
+uint32 WatchDev::startup(uint32 hook)
+{
+    #ifdef CONF_X11
+    ExApp::EnvX11& x11 = ExApp::x11;
+    const int32 xd_fd = ConnectionNumber(x11.display);
+    (bool)ioAdd(&onXevent, this, xd_fd);
+    #endif // CONF_X11
+    return 0U;
+}
 
 WatchDev gWatchDev;
 

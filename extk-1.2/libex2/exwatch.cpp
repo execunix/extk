@@ -312,8 +312,8 @@ void* ExWatch::dispatch(ExModalCtrl* const ctrl) {
         if (ExPeekMessage(&msg) == nullptr) {
             break;
         }
-        if (msg.message == WM_ExEvWake) {
-            dprint("message == WM_ExEvWake\n");
+        if ((msg.message == WM_NULL) || (msg.message == WM_ExEvWake)) {
+            dprint("skip message: 0x%04x\n", msg.message);
             continue;
         }
         // message is available
