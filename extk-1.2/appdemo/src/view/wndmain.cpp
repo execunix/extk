@@ -754,10 +754,13 @@ uint32 WndMain::onFilter(WndMain* w, ExCbInfo* cbinfo) {
             case VK_SPACE:
             case VK_RETURN:
                 dprint("0x%04x %s\n", cbinfo->exmsg->message, "VK_RETURN");
-                wgtFocused->invokeListener(Ex_CbActivate, &cbinfo2(Ex_CbActivate, 0, exmsg));
+                if (wgtFocused != nullptr) {
+                    wgtFocused->invokeListener(Ex_CbActivate, &cbinfo2(Ex_CbActivate, 0, cbinfo->exmsg));
+                }
                 break;
             case VK_ESCAPE:
                 dprint("0x%04x %s\n", cbinfo->exmsg->message, "VK_ESCAPE");
+                ExQuitMainLoop();
                 return Ex_Halt;
             case VK_HOME:
                 dprint("0x%04x %s\n", cbinfo->exmsg->message, "VK_HOME");

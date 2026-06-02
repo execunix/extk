@@ -110,6 +110,8 @@ void ExQuitMainLoop()
 {
 #ifdef WIN32
     PostQuitMessage(0);
+#else
+    (void)ExEmitMessage(WM_QUIT, ExApp::retCode); // stop main loop
 #endif
 }
 
@@ -233,7 +235,7 @@ bool ExApp::init(int argc, char* argv[])
 #endif // __linux
 
 #ifdef CONF_X11
-uint32 onXevent(void* data, const epoll_event* const ev);
+uint32 onXeventSample(void* data, const epoll_event* const ev);
 
 static int32 x_error_handler(Display* d, XErrorEvent* e)
 {
@@ -294,7 +296,7 @@ bool ExApp::initX11(ExWatch* watch)
         // x11.fb0_rotate = 0;
         #if 0 // move to WatchDev::startup()
         const int32 xd_fd = ConnectionNumber(x11.display);
-        if (watch->ioAdd(&onXevent, watch, xd_fd)) {
+        if (watch->ioAdd(&onXeventSample, watch, xd_fd)) {
             r = 0;
         }
         #else
@@ -318,7 +320,7 @@ bool ExApp::finiX11(ExWatch* watch)
     return true;
 }
 
-uint32 onXevent(void* data, const epoll_event* const ev)
+uint32 onXeventSample(void* data, const epoll_event* const ev)
 {
     ExApp::EnvX11& x11 = ExApp::x11;
     ExWatch* watch = static_cast<ExWatch*>(data);
@@ -337,8 +339,8 @@ uint32 onXevent(void* data, const epoll_event* const ev)
                     Atom protocol = e.xclient.data.l[0];
                     if (protocol == x11.wm_atom[ExApp::WM_DELETE_WINDOW]) {
                         dprint("ClientMessage.WM_DELETE_WINDOW\n");
-                        ExQuitMainLoop();
                         #if 1
+                        ExQuitMainLoop();
                         watch->setHalt();
                         #else
                         (void)XDestroyWindow(x11.display, env.top);
@@ -381,11 +383,38 @@ uint32 onXevent(void* data, const epoll_event* const ev)
                 int32 keysyms_per_keycode = 0;
                 KeySym* keysym = XGetKeyboardMapping(x11.display, keycode, 1, &keysyms_per_keycode);
                 switch (*keysym) {
-                    case XK_Escape: {
-                        watch->setHalt(); //XDestroyWindow(x11.display, env.top);
+                    case XK_BackSpace: {
+                        PostMessage(ExApp::mainWnd->getHwnd(), WM_KEYDOWN, VK_BACK, 0LL);
                     } break;
-                    case XK_Return: break;
-                    case XK_BackSpace: break;
+                    case XK_Tab: {
+                        PostMessage(ExApp::mainWnd->getHwnd(), WM_KEYDOWN, VK_TAB, 0LL);
+                    } break;
+                    case XK_Return: {
+                        PostMessage(ExApp::mainWnd->getHwnd(), WM_KEYDOWN, VK_RETURN, 0LL);
+                    } break;
+                    case XK_Escape: {
+                        PostMessage(ExApp::mainWnd->getHwnd(), WM_KEYDOWN, VK_ESCAPE, 0LL);
+                        // ExQuitMainLoop();
+                        // watch->setHalt(); //XDestroyWindow(x11.display, env.top);
+                    } break;
+                    case XK_Home: {
+                        PostMessage(ExApp::mainWnd->getHwnd(), WM_KEYDOWN, VK_HOME, 0LL);
+                    } break;
+                    case XK_Left: {
+                        PostMessage(ExApp::mainWnd->getHwnd(), WM_KEYDOWN, VK_LEFT, 0LL);
+                    } break;
+                    case XK_Up: {
+                        PostMessage(ExApp::mainWnd->getHwnd(), WM_KEYDOWN, VK_UP, 0LL);
+                    } break;
+                    case XK_Right: {
+                        PostMessage(ExApp::mainWnd->getHwnd(), WM_KEYDOWN, VK_RIGHT, 0LL);
+                    } break;
+                    case XK_Down: {
+                        PostMessage(ExApp::mainWnd->getHwnd(), WM_KEYDOWN, VK_DOWN, 0LL);
+                    } break;
+                    case XK_End: {
+                        PostMessage(ExApp::mainWnd->getHwnd(), WM_KEYDOWN, VK_END, 0LL);
+                    } break;
                     case XK_0: break;
                     case XK_1: break;
                     case XK_2: break;
@@ -396,6 +425,9 @@ uint32 onXevent(void* data, const epoll_event* const ev)
                     case XK_7: break;
                     case XK_8: break;
                     case XK_9: break;
+                    case XK_KP_Space: {
+                        PostMessage(ExApp::mainWnd->getHwnd(), WM_KEYDOWN, VK_SPACE, 0LL);
+                    } break;
                 }
                 XFree(keysym);
             } break;
@@ -410,6 +442,7 @@ uint32 onXevent(void* data, const epoll_event* const ev)
             } break;
             case Expose: {
                 dprint("Expose count:%d\n", e.xexpose.count);
+                XClearWindow(x11.display, ExApp::mainWnd->getHwnd());
             } break;
             case GraphicsExpose: {
                 dprint("GraphicsExpose count:%d\n", e.xgraphicsexpose.count);

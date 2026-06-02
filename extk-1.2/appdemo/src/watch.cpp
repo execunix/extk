@@ -17,7 +17,7 @@
 
 #ifdef __linux__
 #ifdef CONF_X11
-uint32 onXevent(void* data, const epoll_event* const ev);
+uint32 onXeventSample(void* data, const epoll_event* const ev);
 #else
 static const char* const FB0DEV_NAME = "/dev/fb0";
 static const char* const EV2DEV_NAME = "/dev/input/event2";
@@ -47,7 +47,7 @@ uint32 WatchDev::startup(uint32 hook)
     #ifdef CONF_X11
     ExApp::EnvX11& x11 = ExApp::x11;
     const int32 xd_fd = ConnectionNumber(x11.display);
-    (bool)ioAdd(&onXevent, this, xd_fd);
+    (bool)ioAdd(&onXeventSample, this, xd_fd);
     #endif // CONF_X11
     return 0U;
 }

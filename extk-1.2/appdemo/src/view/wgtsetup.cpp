@@ -106,7 +106,8 @@ uint32 WgtSetup::onTitleMove(ExWidget* widget, ExCbInfo* cbinfo) {
 
 uint32 WgtSetup::onActivate(ExWidget* widget, ExCbInfo* cbinfo) {
     if (widget == &close) {
-        if (cbinfo->type == Ex_CbActivate) {
+        if (cbinfo == nullptr ||
+            cbinfo->type == Ex_CbActivate) {
             #if 1 // test
             PostMessage(getWindow()->getHwnd(), WM_CbRemove, 0, (LPARAM)this);
             #else
@@ -167,17 +168,18 @@ uint32 WgtSetup::onFilter(ExWidget* widget, ExCbInfo* cbinfo) {
             break;
         case VK_SPACE:
         case VK_RETURN: {
-            PostMessage(getWindow()->getHwnd(), WM_COMMAND, 12345, 0);
+            (void)PostMessage(getWindow()->getHwnd(), WM_COMMAND, 12345, 0);
             break;
         }
         case VK_ESCAPE: {
+            (void)onActivate(&close, nullptr);
             break;
         }
         case VK_TAB: {
             break;
         }
         }
-        return Ex_Continue;
+        return Ex_Break;
     }
     return Ex_Continue;
 }
