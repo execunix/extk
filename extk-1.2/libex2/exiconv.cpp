@@ -11,111 +11,98 @@
 #define _wcsdup wcsdup
 #endif
 
-uint32 iconv_charset = 949; // default 949
-
-// wcsconv
+// ExCPACP0
 //
-wcsconv::~wcsconv()
+ExCPACP0::~ExCPACP0()
 {
-    if (wcs != NULL) {
+    if (wcs != nullptr) {
         free(wcs);
     }
 }
 
-wcsconv::wcsconv(const wchar* src)
+ExCPACP0::ExCPACP0(const char* src)
 {
-    size_t len = wcslen(src);
-    mbs = (char*)malloc((len + 1) * sizeof(wchar));
-    if (mbs == NULL) {
-        return;
+    int srclen = (int)strlen(src);
+    int wcslen = srclen * sizeof(wchar);
+    wcs = (wchar*)malloc((size_t)wcslen + sizeof(wchar));
+    if (wcs != nullptr) {
+        (void)mbs2wcs(wcs, wcslen, src, srclen, CP_ACP);
+    } else {
+        dprint1("ExCPACP0(%s): char emem\n", src);
     }
-#ifdef WIN32
-    int32 n = static_cast<int32>(len);
-    len = WideCharToMultiByte(iconv_charset, 0, src, n, mbs, n * 2, NULL, NULL);
-#else
-    len = wcstombs(mbs, src, len * sizeof(wchar));
-    if (len == static_cast<size_t>(-1)) {
-        len = 0U;
-    }
-#endif // WIN32
-    mbs[len] = 0;
 }
 
-wcsconv::wcsconv(const char* src)
+ExCPACP0::ExCPACP0(const wchar* src)
 {
-    size_t len = strlen(src);
-    wcs = (wchar*)malloc((len + 1) * sizeof(wchar));
-    if (wcs == NULL) {
-        return;
+    int srclen = (int)wcslen(src);
+    int mbslen = srclen * 4;
+    mbs = (char*)malloc((size_t)mbslen + 1U);
+    if (mbs != nullptr) {
+        (void)wcs2mbs(mbs, mbslen, src, srclen, CP_ACP);
+    } else {
+        dprint1(L"ExCPACP0(%s): wchar emem\n", src);
     }
-#ifdef WIN32
-    int32 n = static_cast<int32>(len);
-    len = MultiByteToWideChar(iconv_charset, 0, src, n, wcs, n * 2);
-#else
-    len = mbstowcs(wcs, src, len * sizeof(wchar));
-    if (len == static_cast<size_t>(-1)) {
-        len = 0U;
-    }
-#endif // WIN32
-    wcs[len] = 0;
 }
 
-// wcs2mbs
+// ExCPUTF8
 //
-wcs2mbs::~wcs2mbs()
+ExCPUTF8::~ExCPUTF8()
 {
-    if (mbs != NULL) {
-        free(mbs);
-    }
-}
-
-wcs2mbs::wcs2mbs(const wchar* wcs) : mbs(NULL)
-{
-    size_t len = wcslen(wcs);
-    mbs = (char*)malloc((len + 1) * sizeof(wchar));
-    if (mbs == NULL) {
-        mbs = _strdup("(emem)");
-        return;
-    }
-#ifdef WIN32
-    int32 n = static_cast<int32>(len);
-    len = WideCharToMultiByte(iconv_charset, 0, wcs, n, mbs, n * 2, NULL, NULL);
-#else
-    len = wcstombs(mbs, wcs, len * sizeof(wchar));
-    if (len == static_cast<size_t>(-1)) {
-        len = 0U;
-    }
-#endif // WIN32
-    mbs[len] = 0;
-}
-
-// mbs2wcs
-//
-mbs2wcs::~mbs2wcs()
-{
-    if (wcs != NULL) {
+    if (wcs != nullptr) {
         free(wcs);
     }
 }
 
-mbs2wcs::mbs2wcs(const char* mbs) : wcs(NULL)
+ExCPUTF8::ExCPUTF8(const char* src)
 {
-    size_t len = strlen(mbs);
-    wcs = (wchar*)malloc((len + 1) * sizeof(wchar));
-    if (wcs == NULL) {
-        wcs = _wcsdup(L"(emem)");
-        return;
+    int srclen = (int)strlen(src);
+    int wcslen = srclen * sizeof(wchar);
+    wcs = (wchar*)malloc((size_t)wcslen + sizeof(wchar));
+    if (wcs != nullptr) {
+        (void)mbs2wcs(wcs, wcslen, src, srclen, CP_UTF8);
+    } else {
+        dprint1("ExCPUTF8(%s): char emem\n", src);
     }
-#ifdef WIN32
-    int32 n = static_cast<int32>(len);
-    len = MultiByteToWideChar(iconv_charset, 0, mbs, n, wcs, n * 2);
-#else
-    len = mbstowcs(wcs, mbs, len * sizeof(wchar));
-    if (len == static_cast<size_t>(-1)) {
-        len = 0U;
+}
+
+ExCPUTF8::ExCPUTF8(const wchar* src)
+{
+    int srclen = (int)wcslen(src);
+    int mbslen = srclen * 4;
+    mbs = (char*)malloc((size_t)mbslen + 1U);
+    if (mbs != nullptr) {
+        (void)wcs2mbs(mbs, mbslen, src, srclen, CP_UTF8);
+    } else {
+        dprint1(L"ExCPUTF8(%s): wchar emem\n", src);
     }
-#endif // WIN32
-    wcs[len] = 0;
+}
+
+// funcs
+//
+int32 mbs2wcs(wchar* wcs, int wcslen, const char* src, int srclen, uint codepage) {
+    #ifdef WIN32
+    wcslen = MultiByteToWideChar(codepage, 0, src, srclen, wcs, wcslen);
+    #else // tbd: mbstowcs is locale dependent, so it may not work well
+    wcslen = (int)mbstowcs(wcs, src, (size_t)wcslen);
+    if (wcslen < 0) {
+        wcslen = 0;
+    }
+    #endif // WIN32
+    wcs[wcslen] = L'\0';
+    return wcslen;
+}
+
+int32 wcs2mbs(char* mbs, int mbslen, const wchar* src, int srclen, uint codepage) {
+    #ifdef WIN32
+    mbslen = WideCharToMultiByte(codepage, 0, src, srclen, mbs, mbslen, NULL, NULL);
+    #else // tbd: wcstombs is locale dependent, so it may not work well
+    mbslen = (int)wcstombs(mbs, src, (size_t)mbslen);
+    if (mbslen < 0) {
+        mbslen = 0;
+    }
+    #endif // WIN32
+    mbs[mbslen] = '\0';
+    return mbslen;
 }
 
 const char* wcs2utf8(const ucs2_t* wcs)

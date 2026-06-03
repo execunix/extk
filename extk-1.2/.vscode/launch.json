@@ -1,0 +1,95 @@
+{
+	"version": "0.2.0",
+	"configurations": [
+		{
+			"name": "ARM Remote GDB Debug",
+			"type": "cppdbg",
+			"request": "launch",
+			"program": "out/${config:EXTK.PROGRAM}",
+			"args": [],
+			"stopAtEntry": false,
+			"cwd": "${workspaceFolder}",
+			"environment": [],
+			"console": "integratedTerminal",
+			"MIMode": "gdb",
+			"targetArchitecture": "arm64",
+			"preLaunchTask": "deploy-remote-arm",
+			"setupCommands": [
+				{
+					"description": "Enable pretty-printing for gdb",
+					"text": "-enable-pretty-printing",
+					"ignoreFailures": true
+				}
+			],
+			"miDebuggerPath": "/usr/bin/gdb-multiarch",
+			"miDebuggerServerAddress": "${config:EXTK.TARGET_IP}:3000",
+		},
+		{
+			"name": "X86 Remote GDB Debug",
+			"type": "cppdbg",
+			"request": "launch",
+			"program": "out/${config:EXTK.PROGRAM}",
+			"args": [],
+			"stopAtEntry": false,
+			"cwd": "${workspaceFolder}",
+			"environment": [],
+			"console": "integratedTerminal",
+			"MIMode": "gdb",
+			"preLaunchTask": "deploy-remote-x86",
+			"setupCommands": [
+				{
+					"description": "Enable pretty-printing for gdb",
+					"text": "-enable-pretty-printing",
+					"ignoreFailures": true
+				}
+			],
+			"miDebuggerPath": "/usr/bin/gdb",
+			"miDebuggerServerAddress": "${config:EXTK.TARGET_IP}:3000",
+		},
+		{
+			"name": "ARM Local GDB Debug",
+			"type": "cppdbg",
+			"request": "launch",
+			"program": "out/${config:EXTK.PROGRAM}",
+			"args": [],
+			"stopAtEntry": false,
+			"cwd": "${workspaceFolder}",
+			"environment": [],
+			"console": "integratedTerminal",
+			"MIMode": "gdb",
+			"targetArchitecture": "arm",
+			"preLaunchTask": "deploy-local-arm",
+			"setupCommands": [
+				{
+					"description": "Enable pretty-printing for gdb",
+					"text": "-enable-pretty-printing",
+					"ignoreFailures": true
+				}
+			],
+			"miDebuggerPath": "/usr/bin/gdb-multiarch",
+			"miDebuggerServerAddress": "localhost:3000",
+		},
+		{
+			"name": "X86 Local GDB Debug",
+			"type": "cppdbg",
+			"request": "launch",
+			"program": "out/${config:EXTK.PROGRAM}",
+			"args": [],
+			"stopAtEntry": false,
+			"cwd": "${workspaceFolder}",
+			"environment": [],
+			"console": "integratedTerminal",
+			"MIMode": "gdb",
+			"preLaunchTask": "deploy-local-x86",
+			"setupCommands": [
+				{
+					"description": "Enable pretty-printing for gdb",
+					"text": "-enable-pretty-printing",
+					"ignoreFailures": true
+				}
+			],
+			"miDebuggerPath": "/usr/bin/gdb",
+			"miDebuggerServerAddress": "localhost:3000",
+		},
+	]
+}

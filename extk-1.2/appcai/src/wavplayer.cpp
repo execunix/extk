@@ -62,7 +62,7 @@ public:
         hwo = nullptr;
         txbuf = nullptr;
         hThread = nullptr;
-        idThread = 0;
+        idThread = 0U;
         nextbuf = 0;
     }
 
@@ -139,7 +139,7 @@ public:
     }
 
     int fini() {
-        idThread = 0; // sig term
+        idThread = 0U; // sig term
         if (hThread) {
             if (WAIT_OBJECT_0 != WaitForSingleObject(hThread, 1000)) // wait drain
                 dprint1(L"thread#%d wait fail.\n", devid);

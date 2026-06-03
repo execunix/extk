@@ -108,7 +108,7 @@
     <ClCompile Include="../../appdemo/src/tools.cpp" />
     <ClCompile Include="../../appdemo/src/watch.cpp" />
     <ClCompile Include="../../appdemo/src/wdmgr.cpp" />
-    <ClCompile Include="../../appdemo/src/event.cpp" />
+    <ClCompile Include="../../appdemo/src/message.cpp" />
     <ClCompile Include="../../appdemo/src/lcdout.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -118,7 +118,7 @@
     <ClInclude Include="../../appdemo/src/tools.h" />
     <ClInclude Include="../../appdemo/src/watch.h" />
     <ClInclude Include="../../appdemo/src/wdmgr.h" />
-    <ClInclude Include="../../appdemo/src/event.h" />
+    <ClInclude Include="../../appdemo/src/message.h" />
     <ClInclude Include="../../appdemo/src/lcdout.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="../../appdemo/src/res.h" />

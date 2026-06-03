@@ -74,99 +74,15 @@ ExWindow*    ExApp::button_window[2];           /* The last 2 windows to receive
 uint32       ExApp::regAppMsgIndex = 0x8000U;   // WM_APP 0x8000
 #endif
 
-#ifdef WIN32
-// ExModalCtrl - tbd
-//
-struct ExModalCtrl {
-    uint32          flags;
-    void*           result;
-    ExThreadCond*   cond;
-    ExModalCtrl**   prev;
-    ExModalCtrl*    next;
-};
-
-static ExModalCtrl exModalMain;
-
-int32 ExModalUnblock(ExModalCtrl* ctrl, void* result);
-void* ExModalBlock(ExModalCtrl* ctrl, long flags);
-
-/**
-ExModalUnblock()
-    stop a modal loop
-Description:
-    ExModalUnblock() causes the corresponding ExModalBlock() call to return the
-    value passed to the result argument. If you call PtModalUnblock() more than
-    once before PtModalBlock() returns, only the first call matters; don't call
-    PtModalUnblock() after PtModalBlock() has returned.
-Returns:
-    0	Success.
-    -1	An error occurred.
-*/
-int32 ExModalUnblock(ExModalCtrl* ctrl, void* result)
+void* ExModalBlock(ExModalCtrl* const ctrl)
 {
-    exassert(ctrl->flags & 0x80000000);
-    ctrl->flags = 0;
-    ctrl->result = result;
-    ExWakeupMainThread();
-    //PostThreadMessage(exMainThread.idThread, WM_ExEvWake, 0, 1); // wakeup
-    return 0;
+    return exWatchDisp->modalBlock(ctrl);
 }
 
-/**
-ExModalBlock()
-    Start a modal loop
-Description:
-    ExModalBlock() implements a modal loop.
-    ExModalBlock() doesn't return until ExModalUnblock() is called with the same
-    value of its ctrl argument. The structure pointed to by ctrl doesn't need to
-    be initialized in any special way.
-Returns:
-    NULL on error, or the value passed as the second argument to ExModalUnblock()
-    (don't use NULL or you won't be able to recognize a failure).
-*/
-void* ExModalBlock(ExModalCtrl* ctrl, long flags)
+void ExModalUnblock(ExModalCtrl* const ctrl, void* result)
 {
-#if 0 // tbd
-    MSG msg;
-    uint32 waittick;
-    ctrl->flags = flags | 0x80000000;
-    ctrl->result = NULL;
-    ctrl->cond = NULL;
-    ctrl->prev = NULL;
-    ctrl->next = NULL;
-    while (exWatchDisp->getHalt() == 0 && (ctrl->flags & 0x80000000)) {
-        waittick = ExTimerListInvoke(exWatchDisp->getTick());
-        dprint0("waittick=%d\n", waittick);
-        if (exWatchDisp->getHalt()) // is halt ?
-            break; // stop event loop
-        if (ExApp::mainWnd != nullptr)
-            ExApp::mainWnd->flush();
-        ExInput::invoke(waittick); // The only waiting point.
-        if (exWatchDisp->getHalt()) // is halt ?
-            break; // stop event loop
-        while ((ctrl->flags & 0x80000000) &&
-            exEventFunc(msg) == true) { // is message available ?
-            if (msg.message == WM_ExEvWake) {
-                dprint("message == WM_ExEvWake\n");
-                break;
-            }
-            if (msg.message == WM_QUIT) { // WM_DESTROY => PostQuitMessage
-                dprint("message == WM_QUIT tick=%d\n", exWatchDisp->getTick());
-                ExApp::retCode = (int32)msg.wParam; // cause DestroyWindow
-                exWatchDisp->setHalt(Ex_Halt); // stop event loop
-                break;
-            }
-            //exWatchDisp->leave(); // tbd ctrl->leave()
-            ExApp::dispatch(msg);
-            //exWatchDisp->enter(); // tbd ctrl->enter()
-            ExApp::collect();
-        }
-    }
-    ExApp::collect();
-#endif
-    return ctrl->result;
+    exWatchDisp->modalUnblock(ctrl, result);
 }
-#endif
 
 /**
 ExMainLoop()
@@ -177,25 +93,7 @@ Description:
 */
 void ExMainLoop()
 {
-#ifdef WIN32
-    MSG msg;
-    while (exWatchDisp->getHalt() == 0 &&
-        exEventFunc(msg) == true) { // is message available ?
-        if (msg.message == WM_ExEvWake) {
-            dprint("message == WM_ExEvWake\n");
-            continue;
-        }
-        if (msg.message == WM_QUIT) { // WM_DESTROY => PostQuitMessage
-            dprint("message == WM_QUIT tick=%d\n", exWatchDisp->getTick());
-            ExApp::retCode = (int32)msg.wParam; // cause DestroyWindow
-            exWatchDisp->setHalt(Ex_Halt); // stop event loop
-            break;
-        }
-        ExApp::dispatch(msg);
-        ExApp::collect();
-    }
-    ExApp::collect();
-#endif
+    (void)exWatchDisp->guiloop(ExHookProc::Process);
 }
 
 /**
@@ -212,23 +110,10 @@ void ExQuitMainLoop()
 {
 #ifdef WIN32
     PostQuitMessage(0);
+#else
+    (void)ExEmitMessage(WM_QUIT, ExApp::retCode); // stop main loop
 #endif
 }
-
-#ifdef WIN32
-void ExApp::dispatch(MSG& msg)
-{
-    exWatchDisp->leave();
-    TranslateMessage(&msg);
-    DispatchMessage(&msg);
-    exWatchDisp->enter();
-}
-#endif
-#ifdef __linux__
-void ExApp::dispatch(ExEvent& ev)
-{
-}
-#endif
 
 typedef std::list<ExWidget*> ExWidgetList;
 typedef std::list<ExWindow*> ExWindowList;
@@ -332,7 +217,7 @@ bool ExApp::init(HINSTANCE hInstance,
 #endif
     dprint("%s() width=%d height=%d\n", __func__, smSize.w, smSize.h);
 
-    if (ExWindow::classInit(hInstance) != 0) {
+    if (ExWindow::initClass(hInstance) != 0) {
         retCode = EXIT_SUCCESS;
     }
     return (retCode == EXIT_SUCCESS);
@@ -350,7 +235,7 @@ bool ExApp::init(int argc, char* argv[])
 #endif // __linux
 
 #ifdef CONF_X11
-static uint32 onXevent(void* data, const epoll_event* const ev);
+uint32 onXeventSample(void* data, const epoll_event* const ev);
 
 static int32 x_error_handler(Display* d, XErrorEvent* e)
 {
@@ -363,6 +248,9 @@ static int32 x_error_handler(Display* d, XErrorEvent* e)
 bool ExApp::initX11(ExWatch* watch)
 {
     int32 r = -1;
+    if (!XInitThreads()) {
+        dprint("XInitThreads() failed\n");
+    }
     button_click_time[0] = ExGetTickCount();
     button_click_time[1] = ExGetTickCount();
     do {
@@ -406,10 +294,14 @@ bool ExApp::initX11(ExWatch* watch)
         // x11.fb0_w = x11.sm_w;
         // x11.fb0_h = x11.sm_h;
         // x11.fb0_rotate = 0;
+        #if 0 // move to WatchDev::startup()
         const int32 xd_fd = ConnectionNumber(x11.display);
-        if (watch->ioAdd(&onXevent, watch, xd_fd)) {
+        if (watch->ioAdd(&onXeventSample, watch, xd_fd)) {
             r = 0;
         }
+        #else
+        r = 0;
+        #endif
     } while (false);
     return (r == 0);
 }
@@ -417,8 +309,10 @@ bool ExApp::initX11(ExWatch* watch)
 bool ExApp::finiX11(ExWatch* watch)
 {
     ExApp::EnvX11& x11 = ExApp::x11;
+    #if 0 // move to WatchDev::cleanup()
     const int32 xd_fd = ConnectionNumber(x11.display);
     (void)watch->ioDel(xd_fd);
+    #endif
     if (x11.display != nullptr) {
         XCloseDisplay(x11.display);
         x11.display = nullptr;
@@ -426,7 +320,7 @@ bool ExApp::finiX11(ExWatch* watch)
     return true;
 }
 
-uint32 onXevent(void* data, const epoll_event* const ev)
+uint32 onXeventSample(void* data, const epoll_event* const ev)
 {
     ExApp::EnvX11& x11 = ExApp::x11;
     ExWatch* watch = static_cast<ExWatch*>(data);
@@ -434,6 +328,7 @@ uint32 onXevent(void* data, const epoll_event* const ev)
     dprint0("%s: xd_fd=%d\n", __func__, xd_fd);
     exassert(ev->data.fd == xd_fd);
 
+    //XLockDisplay(x11.display);
     while (XPending(x11.display)) {
         XEvent e;
         XNextEvent(x11.display, &e);
@@ -445,6 +340,7 @@ uint32 onXevent(void* data, const epoll_event* const ev)
                     if (protocol == x11.wm_atom[ExApp::WM_DELETE_WINDOW]) {
                         dprint("ClientMessage.WM_DELETE_WINDOW\n");
                         #if 1
+                        ExQuitMainLoop();
                         watch->setHalt();
                         #else
                         (void)XDestroyWindow(x11.display, env.top);
@@ -464,15 +360,15 @@ uint32 onXevent(void* data, const epoll_event* const ev)
             } break;
             case ButtonPress: {
                 dprint0("ButtonPress state:%d button:%d pos:%d,%d\n", e.xbutton.state, e.xbutton.button, e.xbutton.x, e.xbutton.y);
-                (void)ExEmitPtrEvent(None, WM_LBUTTONDOWN, e.xbutton.x, e.xbutton.y);
+                (void)ExEmitPtrMsg(WM_LBUTTONDOWN, e.xbutton.x, e.xbutton.y);
             } break;
             case ButtonRelease: {
                 dprint0("ButtonRelease state:%d button:%d pos:%d,%d\n", e.xbutton.state, e.xbutton.button, e.xbutton.x, e.xbutton.y);
-                (void)ExEmitPtrEvent(None, WM_LBUTTONUP, e.xbutton.x, e.xbutton.y);
+                (void)ExEmitPtrMsg(WM_LBUTTONUP, e.xbutton.x, e.xbutton.y);
             } break;
             case MotionNotify: {
                 dprint0("MotionNotify state:%d button:%d pos:%d,%d\n", e.xbutton.state, e.xbutton.button, e.xbutton.x, e.xbutton.y);
-                (void)ExEmitPtrEvent(None, WM_MOUSEMOVE, e.xbutton.x, e.xbutton.y);
+                (void)ExEmitPtrMsg(WM_MOUSEMOVE, e.xbutton.x, e.xbutton.y);
             } break;
             case EnterNotify: {
                 dprint("EnterNotify\n");
@@ -487,11 +383,38 @@ uint32 onXevent(void* data, const epoll_event* const ev)
                 int32 keysyms_per_keycode = 0;
                 KeySym* keysym = XGetKeyboardMapping(x11.display, keycode, 1, &keysyms_per_keycode);
                 switch (*keysym) {
-                    case XK_Escape: {
-                        watch->setHalt(); //XDestroyWindow(x11.display, env.top);
+                    case XK_BackSpace: {
+                        PostMessage(ExApp::mainWnd->getHwnd(), WM_KEYDOWN, VK_BACK, 0LL);
                     } break;
-                    case XK_Return: break;
-                    case XK_BackSpace: break;
+                    case XK_Tab: {
+                        PostMessage(ExApp::mainWnd->getHwnd(), WM_KEYDOWN, VK_TAB, 0LL);
+                    } break;
+                    case XK_Return: {
+                        PostMessage(ExApp::mainWnd->getHwnd(), WM_KEYDOWN, VK_RETURN, 0LL);
+                    } break;
+                    case XK_Escape: {
+                        PostMessage(ExApp::mainWnd->getHwnd(), WM_KEYDOWN, VK_ESCAPE, 0LL);
+                        // ExQuitMainLoop();
+                        // watch->setHalt(); //XDestroyWindow(x11.display, env.top);
+                    } break;
+                    case XK_Home: {
+                        PostMessage(ExApp::mainWnd->getHwnd(), WM_KEYDOWN, VK_HOME, 0LL);
+                    } break;
+                    case XK_Left: {
+                        PostMessage(ExApp::mainWnd->getHwnd(), WM_KEYDOWN, VK_LEFT, 0LL);
+                    } break;
+                    case XK_Up: {
+                        PostMessage(ExApp::mainWnd->getHwnd(), WM_KEYDOWN, VK_UP, 0LL);
+                    } break;
+                    case XK_Right: {
+                        PostMessage(ExApp::mainWnd->getHwnd(), WM_KEYDOWN, VK_RIGHT, 0LL);
+                    } break;
+                    case XK_Down: {
+                        PostMessage(ExApp::mainWnd->getHwnd(), WM_KEYDOWN, VK_DOWN, 0LL);
+                    } break;
+                    case XK_End: {
+                        PostMessage(ExApp::mainWnd->getHwnd(), WM_KEYDOWN, VK_END, 0LL);
+                    } break;
                     case XK_0: break;
                     case XK_1: break;
                     case XK_2: break;
@@ -502,6 +425,9 @@ uint32 onXevent(void* data, const epoll_event* const ev)
                     case XK_7: break;
                     case XK_8: break;
                     case XK_9: break;
+                    case XK_KP_Space: {
+                        PostMessage(ExApp::mainWnd->getHwnd(), WM_KEYDOWN, VK_SPACE, 0LL);
+                    } break;
                 }
                 XFree(keysym);
             } break;
@@ -516,6 +442,7 @@ uint32 onXevent(void* data, const epoll_event* const ev)
             } break;
             case Expose: {
                 dprint("Expose count:%d\n", e.xexpose.count);
+                XClearWindow(x11.display, ExApp::mainWnd->getHwnd());
             } break;
             case GraphicsExpose: {
                 dprint("GraphicsExpose count:%d\n", e.xgraphicsexpose.count);
@@ -534,6 +461,7 @@ uint32 onXevent(void* data, const epoll_event* const ev)
             } break;
         }
     }
+    //XUnlockDisplay(x11.display);
     return 0U;
 }
 #else // CONF_X11

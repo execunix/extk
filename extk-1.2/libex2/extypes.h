@@ -22,7 +22,7 @@ struct ExTile;
 struct ExRegion;
 struct ExRender;
 struct ExColor;
-struct ExEvent;
+struct ExMsg;
 struct ExInput;
 
 class ExApp;
@@ -70,6 +70,8 @@ const uint32 Ex_Remove   = static_cast<uint32>(ExCallbackRet::Remove);
 const uint32 Ex_Break    = static_cast<uint32>(ExCallbackRet::Break);
 const uint32 Ex_End      = static_cast<uint32>(ExCallbackRet::End);
 const uint32 Ex_Halt     = static_cast<uint32>(ExCallbackRet::Halt);
+
+inline bool ExIsHalt(const uint32 r) { return ((r & Ex_Halt) != 0U); }
 
 enum ExLayoutSubType {
     Ex_LayoutInit,
@@ -298,5 +300,13 @@ template <typename T> constexpr ssize_t ssizeof(const T&) { return static_cast<s
 // functions
 //
 typedef void (*ExDestroyNotify)(void* data);
+
+inline void exsleep(uint32 msec) {
+#ifdef WIN32
+    Sleep(msec);
+#else // __linux__
+    (void)usleep(msec * 1000UL);
+#endif // __linux__
+}
 
 #endif//__extypes_h__

@@ -6,32 +6,14 @@
 #ifndef __exthread_h__
 #define __exthread_h__
 
-#include "excallback.h"
 #include "exevent.h"
+#include "exmessage.h"
 #include <list>
 
 typedef struct {
     long tv_sec;
     long tv_usec;
 } ExTimeVal;
-
-// class ExSignal
-//
-class ExSignal {
-#ifdef WIN32
-protected:
-    HANDLE hSignal;
-public:
-    ~ExSignal() { CloseHandle(hSignal); }
-    ExSignal() { hSignal = CreateEvent(NULL, TRUE, FALSE, NULL); }
-public:
-    void reset() { ResetEvent(hSignal); }
-    void signal() { SetEvent(hSignal); }
-    bool isSignaled() {
-        return (WaitForSingleObject(hSignal, 0) != WAIT_TIMEOUT);
-    }
-#endif // WIN32
-};
 
 // class ExThread
 //
@@ -103,7 +85,7 @@ public:
     ExThread() : errcode(0), hThread(NULL), idThread(0U),
         joinable(false), priority(PrioNormal), userproc(), userdata(NULL) {}
 public:
-    int join(int wait = 4000/*INFINITE*/);
+    int join(uint wait = 4000U/*INFINITE*/);
     int create(Proc& proc, bool joinable = true);
 #ifdef _WIN32_WCE
     int getPriority() { return (hThread) ? CeGetThreadPriority(hThread) : -1; }

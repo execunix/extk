@@ -8,7 +8,7 @@
 
 #ifdef WIN32
 
-#define EVENTPROC_HAVETHREAD
+//#define IOMUX_WAIT_NO_GWES
 
 uint64 ExGetMonoClock() {
     LARGE_INTEGER freq, tick;
@@ -121,15 +121,16 @@ bool ExWatch::IomuxMap::del(HANDLE mux_fd) {
     return (r == 0);
 }
 
-uint32 ExWatch::IomuxMap::invoke(uint32 waittick) {
+int32 ExWatch::IomuxMap::invoke(int32 waittick) {
     DWORD nCount = setup();
     LPHANDLE pHandles = handles;
-    DWORD dwMilliseconds = waittick;//INFINITE;
+    DWORD dwMilliseconds = (DWORD)waittick;//INFINITE;
     DWORD dwWaitRet; // signaled number
+    const uint32 tick0 = watch->tickCount; // get current tick
 
     watch->leave();
     //Sleep(1);
-#if defined(EVENTPROC_HAVETHREAD)
+#if defined(IOMUX_WAIT_NO_GWES)
     dwWaitRet = WaitForMultipleObjects(nCount, pHandles, FALSE, dwMilliseconds);
 #else
     DWORD dwWakeMask = QS_ALLEVENTS;//QS_ALLINPUT;
@@ -138,17 +139,14 @@ uint32 ExWatch::IomuxMap::invoke(uint32 waittick) {
                                             dwMilliseconds, dwWakeMask, dwFlags);
 #endif
     watch->enter();
-    watch->tickCount = GetTickCount(); // update tick
 
-    if (dwWaitRet == WAIT_TIMEOUT) {
+    if (dwWaitRet == WAIT_TIMEOUT) { // no messages are available
         dprint0("IomuxMap: nCount=%d WAIT_TIMEOUT\n", nCount);
-        return 0U; // no messages are available
-    }
-#if !defined(EVENTPROC_HAVETHREAD)
-    if (dwWaitRet == WAIT_OBJECT_0 + nCount) {
+    } else
+#if !defined(IOMUX_WAIT_NO_GWES)
+    if (dwWaitRet == (WAIT_OBJECT_0 + nCount)) { // got message from gwes
         dprint0("IomuxMap: nCount=%d GOT_GWES_MSG\n", nCount);
-        return 1U; // got message from gwes
-    }
+    } else
 #endif
     if ((dwWaitRet >= WAIT_OBJECT_0) &&
         (dwWaitRet < (WAIT_OBJECT_0 + nCount))) {
@@ -168,8 +166,10 @@ uint32 ExWatch::IomuxMap::invoke(uint32 waittick) {
             // proc iomux handler
             exassert(iomux->notify.func);
             uint32 r = iomux->notify(iomux->mux_fd);
-            if ((r & Ex_Halt) != 0U) {
-                return watch->setHalt(r);
+            r |= watch->getHalt();
+            if (ExIsHalt(r)) {
+                (void)watch->setHalt(r);
+                break; // stop iomux loop
             }
             if ((r & Ex_Remove) != 0U) {
                 del(iomux->mux_fd);
@@ -177,27 +177,35 @@ uint32 ExWatch::IomuxMap::invoke(uint32 waittick) {
             }
             cnt++;
         }
-        return cnt; // got input signal
+        dprint("IomuxMap: got input signal cnt=%d\n", cnt);
+    } else {
+        exerror("IomuxMap: dwWaitRet:%p GetLastError:0x%p\n", dwWaitRet, GetLastError());
     }
-    exerror("IomuxMap: dwWaitRet:%p GetLastError:0x%p\n", dwWaitRet, GetLastError());
-    return 0U; // error
+    watch->tickCount = GetTickCount(); // update tick
+    return (watch->tickCount - tick0); // return elapsed tick
 }
 
 // Watch thread
 //
 uint32 ExWatch::tickAppLaunch = ExGetTickCount();
 
-DWORD ExWatch::tls_key = TLS_OUT_OF_INDEXES;
+DWORD ExWatch::keyTlsSpecific = TLS_OUT_OF_INDEXES;
 
-void ExWatch::tls_specific(const char* name)
-{
-    if (tls_key == TLS_OUT_OF_INDEXES) {
-        tls_key = TlsAlloc();
+const ExWatch* ExWatch::getTlsSpecific() {
+    const ExWatch* watch = nullptr;
+    if (keyTlsSpecific != TLS_OUT_OF_INDEXES) {
+        watch = (const ExWatch*)TlsGetValue(keyTlsSpecific);
     }
-    exassert(tls_key != TLS_OUT_OF_INDEXES);
-    exassert(TlsGetValue(tls_key) == nullptr);
-    LPVOID key_name = strdup(name);
-    TlsSetValue(tls_key, key_name);
+    return watch;
+}
+
+void ExWatch::setTlsSpecific(const ExWatch* watch) {
+    if (keyTlsSpecific == TLS_OUT_OF_INDEXES) {
+        keyTlsSpecific = TlsAlloc();
+    }
+    exassert(keyTlsSpecific != TLS_OUT_OF_INDEXES);
+    exassert(TlsGetValue(keyTlsSpecific) == nullptr);
+    TlsSetValue(keyTlsSpecific, (LPVOID)watch);
 }
 
 DWORD WINAPI ExWatch::start(_In_ LPVOID arg) {
@@ -226,10 +234,7 @@ bool ExWatch::fini() {
     }
     iomuxmap.fini();
     timerset.fini();
-    if (efd != nullptr) {
-        CloseHandle(efd);
-        efd = nullptr;
-    }
+    evWake.fini();
     return (r == 0);
 }
 
@@ -237,9 +242,8 @@ bool ExWatch::init(size_t max_iomux, size_t stacksize) {
     exassert(hThread == nullptr);
     iomuxmap.init(max_iomux);
 
-    efd = CreateEvent(nullptr, FALSE, FALSE, nullptr); // hev
-    exassert(efd != nullptr);
-    ioAdd(this, &ExWatch::onEvent, efd);
+    evWake.init();
+    ioAdd(this, &ExWatch::onEvent, evWake);
 
     tickCount = GetTickCount(); // update tick
 
@@ -250,64 +254,15 @@ bool ExWatch::init(size_t max_iomux, size_t stacksize) {
     return (hThread != nullptr);
 }
 
-bool ExWatch::enter() const {
-    DWORD dwWaitRet;
-#ifdef DEBUG
-    for (int32 i = 0; i < 100; i++) {
-        dwWaitRet = WaitForSingleObject(mutex, 3000);
-        if (dwWaitRet == WAIT_OBJECT_0) {
-            break;
-        }
-        exerror("ExWatch::enter(TID=%p) %s %d\n", GetCurrentThreadId(),
-                dwWaitRet == WAIT_TIMEOUT ? "WAIT_TIMEOUT" : "WAIT_FAILED", i);
-    }
-#else
-    dwWaitRet = WaitForSingleObject(mutex, INFINITE);
-#endif
-    return true;
-}
-
-bool ExWatch::leave() const {
-    ReleaseMutex(mutex);
-    return true;
-}
-
 bool ExWatch::isSelf() const {
     return ((idThread == 0U) || (idThread == GetCurrentThreadId()));
 }
 
-uint32 ExWatch::setHalt(uint32 r)
-{
-    exassert((halt | r) & Ex_Halt);
-    if (!(halt & 0x80000000)) {
-        halt |= 0x80000000;
-        setEvent(1UL);
-    }
-    return (halt |= r);
-}
-
-bool ExWatch::getEvent(uint64* u64) const {
-    u64 = u64;
-    BOOL ret = ResetEvent(efd);
-    return (ret != 0);
-}
-
-bool ExWatch::setEvent(uint64 u64) const {
-    u64 = u64;
-    BOOL ret = SetEvent(efd);
-    return (ret != 0);
-}
-
 uint32 ExWatch::onEvent(HANDLE hev) {
     dprint0("%s: hev:%p\n", __func__, hev);
-
-    #if 0 // for manual reset
-    uint64 u64 = 0UL;
-    if (getEvent(&u64)) {
-        dprint0("%s: got event %lu\n", __func__, u64);
-    } else {
-        dprint1("%s: got event fail.\n", __func__);
-    }
+    exassert(evWake == hev);
+    #if 1 // for manual reset
+    (void)evWake.reset();
     #endif
 
     #if 0 // tbd - cond wait and signal

@@ -189,7 +189,7 @@ int WgtLineProc::build()
 
     (int&)timerVideoRefresh.userdata = 0;
     timerVideoRefresh.setCallback(this, &WgtLineProc::onVideoRefresh, this);
-    timerVideoRefresh.start(1, repeat);
+    timerVideoRefresh.start(1U, repeat);
 
     initInput();
 
@@ -229,7 +229,7 @@ int WgtLineProc::build()
 
     timerMain.setCallback(this, &WgtLineProc::onTimer);
     (int&)timerMain.userdata = 0x1234;
-    timerMain.start(1);
+    timerMain.start(1U);
 #endif
     return 0;
 }

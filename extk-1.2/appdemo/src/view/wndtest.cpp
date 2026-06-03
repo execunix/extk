@@ -5,7 +5,7 @@
 
 #include "osal/osal.h"
 #include "wndtest.h"
-#include "event.h"
+#include "message.h"
 #include "env.h"
 #include "res.h"
 
@@ -162,12 +162,12 @@ uint32 WndTest::onDestroyed(WndTest* w, ExCbInfo* cbinfo) {
 }
 
 uint32 WndTest::onFilter(WndTest* w, ExCbInfo* cbinfo) {
-    dprint("filter WM_0x%04x\n", cbinfo->event->message);
+    dprint("filter WM_0x%04x\n", cbinfo->exmsg->message);
     #ifdef WIN32
-    if (cbinfo->event->message == WM_KEYDOWN) {
-        switch (cbinfo->event->wParam) {
+    if (cbinfo->exmsg->message == WM_KEYDOWN) {
+        switch (cbinfo->exmsg->wParam) {
             case VK_UP:
-                dprint("0x%04x %s\n", cbinfo->event->message, "VK_UP");
+                dprint("0x%04x %s\n", cbinfo->exmsg->message, "VK_UP");
                 break;
         }
         return Ex_Continue;
@@ -227,13 +227,13 @@ int WndTest::start() {
     addFilter(this, &WndTest::onFilter);
 
     addFilter([](void* data, ExWindow* window, ExCbInfo* cbinfo)->uint32 {
-        dprint("[%s] WM_0x%04x\n", window->getName(), cbinfo->event->message);
-        if (cbinfo->event->message == WM_CREATE) {
-            cbinfo->event->lResult = 0;
+        dprint("[%s] WM_0x%04x\n", window->getName(), cbinfo->exmsg->message);
+        if (cbinfo->exmsg->message == WM_CREATE) {
+            cbinfo->exmsg->lResult = 0;
             #ifdef WIN32
             RECT r;
             // The right and bottom members contain the width and height of the window.
-            GetClientRect(cbinfo->event->hwnd, &r);
+            GetClientRect(cbinfo->exmsg->hwnd, &r);
             ExRect rc(r);
             #else // linux - tbd
             ExRect rc(0, 0, env.wnd.w, env.wnd.h);

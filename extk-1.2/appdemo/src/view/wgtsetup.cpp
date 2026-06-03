@@ -5,7 +5,7 @@
 
 #include "osal/osal.h"
 #include "wgtsetup.h"
-#include "event.h"
+#include "message.h"
 #include "res.h"
 
 static void
@@ -86,7 +86,7 @@ uint32 WgtSetup::onTitleMove(ExWidget* widget, ExCbInfo* cbinfo) {
     ExWindow* window = getWindow();
     if (widget == &title && window) {
         static ExPoint but_pt(0);
-        ExPoint msg_pt(cbinfo->event->pt);
+        ExPoint msg_pt(cbinfo->exmsg->pt);
         if (cbinfo->type == Ex_CbButPress) {
             but_pt = msg_pt; // memory press point
             toFront();
@@ -106,7 +106,8 @@ uint32 WgtSetup::onTitleMove(ExWidget* widget, ExCbInfo* cbinfo) {
 
 uint32 WgtSetup::onActivate(ExWidget* widget, ExCbInfo* cbinfo) {
     if (widget == &close) {
-        if (cbinfo->type == Ex_CbActivate) {
+        if (cbinfo == nullptr ||
+            cbinfo->type == Ex_CbActivate) {
             #if 1 // test
             PostMessage(getWindow()->getHwnd(), WM_CbRemove, 0, (LPARAM)this);
             #else
@@ -115,6 +116,7 @@ uint32 WgtSetup::onActivate(ExWidget* widget, ExCbInfo* cbinfo) {
             window->removeFilter(ExCallback(this, &WgtSetup::onFilter));
             #endif
             destroy();
+            ExModalUnblock(&ctrl, (void*)0x3f);
             return Ex_Continue;
         }
     }
@@ -126,32 +128,32 @@ uint32 WgtSetup::onFocused(ExWidget* widget, ExCbInfo* cbinfo) {
 }
 
 uint32 WgtSetup::onHandler(ExWidget* widget, ExCbInfo* cbinfo) {
-    if (cbinfo->event->message == WM_CbRemove &&
-        cbinfo->event->lParam == (LPARAM)this) {
+    if (cbinfo->exmsg->message == WM_CbRemove &&
+        cbinfo->exmsg->lParam == (LPARAM)this) {
         dprint("WgtSetup::onHandler - WM_CbRemove\n");
         return Ex_Remove;
     }
-    if (cbinfo->event->message == WM_COMMAND) {
-        dprint("WM_COMMAND: %d\n", cbinfo->event->wParam);
+    if (cbinfo->exmsg->message == WM_COMMAND) {
+        dprint("WM_COMMAND: %d\n", cbinfo->exmsg->wParam);
         return Ex_Continue;
     }
     return Ex_Continue;
 }
 
 uint32 WgtSetup::onFilter(ExWidget* widget, ExCbInfo* cbinfo) {
-    if (cbinfo->event->message == WM_CbRemove &&
-        cbinfo->event->lParam == (LPARAM)this) {
+    if (cbinfo->exmsg->message == WM_CbRemove &&
+        cbinfo->exmsg->lParam == (LPARAM)this) {
         dprint("WgtSetup::onFilter - WM_CbRemove\n");
         return Ex_Remove;
     }
-    if (cbinfo->event->message == WM_MOUSEMOVE) {
+    if (cbinfo->exmsg->message == WM_MOUSEMOVE) {
         return Ex_Continue;
     }
-    if (cbinfo->event->message == WM_LBUTTONDOWN) {
+    if (cbinfo->exmsg->message == WM_LBUTTONDOWN) {
         return Ex_Continue;
     }
-    if (cbinfo->event->message == WM_KEYDOWN) {
-        switch (cbinfo->event->wParam) {
+    if (cbinfo->exmsg->message == WM_KEYDOWN) {
+        switch (cbinfo->exmsg->wParam) {
         case VK_UP:
             break;
         case VK_DOWN:
@@ -166,17 +168,18 @@ uint32 WgtSetup::onFilter(ExWidget* widget, ExCbInfo* cbinfo) {
             break;
         case VK_SPACE:
         case VK_RETURN: {
-            PostMessage(getWindow()->getHwnd(), WM_COMMAND, 12345, 0);
+            (void)PostMessage(getWindow()->getHwnd(), WM_COMMAND, 12345, 0);
             break;
         }
         case VK_ESCAPE: {
+            (void)onActivate(&close, nullptr);
             break;
         }
         case VK_TAB: {
             break;
         }
         }
-        return Ex_Continue;
+        return Ex_Break;
     }
     return Ex_Continue;
 }
@@ -188,7 +191,7 @@ uint32 WgtSetup::onLayout(ExWidget* widget, ExCbInfo* cbinfo) {
 }
 
 void WgtSetup::fini() {
-    dprint("%s\n", __func__);
+    dprint("WgtSetup::%s\n", __func__);
 }
 
 void WgtSetup::init(ExWidget* parent, int x, int y) {
@@ -200,7 +203,7 @@ void WgtSetup::init(ExWidget* parent, int x, int y) {
     addListener(this, &WgtSetup::onLayout, Ex_CbLayout);
     drawFunc = ExDrawFunc(fillRect, (void*)20);
     setFlags(Ex_Selectable);
-    //select = ExBox(9999);
+    select = ExBox(9999);
 
     title.init(this, "Setup", &rc.set(2, 2, 386, 40));
     title.drawFunc = ExDrawFunc(drawName, (void*)NULL);

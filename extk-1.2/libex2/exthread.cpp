@@ -121,7 +121,7 @@ bool ExThread::Cond::timedWait(Mutex* enteredMutex, ExTimeVal* absTime) {
         assert(condEvent != NULL);
     }
     mutex.lock();
-    retval = WaitForSingleObject(condEvent, 0);
+    retval = WaitForSingleObject(condEvent, 0U);
     assert(retval == WAIT_TIMEOUT);
     hevs.push_back(condEvent);
     mutex.unlock();
@@ -133,7 +133,7 @@ bool ExThread::Cond::timedWait(Mutex* enteredMutex, ExTimeVal* absTime) {
     if (retval == WAIT_TIMEOUT) {
         mutex.lock();
         hevs.erase(std::find(hevs.begin(), hevs.end(), condEvent));
-        retval = WaitForSingleObject(condEvent, 0);
+        retval = WaitForSingleObject(condEvent, 0U);
         assert(retval != WAIT_FAILED);
         mutex.unlock();
     }
@@ -145,7 +145,7 @@ bool ExThread::Cond::timedWait(Mutex* enteredMutex, ExTimeVal* absTime) {
     return retval != WAIT_TIMEOUT;
 }
 
-int ExThread::join(int wait) {
+int ExThread::join(uint wait) {
     assert(this->hThread);
     if (this->joinable == false) {
         exerror("%s - not joinable.\n", __func__);
@@ -218,7 +218,7 @@ ExEnter()
 {
     DWORD dwWaitRet;
     for (int i = 0; i < 100; i++) {
-        dwWaitRet = WaitForSingleObject(exLibMutex, 3000);
+        dwWaitRet = WaitForSingleObject(exLibMutex, 3000U);
         if (dwWaitRet == WAIT_OBJECT_0)
             break;
         exerror("ExEnter(TID=%p) %s %d\n", GetCurrentThreadId(),
@@ -230,7 +230,7 @@ bool
 ExTryEnter()
 {
     DWORD dwWaitRet;
-    dwWaitRet = WaitForSingleObject(exLibMutex, 0);
+    dwWaitRet = WaitForSingleObject(exLibMutex, 0U);
     if (dwWaitRet == WAIT_OBJECT_0)
         return true;
     return false;

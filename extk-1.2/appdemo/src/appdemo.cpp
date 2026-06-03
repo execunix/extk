@@ -1,4 +1,4 @@
-//
+﻿//
 // Copyright (C) 2020 C.H Park <execunix@gmail.com>
 // SPDX-License-Identifier:     GPL-2.0+
 //
@@ -412,7 +412,7 @@ int app_test() {
                data, ((uint32)*timer) % 10000U, cbinfo->type);
         return 0U; }, (void*)0xaaaa);
     //timer1.enter();
-    timer1.start_ex(1, 1233);
+    timer1.start(1U, 1233U);
     //timer1.leave();
     #endif
 
@@ -490,16 +490,6 @@ void poly_test()
     cblist.add(ExCallback(func_ptr, &data));
     #endif
     cblist.invoke(&timer1, &cbinfo);
-}
-
-static uint32 flushMainWnd(void* data, uint32 hook) {
-    if (hook != ExHookProc::Maintain) {
-        return -1;
-    }
-    if (ExApp::mainWnd != NULL) {
-        ExApp::mainWnd->flush();
-    }
-    return 0;
 }
 
 #ifdef __linux__
@@ -656,6 +646,7 @@ static uint32 cmdline_halt(void* /*data*/, const int32* argc, const char** argv)
 
     if (0 == exstrcmp(argv[0], "halt")) {
         #ifdef __linux__
+        //ExQuitMainLoop();
         (void)gWatchApp.setHalt();
         #endif // __linux__
         ret = Ex_Break;
@@ -666,7 +657,7 @@ static uint32 cmdline_halt(void* /*data*/, const int32* argc, const char** argv)
         ret = Ex_Break;
     } else if (0 == exstrcmp(argv[0], "scrcap")) {
         #ifdef __linux__
-        (void)PostMessage(None, WM_COMMAND, CMD_SCREEN_CAPTURE);
+        (void)ExEmitMessage(WM_COMMAND, CMD_SCREEN_CAPTURE);
         #endif // __linux__
         ret = Ex_Break;
     }
@@ -688,7 +679,7 @@ int main(int argc, char* argv[])
 {
     int32 result = EXIT_SUCCESS;
 
-    ExWatch::tls_specific(gWatchApp.name);
+    ExWatch::setTlsSpecific(&gWatchApp);
 #ifdef DPRINT
     dprint_verbose = 3;
     ex_dprint_appinfo = &dprint_appinfo;
@@ -696,15 +687,15 @@ int main(int argc, char* argv[])
         dprint("setlocale(LC_ALL, en_US.UTF-8) failed.\n");
     }
     #if 1 // test
-    dprint(dprint_verbose, "mbs %s\n", "mbs 한글");
-    dprint(dprint_verbose, "mbs %ls\n", L"wcs 한글");
-    dprint(dprint_verbose, L"wcs %s\n", "mbs 한글");
-    dprint(dprint_verbose, L"wcs %ls\n", L"wcs 한글");
+    dprint(dprint_verbose, "mbs 한글 %s\n", "mbs 한글");
+    dprint(dprint_verbose, "mbs 한글 %ls\n", L"wcs 한글");
+    dprint(dprint_verbose, L"wcs 한글 %s\n", "mbs 한글");
+    dprint(dprint_verbose, L"wcs 한글 %ls\n", L"wcs 한글");
     #endif
 #else
     dprint_verbose = 0;
 #endif
-    printf("Welcome to callbacks world...\n");
+    printf("Welcome to callbacks world 콜백 세계로...\n");
     //printf("errno 35 - %s\n", strerror(35)); // test
     poly_test();
     std::function<int32(void*)> func1 = [](void* data)->int32 {
@@ -712,9 +703,9 @@ int main(int argc, char* argv[])
         return 0;
     };
     (void)func1((void*)0x1234);
-    cb_test();
-    app_test();
-    flt_test();
+    //cb_test();
+    //app_test();
+    //flt_test();
 
     (void)init_signal();
 
@@ -723,10 +714,8 @@ int main(int argc, char* argv[])
     (void)gWatchApp.startup();
     (void)gWatchApp.enter();
     (void)gWatchDev.init(); // start watch thread for gps and etc
-
-    (void)gWatchDev.enter();
+    (void)gWatchMap.init();
     (void)gWatchdog.init();
-    (void)gWatchDev.leave();
     // app startup begin
     //
     //CApp app;
@@ -761,9 +750,8 @@ int main(int argc, char* argv[])
     //(void)module.init();
     //
 
-    (void)gWatchApp.leave();
-    (void)gWatchApp.mainloop();
-    (void)gWatchApp.enter();
+    //(void)gWatchApp.guiloop();
+    ExMainLoop();
 
     //
     //(void)module.fini();
@@ -792,12 +780,14 @@ int main(int argc, char* argv[])
     // app cleanup end
 
     (void)gLcdOut.fini();
+    (void)gWatchMap.fini();
     (void)gWatchDev.fini();
     (void)gWatchApp.cleanup();
     (void)finiRes();
     (void)saveEnv();
     sync();
 on_failure:
+    dprint("exit %d\n", result);
     return result;
 }
 #endif // __linux__
@@ -808,39 +798,55 @@ int APIENTRY WinMain(_In_ HINSTANCE hInstance,
                      _In_ LPSTR     lpCmdLine,
                      _In_ int       nCmdShow)
 {
-    SetConsoleOutputCP(65001); // UTF-8
+    ExApp::retCode = EXIT_SUCCESS;
 
+    ExWatch::setTlsSpecific(&gWatchApp);
+    SetConsoleOutputCP(CP_UTF8); // CP_UTF8 | CP_ACP
+#ifdef DPRINT
+    dprint_verbose = 3;
+    ex_dprint_appinfo = &dprint_appinfo;
+    #if 1 // test
+    dprint(dprint_verbose, "mbs 한글 %s\n", "mbs 한글");
+    dprint(dprint_verbose, "mbs 한글 %s\n", ExCPACP0(L"wcs 한글"));
+    dprint(dprint_verbose, L"wcs 한글 %s\n", ExCPACP0("mbs 한글"));
+    dprint(dprint_verbose, L"wcs 한글 %s\n", L"wcs 한글");
+    #endif
+#else
+    dprint_verbose = 0;
+#endif
     //cb_test();
     //app_test();
     //flt_test();
 
     ExApp::init(hInstance, hPrevInstance, lpCmdLine, nCmdShow);
-    exWatchDisp = exWatchMain;
     (void)initEnv();
     (void)initRes();
-
-    exWatchDisp->enter();
-    exWatchDisp->procMaintain = ExHookProc(&flushMainWnd, (void*)NULL);
-    exWatchDisp->init();
+    (void)gWatchApp.startup();
+    (void)gWatchApp.enter();
+    (void)gWatchMap.init();
 
     // startup
-    // tbd - parse args
-    //WndMain gWndMain; // test
-    //WndMain* gWndMain = WndMain::create(...); // test
-    WndMain* gWndMain = new WndMain;
-    gWndMain->setFlags(Ex_FreeMemory); // tbd
+    gWndMain = new WndMain;
+    //gWndMain = WndMain::create(...); // test
+    (void)gWndMain->setFlags(Ex_FreeMemory); // tbd
+    //gWndMain->flushFunc = ExFlushFunc(&gLcdOut, &LcdOut::onFlush);
     if (gWndMain->start() != 0) {
-        return EXIT_FAILURE;
+        ExApp::retCode = EXIT_FAILURE;
+        goto on_failure;
     }
+    (void)gWndMain->flush();
     exassert(ExApp::mainWnd == gWndMain);
+
+    //(void)gWatchApp.guiloop();
     ExMainLoop();
-    exWatchDisp->fini();
-    exWatchDisp->leave();
 
     // cleanup
+    (void)gWatchMap.fini();
+    (void)gWatchApp.cleanup();
     (void)finiRes();
     (void)saveEnv();
-    ExApp::exit(1);
+    ExApp::exit(ExApp::retCode);
+on_failure:
     return ExApp::retCode;
 }
 #endif // WIN32

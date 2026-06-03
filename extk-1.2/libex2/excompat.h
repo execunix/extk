@@ -32,12 +32,15 @@ constexpr HWND None = nullptr;
 #endif // __linux__
 
 #ifdef __linux__
-#define MAKEWORD(a, b)  ((uint16)(((uint8)(((uint64)(a)) & 0xff)) | ((uint16)((uint8)(((uint64)(b)) & 0xff))) << 8))
-#define MAKELONG(a, b)  ((long)(((uint16)(((uint64)(a)) & 0xffff)) | ((uint32)((uint16)(((uint64)(b)) & 0xffff))) << 16))
-#define LOWORD(l)       ((uint16)(((uint64)(l)) & 0xffff))
-#define HIWORD(l)       ((uint16)((((uint64)(l)) >> 16) & 0xffff))
-#define LOBYTE(w)       ((uint8)(((uint64)(w)) & 0xff))
-#define HIBYTE(w)       ((uint8)((((uint64)(w)) >> 8) & 0xff))
+#define LOBYTE(w)           ((uint8)(((uint64)(w)) & 0xff))
+#define HIBYTE(w)           ((uint8)((((uint64)(w)) >> 8) & 0xff))
+#define LOWORD(l)           ((uint16)(((uint64)(l)) & 0xffff))
+#define HIWORD(l)           ((uint16)((((uint64)(l)) >> 16) & 0xffff))
+#define MAKEWORD(a, b)      ((uint16)(((uint8)(((uint64)(a)) & 0xff)) | ((uint16)((uint8)(((uint64)(b)) & 0xff))) << 8))
+#define MAKELONG(a, b)      ((long)(((uint16)(((uint64)(a)) & 0xffff)) | ((uint32)((uint16)(((uint64)(b)) & 0xffff))) << 16))
+#define MAKEWPARAM(l, h)    ((WPARAM)(DWORD)MAKELONG(l, h))
+#define MAKELPARAM(l, h)    ((LPARAM)(DWORD)MAKELONG(l, h))
+#define MAKELRESULT(l, h)   ((LRESULT)(DWORD)MAKELONG(l, h))
 #endif // __linux__
 
 #endif//__excompat_h__

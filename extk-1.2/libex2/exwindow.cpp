@@ -41,7 +41,7 @@ ExWindow::ExWindow() noexcept
     , flushFunc()
     , paintFunc()
     , canvas(nullptr)
-    , event(nullptr)
+    , exmsg(nullptr)
     , filterList()
     , handlerList() {
     flags |= Ex_HasOwnGC;
@@ -86,15 +86,15 @@ uint32 ExWindow::destroy() {
         (void)exWndProcMap.detach(hwnd);
         ExApp::addCollectWindow(this);
 
-        ExEvent ev(hwnd, WM_DESTROY, 0, reinterpret_cast<int64>(this));
-        ExCbInfo cbinfo(Ex_CbFilter, 0U, &ev);
+        ExMsg em(hwnd, WM_DESTROY, 0, reinterpret_cast<int64>(this));
+        ExCbInfo cbinfo(Ex_CbFilter, 0U, &em);
         if ((invokeFilter(&cbinfo) & Ex_Break) == 0U) {
             (void)invokeHandler(&cbinfo(Ex_CbHandler));
         }
         hwnd = None;
         if (ExApp::mainWnd == this) {
             ExApp::mainWnd = nullptr; // stop timer/flush/input exlib proc
-            (void)PostMessage(None, WM_QUIT, ExApp::retCode); // stop main loop
+            (void)ExEmitMessage(WM_QUIT, ExApp::retCode); // stop main loop
         }
 #endif // __linux__
     }
@@ -199,13 +199,13 @@ bool ExWindow::showWindow(ulong type, int32 x, int32 y) {
 #endif
     (void)exWndProcMap.attach(hwnd, this);
 
-    ExEvent ev(hwnd, WM_CREATE, 0, reinterpret_cast<int64>(this));
-    ExCbInfo cbinfo(Ex_CbFilter, 0U, &ev);
+    ExMsg em(hwnd, WM_CREATE, 0, reinterpret_cast<int64>(this));
+    ExCbInfo cbinfo(Ex_CbFilter, 0U, &em);
     if ((invokeFilter(&cbinfo) & Ex_Break) == 0U) {
         (void)invokeHandler(&cbinfo(Ex_CbHandler));
     }
     // tbd - send_message(WM_SIZE, area.w, area.h); // layout
-    exEventList.post_event(hwnd, WM_SIZE)->sz = area.u.sz; // layout
+    exMsgList.emitMessage(hwnd, WM_SIZE)->sz = area.u.sz; // layout
     (void)exWatchDisp->wakeup();
     return showWindow();
 }
@@ -454,7 +454,7 @@ uint32 ExWindow::onRepeatBut(ExTimer* timer, ExCbInfo* cbinfo) {
     if (wgtPressed &&
         wgtPressed == wgtEntered && ++ExApp::butRepeatCnt() > 0) {
         if (!wgtPressed->listenerList.empty()) {
-            cbinfo->event = event; // tbd - backup msg ?
+            cbinfo->exmsg = exmsg; // tbd - backup msg ?
             cbinfo->set(Ex_CbButRepeat, ExApp::butRepeatCnt());
             return wgtPressed->invokeListener(Ex_CbActivate, cbinfo);
         }
@@ -469,7 +469,7 @@ uint32 ExWindow::onRepeatKey(ExTimer* timer, ExCbInfo* cbinfo) {
 
 #ifdef WIN32
 ATOM // static
-ExWindow::classInit(HINSTANCE hInstance) {
+ExWindow::initClass(HINSTANCE hInstance) {
     static ATOM wcid = 0;
 
     if (wcid == 0) {
@@ -485,7 +485,7 @@ ExWindow::classInit(HINSTANCE hInstance) {
         wc.lpszMenuName = 0;//MAKEINTRESOURCE(IDC_APPDEMO);
         wc.lpszClassName = getClassName();
         wcid = RegisterClass(&wc);
-        dprint("classInit(0x%p) wcid=0x%p\n", hInstance, wcid);
+        dprint("initClass(0x%p) wcid=0x%p\n", hInstance, wcid);
     }
     return wcid;
 }

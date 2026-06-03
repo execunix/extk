@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (C) 2007 C.H Park <execunix@gmail.com>
  * SPDX-License-Identifier:     GPL-2.0+
  */
@@ -7,9 +7,9 @@
 #define __extools_h__
 
 #include "exdebug.h"
-#include "exevent.h"
 #include "exiconv.h"
 #include "exmemory.h"
+#include "exmessage.h"
 #include <vector>
 #include <array>
 

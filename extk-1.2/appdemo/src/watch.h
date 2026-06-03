@@ -7,16 +7,16 @@
 #define _watch_h_
 
 #include <exdebug.h>
+#include <exevent.h>
 #include <exwproc.h>
 #ifdef __linux__
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <sys/eventfd.h>
 #endif // __linux__
 #include <fcntl.h>
 #include <extimer.h>
 #include <exwatch.h>
-#include "event.h"
+#include "message.h"
 #include "tools.h"
 
 // WatchDev
@@ -25,7 +25,15 @@ class WatchDev : public ExWatch { // run in watch thread
 private:
     // inherit
 public:
-    // inherit
+    bool init() {
+        hookStartup = ExHookProc(this, &WatchDev::startup);
+        hookProcess = ExHookProc(this, &WatchDev::process);
+        hookCleanup = ExHookProc(this, &WatchDev::cleanup);
+        return ExWatch::init(16UL, 32U*1024U*1024UL);
+    }
+    uint32 cleanup(uint32 hook);
+    uint32 process(uint32 hook);
+    uint32 startup(uint32 hook);
 public:
     WatchDev() noexcept : ExWatch("Dev") {}
 };
@@ -38,10 +46,7 @@ class WatchMap : public ExWatch { // run in watch thread
 private:
     // inherit
 public:
-    bool init() {
-        return ExWatch::init(16UL, 32U*1024U*1024UL);
-    }
-    // inherit
+    // inherit bool init();
 public:
     WatchMap() noexcept : ExWatch("Map") {}
 };
@@ -54,8 +59,7 @@ class WatchNet : public ExWatch { // run in watch thread
 private:
     // inherit
 public:
-    bool init();
-    // inherit
+    // inherit bool init();
 public:
     WatchNet() noexcept : ExWatch("Net") {}
 };
@@ -82,21 +86,17 @@ private:
     int32 fb0dev_fd;
     int32 fb1dev_fd;
     int32 ev2dev_fd;
-    ExEvent def_event;
     int32 ev_serial; // for misra rules
 public:
     int32 get_ev2dev_fd() const { return ev2dev_fd; }
-    ExEvent* get_def_event() { return &def_event; }
 #endif // __linux__
 public:
     bool cleanup();
     bool startup();
-    void mainloop();
-    //static void dispatch(ExEvent& ev);
 #ifdef __linux__
     WatchApp() noexcept : ExWatch("Gui"), app_fifo(0)
         , fb0dev_fd(0), fb1dev_fd(0), ev2dev_fd(0)
-        , def_event(), ev_serial(0) {}
+        , ev_serial(0) {}
 #else // __linux__
     WatchApp() noexcept : ExWatch("Gui") {
     }

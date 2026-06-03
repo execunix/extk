@@ -16,7 +16,9 @@
 #include "res.h"
 
 #ifdef __linux__
-#ifndef CONF_X11
+#ifdef CONF_X11
+uint32 onXeventSample(void* data, const epoll_event* const ev);
+#else
 static const char* const FB0DEV_NAME = "/dev/fb0";
 static const char* const EV2DEV_NAME = "/dev/input/event2";
 #endif // CONF_X11
@@ -24,6 +26,31 @@ static const char* const APP_FIFO = "/tmp/app.fifo";
 
 // WatchDev
 //
+
+uint32 WatchDev::cleanup(uint32 hook)
+{
+    #ifdef CONF_X11
+    ExApp::EnvX11& x11 = ExApp::x11;
+    const int32 xd_fd = ConnectionNumber(x11.display);
+    (void)ioDel(xd_fd);
+    #endif // CONF_X11
+    return 0U;
+}
+
+uint32 WatchDev::process(uint32 hook)
+{
+    return ExWatch::process(hook);
+}
+
+uint32 WatchDev::startup(uint32 hook)
+{
+    #ifdef CONF_X11
+    ExApp::EnvX11& x11 = ExApp::x11;
+    const int32 xd_fd = ConnectionNumber(x11.display);
+    (bool)ioAdd(&onXeventSample, this, xd_fd);
+    #endif // CONF_X11
+    return 0U;
+}
 
 WatchDev gWatchDev;
 
@@ -44,20 +71,20 @@ WatchNet gWatchNet;
 #else // CONF_X11
 uint32 WatchApp::on_ev2dev(const epoll_event* const ev)
 {
+    static ExMsg em0(None);
+    ExMsg em(None);
     uint32 xy = 0U;
     uint32 packet_count = 0U;
-    struct input_event ev2;
-    static int32 pt0_x;
-    static int32 pt0_y;
-    static int32 msg = 0;
-    int32 pt_x = pt0_x;
-    int32 pt_y = pt0_y;
+    em.message = em0.message;
+    em.pt.x = em0.pt.x;
+    em.pt.y = em0.pt.y;
 
     exassert2(ev->data.fd == ev2dev_fd, __FILE__ "@" Ex_STRINGIFY(__LINE__));
     dprint0("%s: ev2dev_fd=%d\n", __func__, ev2dev_fd);
 
     while (true) {
         ssize_t rsize;
+        struct input_event ev2;
         rsize = read(ev2dev_fd, &ev2, sizeof(ev2));
         if (rsize <= 0) {
             break; // no more input
@@ -72,29 +99,29 @@ uint32 WatchApp::on_ev2dev(const epoll_event* const ev)
         if (ev2.type == static_cast<uint16>(EV_KEY)) {
             if (ev2.code == static_cast<uint16>(BTN_TOUCH)) {
                 if (ev2.value != 0) {
-                    msg = WM_LBUTTONDOWN;
+                    em.message = WM_LBUTTONDOWN;
                 } else {
-                    msg = WM_LBUTTONUP;
+                    em.message = WM_LBUTTONUP;
                 }
             }
         } else if (ev2.type == static_cast<uint16>(EV_ABS)) {
             if ((ev2.code == static_cast<uint16>(ABS_X)) || (ev2.code == static_cast<uint16>(ABS_MT_POSITION_X))) {
-                pt_x = ev2.value;
+                em.pt.x = ev2.value;
                 xy |= 1U;
             } else if ((ev2.code == static_cast<uint16>(ABS_Y)) || (ev2.code == static_cast<uint16>(ABS_MT_POSITION_Y))) {
-                pt_y = ev2.value;
+                em.pt.y = ev2.value;
                 xy |= 2U;
             } else {
                 // defense code
             }
-        } else if ((ev2.type == static_cast<uint16>(EV_SYN)) || (((pt_x != pt0_x) || (pt_y != pt0_y)) && (xy == 3U))) {
-            dprint0("%s.%d: %d - %d,%d\n", __func__, tickCount, msg, pt_x, pt_y);
-            (void)ExEmitPtrEvent(None, msg, pt_x, pt_y);
-            pt0_x = pt_x;
-            pt0_y = pt_y;
+        } else if ((ev2.type == static_cast<uint16>(EV_SYN)) || (((em.pt.x != em0.pt.x) || (em.pt.y != em0.pt.y)) && (xy == 3U))) {
+            dprint0("%s.%d: %d - %d,%d\n", __func__, tickCount, em.message, em.pt.x, em.pt.y);
+            (void)EmitPtrEvent(em);
+            em0.pt.x = em.pt.x;
+            em0.pt.y = em.pt.y;
             xy = 0U;
-            if (msg == WM_LBUTTONDOWN) {
-                msg = WM_MOUSEMOVE;
+            if (em.message == WM_LBUTTONDOWN) {
+                em.message = WM_MOUSEMOVE;
             }
         } else {
             // defense code
@@ -107,12 +134,13 @@ uint32 WatchApp::on_ev2dev(const epoll_event* const ev)
         touch_ic_overheat_dataset.push(packet_count, tickCount);
     }
 
-    if (((pt_x != pt0_x) || (pt_y != pt0_y)) && (xy != 0U)) { // check broken event
-        dprint0("%s.%d: %d - %d,%d\n", __func__, tickCount, msg, pt_x, pt_y);
-        (void)ExEmitPtrEvent(None, msg, pt_x, pt_y);
-        pt0_x = pt_x;
-        pt0_y = pt_y;
+    if (((em.pt.x != em0.pt.x) || (em.pt.y != em0.pt.y)) && (xy != 0U)) { // check broken event
+        dprint0("%s.%d: %d - %d,%d\n", __func__, tickCount, em.message, em.pt.x, em.pt.y);
+        (void)EmitPtrEvent(em);
+        em0.pt.x = em.pt.x;
+        em0.pt.y = em.pt.y;
     }
+    em0.message = em.message;
 done:
     return 0U;
 }
@@ -120,6 +148,7 @@ done:
 
 bool WatchApp::cleanup()
 {
+    dprint("%s\n", "WatchApp::cleanup");
     if (ev2dev_fd > 0) {
         (void)ioDel(ev2dev_fd);
         (void)close(ev2dev_fd);
@@ -146,13 +175,10 @@ bool WatchApp::cleanup()
 
     fini_fifo();
 
-    tid = 0UL;
+    tid = 0U;
     iomuxmap.fini();
     timerset.fini();
-    if (efd != -1) {
-        (void)close(efd);
-        efd = -1;
-    }
+    evWake.fini();
     return true;
 }
 
@@ -164,12 +190,11 @@ bool WatchApp::startup()
     exWatchLast = this;
     exWatchDisp = this;
 
-    exassert2(tid == 0UL, __FILE__ "@" Ex_STRINGIFY(__LINE__));
+    exassert2(tid == 0U, __FILE__ "@" Ex_STRINGIFY(__LINE__));
     iomuxmap.init(256UL);
 
-    efd = eventfd(0U, 0);
-    exassert2(efd != -1, __FILE__ "@" Ex_STRINGIFY(__LINE__));
-    (void)ioAdd(this, &WatchApp::onEvent, efd);
+    evWake.init();
+    (void)ioAdd(this, &WatchApp::onEvent, evWake);
 
     tickCount = ExGetTickCount(); // update tick
 
@@ -183,7 +208,6 @@ bool WatchApp::startup()
 
 #ifdef CONF_X11
     (void)ExApp::initX11(this);
-    exCalibFunc = &TouchCalib;
 
     env.fb0_w = env.sm_w;
     env.fb0_h = env.sm_h;
@@ -259,84 +283,39 @@ bool WatchApp::startup()
 #endif // CONF_X11
     return (r == 0);
 }
+#else // WIN32
+WatchMap gWatchMap;
 
-void WatchApp::mainloop()
+bool WatchApp::cleanup()
 {
-    ExEvent ev(None);
+    idThread = 0U;
+    iomuxmap.fini();
+    timerset.fini();
+    evWake.fini();
+    return true;
+}
 
-    (void)enter();
-    while (getHalt() == 0U) {
-        while (true) {
-            if (ExGetMessage(&ev) == nullptr) {
-                break;
-            }
-            // ev message is available
-            if (ev.message == WM_QUIT) {
-                dprint("WM_QUIT tick=%d\n", tickCount);
-                (void)setHalt(Ex_Halt); // stop event loop
-                goto end_loop;
-            }
-            (void)exWatchDisp->leave();
-            (void)DefWndProc(ev); // dispatch
-            (void)exWatchDisp->enter();
-            if (getHalt() != 0U) {
-                goto end_loop;
-            }
-        }
-        const uint32 waittick = timerset.invoke(tickCount);
-        if (getHalt() != 0U) {
-            break;
-        }
-        ExApp::collect();
-        if (ExApp::mainWnd != nullptr) {
-            (void)ExApp::mainWnd->flush();
-        }
-        // blocked
-        (void)iomuxmap.invoke(waittick);
-    }
-end_loop:
-    ExApp::collect();
-    (void)leave();
+bool WatchApp::startup()
+{
+    int32 r = 0;
+
+    exWatchMain = this;
+    exWatchLast = this;
+    exWatchDisp = this;
+
+    exassert2(idThread == 0U, __FILE__ "@" Ex_STRINGIFY(__LINE__));
+    iomuxmap.init(256UL);
+
+    evWake.init();
+    (void)ioAdd((ExWatch*)this, &ExWatch::onEvent, evWake);
+
+    tickCount = ExGetTickCount(); // update tick
+
+    idThread = GetCurrentThreadId();
+
+    return (r == 0);
 }
 #endif // __linux__
-
-#if 0
-int32 WatchApp::modal_loop(void* ctrl)
-{
-    ExEvent ev(None);
-
-    (void)enter();
-    while (getHalt() == 0U) {
-        while (ExGetMessage(&ev) != nullptr) { // is message available ?
-            if ((ev.message == WM_CLOSE) || (ctrl->done != 0)) {
-                dprint("WM_CLOSE tick=%d\n", tickCount);
-                (void)setHalt(Ex_Halt); // stop event loop
-                goto end_loop;
-            }
-            (void)exWatchDisp->leave();
-            (void)DefWndProc(ev); // dispatch
-            (void)exWatchDisp->enter();
-            if (getHalt() != 0U) {
-                goto end_loop;
-            }
-        }
-        const uint32 waittick = timerset.invoke(tickCount);
-        if (getHalt() != 0U) {
-            break;
-        }
-        ExApp::collect();
-        if (ExApp::mainWnd != nullptr) {
-            (void)ExApp::mainWnd->flush();
-        }
-        // blocked
-        (void)iomuxmap.invoke(waittick);
-    }
-end_loop:
-    ExApp::collect();
-    (void)leave();
-    return 0;
-}
-#endif
 
 #ifdef __linux__
 uint32 WatchApp::on_cmdline(const epoll_event* const ev)
@@ -419,24 +398,23 @@ void WatchApp::open_fifo()
 
 WatchApp gWatchApp;
 
-#ifdef __linux__
 int32 dprint_appinfo(char* const mbs, const int32 len)
 {
     char buf[32];
-    void* tls = nullptr;
-    if (ExWatch::tls_key != static_cast<pthread_key_t>(-1)) {
-        tls = pthread_getspecific(ExWatch::tls_key);
-    }
-    if (tls != nullptr) {
-        (void)exstrncpy(&buf[0], reinterpret_cast<char*>(tls), 31UL);
-        buf[31] = '\0';
-    } else {
-        const pthread_t tid = pthread_self();
+    const ExWatch* const watch = ExWatch::getTlsSpecific();
+    const char* name = (watch != nullptr) ? watch->name : nullptr;
+    if (name == nullptr) {
+        uint32 tid;
+#ifdef __linux__
+        tid = (uint32)pthread_self();
+#else
+        tid = (uint32)GetCurrentThreadId();
+#endif // __linux__
         (void)snprintf(&buf[0], 32UL, "%03u", static_cast<uint32>(tid % 1000UL));
+        name = buf;
     }
     const uint32 tick = static_cast<uint32>(ExGetTickCount() - ExWatch::tickAppLaunch);
-    return snprintf(mbs, static_cast<size_t>(len), "[%4u.%03u:%s] ", tick / 1000U, tick % 1000U, &buf[0]);
+    return snprintf(mbs, static_cast<size_t>(len), "[%4u.%03u:%s] ", tick / 1000U, tick % 1000U, name);
 }
-#endif // __linux__
 
 ExCallbackList cmdline_callback_list;

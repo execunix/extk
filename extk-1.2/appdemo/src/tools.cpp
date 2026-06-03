@@ -37,7 +37,7 @@ bool startTouchRecord()
     return ret;
 }
 
-bool recordTouchEvent(const ExEvent* const ev)
+bool recordTouchEvent(const ExMsg* const em)
 {
     bool ret = false;
     if (!tchrec_fp.fail()) {
@@ -45,28 +45,28 @@ bool recordTouchEvent(const ExEvent* const ev)
         static uint32 up_tick = 0U;
         static uint32 msg_tick = 0U;
         static uint32 prev_message = 0U;
-        if (ev->message == WM_LBUTTONDOWN) {
+        if (em->message == WM_LBUTTONDOWN) {
             msg_str = "down";
-            const uint32 diff = ev->time - up_tick;
+            const uint32 diff = em->time - up_tick;
             (void)(tchrec_fp << "#sleep " << (static_cast<float64>(diff) / 1000.) << std::endl);
-        } else if (ev->message == WM_LBUTTONUP) {
+        } else if (em->message == WM_LBUTTONUP) {
             msg_str = "up";
-            up_tick = ev->time;
-        } else if (ev->message == WM_MOUSEMOVE) {
+            up_tick = em->time;
+        } else if (em->message == WM_MOUSEMOVE) {
             msg_str = "move";
-            const uint32 diff = ev->time - msg_tick;
-            if ((prev_message == ev->message) && (diff < 500U)) {
+            const uint32 diff = em->time - msg_tick;
+            if ((prev_message == em->message) && (diff < 500U)) {
                 msg_str = nullptr;
             }
         } else {
             msg_str = nullptr;
         }
-        prev_message = ev->message;
+        prev_message = em->message;
         if (msg_str != nullptr) {
             (void)(tchrec_fp << "touch " << msg_str << " ");
-            (void)(tchrec_fp << ev->pt.x << " " << ev->pt.y);
-            (void)(tchrec_fp << " #" << ev->time << std::endl);
-            msg_tick = ev->time;
+            (void)(tchrec_fp << em->pt.x << " " << em->pt.y);
+            (void)(tchrec_fp << " #" << em->time << std::endl);
+            msg_tick = em->time;
             ret = true;
         }
     }

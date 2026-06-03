@@ -5,15 +5,20 @@
             "defines": [
                 "_DEBUG",
                 "DPRINT",
+                "WIN32",
                 "CONF_X11",
+                "LOG_BACKTRACE=1",
                 "_GNU_SOURCE"
             ],
             "includePath": [
-                "${workspaceFolder}/**",
-                "${workspaceFolder}/../libex2/**",
+                "${workspaceFolder}/appmain/**",
+                "${workspaceFolder}/libex2/**",
                 "${config:EXTK.SDKTARGETSYSROOT}/usr/include/**"
             ],
-            "configurationProvider": "ms-vscode.makefile-tools"
+            // "configurationProvider": "ms-vscode.makefile-tools",
+            "compilerPath": "/usr/bin/g++",
+            "cppStandard": "gnu++17",
+            "cStandard": "c17"
         }
     ],
     "version": 4

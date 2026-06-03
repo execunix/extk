@@ -1,4 +1,4 @@
-//
+﻿//
 // Copyright (C) 2020 C.H Park <execunix@gmail.com>
 // SPDX-License-Identifier:     GPL-2.0+
 //
@@ -7,14 +7,17 @@
 #include "wgtsetup.h"
 #include "wndmain.h"
 #include "wndtest.h"
-#include "event.h"
+#include "message.h"
+#include "watch.h"
 #include "env.h"
 #include "res.h"
 
 void WgtTitle::init(ExWindow* window) {
     ExRect rc;
     ExWidget::init(window, "WgtTitle", &rc.set(0, 0, 800, 36));
-    setTitle("Welcome to Rectangles and Callbacks World.");
+    setTitle(ExCPUTF8(L"Welcome to Rectangles and Callbacks 세계로..."));
+    //setTitle("Welcome to Rectangles and Callbacks 세계로...");
+    //setTitle("Welcome to Rectangles and Callbacks World.");
     setFlags(Ex_Selectable);
     addListener(this, &WgtTitle::onLayout, Ex_CbLayout);
     drawFunc = ExDrawFunc(this, &WgtTitle::onDrawTitle);
@@ -401,7 +404,7 @@ uint32 WndMain::onLayout(WndMain* widget, ExCbInfo* cbinfo) {
 uint32 WndMain::onActMain(WndMain* widget, ExCbInfo* cbinfo) {
     if (widget == this) {
         static ExPoint but_pt(0);
-        ExPoint msg_pt(cbinfo->event->pt);
+        ExPoint msg_pt(cbinfo->exmsg->pt);
         if (cbinfo->type == Ex_CbButPress) {
             but_pt = msg_pt; // memory press point
             setCapture(widget);
@@ -414,7 +417,7 @@ uint32 WndMain::onActMain(WndMain* widget, ExCbInfo* cbinfo) {
         return Ex_Continue;
     } else if (widget == &panes[0]) {
         static ExPoint but_pt(0);
-        ExPoint msg_pt(cbinfo->event->pt);
+        ExPoint msg_pt(cbinfo->exmsg->pt);
         if (cbinfo->type == Ex_CbButPress) {
             but_pt = msg_pt; // memory press point
             setCapture(widget);
@@ -433,7 +436,7 @@ uint32 WndMain::onActMain(WndMain* widget, ExCbInfo* cbinfo) {
 uint32 WndMain::onActBkgd(WndMain* widget, ExCbInfo* cbinfo) {
     if (widget == &wgtBkgd) {
         static ExPoint but_pt(0);
-        ExPoint msg_pt(cbinfo->event->pt);
+        ExPoint msg_pt(cbinfo->exmsg->pt);
         if (cbinfo->type == Ex_CbButPress) {
             but_pt = msg_pt; // memory press point
             //widget->toFront();
@@ -513,7 +516,7 @@ uint32 WndMain::onActBtns(ExWidget* widget, ExCbInfo* cbinfo) {
         if (cbinfo->type == Ex_CbActivate) {
             timer.u32[0] = !timer.u32[0];
             if (timer.u32[0])
-                timer.start(100, 25);
+                timer.start(100U, 25U);
             else
                 timer.stop();
             return Ex_Continue;
@@ -524,6 +527,14 @@ uint32 WndMain::onActBtns(ExWidget* widget, ExCbInfo* cbinfo) {
             WgtSetup* setup = new WgtSetup;
             setup->setFlags(Ex_FreeMemory);
             setup->init(this, 300, 200);
+            #if 1 // tbd: for test modal block with pending mouse msg
+            (void)exWatchDisp->leave();
+            exsleep(500);
+            (void)exWatchDisp->enter();
+            #endif
+            exMsgList.filter(WM_MOUSEFIRST, WM_MOUSELAST);
+            void* r = ExModalBlock(&setup->ctrl);
+            dprint("ExModalBlock r:%p\n", r);
             return Ex_Continue;
         }
     }
@@ -543,7 +554,7 @@ uint32 WndMain::onActBtns(ExWidget* widget, ExCbInfo* cbinfo) {
             }
             if (setCursor.u32[0] == 1) {
                 setCursor.u32[0] = 2;
-                setCursor.start(1000, 1000);
+                setCursor.start(1000U, 1000U);
             } else if (setCursor.u32[0] == 2) {
                 setCursor.u32[0] = 1;
                 setCursor.stop();
@@ -625,9 +636,9 @@ int WndMain::initIomux() {
                 SetEvent(hWakeupNoti);
             }
             return Ex_Continue; }, (void*)0);
-        signalInputTimer.start(1, 1000);
+        signalInputTimer.start(1U, 1000U);
         return Ex_Continue; }, (void*)0);
-    launchInputTimer.start(1000);
+    launchInputTimer.start(1000U);
     #endif // WIN32
     return 0;
 }
@@ -653,8 +664,8 @@ uint32 WndMain::onDestroyed(WndMain* w, ExCbInfo* cbinfo) {
 }
 
 uint32 WndMain::onRbtnDown(WndMain* w, ExCbInfo* cbinfo) {
-    if (cbinfo->event->message == WM_RBUTTONDOWN) {
-        ExWidget* w = getPointOwner(cbinfo->event->pt);
+    if (cbinfo->exmsg->message == WM_RBUTTONDOWN) {
+        ExWidget* w = getPointOwner(cbinfo->exmsg->pt);
         if (w == &wgtBackViewer ||
             w == &wgtBkgd) {
             w->toBack();
@@ -665,12 +676,12 @@ uint32 WndMain::onRbtnDown(WndMain* w, ExCbInfo* cbinfo) {
 }
 
 uint32 WndMain::onHandler(WndMain* w, ExCbInfo* cbinfo) {
-    dprint("handler WM_0x%04x:0x%04x\n", cbinfo->event->message, cbinfo->event->wParam);
+    dprint("handler WM_0x%04x:0x%04x\n", cbinfo->exmsg->message, cbinfo->exmsg->wParam);
     return Ex_Continue;
 }
 
 uint32 WndMain::onFilter(WndMain* w, ExCbInfo* cbinfo) {
-    dprint("filter WM_0x%04x\n", cbinfo->event->message);
+    dprint("filter WM_0x%04x\n", cbinfo->exmsg->message);
     #if 1 // test
     // filter and handler can be installed intersection each other
     static int i = 0;
@@ -684,19 +695,19 @@ uint32 WndMain::onFilter(WndMain* w, ExCbInfo* cbinfo) {
     }
     #endif
     #ifdef WIN32 // test window state change
-    if (cbinfo->event->message == WM_SYSCOMMAND) {
-        if (cbinfo->event->wParam == SC_MAXIMIZE) {
+    if (cbinfo->exmsg->message == WM_SYSCOMMAND) {
+        if (cbinfo->exmsg->wParam == SC_MAXIMIZE) {
             env.wnd.show = SW_SHOWMAXIMIZED;
             return Ex_Continue;
         }
-        if (cbinfo->event->wParam == SC_RESTORE) {
+        if (cbinfo->exmsg->wParam == SC_RESTORE) {
             env.wnd.show = SW_SHOWNORMAL;
             return Ex_Continue;
         }
         return Ex_Continue;
     }
-    if (cbinfo->event->message == WM_WINDOWPOSCHANGED) {
-        WINDOWPOS* wndpos = (WINDOWPOS*)cbinfo->event->lParam;
+    if (cbinfo->exmsg->message == WM_WINDOWPOSCHANGED) {
+        WINDOWPOS* wndpos = (WINDOWPOS*)cbinfo->exmsg->lParam;
         if (env.wnd.show == SW_SHOWNORMAL) {
             env.wnd.w = wndpos->cx;
             env.wnd.h = wndpos->cy;
@@ -705,7 +716,7 @@ uint32 WndMain::onFilter(WndMain* w, ExCbInfo* cbinfo) {
         }
         return Ex_Continue;
     }
-    if (cbinfo->event->message == WM_ACTIVATE) {
+    if (cbinfo->exmsg->message == WM_ACTIVATE) {
         #if 0 // DWM frame extend test
         // extend the frame into the client area
         MARGINS margins = { -1, -1, -1, -1 };
@@ -718,47 +729,50 @@ uint32 WndMain::onFilter(WndMain* w, ExCbInfo* cbinfo) {
             dprint("%s: %s fail.\n", __func__, "DwmExtendFrameIntoClientArea");
         }
         #endif
-        //cbinfo->event->lResult = 0;
+        //cbinfo->exmsg->lResult = 0;
         return Ex_Continue;
     }
     #endif // WIN32
-    if (cbinfo->event->message == WM_KEYDOWN) {
+    if (cbinfo->exmsg->message == WM_KEYDOWN) {
         ExCbInfo cbinfo2(0);
-        switch (cbinfo->event->wParam) {
+        switch (cbinfo->exmsg->wParam) {
             case VK_UP:
-                dprint("0x%04x %s\n", cbinfo->event->message, "VK_UP");
+                dprint("0x%04x %s\n", cbinfo->exmsg->message, "VK_UP");
                 moveFocus(Ex_DirUp);
                 break;
             case VK_DOWN:
-                dprint("0x%04x %s\n", cbinfo->event->message, "VK_DOWN");
+                dprint("0x%04x %s\n", cbinfo->exmsg->message, "VK_DOWN");
                 moveFocus(Ex_DirDown);
                 break;
             case VK_LEFT:
-                dprint("0x%04x %s\n", cbinfo->event->message, "VK_LEFT");
+                dprint("0x%04x %s\n", cbinfo->exmsg->message, "VK_LEFT");
                 moveFocus(Ex_DirLeft);
                 break;
             case VK_RIGHT:
-                dprint("0x%04x %s\n", cbinfo->event->message, "VK_RIGHT");
+                dprint("0x%04x %s\n", cbinfo->exmsg->message, "VK_RIGHT");
                 moveFocus(Ex_DirRight);
                 break;
             case VK_SPACE:
             case VK_RETURN:
-                dprint("0x%04x %s\n", cbinfo->event->message, "VK_RETURN");
-                wgtFocused->invokeListener(Ex_CbActivate, &cbinfo2(Ex_CbActivate, 0, event));
+                dprint("0x%04x %s\n", cbinfo->exmsg->message, "VK_RETURN");
+                if (wgtFocused != nullptr) {
+                    wgtFocused->invokeListener(Ex_CbActivate, &cbinfo2(Ex_CbActivate, 0, cbinfo->exmsg));
+                }
                 break;
             case VK_ESCAPE:
-                dprint("0x%04x %s\n", cbinfo->event->message, "VK_ESCAPE");
+                dprint("0x%04x %s\n", cbinfo->exmsg->message, "VK_ESCAPE");
+                ExQuitMainLoop();
                 return Ex_Halt;
             case VK_HOME:
-                dprint("0x%04x %s\n", cbinfo->event->message, "VK_HOME");
+                dprint("0x%04x %s\n", cbinfo->exmsg->message, "VK_HOME");
                 moveFocus(Ex_DirHome);
                 break;
             case VK_BACK:
-                dprint("0x%04x %s\n", cbinfo->event->message, "VK_BACK");
+                dprint("0x%04x %s\n", cbinfo->exmsg->message, "VK_BACK");
                 moveFocus(Ex_DirBack);
                 break;
             case VK_TAB: {
-                dprint("0x%04x %s\n", cbinfo->event->message, "VK_TAB");
+                dprint("0x%04x %s\n", cbinfo->exmsg->message, "VK_TAB");
                 #ifdef WIN32
                 SHORT ks = GetKeyState(VK_SHIFT);
                 #else // WIN32
@@ -879,15 +893,15 @@ uint32 WndMain::onBackViewMove(WndMain* widget, ExCbInfo* cbinfo) {
     static ExPoint but_pt(0);
     exassert(widget == &wgtBackViewer);
     if (cbinfo->type == Ex_CbButPress) {
-        but_pt = cbinfo->event->pt; // memory press point
+        but_pt = cbinfo->exmsg->pt; // memory press point
         widget->toFront();
         setCapture(widget);
     } else if (cbinfo->type == Ex_CbPtrMove &&
                widget->getFlags(Ex_ButPressed)) {
         ExPoint pt(wgtBackViewer.area.u.pt);
-        pt.x += cbinfo->event->pt.x - but_pt.x;
-        pt.y += cbinfo->event->pt.y - but_pt.y;
-        but_pt = cbinfo->event->pt;
+        pt.x += cbinfo->exmsg->pt.x - but_pt.x;
+        pt.y += cbinfo->exmsg->pt.y - but_pt.y;
+        but_pt = cbinfo->exmsg->pt;
         wgtBackViewer.setPos(pt);
     }
     return Ex_Continue;
@@ -1019,14 +1033,17 @@ int WndMain::start() {
 
     timer.init(NULL, this, &WndMain::onTimer);
 
+    #if 1
     static ExTimer timerTest;
-    timerTest.init(nullptr, [](void* d, ExWidget* w, ExCbInfo*)->uint32 {
+    ExWatch* watch = &gWatchMap; // nullptr;
+    timerTest.init(watch, [](void* d, ExWidget* w, ExCbInfo*)->uint32 {
         dprint("timerTest: %s\n", ((WndMain*)w)->getName());
         return Ex_Continue; }, (void*)0, this); // test
-    timerTest.init(nullptr, [](void* d, ExTimer* t, ExCbInfo*)->uint32 {
+    timerTest.init(watch, [](void* d, ExTimer* t, ExCbInfo*)->uint32 {
         dprint("timerTest: %d %u %u\n", (t->u32[0])++, (uint32)*t, exWatchDisp->getTick());
         return Ex_Continue; }, (void*)0);
     timerTest.start(1U, 1000U);
+    #endif
 
     toy_alpha = .2f;
     toy_delta = 1.f;
@@ -1037,7 +1054,7 @@ int WndMain::start() {
 
     timerToy.u32[0] = 0;
     timerToy.init(NULL, this, &WndMain::onTimerToy, this);
-    timerToy.start(1, 50); // 20Hz
+    timerToy.start(1U, 50U); // 20Hz
 
     addFilter(this, &WndMain::onFilter);
     addHandler(this, &WndMain::onHandler);
@@ -1058,7 +1075,7 @@ int WndMain::start() {
     wgtBackViewer.setFlags(Ex_Selectable);
 
     backBufUpdater.init(NULL, this, &WndMain::onBackBufUpdater);
-    backBufUpdater.start(1, 25); // 40Hz
+    backBufUpdater.start(1U, 25U); // 40Hz
 
     initIomux();
 
@@ -1067,13 +1084,13 @@ int WndMain::start() {
 
 #if DISP_AT_ONCE
     addFilter([](void* data, ExWindow* window, ExCbInfo* cbinfo)->uint32 {
-        dprint("[%s] WM_0x%04x\n", window->getName(), cbinfo->event->message);
-        if (cbinfo->event->message == WM_CREATE) {
-            cbinfo->event->lResult = 0;
+        dprint("[%s] WM_0x%04x\n", window->getName(), cbinfo->exmsg->message);
+        if (cbinfo->exmsg->message == WM_CREATE) {
+            cbinfo->exmsg->lResult = 0;
             #ifdef WIN32
             RECT r;
             // The right and bottom members contain the width and height of the window.
-            GetClientRect(cbinfo->event->hwnd, &r);
+            GetClientRect(cbinfo->exmsg->hwnd, &r);
             ExRect rc(r);
             #else // linux - tbd
             ExRect rc(0, 0, env.wnd.w, env.wnd.h);
@@ -1085,17 +1102,17 @@ int WndMain::start() {
             return Ex_Break | Ex_Remove;
         }
 #if 0 // window caption remove or change
-        if (cbinfo->event->message == WM_NCCALCSIZE) {
-            RECT* r = (RECT*)cbinfo->event->lParam;
+        if (cbinfo->exmsg->message == WM_NCCALCSIZE) {
+            RECT* r = (RECT*)cbinfo->exmsg->lParam;
             //NCCALCSIZE_PARAMS* rc = (NCCALCSIZE_PARAMS*)lParam;
             dprint("[0x%p] WM_NCCALCSIZE wParam=%d %d,%d-%d,%d\n",
-                   cbinfo->event->hwnd, cbinfo->event->wParam,
+                   cbinfo->exmsg->hwnd, cbinfo->exmsg->wParam,
                    r->left, r->top, r->right, r->bottom);
             //r->top += 31;
             //r->left += 8;
             //r->right -= 8;
             //r->bottom -= 8;
-            cbinfo->event->lResult = 0;
+            cbinfo->exmsg->lResult = 0;
             return Ex_Break;
         }
 #endif
