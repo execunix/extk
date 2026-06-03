@@ -34,6 +34,15 @@ CC = $(CCPREFIX)gcc $(SDKFLAGS) --sysroot=$(SDKTARGETSYSROOT)
 ARCH = arm
 endif
 
+ifeq ($(CONF_SDK), RPI4)
+SDKTARGETSYSROOT = /mnt/rpi4
+SDKFLAGS = -mcpu=cortex-a72+crc+crypto -Wformat -Wformat-security -Werror=format-security
+CCPREFIX = aarch64-linux-gnu-
+CXX = $(CCPREFIX)g++ $(SDKFLAGS) --sysroot=$(SDKTARGETSYSROOT)
+CC = $(CCPREFIX)gcc $(SDKFLAGS) --sysroot=$(SDKTARGETSYSROOT)
+ARCH = aarch64
+endif
+
 ifeq ($(CONF_SDK), RPI5)
 SDKTARGETSYSROOT = /mnt/rpi5
 SDKFLAGS = -mcpu=cortex-a76+crc+crypto -Wformat -Wformat-security -Werror=format-security

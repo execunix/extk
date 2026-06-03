@@ -11,8 +11,8 @@
 #include <sys/unistd.h>
 #include <sys/epoll.h>
 
-#undef dprint1
-#define dprint1(...) printf("ExWatch@" __VA_ARGS__)
+// #undef dprint1
+// #define dprint1(...) printf("ExWatch@" __VA_ARGS__)
 
 uint64 ExGetMonoClock() {
     struct timespec ts;
@@ -243,11 +243,9 @@ uint32 ExWatch::onEvent(const epoll_event* const ev) {
 
 uint32 ExWatch::setHalt(uint32 r) {
     exassert(((halt | r) & Ex_Halt) != 0U);
-    if (!(halt & 0x80000000)) {
-        halt |= 0x80000000;
-        evWake.signal();
-    }
-    return (halt |= r);
+    halt |= (r | 0x01100000U);
+    evWake.signal();
+    return halt;
 }
 
 uint32 ExWatch::proc() {
@@ -255,7 +253,7 @@ uint32 ExWatch::proc() {
     pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, nullptr);
 #endif // __linux__
     setTlsSpecific(this);
-    dprint("%s: tickAppLaunch=%d tickCount=%d\n", name, tickAppLaunch, tickCount);
+    dprint("ExWatch::proc(%s) tickAppLaunch=%d tickCount=%d\n", name, tickAppLaunch, tickCount);
     (void)enter();
     // seq-1 : prepare resources
     (void)hookStartup(ExHookProc::Startup);
@@ -264,6 +262,7 @@ uint32 ExWatch::proc() {
     // seq-6 : cleanup resources
     (void)hookCleanup(ExHookProc::Cleanup);
     (void)leave();
+    dprint("ExWatch::proc(%s) done... tickCount=%d\n", name, tickCount);
     return 0U;
 }
 

@@ -646,6 +646,7 @@ static uint32 cmdline_halt(void* /*data*/, const int32* argc, const char** argv)
 
     if (0 == exstrcmp(argv[0], "halt")) {
         #ifdef __linux__
+        //ExQuitMainLoop();
         (void)gWatchApp.setHalt();
         #endif // __linux__
         ret = Ex_Break;
@@ -702,9 +703,9 @@ int main(int argc, char* argv[])
         return 0;
     };
     (void)func1((void*)0x1234);
-    cb_test();
-    app_test();
-    flt_test();
+    //cb_test();
+    //app_test();
+    //flt_test();
 
     (void)init_signal();
 
@@ -713,6 +714,7 @@ int main(int argc, char* argv[])
     (void)gWatchApp.startup();
     (void)gWatchApp.enter();
     (void)gWatchDev.init(); // start watch thread for gps and etc
+    (void)gWatchMap.init();
     (void)gWatchdog.init();
     // app startup begin
     //
@@ -778,12 +780,14 @@ int main(int argc, char* argv[])
     // app cleanup end
 
     (void)gLcdOut.fini();
+    (void)gWatchMap.fini();
     (void)gWatchDev.fini();
     (void)gWatchApp.cleanup();
     (void)finiRes();
     (void)saveEnv();
     sync();
 on_failure:
+    dprint("exit %d\n", result);
     return result;
 }
 #endif // __linux__
@@ -819,6 +823,7 @@ int APIENTRY WinMain(_In_ HINSTANCE hInstance,
     (void)initRes();
     (void)gWatchApp.startup();
     (void)gWatchApp.enter();
+    (void)gWatchMap.init();
 
     // startup
     gWndMain = new WndMain;
@@ -836,6 +841,7 @@ int APIENTRY WinMain(_In_ HINSTANCE hInstance,
     ExMainLoop();
 
     // cleanup
+    (void)gWatchMap.fini();
     (void)gWatchApp.cleanup();
     (void)finiRes();
     (void)saveEnv();

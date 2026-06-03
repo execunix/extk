@@ -8,6 +8,7 @@
 #include "wndmain.h"
 #include "wndtest.h"
 #include "message.h"
+#include "watch.h"
 #include "env.h"
 #include "res.h"
 
@@ -1032,14 +1033,17 @@ int WndMain::start() {
 
     timer.init(NULL, this, &WndMain::onTimer);
 
+    #if 1
     static ExTimer timerTest;
-    timerTest.init(nullptr, [](void* d, ExWidget* w, ExCbInfo*)->uint32 {
+    ExWatch* watch = &gWatchMap; // nullptr;
+    timerTest.init(watch, [](void* d, ExWidget* w, ExCbInfo*)->uint32 {
         dprint("timerTest: %s\n", ((WndMain*)w)->getName());
         return Ex_Continue; }, (void*)0, this); // test
-    timerTest.init(nullptr, [](void* d, ExTimer* t, ExCbInfo*)->uint32 {
+    timerTest.init(watch, [](void* d, ExTimer* t, ExCbInfo*)->uint32 {
         dprint("timerTest: %d %u %u\n", (t->u32[0])++, (uint32)*t, exWatchDisp->getTick());
         return Ex_Continue; }, (void*)0);
     timerTest.start(1U, 1000U);
+    #endif
 
     toy_alpha = .2f;
     toy_delta = 1.f;

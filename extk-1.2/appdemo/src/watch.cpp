@@ -148,6 +148,7 @@ done:
 
 bool WatchApp::cleanup()
 {
+    dprint("%s\n", "WatchApp::cleanup");
     if (ev2dev_fd > 0) {
         (void)ioDel(ev2dev_fd);
         (void)close(ev2dev_fd);
@@ -283,6 +284,8 @@ bool WatchApp::startup()
     return (r == 0);
 }
 #else // WIN32
+WatchMap gWatchMap;
+
 bool WatchApp::cleanup()
 {
     idThread = 0U;
