@@ -107,6 +107,4 @@ extern WatchApp gWatchApp;
 
 extern ExCallbackList cmdline_callback_list;
 
-int32 dprint_appinfo(char* const mbs, const int32 len);
-
 #endif // _watch_h_

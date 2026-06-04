@@ -65,7 +65,7 @@ int32        ExApp::button_y[2];
 uint32       ExApp::double_click_distance;      /* Maximum distance between clicks in pixels */
 uint32       ExApp::double_click_count;
 uint32       ExApp::button_react_delay;
-uint32       ExApp::button_click_time[2];       /* The last 2 button click times. */
+uint64       ExApp::button_click_time[2];       /* The last 2 button click times. */
 uint32       ExApp::double_click_time;          /* Maximum time between clicks in msecs */
 uint32       ExApp::button_number[2];           /* The last 2 buttons to be pressed. */
 ExWidget*    ExApp::button_widget[2];           /* The last 2 widgets to receive button presses. */

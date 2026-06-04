@@ -529,7 +529,7 @@ uint32 WndMain::onActBtns(ExWidget* widget, ExCbInfo* cbinfo) {
             setup->init(this, 300, 200);
             #if 1 // tbd: for test modal block with pending mouse msg
             (void)exWatchDisp->leave();
-            exsleep(500);
+            exmsleep(500U);
             (void)exWatchDisp->enter();
             #endif
             exMsgList.filter(WM_MOUSEFIRST, WM_MOUSELAST);
@@ -1040,7 +1040,7 @@ int WndMain::start() {
         dprint("timerTest: %s\n", ((WndMain*)w)->getName());
         return Ex_Continue; }, (void*)0, this); // test
     timerTest.init(watch, [](void* d, ExTimer* t, ExCbInfo*)->uint32 {
-        dprint("timerTest: %d %u %u\n", (t->u32[0])++, (uint32)*t, exWatchDisp->getTick());
+        dprint("timerTest: %d %" PRIu64 " %" PRIu64 "\n", (t->u32[0])++, (uint64)*t, exWatchDisp->getTick());
         return Ex_Continue; }, (void*)0);
     timerTest.start(1U, 1000U);
     #endif

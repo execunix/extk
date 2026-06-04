@@ -241,56 +241,56 @@ _fixed_16_16_from_doublem(double d)
 
 int flt_test() {
     volatile int32 val;
-    uint32 tick1, tick2;
+    uint64 tick1, tick2;
 
     tick1 = ExGetTickCount();
     for (volatile int i = 0; i < TESTCNT; i++) {
         val = 0;
     }
     tick2 = ExGetTickCount();
-    dprint1("val=0 loop test %d\n", tick2 - tick1);
+    dprint1("val=0 loop test %ld\n", tick2 - tick1);
 
     tick1 = ExGetTickCount();
     for (volatile int i = 0; i < TESTCNT; i++) {
         val = _fixed_from_float(i * 1.f);
     }
     tick2 = ExGetTickCount();
-    dprint1("_fixed_from_float %d\n", tick2 - tick1);
+    dprint1("_fixed_from_float %ld\n", tick2 - tick1);
 
     tick1 = ExGetTickCount();
     for (volatile int i = 0; i < TESTCNT; i++) {
         val = _fixed_from_double(i * 1.);
     }
     tick2 = ExGetTickCount();
-    dprint1("_fixed_from_double %d\n", tick2 - tick1);
+    dprint1("_fixed_from_double %ld\n", tick2 - tick1);
 
     tick1 = ExGetTickCount();
     for (volatile int i = 0; i < TESTCNT; i++) {
         val = _fixed_from_doublem(i * 1.);
     }
     tick2 = ExGetTickCount();
-    dprint1("_fixed_from_doublem %d\n", tick2 - tick1);
+    dprint1("_fixed_from_doublem %ld\n", tick2 - tick1);
 
     tick1 = ExGetTickCount();
     for (volatile int i = 0; i < TESTCNT; i++) {
         val = _fixed_16_16_from_float(i * 1.f);
     }
     tick2 = ExGetTickCount();
-    dprint1("_fixed_16_16_from_float %d\n", tick2 - tick1);
+    dprint1("_fixed_16_16_from_float %ld\n", tick2 - tick1);
 
     tick1 = ExGetTickCount();
     for (volatile int i = 0; i < TESTCNT; i++) {
         val = _fixed_16_16_from_double(i * 1.);
     }
     tick2 = ExGetTickCount();
-    dprint1("_fixed_16_16_from_double %d\n", tick2 - tick1);
+    dprint1("_fixed_16_16_from_double %ld\n", tick2 - tick1);
 
     tick1 = ExGetTickCount();
     for (volatile int i = 0; i < TESTCNT; i++) {
         val = _fixed_16_16_from_doublem(i * 1.);
     }
     tick2 = ExGetTickCount();
-    dprint1("_fixed_16_16_from_doublem %d\n", tick2 - tick1);
+    dprint1("_fixed_16_16_from_doublem %ld\n", tick2 - tick1);
 
     return 0;
 }
@@ -408,8 +408,8 @@ int app_test() {
     #if 1 // lambda callback
     static ExTimer timer1;
     timer1.init(exWatchMain, [](void* data, ExTimer* timer, ExCbInfo* cbinfo)->uint32 {
-        dprint1("\n*** anonymous func data=%p timer=%4u type=%d\n",
-               data, ((uint32)*timer) % 10000U, cbinfo->type);
+        dprint1("\n*** anonymous func data=%p timer=%4" PRIu64 " type=%d\n",
+               data, ((uint64)*timer) % 10000000U, cbinfo->type);
         return 0U; }, (void*)0xaaaa);
     //timer1.enter();
     timer1.start(1U, 1233U);
@@ -421,17 +421,17 @@ int app_test() {
 
 struct CbTest {
     uint32 onTest1(ExTimer* timer, ExCbInfo* cbinfo) {
-        printf("onTest1: data=%p value=%u\n", this, (uint32)*timer);
+        printf("onTest1: data=%p value=%" PRIu64 "\n", this, (uint64)*timer);
         return 0;
     }
     static uint32 onTest2(void* data, ExTimer* timer, ExCbInfo* cbinfo) {
-        printf("onTest2: data=%p value=%u\n", data, (uint32)*timer);
+        printf("onTest2: data=%p value=%" PRIu64 "\n", data, (uint64)*timer);
         return 0;
     }
 };
 
 static uint32 onTimer4(void* data, ExTimer* timer, ExCbInfo* cbinfo) {
-    printf("onTimer4: value=%u\n", (uint32)*timer);
+    printf("onTimer4: value=%" PRIu64 "\n", (uint64)*timer);
     return 0;
 }
 
@@ -682,7 +682,6 @@ int main(int argc, char* argv[])
     ExWatch::setTlsSpecific(&gWatchApp);
 #ifdef DPRINT
     dprint_verbose = 3;
-    ex_dprint_appinfo = &dprint_appinfo;
     if (setlocale(LC_ALL, "en_US.UTF-8") == nullptr) {
         dprint("setlocale(LC_ALL, en_US.UTF-8) failed.\n");
     }
@@ -804,7 +803,6 @@ int APIENTRY WinMain(_In_ HINSTANCE hInstance,
     SetConsoleOutputCP(CP_UTF8); // CP_UTF8 | CP_ACP
 #ifdef DPRINT
     dprint_verbose = 3;
-    ex_dprint_appinfo = &dprint_appinfo;
     #if 1 // test
     dprint(dprint_verbose, "mbs 한글 %s\n", "mbs 한글");
     dprint(dprint_verbose, "mbs 한글 %s\n", ExCPACP0(L"wcs 한글"));
@@ -823,6 +821,7 @@ int APIENTRY WinMain(_In_ HINSTANCE hInstance,
     (void)initRes();
     (void)gWatchApp.startup();
     (void)gWatchApp.enter();
+    (void)gWatchDev.init();
     (void)gWatchMap.init();
 
     // startup
@@ -840,8 +839,23 @@ int APIENTRY WinMain(_In_ HINSTANCE hInstance,
     //(void)gWatchApp.guiloop();
     ExMainLoop();
 
+#if 1
+    //
+    // When the system window manager closed the app, mainWnd was destroyed.
+    //
+    if (ExApp::mainWnd != nullptr) { // If the halt flag is set inside the app,
+        (void)ExApp::mainWnd->destroy(); // then, mainWnd was not destroyed yet.
+        // call XDestroyWindow, emit WM_DESTROY, and post WM_QUIT.
+        ExApp::collect(); // call delete gWndMain
+    }
+    exassert2(ExApp::mainWnd == nullptr, __FILE__ "@" Ex_STRINGIFY(__LINE__));
+    //delete gWndMain;
+    gWndMain = nullptr;
+#endif
+
     // cleanup
     (void)gWatchMap.fini();
+    (void)gWatchDev.fini();
     (void)gWatchApp.cleanup();
     (void)finiRes();
     (void)saveEnv();

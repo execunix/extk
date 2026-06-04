@@ -18,8 +18,8 @@
 class ExTimer : public ExObject {
 protected:
     ExWatch*    watch;
-    uint32      value;          // The time, in milliseconds, reference time
-    uint32      repeat;         // The time, in milliseconds, repeat period
+    uint64      value;          // The time, in milliseconds, reference time
+    uint64      repeat;         // The time, in milliseconds, repeat period
     ExCallback  callback;
 private: // Modify the flags only in the ExWatch::TimerSet class.
     mutable uint32 fActived;    // is started and inserted ?
@@ -43,7 +43,7 @@ public:
 public:
     virtual ~ExTimer() noexcept;
     explicit ExTimer() noexcept : ExObject()
-        , watch(nullptr), value(0), repeat(0), callback(), fActived(0)
+        , watch(nullptr), value(0UL), repeat(0UL), callback(), fActived(0U)
         , object(nullptr), u64 { 0ull, } {}
 public:
     void setup(ExWatch* watch, const ExCallback& callback, const void* object = nullptr) {
@@ -72,7 +72,7 @@ public:
     void start(uint32 initial, uint32 repeat = 0U); // notes: set fActived by insert to timerlist.
     bool enter_watch() const { return ((watch == nullptr) || watch->isSelf()) ? false : watch->enter(); }
     bool leave_watch(bool is_lock) const { return (is_lock == false) ? false : watch->leave(); }
-    operator uint32 () const { return value; }
+    operator uint64 () const { return value; }
 protected:
     friend class ExWatch;
 public:

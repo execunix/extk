@@ -10,6 +10,12 @@
 #error FrameWork of the Widget requires C++ compilation (use a *.cpp suffix)
 #endif
 
+#if defined(__LP64__) || defined(__aarch64__) || defined(__x86_64__) || defined(_M_X64) || defined(_WIN64)
+#define EX2CONF_64BIT 1
+#else
+#define EX2CONF_64BIT 0
+#endif
+
 #define OSAL_LINUX
 #define OSAL_WIN32
 
@@ -45,9 +51,11 @@
 #include <wchar.h>
 #ifdef __linux__
 #include <math.h>
+#include <time.h>
 #include <sys/time.h>
 #endif
 #include <algorithm>
+#include <inttypes.h>
 #include <type_traits>
 
 #ifndef STDCALL

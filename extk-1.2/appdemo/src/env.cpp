@@ -74,7 +74,7 @@ bool initEnv() noexcept
        # localectl status
     */
 
-    env.gui_tick = 0U;
+    env.gui_tick = 0UL;
     env.key_flags = 0UL;
 
     env.wnd.show = 1;

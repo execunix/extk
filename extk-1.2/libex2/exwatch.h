@@ -15,8 +15,7 @@
 
 class ExTimer;
 
-uint64 ExGetMonoClock();
-uint32 ExGetTickCount();
+uint64 ExGetTickCount();
 
 // ExModalCtrl - tbd
 //
@@ -86,7 +85,7 @@ protected:
         void fini();
         void remove(ExTimer* timer);
         void active(ExTimer* timer);
-        int32 invoke(uint32 tick_count);
+        int64 invoke(uint64 tick_count);
     };
     // IomuxMap
     #ifdef WIN32
@@ -119,7 +118,7 @@ protected:
         bool add(HANDLE mux_fd, const ExNotify& notify);
         bool mod(HANDLE mux_fd, const ExNotify& notify);
         bool del(HANDLE mux_fd);
-        int32 invoke(int32 waittick = 60000);
+        int64 invoke(int64 waittick = 60000000L);
     };
     #else // __linux__
     struct Iomux {
@@ -152,12 +151,12 @@ protected:
         bool add(int32 mux_fd, uint32 events, const ExNotify& notify);
         bool mod(int32 mux_fd, uint32 events, const ExNotify& notify);
         bool del(int32 mux_fd);
-        int32 invoke(int32 waittick = 60000);
+        int64 invoke(int64 waittick = 60000000L);
     };
     #endif
 public:
     const char* name; // for debug
-    static uint32 tickAppLaunch;
+    static uint64 tickAppLaunch;
     #ifdef WIN32
     static DWORD keyTlsSpecific;
     #else // __linux__
@@ -181,7 +180,8 @@ protected:
     #endif
     ExEvent         evWake; // event to wakeup this watch
     uint32          halt;
-    uint32          tickCount;
+    uint32          __pad00;
+    uint64          tickCount;
     ExMutex         mutex;
     #ifdef __linux__
     mutable pthread_cond_t  cond;
@@ -198,7 +198,7 @@ public:
     }
     explicit ExWatch(const char* name) noexcept : name(name)
         , iomuxmap(this), timerset(), idThread(0U), hThread(nullptr)
-        , evWake(), halt(0U), tickCount(0U), mutex(), mclist()
+        , evWake(), halt(0U), tickCount(0UL), mutex(), mclist()
         , hookStartup(), hookProcess(this, &ExWatch::process), hookCleanup() {
         tickCount = tickAppLaunch;
     }
@@ -209,7 +209,7 @@ public:
     }
     explicit ExWatch(const char* name) noexcept : name(name)
         , iomuxmap(this), timerset(), tid(0U)
-        , evWake(), halt(0U), tickCount(0U), mutex(), mclist()
+        , evWake(), halt(0U), tickCount(0UL), mutex(), mclist()
         , hookStartup(), hookProcess(this, &ExWatch::process), hookCleanup() {
         pthread_cond_init(&cond, nullptr);
         tickCount = tickAppLaunch;
@@ -224,7 +224,7 @@ public:
     bool isEntered() const { return mutex.islock(); }
     uint32 setHalt(uint32 r = Ex_Halt);
     uint32 getHalt() const { return halt; }
-    uint32 getTick() const { return tickCount; }
+    uint64 getTick() const { return tickCount; }
 public:
     #ifdef WIN32
     uint32 onEvent(HANDLE hev);
@@ -283,8 +283,8 @@ protected:
     void timerset_fini() { timerset.fini(); }
     void iomuxmap_fini() { iomuxmap.fini(); }
     void iomuxmap_init(uint32 max) { iomuxmap.init(max); }
-    int32 timerset_invoke(uint32 tick_count) { return timerset.invoke(tick_count); }
-    int32 iomuxmap_invoke(int32 waittick = 60000) { return iomuxmap.invoke(waittick); }
+    int64 timerset_invoke(uint64 tick_count) { return timerset.invoke(tick_count); }
+    int64 iomuxmap_invoke(int64 waittick = 60000000L) { return iomuxmap.invoke(waittick); }
 #endif // tbd
     friend void ExMainLoop();
     friend class ExMutex;

@@ -284,6 +284,22 @@ bool WatchApp::startup()
     return (r == 0);
 }
 #else // WIN32
+uint32 WatchDev::cleanup(uint32 hook)
+{
+    return 0U;
+}
+
+uint32 WatchDev::process(uint32 hook)
+{
+    return ExWatch::process(hook);
+}
+
+uint32 WatchDev::startup(uint32 hook)
+{
+    return 0U;
+}
+
+WatchDev gWatchDev;
 WatchMap gWatchMap;
 
 bool WatchApp::cleanup()
@@ -397,24 +413,5 @@ void WatchApp::open_fifo()
 #endif // __linux__
 
 WatchApp gWatchApp;
-
-int32 dprint_appinfo(char* const mbs, const int32 len)
-{
-    char buf[32];
-    const ExWatch* const watch = ExWatch::getTlsSpecific();
-    const char* name = (watch != nullptr) ? watch->name : nullptr;
-    if (name == nullptr) {
-        uint32 tid;
-#ifdef __linux__
-        tid = (uint32)pthread_self();
-#else
-        tid = (uint32)GetCurrentThreadId();
-#endif // __linux__
-        (void)snprintf(&buf[0], 32UL, "%03u", static_cast<uint32>(tid % 1000UL));
-        name = buf;
-    }
-    const uint32 tick = static_cast<uint32>(ExGetTickCount() - ExWatch::tickAppLaunch);
-    return snprintf(mbs, static_cast<size_t>(len), "[%4u.%03u:%s] ", tick / 1000U, tick % 1000U, name);
-}
 
 ExCallbackList cmdline_callback_list;

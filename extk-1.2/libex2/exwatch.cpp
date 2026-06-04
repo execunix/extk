@@ -14,20 +14,12 @@
 // #undef dprint1
 // #define dprint1(...) printf("ExWatch@" __VA_ARGS__)
 
-uint64 ExGetMonoClock() {
+uint64 ExGetTickCount() {
     struct timespec ts;
     (void)clock_gettime(CLOCK_MONOTONIC, &ts);
     uint64 usec = (static_cast<uint64>(ts.tv_sec) * 1000000UL);
     usec += (static_cast<uint64>(ts.tv_nsec) / 1000UL);
     return usec;
-}
-
-uint32 ExGetTickCount() {
-    struct timespec ts;
-    (void)clock_gettime(CLOCK_MONOTONIC, &ts);
-    uint64 msec = (static_cast<uint64>(ts.tv_sec) * 1000UL);
-    msec += (static_cast<uint64>(ts.tv_nsec) / 1000000UL);
-    return static_cast<uint32>(msec);
 }
 
 // Iomux
@@ -128,11 +120,12 @@ bool ExWatch::IomuxMap::del(int32 mux_fd) {
     return (r == 0);
 }
 
-int32 ExWatch::IomuxMap::invoke(int32 waittick) {
-    const uint32 tick0 = watch->tickCount; // get current tick
+int64 ExWatch::IomuxMap::invoke(int64 waittick) {
+    const int64 tick0 = watch->tickCount; // get current tick
     watch->leave();
     //pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, nullptr);
-    const int32 cnt = epoll_wait(ep_fd, events, (int)maxevents, waittick);
+    (void)exusleep((uint32)(waittick % 1000L)); // sleep for usec
+    const int32 cnt = epoll_wait(ep_fd, events, (int)maxevents, (int)(waittick / 1000L)); // sleep for msec
     //pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, nullptr);
     watch->enter();
     for (int32 i = 0; i < cnt; i++) {
@@ -158,7 +151,7 @@ int32 ExWatch::IomuxMap::invoke(int32 waittick) {
 
 // Watch thread
 //
-uint32 ExWatch::tickAppLaunch = ExGetTickCount();
+uint64 ExWatch::tickAppLaunch = ExGetTickCount();
 
 pthread_key_t ExWatch::keyTlsSpecific = (pthread_key_t)-1;
 
@@ -244,7 +237,14 @@ uint32 ExWatch::onEvent(const epoll_event* const ev) {
 uint32 ExWatch::setHalt(uint32 r) {
     exassert(((halt | r) & Ex_Halt) != 0U);
     halt |= (r | 0x01100000U);
-    evWake.signal();
+    if (r == Ex_Halt) { // is wakeup as trigger ?
+        #ifdef DEBUG // for debug
+        if (evWake.u64 > 1UL) { // is already signaled ?
+            dprint("ExWatch::setHalt: u64=%lu\n", evWake.u64);
+        }
+        #endif
+        evWake.signal();
+    }
     return halt;
 }
 
@@ -253,7 +253,7 @@ uint32 ExWatch::proc() {
     pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, nullptr);
 #endif // __linux__
     setTlsSpecific(this);
-    dprint("ExWatch::proc(%s) tickAppLaunch=%d tickCount=%d\n", name, tickAppLaunch, tickCount);
+    dprint("ExWatch::proc(%s) tickAppLaunch=%lu tickCount=%lu\n", name, tickAppLaunch, tickCount);
     (void)enter();
     // seq-1 : prepare resources
     (void)hookStartup(ExHookProc::Startup);
@@ -262,12 +262,12 @@ uint32 ExWatch::proc() {
     // seq-6 : cleanup resources
     (void)hookCleanup(ExHookProc::Cleanup);
     (void)leave();
-    dprint("ExWatch::proc(%s) done... tickCount=%d\n", name, tickCount);
+    dprint("ExWatch::proc(%s) done... tickCount=%lu\n", name, tickCount);
     return 0U;
 }
 
 uint32 ExWatch::process(uint32 hook) {
-    int32 waittick = 0;
+    int64 waittick = 0L;
     exassert(isEntered());
     while (!ExIsHalt(getHalt())) {
         // seq-2 : dispatch event
@@ -279,8 +279,8 @@ uint32 ExWatch::process(uint32 hook) {
         }
         #if 1 // adjust for internal timer callback sleep
         waittick -= (ExGetTickCount() - tickCount);
-        if (waittick < 1) {
-            waittick = 1;
+        if (waittick < 1L) {
+            waittick = 1L;
         }
         #endif
         // seq-4 : collect resources, flush gui, ...
@@ -335,7 +335,7 @@ void* ExWatch::dispatch(ExModalCtrl* const ctrl) {
 }
 
 void* ExWatch::modalBlock(ExModalCtrl* const ctrl) {
-    int32 waittick = 0;
+    int64 waittick = 0L;
     exassert(isEntered());
     mclist.push_front(ctrl);
     exassert(ctrl->flags == Ex_Continue);
@@ -352,8 +352,8 @@ void* ExWatch::modalBlock(ExModalCtrl* const ctrl) {
         }
         #if 1 // adjust for internal timer callback sleep
         waittick -= (ExGetTickCount() - tickCount);
-        if (waittick < 1) {
-            waittick = 1;
+        if (waittick < 1L) {
+            waittick = 1L;
         }
         #endif
         // seq-4 : collect resources, flush gui, ...

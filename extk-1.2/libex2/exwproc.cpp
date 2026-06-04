@@ -12,9 +12,9 @@
 
 ExWindowMap exWndProcMap;
 
-static uint32 getDoubleClickDiff(const uint32 (&click_time)[2])
+static uint64 getDoubleClickDiff(const uint64 (&click_time)[2])
 {
-    const uint32 diff = static_cast<uint32>(click_time[1] - click_time[0]);
+    const uint64 diff = static_cast<uint64>(click_time[1] - click_time[0]);
     return diff;
 }
 
@@ -50,7 +50,7 @@ static int64 procPtrLeaveEnter(ExWindow* const window, ExWidget* const widget, E
                 (void)widget->damage();
             }
         }
-        //ExApp::butRepeatCnt() = 0; // tbd
+        //ExApp::butRepeatCnt() = 0U; // tbd
     }
     if (cbinfo->exmsg != nullptr) {
         lResult = cbinfo->exmsg->lResult;
@@ -255,7 +255,7 @@ uint32 ProcWndEvent(ExWindow* const window, ExCbInfo* const cbinfo)
                 (widget != nullptr)) {
                 (void)widget->invokeListener(Ex_CbActivate, cbinfo->set(Ex_CbActivate, ExApp::butRepeatCnt()));
                 // tbd: proc double_click_event callback
-                //if (ExApp::butRepeatCnt() == 0)
+                //if (ExApp::butRepeatCnt() == 0U)
                 //  ExApp::button_click_time[1] = exWatchDisp->getTick();
             }
             // An application should return zero if it processes this message.

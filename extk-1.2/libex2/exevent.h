@@ -29,13 +29,23 @@ public:
     explicit ExEvent() noexcept : efd(-1), u64(0UL) {}
     operator int32 () const { return efd; }
     #endif // __linux__
+public:
     bool fini() noexcept;
     bool init() noexcept;
     bool reset() const { return getEvent(&u64); };
     bool signal() const { return setEvent(1UL); };
+    //bool reset() const { return isValid() && getEvent(&u64); };
+    //bool signal() const { return isValid() && setEvent(1UL); };
     bool getEvent(uint64* u64 = nullptr) const;
     bool setEvent(uint64 u64 = 1UL) const;
+    #ifdef WIN32
+    bool isValid() const noexcept { return (hev != nullptr); }
+    #else // __linux__
+    bool isValid() const noexcept { return (efd != -1); }
+    #endif // __linux__
     bool isSignaled() const;
+public:
+    friend class ExWatch;
 };
 
 class ExMutex {

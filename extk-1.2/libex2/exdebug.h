@@ -12,8 +12,8 @@
 
 extern int32 dprint_charset; // default 949
 extern int32 dprint_verbose; // default 999 (0:quiet)
-extern int32 (*ex_dprint_appinfo)(char* mbs, int32 len); // default "[*] "
-extern int32 (*ex_dprint_handler)(int32 lvl, const char* mbs);
+extern int32 (*ex_dprint_appinfo)(char* const mbs, const int32 len); // default "[*] "
+extern int32 (*ex_dprint_handler)(const int32 lvl, const char* mbs);
 
 int32 debug_vprintf(int32 lvl, const wchar* fmt, va_list arg);
 int32 debug_vprintf(int32 lvl, const char* fmt, va_list arg);

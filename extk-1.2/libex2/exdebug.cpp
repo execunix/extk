@@ -5,6 +5,7 @@
 
 #include "exdebug.h"
 #include "exiconv.h"
+#include "exwatch.h"
 #include <stdio.h>
 #include <errno.h>
 
@@ -14,13 +15,32 @@
 #endif
 
 static int32
-dprint_appinfo(char* mbs, int32 len)
+dprint_appinfo(char* const mbs, const int32 len)
 {
+#if 1
+    char buf[32];
+    const ExWatch* const watch = ExWatch::getTlsSpecific();
+    const char* name = (watch != nullptr) ? watch->name : nullptr;
+    if (name == nullptr) {
+        uint32 tid;
+        #ifdef __linux__
+        tid = (uint32)pthread_self();
+        #else
+        tid = (uint32)GetCurrentThreadId();
+        #endif // __linux__
+        (void)snprintf(&buf[0], 32UL, "%03u", static_cast<uint32>(tid % 1000UL));
+        name = buf;
+    }
+    const int64 tick = ExGetTickCount() - ExWatch::tickAppLaunch;
+    return snprintf(mbs, static_cast<size_t>(len), "[%04" PRId64 ".%06" PRId64 ":%s] ",
+                    tick / 1000000L, tick % 1000000L, name);
+#else
     return snprintf(mbs, len, "%s", "[*] ");
+#endif
 }
 
 static int32
-dprint_handler(int32 lvl, const char* mbs)
+dprint_handler(const int32 lvl, const char* mbs)
 {
 #ifdef WIN32
     OutputDebugStringA(mbs);
@@ -40,8 +60,8 @@ int32 dprint_charset = CP_ACP;
 int32 dprint_charset = 949;
 #endif
 int32 dprint_verbose = 999;
-int32 (*ex_dprint_appinfo)(char* mbs, int32 len) = &dprint_appinfo;
-int32 (*ex_dprint_handler)(int32 lvl, const char* mbs) = &dprint_handler;
+int32 (*ex_dprint_appinfo)(char* const mbs, const int32 len) = &dprint_appinfo;
+int32 (*ex_dprint_handler)(const int32 lvl, const char* mbs) = &dprint_handler;
 
 int32 debug_vprintf(int32 lvl, const wchar* fmt, va_list arg)
 {

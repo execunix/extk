@@ -10,7 +10,8 @@
 
 //#define IOMUX_WAIT_NO_GWES
 
-uint64 ExGetMonoClock() {
+uint64 ExGetTickCount() {
+    #if 1
     LARGE_INTEGER freq, tick;
     QueryPerformanceFrequency(&freq);
     QueryPerformanceCounter(&tick);
@@ -18,12 +19,11 @@ uint64 ExGetMonoClock() {
     usec *= static_cast<double>(tick.QuadPart);
     usec /= static_cast<double>(freq.QuadPart);
     return static_cast<uint64>(usec);
-}
-
-uint32 ExGetTickCount() {
+    #else
     uint32 msec;
     msec = GetTickCount();
-    return msec;
+    return static_cast<uint64>(msec) * 1000UL;
+    #endif
 }
 
 // Iomux
@@ -121,15 +121,16 @@ bool ExWatch::IomuxMap::del(HANDLE mux_fd) {
     return (r == 0);
 }
 
-int32 ExWatch::IomuxMap::invoke(int32 waittick) {
+int64 ExWatch::IomuxMap::invoke(int64 waittick) {
     DWORD nCount = setup();
     LPHANDLE pHandles = handles;
-    DWORD dwMilliseconds = (DWORD)waittick;//INFINITE;
+    DWORD dwMilliseconds = (DWORD)(waittick / 1000L);//INFINITE;
     DWORD dwWaitRet; // signaled number
-    const uint32 tick0 = watch->tickCount; // get current tick
+    const uint64 tick0 = watch->tickCount; // get current tick
 
     watch->leave();
     //Sleep(1);
+    (void)exusleep((uint32)(waittick % 1000L)); // sleep for usec
 #if defined(IOMUX_WAIT_NO_GWES)
     dwWaitRet = WaitForMultipleObjects(nCount, pHandles, FALSE, dwMilliseconds);
 #else
@@ -181,13 +182,13 @@ int32 ExWatch::IomuxMap::invoke(int32 waittick) {
     } else {
         exerror("IomuxMap: dwWaitRet:%p GetLastError:0x%p\n", dwWaitRet, GetLastError());
     }
-    watch->tickCount = GetTickCount(); // update tick
+    watch->tickCount = ExGetTickCount(); // update tick
     return (watch->tickCount - tick0); // return elapsed tick
 }
 
 // Watch thread
 //
-uint32 ExWatch::tickAppLaunch = ExGetTickCount();
+uint64 ExWatch::tickAppLaunch = ExGetTickCount();
 
 DWORD ExWatch::keyTlsSpecific = TLS_OUT_OF_INDEXES;
 
@@ -245,7 +246,7 @@ bool ExWatch::init(size_t max_iomux, size_t stacksize) {
     evWake.init();
     ioAdd(this, &ExWatch::onEvent, evWake);
 
-    tickCount = GetTickCount(); // update tick
+    tickCount = ExGetTickCount(); // update tick
 
     hThread = CreateThread(nullptr, stacksize, start, this, 0, &idThread);
     dprint1("CreateThread: hThread=%p idThread=%p\n", hThread, idThread);
