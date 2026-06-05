@@ -7,9 +7,6 @@
 #include <jpeglib.h>
 #include <setjmp.h>
 #include <stdio.h>
-#ifdef __linux__
-#include <fcntl.h>
-#endif
 
 #if defined(_MSC_VER)
 #pragma comment(lib, "libjpeg.lib")

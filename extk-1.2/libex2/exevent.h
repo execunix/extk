@@ -8,7 +8,6 @@
 
 #include "excallback.h"
 #ifdef __linux__
-#include <sys/epoll.h>
 #include <pthread.h>
 #endif // __linux__
 
@@ -73,6 +72,9 @@ public:
     bool islock() const noexcept {
         return (idThread == GetCurrentThreadId());
     }
+    bool isSafe() const noexcept {
+        return (idThread == 0U) || islock();
+    }
     operator HANDLE () const { return mutex; }
     #else // __linux__
     ~ExMutex() noexcept {
@@ -92,7 +94,12 @@ public:
     bool islock() const noexcept {
         return (tid == pthread_self());
     }
+    bool isSafe() const noexcept {
+        return (tid == 0U) || islock();
+    }
     #endif // __linux__
+public:
+    friend class ExWatch;
 };
 
 #if 0 // deprecated

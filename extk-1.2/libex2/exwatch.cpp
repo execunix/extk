@@ -9,7 +9,6 @@
 #ifdef __linux__
 #include <time.h>
 #include <sys/unistd.h>
-#include <sys/epoll.h>
 
 // #undef dprint1
 // #define dprint1(...) printf("ExWatch@" __VA_ARGS__)
@@ -47,6 +46,13 @@ uint64 ExGetTickCount() {
 // Iomux
 //
 void ExWatch::IomuxMap::fini() {
+    #if defined(IOMUX_PPOLL)
+    if (fds != nullptr) {
+        free(fds);
+        fds = nullptr;
+    }
+    dirty = 0;
+    #else // !IOMUX_PPOLL
     if (events != nullptr) {
         free(events);
         events = nullptr;
@@ -55,19 +61,44 @@ void ExWatch::IomuxMap::fini() {
         close(ep_fd);
         ep_fd = -1;
     }
+    #endif // IOMUX_PPOLL
     clear();
-    if (maxevents != 0U) {
-        maxevents = 0U;
+    if (max_fds != 0U) {
+        max_fds = 0U;
     }
 }
 
 void ExWatch::IomuxMap::init(size_t max) {
-    maxevents = max;
-    ep_fd = epoll_create(maxevents);
+    max_fds = max;
+    #if defined(IOMUX_PPOLL)
+    fds = (pollfd*)malloc(sizeof(pollfd) * max_fds);
+    exassert(fds != nullptr);
+    #else // !IOMUX_PPOLL
+    ep_fd = epoll_create(max_fds);
     exassert(ep_fd != -1);
-    events = (epoll_event*)malloc(sizeof(epoll_event) * maxevents);
+    events = (epoll_event*)malloc(sizeof(epoll_event) * max_fds);
     exassert(events != nullptr);
+    #endif // IOMUX_PPOLL
 }
+
+#if defined(IOMUX_PPOLL)
+nfds_t ExWatch::IomuxMap::setup() {
+    size_t ret = size();
+    if (dirty > 0) {
+        size_t cnt = 0U;
+        for (const_iterator i = begin(); i != end(); ++i) {
+            const Iomux& iomux = i->second;
+            pollfd* pfd = &fds[cnt++];
+            pfd->fd = iomux.mux_fd;
+            pfd->events = (short)(iomux.events & 0xFFFFU);
+            pfd->revents = 0;
+        }
+        exassert(cnt == ret);
+        dirty = 0;
+    }
+    return static_cast<nfds_t>(ret);
+}
+#endif // IOMUX_PPOLL
 
 const ExWatch::Iomux* ExWatch::IomuxMap::search(int32 mux_fd) const {
     const Iomux* iomux = nullptr;
@@ -92,7 +123,8 @@ uint32 ExWatch::IomuxMap::probe(const ExCallback& callback, void* cbinfo) {
 
 bool ExWatch::IomuxMap::add(int32 mux_fd, uint32 events, const ExNotify& notify) {
     int32 r = -1;
-    if (size() < maxevents) {
+    exassert(watch->mutex.isSafe());
+    if (size() < max_fds) {
         Iomux* iomux = nullptr;
         std::pair<iterator, bool> pr;
         pr = insert(value_type(mux_fd, Iomux(mux_fd)));
@@ -102,25 +134,36 @@ bool ExWatch::IomuxMap::add(int32 mux_fd, uint32 events, const ExNotify& notify)
         }
         exassert(iomux->mux_fd == mux_fd);
         iomux->notify = notify;
+        #if defined(IOMUX_PPOLL)
+        iomux->events = events;
+        dirty++;
+        #else // !IOMUX_PPOLL
         iomux->event.events = events;
         iomux->event.data.ptr = iomux;
         r = epoll_ctl(ep_fd, EPOLL_CTL_ADD, mux_fd, &iomux->event);
+        #endif // IOMUX_PPOLL
     } else {
-        dprint1("IomuxMap::add: maxevents:%zu\n", maxevents);
+        dprint1("IomuxMap::add: max_fds:%zu\n", max_fds);
     }
     return (r == 0);
 }
 
 bool ExWatch::IomuxMap::mod(int32 mux_fd, uint32 events, const ExNotify& notify) {
     int32 r = -1;
+    exassert(watch->mutex.isSafe());
     iterator i = find(mux_fd);
     if (i != end()) {
         Iomux* iomux = &i->second;
         exassert(iomux->mux_fd == mux_fd);
         iomux->notify = notify;
+        #if defined(IOMUX_PPOLL)
+        iomux->events = events;
+        dirty++;
+        #else // !IOMUX_PPOLL
         iomux->event.events = events;
         exassert(iomux->event.data.ptr == iomux);
         r = epoll_ctl(ep_fd, EPOLL_CTL_MOD, mux_fd, &iomux->event);
+        #endif // IOMUX_PPOLL
     } else {
         dprint1("IomuxMap::mod: invalid mux_fd:%zu\n", (size_t)mux_fd);
     }
@@ -129,12 +172,17 @@ bool ExWatch::IomuxMap::mod(int32 mux_fd, uint32 events, const ExNotify& notify)
 
 bool ExWatch::IomuxMap::del(int32 mux_fd) {
     int32 r = -1;
+    exassert(watch->mutex.isSafe());
     iterator i = find(mux_fd);
     if (i != end()) {
         Iomux* iomux = &i->second;
         exassert(iomux->mux_fd == mux_fd);
+        #if defined(IOMUX_PPOLL)
+        dirty++;
+        #else // !IOMUX_PPOLL
         exassert(iomux->event.data.ptr == iomux);
         r = epoll_ctl(ep_fd, EPOLL_CTL_DEL, mux_fd, &iomux->event);
+        #endif // IOMUX_PPOLL
         erase(i);
     } else {
         dprint1("IomuxMap::del: invalid mux_fd:%zu\n", (size_t)mux_fd);
@@ -144,16 +192,27 @@ bool ExWatch::IomuxMap::del(int32 mux_fd) {
 
 int64 ExWatch::IomuxMap::invoke(int64 waittick) {
     const int64 tick0 = watch->tickCount; // get current tick
+    #if defined(IOMUX_PPOLL)
+    nfds_t nfds = setup();
+    #endif // IOMUX_PPOLL
     watch->leave();
     //pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, nullptr);
     #if 0
     (void)exusleep((uint32)(waittick % 1000L)); // sleep for usec
     #endif
-    const int32 cnt = epoll_wait(ep_fd, events, (int)maxevents, (int)(waittick / 1000L)); // sleep for msec
+    #if defined(IOMUX_PPOLL)
+    timespec ts;
+    ts.tv_sec = waittick / 1000000000L;
+    ts.tv_nsec = waittick % 1000000000L;
+    int32 cnt = ppoll(fds, nfds, &ts, nullptr); // sleep for nsec
+    #else // !IOMUX_PPOLL
+    int32 cnt = epoll_wait(ep_fd, events, (int)max_fds, (int)(waittick / 1000L)); // sleep for msec
+    #endif // IOMUX_PPOLL
     //pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, nullptr);
     watch->enter();
+    #if !defined(IOMUX_PPOLL)
     for (int32 i = 0; i < cnt; i++) {
-        Iomux* iomux = (Iomux*)events[i].data.ptr;
+        const Iomux* iomux = (const Iomux*)events[i].data.ptr;
         epoll_event ev;
         ev.data.fd = iomux->mux_fd;
         ev.events = events[i].events;
@@ -166,9 +225,39 @@ int64 ExWatch::IomuxMap::invoke(int64 waittick) {
         // tbd - manage remove flag
         // if (r & Ex_Remove) { del(iomux->mux_fd); }
     }
+    #endif // IOMUX_PPOLL
     if (cnt < 0) {
         exerror("IomuxMap: cnt:%d %s\n", cnt, exstrerr());
+        cnt = 0; // reset count
     }
+    #if defined(IOMUX_PPOLL)
+    for (nfds_t i = 0UL; (i < nfds) && (cnt > 0); i++) {
+        pollfd* pfd = &fds[i];
+        if (pfd->revents == 0) {
+            continue; // skip non-signaled fd
+        }
+        pfd->revents = 0; // reset revents for next loop
+        const Iomux* iomux = search(pfd->fd);
+        if (iomux == nullptr) {
+            dprint1("IomuxMap::invoke: invalid mux_fd:%zu\n", (size_t)pfd->fd);
+            continue;
+        }
+        epoll_event ev;
+        ev.data.fd = iomux->mux_fd;
+        ev.events = (uint32)pfd->events;
+        uint32 r = iomux->notify(&ev);
+        r |= watch->getHalt();
+        if (ExIsHalt(r)) {
+            (void)watch->setHalt(r);
+            break; // stop iomux loop
+        }
+        if ((r & Ex_Remove) != 0U) {
+            del(iomux->mux_fd);
+            dirty++;
+        }
+        cnt--; // decrease count
+    }
+    #endif // IOMUX_PPOLL
     watch->tickCount = ExGetTickCount(); // update tick
     return (watch->tickCount - tick0); // return elapsed tick
 }
@@ -341,7 +430,7 @@ void* ExWatch::dispatch(ExModalCtrl* const ctrl) {
         }
         // message is available
         if (msg.message == WM_QUIT) { // WM_DESTROY => PostQuitMessage
-            dprint("WM_QUIT tick=%d\n", getTick());
+            dprint("WM_QUIT tick=%lu\n", getTick());
             ExApp::retCode = (int32)msg.wParam; // cause DestroyWindow
             (void)setHalt(Ex_Halt); // stop exmsg loop
             break;

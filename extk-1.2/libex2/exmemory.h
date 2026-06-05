@@ -10,6 +10,7 @@
 #include <memory>
 
 // proto - std::copy(src.begin(), src.end(), dst.begin())
+#define USE_STD_COPY
 
 // tmemfifo - stream memory as fifo (circular queue)
 //
@@ -122,16 +123,23 @@ public:
         }
         if (len > Zero) {
             const size_t split_half = Capacity - head_index;
+            #if defined(USE_STD_COPY)
             if (split_half < len) { // is split ?
                 const size_t split_rest = len - split_half;
-                // (void)memcpy(&buf[0], &repository[head_index], split_half * sizeof(T));
                 std::copy(repository.begin() + head_index, repository.end(), &buf[0]);
-                // (void)memcpy(&buf[split_half], &repository[0], split_rest * sizeof(T));
                 std::copy(repository.begin(), repository.begin() + split_rest, &buf[split_half]);
             } else {
-                // (void)memcpy(&buf[0], &repository[head_index], len * sizeof(T));
                 std::copy(repository.begin() + head_index, repository.begin() + head_index + len, &buf[0]);
             }
+            #else // deprecated
+            if (split_half < len) { // is split ?
+                const size_t split_rest = len - split_half;
+                (void)memcpy(&buf[0], &repository[head_index], split_half * sizeof(T));
+                (void)memcpy(&buf[split_half], &repository[0], split_rest * sizeof(T));
+            } else {
+                (void)memcpy(&buf[0], &repository[head_index], len * sizeof(T));
+            }
+            #endif
         }
         return len;
     }
@@ -141,18 +149,27 @@ public:
         }
         if (len > Zero) {
             const size_t split_half = Capacity - head_index; // qac: subtraction underflow
+            #if defined(USE_STD_COPY)
             if (split_half < len) { // is split ?
                 const size_t split_rest = len - split_half;
-                // (void)memcpy(&buf[0], &repository[head_index], split_half * sizeof(T));
                 std::copy(repository.begin() + head_index, repository.end(), &buf[0]);
-                // (void)memcpy(&buf[split_half], &repository[0], split_rest * sizeof(T));
                 std::copy(repository.begin(), repository.begin() + split_rest, &buf[split_half]);
                 head_index = split_rest;
             } else { // no split. rewinds when past the end of the repository.
-                // (void)memcpy(&buf[0], &repository[head_index], len * sizeof(T));
                 std::copy(repository.begin() + head_index, repository.begin() + head_index + len, &buf[0]);
                 head_index = seek(head_index, len);
             }
+            #else // deprecated
+            if (split_half < len) { // is split ?
+                const size_t split_rest = len - split_half;
+                (void)memcpy(&buf[0], &repository[head_index], split_half * sizeof(T));
+                (void)memcpy(&buf[split_half], &repository[0], split_rest * sizeof(T));
+                head_index = split_rest;
+            } else { // no split. rewinds when past the end of the repository.
+                (void)memcpy(&buf[0], &repository[head_index], len * sizeof(T));
+                head_index = seek(head_index, len);
+            }
+            #endif
             data_count -= len;
         }
         return len;
@@ -165,16 +182,22 @@ public:
         if (len > Zero) {
             const size_t tail_idx = tail_index();
             const size_t split_half = Capacity - tail_idx;
+            #if defined(USE_STD_COPY)
             if (split_half < len) { // is split ?
-                const size_t split_rest = len - split_half;
-                // (void)memcpy(&repository[tail_idx], &buf[0], split_half * sizeof(T));
                 std::copy(&buf[0], &buf[split_half], repository.begin() + tail_idx);
-                // (void)memcpy(&repository[0], &buf[split_half], split_rest * sizeof(T)); // slm-2843 an invalid pointer value
                 std::copy(&buf[split_half], &buf[len], repository.begin());
             } else { // no split. rewinds when past the end of the repository.
-                // (void)memcpy(&repository[tail_idx], &buf[0], len * sizeof(T));
                 std::copy(&buf[0], &buf[len], repository.begin() + tail_idx);
             }
+            #else // deprecated
+            if (split_half < len) { // is split ?
+                const size_t split_rest = len - split_half;
+                (void)memcpy(&repository[tail_idx], &buf[0], split_half * sizeof(T));
+                (void)memcpy(&repository[0], &buf[split_half], split_rest * sizeof(T)); // slm-2843 an invalid pointer value
+            } else { // no split. rewinds when past the end of the repository.
+                (void)memcpy(&repository[tail_idx], &buf[0], len * sizeof(T));
+            }
+            #endif
             data_count += len;
         }
         return len;

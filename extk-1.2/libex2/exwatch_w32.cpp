@@ -60,9 +60,9 @@ void ExWatch::IomuxMap::init(size_t max) {
 
 DWORD ExWatch::IomuxMap::setup() {
     size_t ret = size();
-    if (dirty) {
+    if (dirty > 0) {
         dirty = 0;
-        int32 cnt = 0U;
+        int32 cnt = 0;
         for (const_iterator i = begin(); i != end(); ++i) {
             const Iomux& iomux = i->second;
             handles[cnt++] = iomux.mux_fd;
@@ -95,6 +95,7 @@ uint32 ExWatch::IomuxMap::probe(const ExCallback& callback, void* cbinfo) {
 
 bool ExWatch::IomuxMap::add(HANDLE mux_fd, const ExNotify& notify) {
     int32 r = -1;
+    exassert(watch->mutex.isSafe());
     if (size() < MAXIMUM_WAIT_OBJECTS) {
         Iomux* iomux = nullptr;
         std::pair<iterator, bool> pr;
@@ -115,6 +116,7 @@ bool ExWatch::IomuxMap::add(HANDLE mux_fd, const ExNotify& notify) {
 
 bool ExWatch::IomuxMap::mod(HANDLE mux_fd, const ExNotify& notify) {
     int32 r = -1;
+    exassert(watch->mutex.isSafe());
     iterator i = find(mux_fd);
     if (i != end()) {
         Iomux* iomux = &i->second;
@@ -129,6 +131,7 @@ bool ExWatch::IomuxMap::mod(HANDLE mux_fd, const ExNotify& notify) {
 
 bool ExWatch::IomuxMap::del(HANDLE mux_fd) {
     int32 r = -1;
+    exassert(watch->mutex.isSafe());
     iterator i = find(mux_fd);
     if (i != end()) {
         Iomux* iomux = &i->second;

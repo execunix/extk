@@ -44,6 +44,13 @@ uint32 WatchDev::process(uint32 hook)
 
 uint32 WatchDev::startup(uint32 hook)
 {
+    #if 0 // test
+    struct sched_param param;
+    param.sched_priority = 80; // SCHED_FIFO priority range is typically 1-99
+    if (pthread_setschedparam(pthread_self(), SCHED_FIFO, &param) != 0) {
+        dprint1("pthread_setschedparam(SCHED_FIFO, %d) fail.\n", param.sched_priority);
+    }
+    #endif
     #ifdef CONF_X11
     ExApp::EnvX11& x11 = ExApp::x11;
     const int32 xd_fd = ConnectionNumber(x11.display);

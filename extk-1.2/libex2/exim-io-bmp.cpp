@@ -4,9 +4,6 @@
  */
 
 #include "eximage.h"
-#ifdef __linux__
-#include <fcntl.h>
-#endif
 
 #define BMP24_CHROMA
 

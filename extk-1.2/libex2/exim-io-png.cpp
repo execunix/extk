@@ -5,9 +5,6 @@
 
 #include "eximage.h"
 #include <stdio.h>
-#ifdef __linux__
-#include <fcntl.h>
-#endif
 #include <png.h>
 
 #if defined(_MSC_VER)

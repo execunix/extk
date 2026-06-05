@@ -5,7 +5,6 @@
 
 #include "res.h"
 #include "env.h"
-#include <sys/stat.h>
 
 Res res;
 

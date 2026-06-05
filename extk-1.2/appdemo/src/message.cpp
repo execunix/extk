@@ -86,7 +86,7 @@ bool EmitPtrEvent(ExMsg& em)
         (void)TouchCalib(em);
         *emref = em;
         emref->lParam = MAKELPARAM(em.pt.x, em.pt.y);
-        emref->time = exWatchDisp->getTick();
+        emref->time = exWatchDisp->getTick() / 1000U; // msec
     }
     (void)exWatchDisp->wakeup();
 done:

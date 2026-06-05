@@ -4,9 +4,6 @@
  */
 
 #include "eximage.h"
-#ifdef __linux__
-#include <fcntl.h>
-#endif
 
 #ifdef WIN32
 bool ExImage::loadGif(HANDLE hFile, const char* fname, bool query)

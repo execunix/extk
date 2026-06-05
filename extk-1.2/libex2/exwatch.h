@@ -9,9 +9,15 @@
 #include "excallback.h"
 #include "exobject.h"
 #include "exevent.h"
+#ifdef __linux__
+#include <sys/poll.h>
+#include <sys/epoll.h>
+#endif // __linux__
 #include <list>
 #include <map>
 #include <set>
+
+#define IOMUX_PPOLL
 
 class ExTimer;
 
@@ -102,7 +108,8 @@ protected:
         ~IomuxMap() noexcept {
             fini();
         }
-        IomuxMap(ExWatch* watch) noexcept : std::map<HANDLE, Iomux>(), watch(watch), dirty(0) {
+        IomuxMap(ExWatch* watch) noexcept : std::map<HANDLE, Iomux>()
+            , watch(watch), dirty(0) {
             memset(handles, 0, sizeof(handles));
         }
     public:
@@ -122,28 +129,47 @@ protected:
     struct Iomux {
         int32           mux_fd;
         ExNotify        notify;
+        #if defined(IOMUX_PPOLL)
+        uint32          events;
+        Iomux(int32 mux_fd) noexcept : mux_fd(mux_fd), notify(), events(0U) {}
+        #else // !IOMUX_PPOLL
         epoll_event     event;
-        //mutable enum : int32 { NONE, ADD, MOD, DEL, RUN } status;
         Iomux(int32 mux_fd) noexcept : mux_fd(mux_fd), notify(), event{0U,} {}
+        #endif // IOMUX_PPOLL
+        //mutable enum : int32 { NONE, ADD, MOD, DEL, RUN } status;
     };
     class IomuxMap : protected std::map<int32, Iomux> {
     protected:
         ExWatch*        watch;
+        #if defined(IOMUX_PPOLL)
+        int32           dirty;
+        pollfd*         fds;
+        #else // !IOMUX_PPOLL
         int32           ep_fd;  // epoll fd
         epoll_event*    events;
-        size_t          maxevents;
+        #endif // IOMUX_PPOLL
+        size_t          max_fds;
     public:
         ~IomuxMap() noexcept {
             fini();
         }
+        #if defined(IOMUX_PPOLL)
         IomuxMap(ExWatch* watch) noexcept : std::map<int32, Iomux>()
-            , watch(watch), ep_fd(-1), events(nullptr), maxevents(0U) {
+            , watch(watch), dirty(0), fds(nullptr), max_fds(0U) {
         }
+        #else // !IOMUX_PPOLL
+        IomuxMap(ExWatch* watch) noexcept : std::map<int32, Iomux>()
+            , watch(watch), ep_fd(-1), events(nullptr), max_fds(0U) {
+        }
+        #endif // IOMUX_PPOLL
     public:
         void fini();
         void init(size_t max);
         // inherit void clear();
         // inherit iterator find(int32 mux_fd);
+        #if defined(IOMUX_PPOLL)
+        nfds_t setup();
+        #endif // IOMUX_PPOLL
         const Iomux* search(int32 mux_fd) const;
         uint32 probe(const ExCallback& callback, void* cbinfo);
         bool add(int32 mux_fd, uint32 events, const ExNotify& notify);

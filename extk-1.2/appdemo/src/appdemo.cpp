@@ -20,10 +20,6 @@
 #include "res.h"
 #include "env.h"
 
-#if defined(__aarch64__)
-//x
-#endif
-
 class TestClass {
 public:
     uint32 onCb1(ExObject* object, ExCbInfo* cbinfo) {

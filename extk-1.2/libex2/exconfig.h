@@ -48,15 +48,18 @@
 #include <signal.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <fcntl.h>
 #include <wchar.h>
 #ifdef __linux__
 #include <math.h>
 #include <time.h>
 #include <sys/time.h>
 #endif
-#include <algorithm>
 #include <inttypes.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 #include <type_traits>
+#include <algorithm>
 
 #ifndef STDCALL
 #if defined(_MSC_VER)

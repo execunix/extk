@@ -615,7 +615,7 @@ int WndMain::initIomux() {
     #ifdef WIN32
     static ExTimer launchInputTimer;
     launchInputTimer.init(NULL, [](void* d, ExTimer* t, ExCbInfo*)->uint32 {
-        dprint("launchInputTimer: %d\n", exWatchDisp->getTick());
+        dprint("launchInputTimer: %lu\n", exWatchDisp->getTick());
 
         hWakeupNoti = CreateEvent(NULL, FALSE, FALSE, "AppDemo"); // tbd
         exWatchLast->ioAdd([](void* d, const HANDLE handle)->uint32 {
@@ -1042,7 +1042,7 @@ int WndMain::start() {
     timerTest.init(watch, [](void* d, ExTimer* t, ExCbInfo*)->uint32 {
         dprint("timerTest: %d %" PRIu64 " %" PRIu64 "\n", (t->u32[0])++, (uint64)*t, t->tick());
         return Ex_Continue; }, (void*)0);
-    timerTest.start(1U, 1000U);
+    timerTest.start(1U, 100U);
     #endif
 
     toy_alpha = .2f;
