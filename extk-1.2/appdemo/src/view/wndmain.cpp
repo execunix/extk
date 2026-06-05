@@ -1040,7 +1040,7 @@ int WndMain::start() {
         dprint("timerTest: %s\n", ((WndMain*)w)->getName());
         return Ex_Continue; }, (void*)0, this); // test
     timerTest.init(watch, [](void* d, ExTimer* t, ExCbInfo*)->uint32 {
-        dprint("timerTest: %d %" PRIu64 " %" PRIu64 "\n", (t->u32[0])++, (uint64)*t, exWatchDisp->getTick());
+        dprint("timerTest: %d %" PRIu64 " %" PRIu64 "\n", (t->u32[0])++, (uint64)*t, t->tick());
         return Ex_Continue; }, (void*)0);
     timerTest.start(1U, 1000U);
     #endif

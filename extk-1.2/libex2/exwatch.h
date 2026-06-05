@@ -15,8 +15,6 @@
 
 class ExTimer;
 
-uint64 ExGetTickCount();
-
 // ExModalCtrl - tbd
 //
 struct ExModalCtrl {

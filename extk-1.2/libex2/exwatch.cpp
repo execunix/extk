@@ -14,11 +14,33 @@
 // #undef dprint1
 // #define dprint1(...) printf("ExWatch@" __VA_ARGS__)
 
+int32 exmsleep(const uint32 msec) {
+    #ifdef _POSIX_TIMERS
+    struct timespec req;
+    req.tv_sec = (long)msec / 1000L;
+    req.tv_nsec = ((long)msec % 1000L) * 1000000L;
+    return nanosleep(&req, nullptr);
+    #else
+    return usleep(msec * 1000UL);
+    #endif
+}
+
+int32 exusleep(const uint32 usec) {
+    #ifdef _POSIX_TIMERS
+    struct timespec req;
+    req.tv_sec = (long)usec / 1000000L;
+    req.tv_nsec = ((long)usec % 1000000L) * 1000L;
+    return nanosleep(&req, nullptr);
+    #else
+    return usleep(usec);
+    #endif
+}
+
 uint64 ExGetTickCount() {
     struct timespec ts;
     (void)clock_gettime(CLOCK_MONOTONIC, &ts);
     uint64 usec = (static_cast<uint64>(ts.tv_sec) * 1000000UL);
-    usec += (static_cast<uint64>(ts.tv_nsec) / 1000UL);
+    usec += (ts.tv_nsec / 1000L);
     return usec;
 }
 
@@ -124,7 +146,9 @@ int64 ExWatch::IomuxMap::invoke(int64 waittick) {
     const int64 tick0 = watch->tickCount; // get current tick
     watch->leave();
     //pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, nullptr);
+    #if 0
     (void)exusleep((uint32)(waittick % 1000L)); // sleep for usec
+    #endif
     const int32 cnt = epoll_wait(ep_fd, events, (int)maxevents, (int)(waittick / 1000L)); // sleep for msec
     //pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, nullptr);
     watch->enter();

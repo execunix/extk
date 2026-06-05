@@ -72,6 +72,7 @@ public:
     void start(uint32 initial, uint32 repeat = 0U); // notes: set fActived by insert to timerlist.
     bool enter_watch() const { return ((watch == nullptr) || watch->isSelf()) ? false : watch->enter(); }
     bool leave_watch(bool is_lock) const { return (is_lock == false) ? false : watch->leave(); }
+    uint64 tick() const { return watch->getTick(); }
     operator uint64 () const { return value; }
 protected:
     friend class ExWatch;

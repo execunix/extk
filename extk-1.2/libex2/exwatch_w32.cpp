@@ -9,9 +9,30 @@
 #ifdef WIN32
 
 //#define IOMUX_WAIT_NO_GWES
+#define USE_SLEEP_BUSYWAIT
+
+int32 exmsleep(const uint32 msec) {
+    Sleep((DWORD)msec);
+    return 0;
+}
+
+int32 exusleep(const uint32 usec) {
+    Sleep((DWORD)(usec / 1000U));
+    return 0;
+}
+
+#if defined(USE_SLEEP_BUSYWAIT)
+static int32 exbusywait(const uint64 usec_tick) {
+    uint64 tick;
+    do {
+        tick = ExGetTickCount();
+    } while (tick < usec_tick);
+    return 0;
+}
+#endif // USE_SLEEP_BUSYWAIT
 
 uint64 ExGetTickCount() {
-    #if 1
+#if defined(USE_SLEEP_BUSYWAIT)
     LARGE_INTEGER freq, tick;
     QueryPerformanceFrequency(&freq);
     QueryPerformanceCounter(&tick);
@@ -19,11 +40,11 @@ uint64 ExGetTickCount() {
     usec *= static_cast<double>(tick.QuadPart);
     usec /= static_cast<double>(freq.QuadPart);
     return static_cast<uint64>(usec);
-    #else
+#else // !USE_SLEEP_BUSYWAIT
     uint32 msec;
     msec = GetTickCount();
     return static_cast<uint64>(msec) * 1000UL;
-    #endif
+#endif // USE_SLEEP_BUSYWAIT
 }
 
 // Iomux
@@ -130,7 +151,11 @@ int64 ExWatch::IomuxMap::invoke(int64 waittick) {
 
     watch->leave();
     //Sleep(1);
+#if defined(USE_SLEEP_BUSYWAIT)
+    (void)exbusywait(tick0 + (waittick % 1000L)); // busy wait for usec
+#else // !USE_SLEEP_BUSYWAIT
     (void)exusleep((uint32)(waittick % 1000L)); // sleep for usec
+#endif // USE_SLEEP_BUSYWAIT
 #if defined(IOMUX_WAIT_NO_GWES)
     dwWaitRet = WaitForMultipleObjects(nCount, pHandles, FALSE, dwMilliseconds);
 #else

@@ -301,36 +301,9 @@ template <typename T> constexpr ssize_t ssizeof(const T&) { return static_cast<s
 //
 typedef void (*ExDestroyNotify)(void* data);
 
-inline int32 exmsleep(uint32 msec) {
-#ifdef WIN32
-    Sleep((DWORD)msec);
-    return 0;
-#else // __linux__
-    #ifdef _POSIX_TIMERS
-    struct timespec req;
-    req.tv_sec = (long)msec / 1000L;
-    req.tv_nsec = ((long)msec % 1000L) * 1000000L;
-    return nanosleep(&req, nullptr);
-    #else
-    return usleep(msec * 1000UL);
-    #endif
-#endif // __linux__
-}
+int32 exmsleep(const uint32 msec);
+int32 exusleep(const uint32 usec);
 
-inline int32 exusleep(uint32 usec) {
-#ifdef WIN32
-    Sleep((DWORD)(usec / 1000U));
-    return 0;
-#else // __linux__
-    #ifdef _POSIX_TIMERS
-    struct timespec req;
-    req.tv_sec = (long)usec / 1000000L;
-    req.tv_nsec = ((long)usec % 1000000L) * 1000L;
-    return nanosleep(&req, nullptr);
-    #else
-    return usleep(usec);
-    #endif
-#endif // __linux__
-}
+uint64 ExGetTickCount();
 
 #endif//__extypes_h__
