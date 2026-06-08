@@ -24,13 +24,6 @@ protected:
 private: // Modify the flags only in the ExWatch::TimerSet class.
     mutable uint32 fActived;    // is started and inserted ?
     uint32      _ra_1;          // reserved for align
-    class AutoLockWatch {
-        ExWatch* watch;
-        bool is_lock;
-    public:
-        ~AutoLockWatch();
-        explicit AutoLockWatch(ExWatch* watch);
-    };
 public:
     const void* object;         // Pass the object linked to the timer
     union {                     // Storing arbitrary user data : 32 bytes
@@ -70,8 +63,6 @@ public:
     }
     void stop(); // notes: clear fActived by remove from timerlist.
     void start(uint32 initial, uint32 repeat = 0U); // notes: set fActived by insert to timerlist.
-    bool enter_watch() const { return ((watch == nullptr) || watch->isSelf()) ? false : watch->enter(); }
-    bool leave_watch(bool is_lock) const { return (is_lock == false) ? false : watch->leave(); }
     uint64 tick() const { return watch->getTick(); }
     operator uint64 () const { return value; }
 protected:

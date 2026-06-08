@@ -33,15 +33,8 @@ public:
     bool init() noexcept;
     bool reset() const { return getEvent(&u64); };
     bool signal() const { return setEvent(1UL); };
-    //bool reset() const { return isValid() && getEvent(&u64); };
-    //bool signal() const { return isValid() && setEvent(1UL); };
     bool getEvent(uint64* u64 = nullptr) const;
     bool setEvent(uint64 u64 = 1UL) const;
-    #ifdef WIN32
-    bool isValid() const noexcept { return (hev != nullptr); }
-    #else // __linux__
-    bool isValid() const noexcept { return (efd != -1); }
-    #endif // __linux__
     bool isSignaled() const;
 public:
     friend class ExWatch;
@@ -72,9 +65,6 @@ public:
     bool islock() const noexcept {
         return (idThread == GetCurrentThreadId());
     }
-    bool isSafe() const noexcept {
-        return (idThread == 0U) || islock();
-    }
     operator HANDLE () const { return mutex; }
     #else // __linux__
     ~ExMutex() noexcept {
@@ -93,9 +83,6 @@ public:
     }
     bool islock() const noexcept {
         return (tid == pthread_self());
-    }
-    bool isSafe() const noexcept {
-        return (tid == 0U) || islock();
     }
     #endif // __linux__
 public:

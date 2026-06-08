@@ -12,9 +12,9 @@
 //
 bool ExWatch::TickCompare::operator () (const ExTimer* l, const ExTimer* r) const {
     exassert((l->watch != nullptr) && (l->watch == r->watch));
-    uint32 tick_base = l->watch->tickCount;
-    int32 ldiff = l->value - tick_base;
-    int32 rdiff = r->value - tick_base;
+    uint64 tick_base = l->watch->tickCount;
+    int64 ldiff = l->value - tick_base;
+    int64 rdiff = r->value - tick_base;
     return (ldiff < rdiff);
 }
 
@@ -127,23 +127,26 @@ bool ExInitTimer(DWORD duetime, DWORD period) {
 // ExTimer
 //
 ExTimer::~ExTimer() noexcept {
-    stop();
+    if (watch != nullptr) {
+        stop();
+    }
 }
 
 void ExTimer::stop() {
-    //AutoLockWatch lock(watch);
-    bool is_lock = enter_watch();
+    exassert(watch != nullptr);
+    //AutoLockAnoWatch lock(watch);
+    bool isGot = watch->getLock();
     if (fActived != 0U) {
         exassert(watch != nullptr);
         watch->timerset.remove(this);
     }
-    (void)leave_watch(is_lock);
+    (void)watch->putLock(isGot);
 }
 
 void ExTimer::start(uint32 initial, uint32 repeat) {
     exassert(watch != nullptr);
-    //AutoLockWatch lock(watch);
-    bool is_lock = enter_watch();
+    //AutoLockAnoWatch lock(watch);
+    bool isGot = watch->getLock();
     if (fActived != 0U) { // stop()
         watch->timerset.remove(this);
     }
@@ -154,19 +157,5 @@ void ExTimer::start(uint32 initial, uint32 repeat) {
     value = watch->tickCount + (initial * 1000UL);
     #endif
     watch->timerset.active(this);
-    (void)leave_watch(is_lock);
-}
-
-ExTimer::AutoLockWatch::~AutoLockWatch() {
-    if (is_lock) {
-        (void)watch->leave();
-    }
-}
-
-ExTimer::AutoLockWatch::AutoLockWatch(ExWatch* watch) : watch(watch) {
-    if ((watch != nullptr) && (!watch->isSelf())) {
-        is_lock = watch->enter();
-    } else {
-        is_lock = false;
-    }
+    (void)watch->putLock(isGot);
 }

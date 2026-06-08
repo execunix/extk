@@ -72,7 +72,7 @@ DWORD ExWatch::IomuxMap::setup() {
     return static_cast<DWORD>(ret);
 }
 
-const ExWatch::Iomux* ExWatch::IomuxMap::search(HANDLE mux_fd) const {
+const ExWatch::Iomux* ExWatch::IomuxMap::search(OsaFd mux_fd) const {
     const Iomux* iomux = nullptr;
     const_iterator i = find(mux_fd);
     if (i != end()) {
@@ -93,9 +93,9 @@ uint32 ExWatch::IomuxMap::probe(const ExCallback& callback, void* cbinfo) {
     return r;
 }
 
-bool ExWatch::IomuxMap::add(HANDLE mux_fd, const ExNotify& notify) {
+bool ExWatch::IomuxMap::add(OsaFd mux_fd, uint32 events, const ExNotify& notify) {
     int32 r = -1;
-    exassert(watch->mutex.isSafe());
+    bool isGot = watch->getLock();
     if (size() < MAXIMUM_WAIT_OBJECTS) {
         Iomux* iomux = nullptr;
         std::pair<iterator, bool> pr;
@@ -111,12 +111,13 @@ bool ExWatch::IomuxMap::add(HANDLE mux_fd, const ExNotify& notify) {
     } else {
         dprint1("IomuxMap::add: size:%zu\n", size());
     }
+    (void)watch->putLock(isGot);
     return (r == 0);
 }
 
-bool ExWatch::IomuxMap::mod(HANDLE mux_fd, const ExNotify& notify) {
+bool ExWatch::IomuxMap::mod(OsaFd mux_fd, uint32 events, const ExNotify& notify) {
     int32 r = -1;
-    exassert(watch->mutex.isSafe());
+    bool isGot = watch->getLock();
     iterator i = find(mux_fd);
     if (i != end()) {
         Iomux* iomux = &i->second;
@@ -126,12 +127,13 @@ bool ExWatch::IomuxMap::mod(HANDLE mux_fd, const ExNotify& notify) {
     } else {
         dprint1("IomuxMap::mod: invalid mux_fd:%zu\n", (size_t)mux_fd);
     }
+    (void)watch->putLock(isGot);
     return (r == 0);
 }
 
-bool ExWatch::IomuxMap::del(HANDLE mux_fd) {
+bool ExWatch::IomuxMap::del(OsaFd mux_fd) {
     int32 r = -1;
-    exassert(watch->mutex.isSafe());
+    bool isGot = watch->getLock();
     iterator i = find(mux_fd);
     if (i != end()) {
         Iomux* iomux = &i->second;
@@ -142,6 +144,7 @@ bool ExWatch::IomuxMap::del(HANDLE mux_fd) {
     } else {
         dprint1("IomuxMap::del: invalid mux_fd:%zu\n", (size_t)mux_fd);
     }
+    (void)watch->putLock(isGot);
     return (r == 0);
 }
 
@@ -192,9 +195,12 @@ int64 ExWatch::IomuxMap::invoke(int64 waittick) {
                 (WaitForSingleObject(iomux->mux_fd, 0U) != WAIT_OBJECT_0)) {
                 continue; // not signaled
             }
+            epoll_event ev;
+            ev.events = EPOLLIN;
+            ev.data = iomux->mux_fd;
             // proc iomux handler
             exassert(iomux->notify.func);
-            uint32 r = iomux->notify(iomux->mux_fd);
+            uint32 r = iomux->notify(&ev);
             r |= watch->getHalt();
             if (ExIsHalt(r)) {
                 (void)watch->setHalt(r);
@@ -287,7 +293,8 @@ bool ExWatch::isSelf() const {
     return ((idThread == 0U) || (idThread == GetCurrentThreadId()));
 }
 
-uint32 ExWatch::onEvent(HANDLE hev) {
+uint32 ExWatch::onEvent(const epoll_event* ev) {
+    HANDLE hev = (HANDLE)ev->data;
     dprint0("%s: hev:%p\n", __func__, hev);
     exassert(evWake == hev);
     #if 1 // for manual reset
