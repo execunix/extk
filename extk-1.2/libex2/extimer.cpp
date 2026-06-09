@@ -42,7 +42,7 @@ void ExWatch::TimerSet::active(ExTimer* timer) {
     timer->fActived = 1U;
     iterator i = insert(timer);
     if (i == begin()) {
-        timer->watch->wakeup();
+        (void)timer->watch->wakeup();
     }
 }
 
@@ -135,18 +135,18 @@ ExTimer::~ExTimer() noexcept {
 void ExTimer::stop() {
     exassert(watch != nullptr);
     //AutoLockAnoWatch lock(watch);
-    bool isGot = watch->getLock();
+    (void)watch->enter();
     if (fActived != 0U) {
         exassert(watch != nullptr);
         watch->timerset.remove(this);
     }
-    (void)watch->putLock(isGot);
+    (void)watch->leave();
 }
 
 void ExTimer::start(uint32 initial, uint32 repeat) {
     exassert(watch != nullptr);
     //AutoLockAnoWatch lock(watch);
-    bool isGot = watch->getLock();
+    (void)watch->enter();
     if (fActived != 0U) { // stop()
         watch->timerset.remove(this);
     }
@@ -157,5 +157,5 @@ void ExTimer::start(uint32 initial, uint32 repeat) {
     value = watch->tickCount + (initial * 1000UL);
     #endif
     watch->timerset.active(this);
-    (void)watch->putLock(isGot);
+    (void)watch->leave();
 }

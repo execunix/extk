@@ -95,7 +95,7 @@ uint32 ExWatch::IomuxMap::probe(const ExCallback& callback, void* cbinfo) {
 
 bool ExWatch::IomuxMap::add(OsaFd mux_fd, uint32 events, const ExNotify& notify) {
     int32 r = -1;
-    bool isGot = watch->getLock();
+    (void)watch->enter();
     if (size() < MAXIMUM_WAIT_OBJECTS) {
         Iomux* iomux = nullptr;
         std::pair<iterator, bool> pr;
@@ -111,13 +111,13 @@ bool ExWatch::IomuxMap::add(OsaFd mux_fd, uint32 events, const ExNotify& notify)
     } else {
         dprint1("IomuxMap::add: size:%zu\n", size());
     }
-    (void)watch->putLock(isGot);
+    (void)watch->leave();
     return (r == 0);
 }
 
 bool ExWatch::IomuxMap::mod(OsaFd mux_fd, uint32 events, const ExNotify& notify) {
     int32 r = -1;
-    bool isGot = watch->getLock();
+    (void)watch->enter();
     iterator i = find(mux_fd);
     if (i != end()) {
         Iomux* iomux = &i->second;
@@ -127,13 +127,13 @@ bool ExWatch::IomuxMap::mod(OsaFd mux_fd, uint32 events, const ExNotify& notify)
     } else {
         dprint1("IomuxMap::mod: invalid mux_fd:%zu\n", (size_t)mux_fd);
     }
-    (void)watch->putLock(isGot);
+    (void)watch->leave();
     return (r == 0);
 }
 
 bool ExWatch::IomuxMap::del(OsaFd mux_fd) {
     int32 r = -1;
-    bool isGot = watch->getLock();
+    (void)watch->enter();
     iterator i = find(mux_fd);
     if (i != end()) {
         Iomux* iomux = &i->second;
@@ -144,7 +144,7 @@ bool ExWatch::IomuxMap::del(OsaFd mux_fd) {
     } else {
         dprint1("IomuxMap::del: invalid mux_fd:%zu\n", (size_t)mux_fd);
     }
-    (void)watch->putLock(isGot);
+    (void)watch->leave();
     return (r == 0);
 }
 
@@ -287,10 +287,6 @@ bool ExWatch::init(size_t max_iomux, size_t stacksize) {
     exassert(hThread != nullptr);
 
     return (hThread != nullptr);
-}
-
-bool ExWatch::isSelf() const {
-    return ((idThread == 0U) || (idThread == GetCurrentThreadId()));
 }
 
 uint32 ExWatch::onEvent(const epoll_event* ev) {

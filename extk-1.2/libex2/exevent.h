@@ -52,14 +52,14 @@ protected:
     mutable pthread_mutex_t mutex;
     mutable pthread_cond_t  cond;
     mutable pthread_t       owner;
-    mutable uint32          recurs;
     #endif // __linux__
+    mutable uint32          recurs;
 public:
     #ifdef WIN32
     ~ExMutex() noexcept {
         CloseHandle(mutex);
     }
-    explicit ExMutex() noexcept : mutex(nullptr), owner(0U) {
+    explicit ExMutex() noexcept : mutex(nullptr), owner(0U), recurs(0U) {
         mutex = CreateMutex(nullptr, FALSE, nullptr);
     }
     #endif // WIN32
