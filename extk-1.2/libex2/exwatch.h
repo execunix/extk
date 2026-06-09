@@ -17,7 +17,9 @@
 #include <map>
 #include <set>
 
+#ifdef __linux__
 //#define IOMUX_PPOLL
+#endif // __linux__
 
 // OsaFd: OS Adaptation File Descriptor
 #ifdef WIN32
@@ -227,10 +229,7 @@ public:
     bool init(size_t max_iomux = 256UL, size_t stacksize = 1048576UL);
     bool leave() const { return mutex.unlock(); }
     bool enter() const { return mutex.lock(); }
-    bool isSelf() const;
-    bool wakeup() const { return isSelf() ? false : evWake.signal(); }
-    bool getLock() const { return isSelf() ? false : enter(); } // enter from another thread
-    bool putLock(bool isGot) const { return isGot && leave(); } // leave from another thread
+    bool wakeup() const { return evWake.signal(); }
     uint32 setHalt(uint32 r = Ex_Halt);
     uint32 getHalt() const { return halt; }
     uint64 getTick() const { return tickCount; }
@@ -281,13 +280,12 @@ public:
 
 class AutoLockAnoWatch {
     ExWatch* watch;
-    bool isGot;
 public:
     ~AutoLockAnoWatch() {
-        watch->putLock(isGot);
+        (void)watch->leave();
     }
     explicit AutoLockAnoWatch(ExWatch* watch) : watch(watch) {
-        isGot = watch->getLock();
+        (void)watch->enter();
     }
 };
 

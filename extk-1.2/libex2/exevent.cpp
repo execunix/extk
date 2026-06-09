@@ -98,17 +98,34 @@ bool ExMutex::isowner() const noexcept {
 }
 
 bool ExMutex::unlock() const noexcept {
-    owner = 0U;
+    DWORD self = GetCurrentThreadId();
+    if (owner != self) {
+        dprint1("ExMutex::unlock() invalid owner:%zu recurs:%u\n",
+                (size_t)owner, recurs);
+        exassert2(owner != self);
+        return false;
+    }
+    recurs--;
+    if (recurs == 0U) {
+        owner = 0U;
+    }
     return (FALSE != ReleaseMutex(mutex));
 }
 
 bool ExMutex::lock() const noexcept {
+    DWORD self = GetCurrentThreadId();
+    if (owner == self) { // already locked
+        WaitForSingleObject(mutex, INFINITE); // sync kernel recurs
+        recurs++;
+        return true;
+    }
     #ifdef DEBUG
     DWORD dwWaitRet;
     for (int32 i = 0; i < 1000; i++) {
         dwWaitRet = WaitForSingleObject(mutex, 1U);
         if (WAIT_OBJECT_0 == dwWaitRet) {
-            owner = GetCurrentThreadId();
+            owner = self;
+            recurs++;
             break;
         }
         if (dwWaitRet != WAIT_TIMEOUT) {
@@ -120,13 +137,13 @@ bool ExMutex::lock() const noexcept {
     }
     #else
     if (WAIT_OBJECT_0 == WaitForSingleObject(mutex, INFINITE)) {
-        owner = GetCurrentThreadId();
+        owner = self;
+        recurs++;
         return true;
     }
     #endif
-    dprint1("ExMutex::lock() %s TID:%p err#%d:%s\n",
-            "detect deadlock", GetCurrentThreadId(), dwWaitRet,
-            dwWaitRet == WAIT_TIMEOUT ? "WAIT_TIMEOUT" : "WAIT_FAILED");
+    dprint1("ExMutex::lock() %s TID:%p err#%d:%s\n", "detect deadlock", self,
+            dwWaitRet, dwWaitRet == WAIT_TIMEOUT ? "WAIT_TIMEOUT" : "WAIT_FAILED");
     return false;
 }
 #endif // WIN32
@@ -138,8 +155,8 @@ bool ExMutex::isowner() const noexcept {
 bool ExMutex::unlock() const noexcept {
     pthread_mutex_lock(&mutex);
     if ((recurs == 0U) || (0 == pthread_equal(owner, pthread_self()))) {
-        dprint1("ExMutex::unlock() invalid owner:%zu recurs:%zu\n",
-                (size_t)owner, (size_t)recurs);
+        dprint1("ExMutex::unlock() invalid owner:%zu recurs:%u\n",
+                (size_t)owner, recurs);
     } else {
         recurs--;
         if (recurs == 0U) {

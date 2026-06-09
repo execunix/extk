@@ -6,6 +6,7 @@
 #include "osal/osal.h"
 #include "wndtest.h"
 #include "message.h"
+#include "watch.h"
 #include "env.h"
 #include "res.h"
 
@@ -254,6 +255,11 @@ int WndTest::start() {
     initBtn(this, &btns0[2], "btns0-2");
     initBtn(this, &btns0[3], "btns0-3");
     initBtn(this, &btns0[4], "btns0-4");
+
+    timer.init(&gWatchMap, [](void* d, ExWidget* w, ExCbInfo*)->uint32 {
+        dprint("wndtest: %s\n", w->getName());
+        return Ex_Continue; }, (void*)0, this); // test
+    timer.start(1U, 1000U);
 
     #ifdef WIN32
     //showWindow(0, WS_POPUP | WS_VISIBLE);
