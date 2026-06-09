@@ -61,6 +61,8 @@ inline void exassert2(bool expr, const char* msg = "THROW") {
         dprint1("Assertion failed: %s\n", msg);
         #ifdef __linux__
         __builtin_trap();
+        #else // WIN32
+        DebugBreak();
         #endif // __linux__
         throw msg;
     }

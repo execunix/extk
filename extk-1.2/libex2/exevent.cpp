@@ -45,7 +45,7 @@ bool ExEvent::setEvent(uint64 u64) const {
 }
 
 bool ExEvent::isSignaled() const {
-    return (WaitForSingleObject(hev, 0U) != WAIT_TIMEOUT);
+    return (WAIT_OBJECT_0 == WaitForSingleObject(hev, 0U));
 }
 #endif // WIN32
 
@@ -93,21 +93,91 @@ bool ExEvent::isSignaled() const {
 #endif // __linux__
 
 #ifdef WIN32
+bool ExMutex::isowner() const noexcept {
+    return (owner == GetCurrentThreadId());
+}
+
+bool ExMutex::unlock() const noexcept {
+    owner = 0U;
+    return (FALSE != ReleaseMutex(mutex));
+}
+
 bool ExMutex::lock() const noexcept {
-    idThread = GetCurrentThreadId();
     #ifdef DEBUG
     DWORD dwWaitRet;
-    for (int32 i = 0; i < 100; i++) {
-        dwWaitRet = WaitForSingleObject(mutex, 3000U);
+    for (int32 i = 0; i < 1000; i++) {
+        dwWaitRet = WaitForSingleObject(mutex, 1U);
         if (WAIT_OBJECT_0 == dwWaitRet) {
+            owner = GetCurrentThreadId();
             break;
         }
-        exerror("ExMutex::lock() TID:%p %s %d\n", GetCurrentThreadId(),
-                dwWaitRet == WAIT_TIMEOUT ? "WAIT_TIMEOUT" : "WAIT_FAILED", i);
+        if (dwWaitRet != WAIT_TIMEOUT) {
+            dprint1("ExMutex::lock() err#%d:%s\n", dwWaitRet, "WAIT_FAILED");
+        }
     }
-    return (WAIT_OBJECT_0 == dwWaitRet);
+    if (WAIT_OBJECT_0 == dwWaitRet) {
+        return true;
+    }
     #else
-    return (WAIT_OBJECT_0 == WaitForSingleObject(mutex, INFINITE));
+    if (WAIT_OBJECT_0 == WaitForSingleObject(mutex, INFINITE)) {
+        owner = GetCurrentThreadId();
+        return true;
+    }
     #endif
+    dprint1("ExMutex::lock() %s TID:%p err#%d:%s\n",
+            "detect deadlock", GetCurrentThreadId(), dwWaitRet,
+            dwWaitRet == WAIT_TIMEOUT ? "WAIT_TIMEOUT" : "WAIT_FAILED");
+    return false;
 }
 #endif // WIN32
+#ifdef __linux__
+bool ExMutex::isowner() const noexcept {
+    return ((recurs > 0U) && (0 != pthread_equal(owner, pthread_self())));
+}
+
+bool ExMutex::unlock() const noexcept {
+    pthread_mutex_lock(&mutex);
+    if ((recurs == 0U) || (0 == pthread_equal(owner, pthread_self()))) {
+        dprint1("ExMutex::unlock() invalid owner:%zu recurs:%zu\n",
+                (size_t)owner, (size_t)recurs);
+    } else {
+        recurs--;
+        if (recurs == 0U) {
+            owner = (pthread_t)0U;
+            pthread_cond_signal(&cond); // wakeup other thread
+        }
+    }
+    return (0 == pthread_mutex_unlock(&mutex));
+}
+
+bool ExMutex::lock() const noexcept {
+    int32 r;
+    pthread_t self = pthread_self();
+    #ifdef DEBUG
+    for (int32 i = 0; i < 1000; i++) {
+        r = pthread_mutex_trylock(&mutex);
+        if (r == 0) {
+            break;
+        }
+        (void)usleep(1000U);
+    }
+    if (r != 0) {
+        dprint1("ExMutex::lock() %s TID:%p err#%d:%s\n",
+                "detect deadlock", self, r, exstrerr());
+    }
+    #else
+    r = pthread_mutex_lock(&mutex);
+    #endif
+    if ((recurs > 0U) && pthread_equal(owner, self)) {
+        recurs++;
+    } else { // owner is other thread
+        while (recurs > 0U) { // wait unlock
+            pthread_cond_wait(&cond, &mutex);
+        }
+        owner = self;
+        recurs = 1U;
+    }
+    pthread_mutex_unlock(&mutex);
+    return (r == 0);
+}
+#endif // __linux__

@@ -255,12 +255,12 @@ bool ExWatch::fini() {
     idThread = 0U;
     if (hThread != nullptr) {
         setHalt(Ex_Halt);
-        leave();
+        //(void)leave();
         if (WaitForSingleObject(hThread, INFINITE) == WAIT_FAILED) {
             exerror("%s - WaitForSingleObject fail.\n", __func__);
             r -= 1;
         }
-        enter();
+        //(void)enter();
         if (CloseHandle(hThread) == 0) {
             exerror("%s - CloseHandle fail.\n", __func__);
             r -= 1;

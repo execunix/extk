@@ -15,7 +15,8 @@ class ExEvent {
 protected:
     #ifdef WIN32
     HANDLE          hev;    // handle event
-    #else // __linux__
+    #endif // WIN32
+    #ifdef __linux__
     int32           efd;    // event fd
     #endif // __linux__
     mutable uint64  u64;
@@ -24,7 +25,8 @@ public:
     #ifdef WIN32
     explicit ExEvent() noexcept : hev(nullptr), u64(0UL) {}
     operator HANDLE () const { return hev; }
-    #else // __linux__
+    #endif // WIN32
+    #ifdef __linux__
     explicit ExEvent() noexcept : efd(-1), u64(0UL) {}
     operator int32 () const { return efd; }
     #endif // __linux__
@@ -44,47 +46,36 @@ class ExMutex {
 protected:
     #ifdef WIN32
     mutable HANDLE          mutex;
-    mutable DWORD           idThread;
-    #else // __linux__
+    mutable DWORD           owner;
+    #endif // WIN32
+    #ifdef __linux__
     mutable pthread_mutex_t mutex;
-    mutable pthread_t       tid;
+    mutable pthread_cond_t  cond;
+    mutable pthread_t       owner;
+    mutable uint32          recurs;
     #endif // __linux__
 public:
     #ifdef WIN32
     ~ExMutex() noexcept {
         CloseHandle(mutex);
     }
-    explicit ExMutex() noexcept : mutex(nullptr), idThread(0U) {
+    explicit ExMutex() noexcept : mutex(nullptr), owner(0U) {
         mutex = CreateMutex(nullptr, FALSE, nullptr);
     }
-    bool lock() const noexcept;
-    bool unlock() const noexcept {
-        idThread = 0U;
-        return (FALSE != ReleaseMutex(mutex));
-    }
-    bool islock() const noexcept {
-        return (idThread == GetCurrentThreadId());
-    }
-    operator HANDLE () const { return mutex; }
-    #else // __linux__
+    #endif // WIN32
+    #ifdef __linux__
     ~ExMutex() noexcept {
+        pthread_cond_destroy(&cond);
         pthread_mutex_destroy(&mutex);
     }
-    explicit ExMutex() noexcept : mutex(), tid(0U) {
+    explicit ExMutex() noexcept : mutex(), cond(), owner(0U), recurs(0U) {
         pthread_mutex_init(&mutex, nullptr);
-    }
-    bool lock() const noexcept {
-        tid = pthread_self();
-        return (0 == pthread_mutex_lock(&mutex));
-    }
-    bool unlock() const noexcept {
-        tid = 0U;
-        return (0 == pthread_mutex_unlock(&mutex));
-    }
-    bool islock() const noexcept {
-        return (tid == pthread_self());
+        pthread_cond_init(&cond, nullptr);
     }
     #endif // __linux__
+    bool isowner() const noexcept;
+    bool unlock() const noexcept;
+    bool lock() const noexcept;
 public:
     friend class ExWatch;
 };

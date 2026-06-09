@@ -196,7 +196,7 @@ int64 ExWatch::IomuxMap::invoke(int64 waittick) {
     #if defined(IOMUX_PPOLL)
     nfds_t nfds = setup();
     #endif // IOMUX_PPOLL
-    watch->leave();
+    (void)watch->leave();
     //pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, nullptr);
     #if defined(IOMUX_PPOLL) || __GLIBC_PREREQ(2, 35)
     timespec ts;
@@ -214,7 +214,7 @@ int64 ExWatch::IomuxMap::invoke(int64 waittick) {
     #endif // __GLIBC_PREREQ(2, 35)
     #endif // IOMUX_PPOLL
     //pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, nullptr);
-    watch->enter();
+    (void)watch->enter();
     #if !defined(IOMUX_PPOLL)
     for (int32 i = 0; i < cnt; i++) {
         const Iomux* iomux = (const Iomux*)evrepo[i].data.ptr;
@@ -306,9 +306,9 @@ bool ExWatch::fini() {
         r = pthread_cancel(tid);
         exassert(r == 0);
         #endif
-        leave();
+        //(void)leave();
         r = pthread_join(tid, nullptr);
-        enter();
+        //(void)enter();
         exassert(r == 0);
         tid = 0U;
     }
@@ -386,7 +386,7 @@ uint32 ExWatch::proc() {
 
 uint32 ExWatch::process(uint32 hook) {
     int64 waittick = 0L;
-    exassert(isEntered());
+    exassert(mutex.isowner());
     while (!ExIsHalt(getHalt())) {
         // seq-2 : dispatch event
         // n/a
@@ -440,22 +440,22 @@ void* ExWatch::dispatch(ExModalCtrl* const ctrl) {
             (void)setHalt(Ex_Halt); // stop exmsg loop
             break;
         }
-        leave();
+        //leave();
         #ifdef __linux__
         (void)DefWndProc(msg); // dispatch message to window procedure
         #else // WIN32
         TranslateMessage(&msg);
         DispatchMessage(&msg);
         #endif
-        enter();
+        //enter();
     } while (!ExIsHalt(ctrl->flags | getHalt()));
     return ctrl->result;
 }
 
 void* ExWatch::modalBlock(ExModalCtrl* const ctrl) {
     int64 waittick = 0L;
-    exassert(isEntered());
     mclist.push_front(ctrl);
+    exassert(mutex.isowner());
     exassert(ctrl->flags == Ex_Continue);
     while (!ExIsHalt(ctrl->flags | getHalt())) {
         // seq-2 : dispatch event
@@ -498,8 +498,8 @@ void* ExWatch::modalBlock(ExModalCtrl* const ctrl) {
 }
 
 void ExWatch::modalUnblock(ExModalCtrl* const ctrl, void* result) {
-    exassert(isEntered());
     auto front = mclist.front();
+    exassert(mutex.isowner());
     exassert(front == ctrl);
     front->flags |= Ex_Halt;
     front->result = result;

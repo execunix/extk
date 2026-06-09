@@ -132,7 +132,7 @@ ExMsg* ExEmitPtrMsg(int32 message, int32 pt_x, int32 pt_y)
         emref->pt.x = pt_x;
         emref->pt.y = pt_y;
         emref->lParam = MAKELPARAM(pt_x, pt_y);
-        emref->time = exWatchDisp->getTick() / 1000U; // msec
+        emref->time = exWatchDisp->getTickMs();
     }
     (void)exWatchDisp->wakeup();
     return emref;
