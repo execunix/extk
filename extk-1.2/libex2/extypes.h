@@ -301,12 +301,9 @@ template <typename T> constexpr ssize_t ssizeof(const T&) { return static_cast<s
 //
 typedef void (*ExDestroyNotify)(void* data);
 
-inline void exsleep(uint32 msec) {
-#ifdef WIN32
-    Sleep(msec);
-#else // __linux__
-    (void)usleep(msec * 1000UL);
-#endif // __linux__
-}
+int32 exmsleep(const uint32 msec);
+int32 exusleep(const uint32 usec);
+
+uint64 ExGetTickCount();
 
 #endif//__extypes_h__

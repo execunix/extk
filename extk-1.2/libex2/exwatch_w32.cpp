@@ -9,8 +9,30 @@
 #ifdef WIN32
 
 //#define IOMUX_WAIT_NO_GWES
+#define USE_SLEEP_BUSYWAIT
 
-uint64 ExGetMonoClock() {
+int32 exmsleep(const uint32 msec) {
+    Sleep((DWORD)msec);
+    return 0;
+}
+
+int32 exusleep(const uint32 usec) {
+    Sleep((DWORD)(usec / 1000U));
+    return 0;
+}
+
+#if defined(USE_SLEEP_BUSYWAIT)
+static int32 exbusywait(const uint64 usec_tick) {
+    uint64 tick;
+    do {
+        tick = ExGetTickCount();
+    } while (tick < usec_tick);
+    return 0;
+}
+#endif // USE_SLEEP_BUSYWAIT
+
+uint64 ExGetTickCount() {
+#if defined(USE_SLEEP_BUSYWAIT)
     LARGE_INTEGER freq, tick;
     QueryPerformanceFrequency(&freq);
     QueryPerformanceCounter(&tick);
@@ -18,12 +40,11 @@ uint64 ExGetMonoClock() {
     usec *= static_cast<double>(tick.QuadPart);
     usec /= static_cast<double>(freq.QuadPart);
     return static_cast<uint64>(usec);
-}
-
-uint32 ExGetTickCount() {
+#else // !USE_SLEEP_BUSYWAIT
     uint32 msec;
     msec = GetTickCount();
-    return msec;
+    return static_cast<uint64>(msec) * 1000UL;
+#endif // USE_SLEEP_BUSYWAIT
 }
 
 // Iomux
@@ -39,9 +60,9 @@ void ExWatch::IomuxMap::init(size_t max) {
 
 DWORD ExWatch::IomuxMap::setup() {
     size_t ret = size();
-    if (dirty) {
+    if (dirty > 0) {
         dirty = 0;
-        int32 cnt = 0U;
+        int32 cnt = 0;
         for (const_iterator i = begin(); i != end(); ++i) {
             const Iomux& iomux = i->second;
             handles[cnt++] = iomux.mux_fd;
@@ -51,7 +72,7 @@ DWORD ExWatch::IomuxMap::setup() {
     return static_cast<DWORD>(ret);
 }
 
-const ExWatch::Iomux* ExWatch::IomuxMap::search(HANDLE mux_fd) const {
+const ExWatch::Iomux* ExWatch::IomuxMap::search(OsaFd mux_fd) const {
     const Iomux* iomux = nullptr;
     const_iterator i = find(mux_fd);
     if (i != end()) {
@@ -72,8 +93,9 @@ uint32 ExWatch::IomuxMap::probe(const ExCallback& callback, void* cbinfo) {
     return r;
 }
 
-bool ExWatch::IomuxMap::add(HANDLE mux_fd, const ExNotify& notify) {
+bool ExWatch::IomuxMap::add(OsaFd mux_fd, uint32 events, const ExNotify& notify) {
     int32 r = -1;
+    bool isGot = watch->getLock();
     if (size() < MAXIMUM_WAIT_OBJECTS) {
         Iomux* iomux = nullptr;
         std::pair<iterator, bool> pr;
@@ -89,11 +111,13 @@ bool ExWatch::IomuxMap::add(HANDLE mux_fd, const ExNotify& notify) {
     } else {
         dprint1("IomuxMap::add: size:%zu\n", size());
     }
+    (void)watch->putLock(isGot);
     return (r == 0);
 }
 
-bool ExWatch::IomuxMap::mod(HANDLE mux_fd, const ExNotify& notify) {
+bool ExWatch::IomuxMap::mod(OsaFd mux_fd, uint32 events, const ExNotify& notify) {
     int32 r = -1;
+    bool isGot = watch->getLock();
     iterator i = find(mux_fd);
     if (i != end()) {
         Iomux* iomux = &i->second;
@@ -103,11 +127,13 @@ bool ExWatch::IomuxMap::mod(HANDLE mux_fd, const ExNotify& notify) {
     } else {
         dprint1("IomuxMap::mod: invalid mux_fd:%zu\n", (size_t)mux_fd);
     }
+    (void)watch->putLock(isGot);
     return (r == 0);
 }
 
-bool ExWatch::IomuxMap::del(HANDLE mux_fd) {
+bool ExWatch::IomuxMap::del(OsaFd mux_fd) {
     int32 r = -1;
+    bool isGot = watch->getLock();
     iterator i = find(mux_fd);
     if (i != end()) {
         Iomux* iomux = &i->second;
@@ -118,18 +144,24 @@ bool ExWatch::IomuxMap::del(HANDLE mux_fd) {
     } else {
         dprint1("IomuxMap::del: invalid mux_fd:%zu\n", (size_t)mux_fd);
     }
+    (void)watch->putLock(isGot);
     return (r == 0);
 }
 
-int32 ExWatch::IomuxMap::invoke(int32 waittick) {
+int64 ExWatch::IomuxMap::invoke(int64 waittick) {
     DWORD nCount = setup();
     LPHANDLE pHandles = handles;
-    DWORD dwMilliseconds = (DWORD)waittick;//INFINITE;
+    DWORD dwMilliseconds = (DWORD)(waittick / 1000L);//INFINITE;
     DWORD dwWaitRet; // signaled number
-    const uint32 tick0 = watch->tickCount; // get current tick
+    const uint64 tick0 = watch->tickCount; // get current tick
 
     watch->leave();
     //Sleep(1);
+#if defined(USE_SLEEP_BUSYWAIT)
+    (void)exbusywait(tick0 + (waittick % 1000L)); // busy wait for usec
+#else // !USE_SLEEP_BUSYWAIT
+    (void)exusleep((uint32)(waittick % 1000L)); // sleep for usec
+#endif // USE_SLEEP_BUSYWAIT
 #if defined(IOMUX_WAIT_NO_GWES)
     dwWaitRet = WaitForMultipleObjects(nCount, pHandles, FALSE, dwMilliseconds);
 #else
@@ -163,9 +195,12 @@ int32 ExWatch::IomuxMap::invoke(int32 waittick) {
                 (WaitForSingleObject(iomux->mux_fd, 0U) != WAIT_OBJECT_0)) {
                 continue; // not signaled
             }
+            epoll_event ev;
+            ev.events = EPOLLIN;
+            ev.data = iomux->mux_fd;
             // proc iomux handler
             exassert(iomux->notify.func);
-            uint32 r = iomux->notify(iomux->mux_fd);
+            uint32 r = iomux->notify(&ev);
             r |= watch->getHalt();
             if (ExIsHalt(r)) {
                 (void)watch->setHalt(r);
@@ -181,13 +216,13 @@ int32 ExWatch::IomuxMap::invoke(int32 waittick) {
     } else {
         exerror("IomuxMap: dwWaitRet:%p GetLastError:0x%p\n", dwWaitRet, GetLastError());
     }
-    watch->tickCount = GetTickCount(); // update tick
+    watch->tickCount = ExGetTickCount(); // update tick
     return (watch->tickCount - tick0); // return elapsed tick
 }
 
 // Watch thread
 //
-uint32 ExWatch::tickAppLaunch = ExGetTickCount();
+uint64 ExWatch::tickAppLaunch = ExGetTickCount();
 
 DWORD ExWatch::keyTlsSpecific = TLS_OUT_OF_INDEXES;
 
@@ -220,12 +255,12 @@ bool ExWatch::fini() {
     idThread = 0U;
     if (hThread != nullptr) {
         setHalt(Ex_Halt);
-        leave();
+        //(void)leave();
         if (WaitForSingleObject(hThread, INFINITE) == WAIT_FAILED) {
             exerror("%s - WaitForSingleObject fail.\n", __func__);
             r -= 1;
         }
-        enter();
+        //(void)enter();
         if (CloseHandle(hThread) == 0) {
             exerror("%s - CloseHandle fail.\n", __func__);
             r -= 1;
@@ -245,7 +280,7 @@ bool ExWatch::init(size_t max_iomux, size_t stacksize) {
     evWake.init();
     ioAdd(this, &ExWatch::onEvent, evWake);
 
-    tickCount = GetTickCount(); // update tick
+    tickCount = ExGetTickCount(); // update tick
 
     hThread = CreateThread(nullptr, stacksize, start, this, 0, &idThread);
     dprint1("CreateThread: hThread=%p idThread=%p\n", hThread, idThread);
@@ -258,7 +293,8 @@ bool ExWatch::isSelf() const {
     return ((idThread == 0U) || (idThread == GetCurrentThreadId()));
 }
 
-uint32 ExWatch::onEvent(HANDLE hev) {
+uint32 ExWatch::onEvent(const epoll_event* ev) {
+    HANDLE hev = (HANDLE)ev->data;
     dprint0("%s: hev:%p\n", __func__, hev);
     exassert(evWake == hev);
     #if 1 // for manual reset

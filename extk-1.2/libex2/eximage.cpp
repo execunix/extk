@@ -7,7 +7,6 @@
 #include <cairo.h>
 #ifdef __linux__
 #include <strings.h>
-#include <fcntl.h>
 #endif
 
 ExImage::~ExImage()

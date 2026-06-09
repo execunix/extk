@@ -64,7 +64,7 @@ public:
     static uint32       double_click_distance;      /* Maximum distance between clicks in pixels */
     static uint32       double_click_count;
     static uint32       button_react_delay;
-    static uint32       button_click_time[2];       /* The last 2 button click times. */
+    static uint64       button_click_time[2];       /* The last 2 button click times. */
     static uint32       double_click_time;          /* Maximum time between clicks in msecs */
     static uint32       button_number[2];           /* The last 2 buttons to be pressed. */
     static ExWidget*    button_widget[2];           /* The last 2 widgets to receive button presses. */
@@ -86,7 +86,7 @@ public:
     static bool initX11(ExWatch* watch);
     static bool finiX11(ExWatch* watch);
 public:
-    static uint32 btnClickTime() { return button_click_time[1]; }
+    static uint64 btnClickTime() { return button_click_time[1]; }
     static uint32& butRepeatCnt() { return but_timer.u32[0]; };
     static uint32& keyRepeatCnt() { return key_timer.u32[0]; };
 public:

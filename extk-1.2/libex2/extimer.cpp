@@ -12,9 +12,9 @@
 //
 bool ExWatch::TickCompare::operator () (const ExTimer* l, const ExTimer* r) const {
     exassert((l->watch != nullptr) && (l->watch == r->watch));
-    uint32 tick_base = l->watch->tickCount;
-    int32 ldiff = l->value - tick_base;
-    int32 rdiff = r->value - tick_base;
+    uint64 tick_base = l->watch->tickCount;
+    int64 ldiff = l->value - tick_base;
+    int64 rdiff = r->value - tick_base;
     return (ldiff < rdiff);
 }
 
@@ -46,14 +46,14 @@ void ExWatch::TimerSet::active(ExTimer* timer) {
     }
 }
 
-int32 ExWatch::TimerSet::invoke(uint32 tick_count) {
-    int32 waittick;
+int64 ExWatch::TimerSet::invoke(uint64 tick_count) {
+    int64 waittick;
     while (!empty()) {
         ExTimer* timer = *begin();
         waittick = timer->value - tick_count;
-        if (waittick > 0) {
-            if (waittick > 60000) {
-                waittick = 60000;
+        if (waittick > 0L) {
+            if (waittick > 60000000L) {
+                waittick = 60000000L;
             }
             return waittick; // wait until next tick
         }
@@ -66,12 +66,12 @@ int32 ExWatch::TimerSet::invoke(uint32 tick_count) {
         r |= timer->watch->getHalt();
         if (ExIsHalt(r)) {
             timer->watch->setHalt(r);
-            return 60000;
+            return 1L;
         }
         if ((r & (Ex_Break | Ex_Remove)) != 0U) { // The timer was deleted in callback.
             continue;
         }
-        if (timer->repeat == 0U) { // The timer does not work repeatedly.
+        if (timer->repeat == 0UL) { // The timer does not work repeatedly.
             continue;
         }
         if (timer->fActived != 0U) { // is restarted in callback ?
@@ -79,16 +79,16 @@ int32 ExWatch::TimerSet::invoke(uint32 tick_count) {
         }
         timer->value += timer->repeat;
 #if 1 // To avoid racking caused by matching breakpoints when debugging.
-        if ((waittick = timer->value - tick_count) < 1) {
+        if ((waittick = timer->value - tick_count) < 1L) {
             //dprint("timer timeout %d\n", -waittick);
-            timer->value = tick_count + 1U; // adjust interval
+            timer->value = tick_count + 1UL; // adjust interval
         }
 #endif
         timer->fActived = 1U;
         insert(timer);
     }
     // no waiting timer
-    return 60000;
+    return 60000000L;
 }
 
 #if 0 // win32 test - poor performance
@@ -98,7 +98,7 @@ static VOID CALLBACK cbTimer(PVOID lpParameter, BOOLEAN timeout) {
     exassert(lpParameter == &exTimerList);
     exassert(timeout);
     exWatchMain->enter();
-    uint32 waittick = GetTickCount(); // update tick
+    uint64 waittick = ExGetTickCount(); // update tick
     exTimerList.invoke(waittick);
     if (ExApp::mainWnd != nullptr) {
         ExApp::mainWnd->flush();
@@ -127,42 +127,35 @@ bool ExInitTimer(DWORD duetime, DWORD period) {
 // ExTimer
 //
 ExTimer::~ExTimer() noexcept {
-    stop();
+    if (watch != nullptr) {
+        stop();
+    }
 }
 
 void ExTimer::stop() {
-    //AutoLockWatch lock(watch);
-    bool is_lock = enter_watch();
+    exassert(watch != nullptr);
+    //AutoLockAnoWatch lock(watch);
+    bool isGot = watch->getLock();
     if (fActived != 0U) {
         exassert(watch != nullptr);
         watch->timerset.remove(this);
     }
-    (void)leave_watch(is_lock);
+    (void)watch->putLock(isGot);
 }
 
 void ExTimer::start(uint32 initial, uint32 repeat) {
     exassert(watch != nullptr);
-    //AutoLockWatch lock(watch);
-    bool is_lock = enter_watch();
+    //AutoLockAnoWatch lock(watch);
+    bool isGot = watch->getLock();
     if (fActived != 0U) { // stop()
         watch->timerset.remove(this);
     }
-    this->repeat = repeat;
-    value = watch->tickCount + initial;
+    this->repeat = (repeat * 1000UL);
+    #if 1 // align to msec
+    value = ((watch->tickCount / 1000UL) + initial) * 1000UL;
+    #else // align to tick
+    value = watch->tickCount + (initial * 1000UL);
+    #endif
     watch->timerset.active(this);
-    (void)leave_watch(is_lock);
-}
-
-ExTimer::AutoLockWatch::~AutoLockWatch() {
-    if (is_lock) {
-        (void)watch->leave();
-    }
-}
-
-ExTimer::AutoLockWatch::AutoLockWatch(ExWatch* watch) : watch(watch) {
-    if ((watch != nullptr) && (!watch->isSelf())) {
-        is_lock = watch->enter();
-    } else {
-        is_lock = false;
-    }
+    (void)watch->putLock(isGot);
 }

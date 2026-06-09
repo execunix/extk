@@ -529,7 +529,7 @@ uint32 WndMain::onActBtns(ExWidget* widget, ExCbInfo* cbinfo) {
             setup->init(this, 300, 200);
             #if 1 // tbd: for test modal block with pending mouse msg
             (void)exWatchDisp->leave();
-            exsleep(500);
+            exmsleep(500U);
             (void)exWatchDisp->enter();
             #endif
             exMsgList.filter(WM_MOUSEFIRST, WM_MOUSELAST);
@@ -615,15 +615,15 @@ int WndMain::initIomux() {
     #ifdef WIN32
     static ExTimer launchInputTimer;
     launchInputTimer.init(NULL, [](void* d, ExTimer* t, ExCbInfo*)->uint32 {
-        dprint("launchInputTimer: %d\n", exWatchDisp->getTick());
+        dprint("launchInputTimer: %lu\n", exWatchDisp->getTick());
 
         hWakeupNoti = CreateEvent(NULL, FALSE, FALSE, "AppDemo"); // tbd
-        exWatchLast->ioAdd([](void* d, const HANDLE handle)->uint32 {
+        exWatchLast->ioAdd([](void* d, const epoll_event* ev)->uint32 {
             dprint("hWakeupNoti signaled...\n");
             return 0U; }, (void*)NULL, hWakeupNoti);
 
         hStorageNoti = FindFirstChangeNotification("\\", TRUE, FILE_NOTIFY_CHANGE_DIR_NAME);
-        exWatchLast->ioAdd([](void* d, const HANDLE handle)->uint32 {
+        exWatchLast->ioAdd([](void* d, const epoll_event* ev)->uint32 {
             dprint("hStorageNoti root fs changed...\n");
             FindNextChangeNotification(hStorageNoti);
             return 0U; }, (void*)NULL, hStorageNoti);
@@ -1040,7 +1040,7 @@ int WndMain::start() {
         dprint("timerTest: %s\n", ((WndMain*)w)->getName());
         return Ex_Continue; }, (void*)0, this); // test
     timerTest.init(watch, [](void* d, ExTimer* t, ExCbInfo*)->uint32 {
-        dprint("timerTest: %d %u %u\n", (t->u32[0])++, (uint32)*t, exWatchDisp->getTick());
+        dprint("timerTest: %d %" PRIu64 " %" PRIu64 "\n", (t->u32[0])++, (uint64)*t, t->tick());
         return Ex_Continue; }, (void*)0);
     timerTest.start(1U, 1000U);
     #endif

@@ -17,7 +17,7 @@ typedef void* HANDLE;
 typedef ulong HWND; // XID 64bit
 #ifndef CONF_X11 // __linux__
 constexpr HWND None = 0UL;
-#endif
+#endif // CONF_X11
 typedef void* HRGN;
 typedef void* HDC;
 typedef uint16 WORD;
@@ -29,6 +29,12 @@ typedef int64 LRESULT;
 typedef void* HINSTANCE;
 #else // WIN32
 constexpr HWND None = nullptr;
+struct epoll_event {
+    uint32  events; /* Epoll events */
+    void*   data;   /* User data variable */
+};
+#define EPOLLIN     0x001U
+#define EPOLLERR    0x008U
 #endif // __linux__
 
 #ifdef __linux__

@@ -9,53 +9,98 @@
 #ifdef __linux__
 #include <time.h>
 #include <sys/unistd.h>
-#include <sys/epoll.h>
 
 // #undef dprint1
 // #define dprint1(...) printf("ExWatch@" __VA_ARGS__)
 
-uint64 ExGetMonoClock() {
+int32 exmsleep(const uint32 msec) {
+    #ifdef _POSIX_TIMERS
+    struct timespec req;
+    req.tv_sec = (long)msec / 1000L;
+    req.tv_nsec = ((long)msec % 1000L) * 1000000L;
+    return nanosleep(&req, nullptr);
+    #else
+    return usleep(msec * 1000UL);
+    #endif
+}
+
+int32 exusleep(const uint32 usec) {
+    #ifdef _POSIX_TIMERS
+    struct timespec req;
+    req.tv_sec = (long)usec / 1000000L;
+    req.tv_nsec = ((long)usec % 1000000L) * 1000L;
+    return nanosleep(&req, nullptr);
+    #else
+    return usleep(usec);
+    #endif
+}
+
+uint64 ExGetTickCount() {
     struct timespec ts;
     (void)clock_gettime(CLOCK_MONOTONIC, &ts);
     uint64 usec = (static_cast<uint64>(ts.tv_sec) * 1000000UL);
-    usec += (static_cast<uint64>(ts.tv_nsec) / 1000UL);
+    usec += (ts.tv_nsec / 1000L);
     return usec;
-}
-
-uint32 ExGetTickCount() {
-    struct timespec ts;
-    (void)clock_gettime(CLOCK_MONOTONIC, &ts);
-    uint64 msec = (static_cast<uint64>(ts.tv_sec) * 1000UL);
-    msec += (static_cast<uint64>(ts.tv_nsec) / 1000000UL);
-    return static_cast<uint32>(msec);
 }
 
 // Iomux
 //
 void ExWatch::IomuxMap::fini() {
-    if (events != nullptr) {
-        free(events);
-        events = nullptr;
+    #if defined(IOMUX_PPOLL)
+    if (fds != nullptr) {
+        free(fds);
+        fds = nullptr;
+    }
+    dirty = 0;
+    #else // !IOMUX_PPOLL
+    if (evrepo != nullptr) {
+        free(evrepo);
+        evrepo = nullptr;
     }
     if (ep_fd != -1) {
         close(ep_fd);
         ep_fd = -1;
     }
+    #endif // IOMUX_PPOLL
     clear();
-    if (maxevents != 0U) {
-        maxevents = 0U;
+    if (max_fds != 0U) {
+        max_fds = 0U;
     }
 }
 
 void ExWatch::IomuxMap::init(size_t max) {
-    maxevents = max;
-    ep_fd = epoll_create(maxevents);
+    max_fds = max;
+    #if defined(IOMUX_PPOLL)
+    fds = (pollfd*)malloc(sizeof(pollfd) * max_fds);
+    exassert(fds != nullptr);
+    #else // !IOMUX_PPOLL
+    ep_fd = epoll_create(max_fds);
     exassert(ep_fd != -1);
-    events = (epoll_event*)malloc(sizeof(epoll_event) * maxevents);
-    exassert(events != nullptr);
+    evrepo = (epoll_event*)malloc(sizeof(epoll_event) * max_fds);
+    exassert(evrepo != nullptr);
+    #endif // IOMUX_PPOLL
 }
 
-const ExWatch::Iomux* ExWatch::IomuxMap::search(int32 mux_fd) const {
+#if defined(IOMUX_PPOLL)
+nfds_t ExWatch::IomuxMap::setup() {
+    size_t ret = size();
+    if (dirty > 0) {
+        size_t cnt = 0U;
+        for (const_iterator i = begin(); i != end(); ++i) {
+            const Iomux& iomux = i->second;
+            pollfd* pfd = &fds[cnt++];
+            pfd->fd = iomux.mux_fd;
+            pfd->events = (short)(iomux.arg_ev.events & 0xFFFFU);
+            pfd->revents = 0;
+        }
+        exassert(cnt == ret);
+        dirty = 0;
+    }
+    return static_cast<nfds_t>(ret);
+}
+#endif // IOMUX_PPOLL
+
+const ExWatch::Iomux* ExWatch::IomuxMap::search(OsaFd mux_fd) const {
     const Iomux* iomux = nullptr;
     const_iterator i = find(mux_fd);
     if (i != end()) {
@@ -76,9 +121,10 @@ uint32 ExWatch::IomuxMap::probe(const ExCallback& callback, void* cbinfo) {
     return r;
 }
 
-bool ExWatch::IomuxMap::add(int32 mux_fd, uint32 events, const ExNotify& notify) {
+bool ExWatch::IomuxMap::add(OsaFd mux_fd, uint32 events, const ExNotify& notify) {
     int32 r = -1;
-    if (size() < maxevents) {
+    bool isGot = watch->getLock();
+    if (size() < max_fds) {
         Iomux* iomux = nullptr;
         std::pair<iterator, bool> pr;
         pr = insert(value_type(mux_fd, Iomux(mux_fd)));
@@ -88,58 +134,93 @@ bool ExWatch::IomuxMap::add(int32 mux_fd, uint32 events, const ExNotify& notify)
         }
         exassert(iomux->mux_fd == mux_fd);
         iomux->notify = notify;
-        iomux->event.events = events;
-        iomux->event.data.ptr = iomux;
-        r = epoll_ctl(ep_fd, EPOLL_CTL_ADD, mux_fd, &iomux->event);
+        iomux->arg_ev.events = events;
+        iomux->arg_ev.data.ptr = iomux;
+        #if defined(IOMUX_PPOLL)
+        dirty++;
+        #else // !IOMUX_PPOLL
+        r = epoll_ctl(ep_fd, EPOLL_CTL_ADD, mux_fd, &iomux->arg_ev);
+        #endif // IOMUX_PPOLL
     } else {
-        dprint1("IomuxMap::add: maxevents:%zu\n", maxevents);
+        dprint1("IomuxMap::add: max_fds:%zu\n", max_fds);
     }
+    (void)watch->putLock(isGot);
     return (r == 0);
 }
 
-bool ExWatch::IomuxMap::mod(int32 mux_fd, uint32 events, const ExNotify& notify) {
+bool ExWatch::IomuxMap::mod(OsaFd mux_fd, uint32 events, const ExNotify& notify) {
     int32 r = -1;
+    bool isGot = watch->getLock();
     iterator i = find(mux_fd);
     if (i != end()) {
         Iomux* iomux = &i->second;
         exassert(iomux->mux_fd == mux_fd);
         iomux->notify = notify;
-        iomux->event.events = events;
-        exassert(iomux->event.data.ptr == iomux);
-        r = epoll_ctl(ep_fd, EPOLL_CTL_MOD, mux_fd, &iomux->event);
+        iomux->arg_ev.events = events;
+        exassert(iomux->arg_ev.data.ptr == iomux);
+        #if defined(IOMUX_PPOLL)
+        dirty++;
+        #else // !IOMUX_PPOLL
+        r = epoll_ctl(ep_fd, EPOLL_CTL_MOD, mux_fd, &iomux->arg_ev);
+        #endif // IOMUX_PPOLL
     } else {
         dprint1("IomuxMap::mod: invalid mux_fd:%zu\n", (size_t)mux_fd);
     }
+    (void)watch->putLock(isGot);
     return (r == 0);
 }
 
-bool ExWatch::IomuxMap::del(int32 mux_fd) {
+bool ExWatch::IomuxMap::del(OsaFd mux_fd) {
     int32 r = -1;
+    bool isGot = watch->getLock();
     iterator i = find(mux_fd);
     if (i != end()) {
         Iomux* iomux = &i->second;
         exassert(iomux->mux_fd == mux_fd);
-        exassert(iomux->event.data.ptr == iomux);
-        r = epoll_ctl(ep_fd, EPOLL_CTL_DEL, mux_fd, &iomux->event);
+        #if defined(IOMUX_PPOLL)
+        dirty++;
+        #else // !IOMUX_PPOLL
+        exassert(iomux->arg_ev.data.ptr == iomux);
+        r = epoll_ctl(ep_fd, EPOLL_CTL_DEL, mux_fd, &iomux->arg_ev);
+        #endif // IOMUX_PPOLL
         erase(i);
     } else {
         dprint1("IomuxMap::del: invalid mux_fd:%zu\n", (size_t)mux_fd);
     }
+    (void)watch->putLock(isGot);
     return (r == 0);
 }
 
-int32 ExWatch::IomuxMap::invoke(int32 waittick) {
-    const uint32 tick0 = watch->tickCount; // get current tick
-    watch->leave();
+int64 ExWatch::IomuxMap::invoke(int64 waittick) {
+    const int64 tick0 = watch->tickCount; // get current tick
+    #if defined(IOMUX_PPOLL)
+    nfds_t nfds = setup();
+    #endif // IOMUX_PPOLL
+    (void)watch->leave();
     //pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, nullptr);
-    const int32 cnt = epoll_wait(ep_fd, events, (int)maxevents, waittick);
+    #if defined(IOMUX_PPOLL) || __GLIBC_PREREQ(2, 35)
+    timespec ts;
+    ts.tv_sec = waittick / 1000000000L;
+    ts.tv_nsec = waittick % 1000000000L;
+    #endif
+    #if defined(IOMUX_PPOLL)
+    int32 cnt = ppoll(fds, nfds, &ts, nullptr); // sleep for nsec
+    #else // !IOMUX_PPOLL
+    #if __GLIBC_PREREQ(2, 35)
+    int32 cnt = epoll_pwait2(ep_fd, evrepo, (int)max_fds, &ts, nullptr); // sleep for msec
+    #else // __GLIBC_PREREQ(2, 35)
+    waittick -= (waittick > 900L) ? 900L : 0L;
+    int32 cnt = epoll_wait(ep_fd, evrepo, (int)max_fds, (int)(waittick / 1000L)); // sleep for msec
+    #endif // __GLIBC_PREREQ(2, 35)
+    #endif // IOMUX_PPOLL
     //pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, nullptr);
-    watch->enter();
+    (void)watch->enter();
+    #if !defined(IOMUX_PPOLL)
     for (int32 i = 0; i < cnt; i++) {
-        Iomux* iomux = (Iomux*)events[i].data.ptr;
+        const Iomux* iomux = (const Iomux*)evrepo[i].data.ptr;
         epoll_event ev;
         ev.data.fd = iomux->mux_fd;
-        ev.events = events[i].events;
+        ev.events = evrepo[i].events;
         uint32 r = iomux->notify(&ev);
         r |= watch->getHalt();
         if (ExIsHalt(r)) {
@@ -149,16 +230,46 @@ int32 ExWatch::IomuxMap::invoke(int32 waittick) {
         // tbd - manage remove flag
         // if (r & Ex_Remove) { del(iomux->mux_fd); }
     }
+    #endif // IOMUX_PPOLL
     if (cnt < 0) {
         exerror("IomuxMap: cnt:%d %s\n", cnt, exstrerr());
+        cnt = 0; // reset count
     }
+    #if defined(IOMUX_PPOLL)
+    for (nfds_t i = 0UL; (i < nfds) && (cnt > 0); i++) {
+        pollfd* pfd = &fds[i];
+        if (pfd->revents == 0) {
+            continue; // skip non-signaled fd
+        }
+        cnt--; // decrease count
+        const Iomux* iomux = search(pfd->fd);
+        if (iomux != nullptr) {
+            epoll_event ev;
+            ev.data.fd = iomux->mux_fd;
+            ev.events = (uint32)pfd->revents;
+            pfd->revents = 0; // reset revents for next loop
+            uint32 r = iomux->notify(&ev);
+            r |= watch->getHalt();
+            if (ExIsHalt(r)) {
+                (void)watch->setHalt(r);
+                break; // stop iomux loop
+            }
+            if ((r & Ex_Remove) != 0U) {
+                del(iomux->mux_fd);
+                dirty++;
+            }
+        } else {
+            dprint1("IomuxMap::invoke: invalid mux_fd:%zu\n", (size_t)pfd->fd);
+        }
+    }
+    #endif // IOMUX_PPOLL
     watch->tickCount = ExGetTickCount(); // update tick
     return (watch->tickCount - tick0); // return elapsed tick
 }
 
 // Watch thread
 //
-uint32 ExWatch::tickAppLaunch = ExGetTickCount();
+uint64 ExWatch::tickAppLaunch = ExGetTickCount();
 
 pthread_key_t ExWatch::keyTlsSpecific = (pthread_key_t)-1;
 
@@ -195,9 +306,9 @@ bool ExWatch::fini() {
         r = pthread_cancel(tid);
         exassert(r == 0);
         #endif
-        leave();
+        //(void)leave();
         r = pthread_join(tid, nullptr);
-        enter();
+        //(void)enter();
         exassert(r == 0);
         tid = 0U;
     }
@@ -244,7 +355,14 @@ uint32 ExWatch::onEvent(const epoll_event* const ev) {
 uint32 ExWatch::setHalt(uint32 r) {
     exassert(((halt | r) & Ex_Halt) != 0U);
     halt |= (r | 0x01100000U);
-    evWake.signal();
+    if (r == Ex_Halt) { // is wakeup as trigger ?
+        #ifdef DEBUG // for debug
+        if (evWake.u64 > 1UL) { // is already signaled ?
+            dprint("ExWatch::setHalt: u64=%lu\n", evWake.u64);
+        }
+        #endif
+        evWake.signal();
+    }
     return halt;
 }
 
@@ -253,7 +371,7 @@ uint32 ExWatch::proc() {
     pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, nullptr);
 #endif // __linux__
     setTlsSpecific(this);
-    dprint("ExWatch::proc(%s) tickAppLaunch=%d tickCount=%d\n", name, tickAppLaunch, tickCount);
+    dprint("ExWatch::proc(%s) tickAppLaunch=%lu tickCount=%lu\n", name, tickAppLaunch, tickCount);
     (void)enter();
     // seq-1 : prepare resources
     (void)hookStartup(ExHookProc::Startup);
@@ -262,13 +380,13 @@ uint32 ExWatch::proc() {
     // seq-6 : cleanup resources
     (void)hookCleanup(ExHookProc::Cleanup);
     (void)leave();
-    dprint("ExWatch::proc(%s) done... tickCount=%d\n", name, tickCount);
+    dprint("ExWatch::proc(%s) done... tickCount=%lu\n", name, tickCount);
     return 0U;
 }
 
 uint32 ExWatch::process(uint32 hook) {
-    int32 waittick = 0;
-    exassert(isEntered());
+    int64 waittick = 0L;
+    exassert(mutex.isowner());
     while (!ExIsHalt(getHalt())) {
         // seq-2 : dispatch event
         // n/a
@@ -279,8 +397,8 @@ uint32 ExWatch::process(uint32 hook) {
         }
         #if 1 // adjust for internal timer callback sleep
         waittick -= (ExGetTickCount() - tickCount);
-        if (waittick < 1) {
-            waittick = 1;
+        if (waittick < 1L) {
+            waittick = 1L;
         }
         #endif
         // seq-4 : collect resources, flush gui, ...
@@ -317,27 +435,27 @@ void* ExWatch::dispatch(ExModalCtrl* const ctrl) {
         }
         // message is available
         if (msg.message == WM_QUIT) { // WM_DESTROY => PostQuitMessage
-            dprint("WM_QUIT tick=%d\n", getTick());
+            dprint("WM_QUIT tick=%lu\n", getTick());
             ExApp::retCode = (int32)msg.wParam; // cause DestroyWindow
             (void)setHalt(Ex_Halt); // stop exmsg loop
             break;
         }
-        leave();
+        //leave();
         #ifdef __linux__
         (void)DefWndProc(msg); // dispatch message to window procedure
         #else // WIN32
         TranslateMessage(&msg);
         DispatchMessage(&msg);
         #endif
-        enter();
+        //enter();
     } while (!ExIsHalt(ctrl->flags | getHalt()));
     return ctrl->result;
 }
 
 void* ExWatch::modalBlock(ExModalCtrl* const ctrl) {
-    int32 waittick = 0;
-    exassert(isEntered());
+    int64 waittick = 0L;
     mclist.push_front(ctrl);
+    exassert(mutex.isowner());
     exassert(ctrl->flags == Ex_Continue);
     while (!ExIsHalt(ctrl->flags | getHalt())) {
         // seq-2 : dispatch event
@@ -352,8 +470,8 @@ void* ExWatch::modalBlock(ExModalCtrl* const ctrl) {
         }
         #if 1 // adjust for internal timer callback sleep
         waittick -= (ExGetTickCount() - tickCount);
-        if (waittick < 1) {
-            waittick = 1;
+        if (waittick < 1L) {
+            waittick = 1L;
         }
         #endif
         // seq-4 : collect resources, flush gui, ...
@@ -380,8 +498,8 @@ void* ExWatch::modalBlock(ExModalCtrl* const ctrl) {
 }
 
 void ExWatch::modalUnblock(ExModalCtrl* const ctrl, void* result) {
-    exassert(isEntered());
     auto front = mclist.front();
+    exassert(mutex.isowner());
     exassert(front == ctrl);
     front->flags |= Ex_Halt;
     front->result = result;

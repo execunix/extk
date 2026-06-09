@@ -44,7 +44,7 @@ bool recordTouchEvent(const ExMsg* const em)
         const char* msg_str;
         static uint32 up_tick = 0U;
         static uint32 msg_tick = 0U;
-        static uint32 prev_message = 0U;
+        static int32 prev_message = 0;
         if (em->message == WM_LBUTTONDOWN) {
             msg_str = "down";
             const uint32 diff = em->time - up_tick;

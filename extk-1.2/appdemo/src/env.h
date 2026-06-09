@@ -45,7 +45,7 @@ struct Env {
 
     int32 board_type; // 0:evk, 1:pdu
     char locale[32];
-    uint32 gui_tick;
+    uint64 gui_tick;
     uint64 key_flags;
 
     struct {

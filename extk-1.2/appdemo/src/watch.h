@@ -9,11 +9,6 @@
 #include <exdebug.h>
 #include <exevent.h>
 #include <exwproc.h>
-#ifdef __linux__
-#include <sys/types.h>
-#include <sys/stat.h>
-#endif // __linux__
-#include <fcntl.h>
 #include <extimer.h>
 #include <exwatch.h>
 #include "message.h"
@@ -106,7 +101,5 @@ public:
 extern WatchApp gWatchApp;
 
 extern ExCallbackList cmdline_callback_list;
-
-int32 dprint_appinfo(char* const mbs, const int32 len);
 
 #endif // _watch_h_
