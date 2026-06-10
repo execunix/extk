@@ -209,7 +209,7 @@ int64 ExWatch::IomuxMap::invoke(int64 waittick) {
     #if __GLIBC_PREREQ(2, 35)
     int32 cnt = epoll_pwait2(ep_fd, evrepo, (int)max_fds, &ts, nullptr); // sleep for msec
     #else // __GLIBC_PREREQ(2, 35)
-    waittick -= (waittick > 900L) ? 900L : 0L;
+    //waittick -= (waittick > 900L) ? 900L : 0L;
     int32 cnt = epoll_wait(ep_fd, evrepo, (int)max_fds, (int)(waittick / 1000L)); // sleep for msec
     #endif // __GLIBC_PREREQ(2, 35)
     #endif // IOMUX_PPOLL

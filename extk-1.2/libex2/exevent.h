@@ -80,16 +80,15 @@ public:
     friend class ExWatch;
 };
 
-#if 0 // deprecated
 class ExAutoLock {
-protected:
     const ExMutex& mutex;
 public:
-    ~ExAutoLock() noexcept { mutex.unlock(); }
+    ~ExAutoLock() noexcept {
+        (void)mutex.unlock();
+    }
     explicit ExAutoLock(const ExMutex& mutex) noexcept : mutex(mutex) {
-        mutex.lock();
+        (void)mutex.lock();
     }
 };
-#endif
 
 #endif//__exevent_h__

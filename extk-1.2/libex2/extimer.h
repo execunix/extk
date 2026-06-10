@@ -39,6 +39,7 @@ public:
         , watch(nullptr), value(0UL), repeat(0UL), callback(), fActived(0U)
         , object(nullptr), u64 { 0ull, } {}
 public:
+    void fini();
     void setup(ExWatch* watch, const ExCallback& callback, const void* object = nullptr) {
         this->watch = (watch != nullptr) ? watch : exWatchLast;
         this->callback = callback;

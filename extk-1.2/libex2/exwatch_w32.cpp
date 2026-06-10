@@ -296,13 +296,6 @@ uint32 ExWatch::onEvent(const epoll_event* ev) {
     #if 1 // for manual reset
     (void)evWake.reset();
     #endif
-
-    #if 0 // tbd - cond wait and signal
-    pthread_cond_wait(&cond, &mutex);
-    ...
-    pthread_cond_signal(&cond);
-    #endif
-
     return 0U;
 }
 

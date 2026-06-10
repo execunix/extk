@@ -191,9 +191,6 @@ protected:
     uint32          __pad00;
     uint64          tickCount;
     ExMutex         mutex;
-    #ifdef __linux__
-    mutable pthread_cond_t  cond;
-    #endif
     ExModalCtrlList mclist;
 public:
     ExHookProc      hookStartup;    // startup
@@ -214,13 +211,11 @@ public:
     #else // __linux__
     virtual ~ExWatch() noexcept {
         fini();
-        pthread_cond_destroy(&cond);
     }
     explicit ExWatch(const char* name) noexcept : name(name)
         , iomuxmap(this), timerset(), tid(0U)
         , evWake(), halt(0U), tickCount(0UL), mutex(), mclist()
         , hookStartup(), hookProcess(this, &ExWatch::process), hookCleanup() {
-        pthread_cond_init(&cond, nullptr);
         tickCount = tickAppLaunch;
     }
     pthread_t id() const noexcept { return tid; }
@@ -276,17 +271,6 @@ protected:
     friend class ExTimer;
 public:
     Ex_DECLARE_TYPEINFO(ExWatch, ExObject);
-};
-
-class AutoLockAnoWatch {
-    ExWatch* watch;
-public:
-    ~AutoLockAnoWatch() {
-        (void)watch->leave();
-    }
-    explicit AutoLockAnoWatch(ExWatch* watch) : watch(watch) {
-        (void)watch->enter();
-    }
 };
 
 extern ExWatch* exWatchMain;
