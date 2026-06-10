@@ -12,15 +12,12 @@
 #define TLS_OUT_OF_INDEXES 0xFFFFFFFF
 #endif//_WIN32_WCE
 
-ExThread exMainThread;
-
 #ifdef WIN32
 
 static DWORD exThreadSelfTls = TLS_OUT_OF_INDEXES;
 static DWORD exCondEventTls = TLS_OUT_OF_INDEXES;
 
-static void
-ExThreadFiniWin32Impl()
+static void ExThreadFiniWin32Impl()
 {
     if (TLS_OUT_OF_INDEXES != exCondEventTls)
         TlsFree(exCondEventTls);
@@ -28,8 +25,7 @@ ExThreadFiniWin32Impl()
         TlsFree(exThreadSelfTls);
 }
 
-static void
-ExThreadInitWin32Impl()
+static void ExThreadInitWin32Impl()
 {
     exThreadSelfTls = TlsAlloc();
     assert(TLS_OUT_OF_INDEXES != exThreadSelfTls);
@@ -151,17 +147,12 @@ int ExThread::join(uint wait) {
         exerror("%s - not joinable.\n", __func__);
         return -1;
     }
-#if 0 // tbd - here or user ?
-    ExLeave();
-    ExWakeupMainThread();
-#endif
-    if (WaitForSingleObject(this->hThread, wait) == WAIT_FAILED)
+    if (WaitForSingleObject(this->hThread, wait) == WAIT_FAILED) {
         exerror("%s - WaitForSingleObject fail.\n", __func__);
-#if 0 // tbd - here or user ?
-    ExEnter();
-#endif
-    if (CloseHandle(this->hThread) == 0)
+    }
+    if (CloseHandle(this->hThread) == 0) {
         exerror("%s - CloseHandle fail.\n", __func__);
+    }
     this->joinable = false;
     this->hThread = NULL;
     return 0;
@@ -175,8 +166,7 @@ int ExThread::create(Proc& proc, bool joinable) {
     return hThread == NULL ? -1 : 0;
 }
 
-void // static
-ExThread::exit(DWORD dwExitCode) {
+void ExThread::exit(DWORD dwExitCode) { // static
     HANDLE condEvent;
     ExThread* self;
     self = (ExThread*)TlsGetValue(exThreadSelfTls);
@@ -193,61 +183,37 @@ ExThread::exit(DWORD dwExitCode) {
     ExitThread(dwExitCode);
 }
 
-ExThread* // static
-ExThread::self() {
+ExThread* ExThread::self() { // static
     return (ExThread*)TlsGetValue(exThreadSelfTls);
 }
+
+#endif // WIN32
 
 // variables for the exlib
 //
 const char* exModulePath = NULL;
 const char* exModuleName = NULL;
 
-HANDLE exLibMutex = NULL;
+ExThread exMainThread;
 
 // functions for the exlib
 //
-void
-ExLeave()
+bool ExIsValidAddress(const void* addr, int bytes, bool readwrite)
 {
-    ReleaseMutex(exLibMutex);
-}
-
-void
-ExEnter()
-{
-    DWORD dwWaitRet;
-    for (int i = 0; i < 100; i++) {
-        dwWaitRet = WaitForSingleObject(exLibMutex, 3000U);
-        if (dwWaitRet == WAIT_OBJECT_0)
-            break;
-        exerror("ExEnter(TID=%p) %s %d\n", GetCurrentThreadId(),
-                dwWaitRet == WAIT_TIMEOUT ? "WAIT_TIMEOUT" : "WAIT_FAILED", i);
-    }
-}
-
-bool
-ExTryEnter()
-{
-    DWORD dwWaitRet;
-    dwWaitRet = WaitForSingleObject(exLibMutex, 0U);
-    if (dwWaitRet == WAIT_OBJECT_0)
-        return true;
-    return false;
-}
-
-bool
-ExIsValidAddress(const void* addr, int bytes, bool readwrite)
-{
+#ifdef WIN32
     //static const char __func__[] = "ExIsValidAddress";
     // simple version using Win-32 APIs for pointer validation.
     return (addr != NULL && !IsBadReadPtr(addr, bytes) &&
            (!readwrite || !IsBadWritePtr((LPVOID)addr, bytes)));
+#endif // WIN32
+#ifdef __linux__
+    return true; // tbd
+#endif // __linux__
 }
 
-void
-ExGetCurrentTime(ExTimeVal* result)
+void ExGetCurrentTime(ExTimeVal* result)
 {
+#ifdef WIN32
     FILETIME ft;
     uint64* time64 = (uint64*)&ft;
 #ifdef _WIN32_WCE
@@ -261,11 +227,15 @@ ExGetCurrentTime(ExTimeVal* result)
     *time64 /= 10;
     result->tv_sec = (long)(*time64 / 1000000);
     result->tv_usec = (long)(*time64 % 1000000);
+#endif // WIN32
+#ifdef __linux__
+    // tbd
+#endif // __linux__
 }
 
-uint64
-ExThreadGetTime()
+uint64 ExThreadGetTime()
 {
+#ifdef WIN32
     uint64 v;
     // Returns 100s of nanoseconds since start of 1601
 #ifdef _WIN32_WCE
@@ -280,39 +250,54 @@ ExThreadGetTime()
     // Convert to nanoseconds
     v *= 100;
     return v;
+#endif // WIN32
+#ifdef __linux__
+    return 0UL; // tbd
+#endif // __linux__
 }
 
-void
-ExFiniProcess()
+void ExFiniProcess()
 {
+#ifdef WIN32
     ExThreadFiniWin32Impl();
-    dprint1("ExFiniProcess(%s\\%s) %p\n", exModulePath, exModuleName, exLibMutex);
-    ExLeave();
-    CloseHandle(exLibMutex);
-    assert(exModulePath != NULL);
-    assert(exModuleName != NULL);
+#endif // WIN32
+#ifdef __linux__
+    // tbd - ExThreadFiniWin32Impl();
+#endif // __linux__
+    dprint1("%s(%s\\%s)\n", __func__, exModulePath, exModuleName);
+    assert(exModulePath != nullptr);
+    assert(exModuleName != nullptr);
     free((void*)exModuleName);
     free((void*)exModulePath);
-    exModulePath = NULL;
-    exModuleName = NULL;
+    exModulePath = nullptr;
+    exModuleName = nullptr;
 }
 
-void
-ExInitProcess()
+void ExInitProcess(const char* pathname)
 {
-    exLibMutex = CreateMutex(NULL, FALSE, "exLibMutex");
-    assert(exModulePath == NULL);
-    assert(exModuleName == NULL);
+    assert(exModulePath == nullptr);
+    assert(exModuleName == nullptr);
     char buf[256];
-    int len = GetModuleFileName(NULL, buf, 256);
-    while (len > 0 && buf[len] != '\\')
+#ifdef WIN32
+    int len = GetModuleFileName(nullptr, buf, 256);
+    while (len > 0 && buf[len] != '\\') {
         len--;
-    buf[len] = 0;
+    }
+#endif // WIN32
+#ifdef __linux__
+    int len = snprintf(buf, 256UL, "%s", pathname);
+    while (len > 0 && buf[len] != '/') {
+        len--;
+    }
+#endif // __linux__
+    buf[len] = '\0';
     exModulePath = exstrdup(buf);
     exModuleName = exstrdup(buf + len + 1);
-    ExEnter();
-    dprint1("ExInitProcess(%s\\%s) %p\n", exModulePath, exModuleName, exLibMutex);
+    dprint1("%s(%s\\%s)\n", __func__, exModulePath, exModuleName);
+#ifdef WIN32
     ExThreadInitWin32Impl();
-}
-
 #endif // WIN32
+#ifdef __linux__
+    // tbd - ExThreadInitWin32Impl();
+#endif // __linux__
+}

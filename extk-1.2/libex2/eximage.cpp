@@ -89,8 +89,9 @@ bool ExImage::load(const char* fname, bool query)
         return false;
     }
     const char* ext = NULL;
-    for (const char* p = fname; *p; p++)
+    for (const char* p = fname; *p; p++) {
         if (*p == '.') ext = p + 1;
+    }
     if (ext == NULL) {
         exerror("%s(%s) - invalid extension.\n", __func__, fname);
         return false;
@@ -164,8 +165,9 @@ bool ExImage::load(const char* fname, bool query)
         return false;
     }
     const char* ext = NULL;
-    for (const char* p = fname; *p; p++)
+    for (const char* p = fname; *p; p++) {
         if (*p == '.') ext = p + 1;
+    }
     if (ext == NULL) {
         exerror("%s(%s) - invalid extension.\n", __func__, fname);
         return false;
@@ -177,10 +179,12 @@ bool ExImage::load(const char* fname, bool query)
     }
     bool r = false;
     uint8 hdr[8];
-    if (read(fd, hdr, 8) < 4)
+    if (read(fd, hdr, 8) < 4) {
         exerror("%s(%s) - %s fail. %s\n", __func__, fname, "read", exstrerr());
-    if (lseek(fd, 0, SEEK_SET) != 0)
+    }
+    if (lseek(fd, 0, SEEK_SET) != 0) {
         exerror("%s(%s) - %s fail. %s\n", __func__, fname, "seek", exstrerr());
+    }
     if (strncasecmp(ext, "png", 3) == 0) {
         exassert(hdr[0] == 0x89 && hdr[1] == 'P' && hdr[2] == 'N' && hdr[3] == 'G');
         this->format = Ex_IMM_PNG;

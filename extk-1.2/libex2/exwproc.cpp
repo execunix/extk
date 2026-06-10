@@ -421,7 +421,7 @@ DefWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         ExApp::addCollectWindow(window);
         if (ExApp::mainWnd == window) {
             ExApp::mainWnd = nullptr; // stop timer/flush/input exlib proc
-            PostQuitMessage(ExApp::retCode); // stop main loop
+            PostQuitMessage(EXIT_SUCCESS); // stop main loop
         }
         // An application should return zero if it processes this message.
         goto leave_proc;

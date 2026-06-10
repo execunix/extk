@@ -100,38 +100,27 @@ public:
 #endif // WIN32
 };
 
+// module exports
+//
 typedef ExThread::Mutex ExThreadMutex;
 typedef ExThread::Cond  ExThreadCond;
 
 #define ExThreadExit ExThread::exit
 #define ExThreadSelf ExThread::self
 
-// module exports
+// variables for the exlib
 //
 extern const char* exModulePath;
 extern const char* exModuleName;
 
 extern ExThread exMainThread;
 
-#ifdef WIN32
-inline bool ExIsMainThread() {
-    return (ExThreadSelf() == &exMainThread);
-}
-
-inline void ExWakeupMainThread() {
-    if (!ExIsMainThread())
-        PostThreadMessage(exMainThread.idThread, WM_ExEvWake, 0, 0); // wakeup
-}
-#endif // WIN32
-
-void ExLeave();
-void ExEnter();
-bool ExTryEnter();
-
+// functions for the exlib
+//
 bool ExIsValidAddress(const void* addr, int bytes, bool readwrite = true);
 void ExGetCurrentTime(ExTimeVal* result);
 uint64 ExThreadGetTime();
 void ExFiniProcess();
-void ExInitProcess();
+void ExInitProcess(const char* pathname = nullptr);
 
 #endif//__exthread_h__

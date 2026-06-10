@@ -100,7 +100,7 @@ nfds_t ExWatch::IomuxMap::setup() {
 }
 #endif // IOMUX_PPOLL
 
-const ExWatch::Iomux* ExWatch::IomuxMap::search(OsaFd mux_fd) const {
+const ExWatch::Iomux* ExWatch::IomuxMap::search(ExOsFd mux_fd) const {
     const Iomux* iomux = nullptr;
     const_iterator i = find(mux_fd);
     if (i != end()) {
@@ -121,7 +121,7 @@ uint32 ExWatch::IomuxMap::probe(const ExCallback& callback, void* cbinfo) {
     return r;
 }
 
-bool ExWatch::IomuxMap::add(OsaFd mux_fd, uint32 events, const ExNotify& notify) {
+bool ExWatch::IomuxMap::add(ExOsFd mux_fd, uint32 events, const ExNotify& notify) {
     int32 r = -1;
     (void)watch->enter();
     if (size() < max_fds) {
@@ -148,7 +148,7 @@ bool ExWatch::IomuxMap::add(OsaFd mux_fd, uint32 events, const ExNotify& notify)
     return (r == 0);
 }
 
-bool ExWatch::IomuxMap::mod(OsaFd mux_fd, uint32 events, const ExNotify& notify) {
+bool ExWatch::IomuxMap::mod(ExOsFd mux_fd, uint32 events, const ExNotify& notify) {
     int32 r = -1;
     (void)watch->enter();
     iterator i = find(mux_fd);
@@ -170,7 +170,7 @@ bool ExWatch::IomuxMap::mod(OsaFd mux_fd, uint32 events, const ExNotify& notify)
     return (r == 0);
 }
 
-bool ExWatch::IomuxMap::del(OsaFd mux_fd) {
+bool ExWatch::IomuxMap::del(ExOsFd mux_fd) {
     int32 r = -1;
     (void)watch->enter();
     iterator i = find(mux_fd);
@@ -198,7 +198,7 @@ int64 ExWatch::IomuxMap::invoke(int64 waittick) {
     #endif // IOMUX_PPOLL
     (void)watch->leave();
     //pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, nullptr);
-    #if defined(IOMUX_PPOLL) || __GLIBC_PREREQ(2, 35)
+    #if defined(IOMUX_PPOLL) || defined(IOMUX_EPOLL2)
     timespec ts;
     ts.tv_sec = waittick / 1000000000L;
     ts.tv_nsec = waittick % 1000000000L;
@@ -206,12 +206,12 @@ int64 ExWatch::IomuxMap::invoke(int64 waittick) {
     #if defined(IOMUX_PPOLL)
     int32 cnt = ppoll(fds, nfds, &ts, nullptr); // sleep for nsec
     #else // !IOMUX_PPOLL
-    #if __GLIBC_PREREQ(2, 35)
+    #if defined(IOMUX_EPOLL2)
     int32 cnt = epoll_pwait2(ep_fd, evrepo, (int)max_fds, &ts, nullptr); // sleep for msec
-    #else // __GLIBC_PREREQ(2, 35)
+    #else // !IOMUX_EPOLL2
     //waittick -= (waittick > 900L) ? 900L : 0L;
     int32 cnt = epoll_wait(ep_fd, evrepo, (int)max_fds, (int)(waittick / 1000L)); // sleep for msec
-    #endif // __GLIBC_PREREQ(2, 35)
+    #endif // IOMUX_EPOLL2
     #endif // IOMUX_PPOLL
     //pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, nullptr);
     (void)watch->enter();
@@ -357,7 +357,7 @@ uint32 ExWatch::setHalt(uint32 r) {
             dprint("ExWatch::setHalt: u64=%lu\n", evWake.u64);
         }
         #endif
-        evWake.signal();
+        (void)wakeup();
     }
     return halt;
 }
@@ -412,7 +412,8 @@ uint32 ExWatch::process(uint32 hook) {
 uint32 ExWatch::guiloop(uint32 hook) {
     ExModalCtrl ctrl;
     (void)modalBlock(&ctrl);
-    return 0U;
+    uintptr_t val = reinterpret_cast<uintptr_t>(ctrl.result);
+    return static_cast<uint32>(val);
 }
 
 void* ExWatch::dispatch(ExModalCtrl* const ctrl) {
@@ -431,8 +432,9 @@ void* ExWatch::dispatch(ExModalCtrl* const ctrl) {
         }
         // message is available
         if (msg.message == WM_QUIT) { // WM_DESTROY => PostQuitMessage
+            exassert(msg.wParam == EXIT_SUCCESS);
             dprint("WM_QUIT tick=%lu\n", getTick());
-            ExApp::retCode = (int32)msg.wParam; // cause DestroyWindow
+            ctrl->result = reinterpret_cast<void*>(msg.wParam); // cause DestroyWindow
             (void)setHalt(Ex_Halt); // stop exmsg loop
             break;
         }
@@ -487,20 +489,19 @@ void* ExWatch::modalBlock(ExModalCtrl* const ctrl) {
     }
     void* result = ctrl->result;
     if (ctrl->flags == Ex_Continue) {
-        modalUnblock(ctrl, ctrl->result);
+        modalUnblock(ctrl, result);
     }
     ExApp::collect(); // invalidate ctrl
     return result;
 }
 
 void ExWatch::modalUnblock(ExModalCtrl* const ctrl, void* result) {
-    auto front = mclist.front();
+    exassert(ctrl == mclist.front());
     exassert(mutex.isowner());
-    exassert(front == ctrl);
-    front->flags |= Ex_Halt;
-    front->result = result;
+    ctrl->flags |= Ex_Halt;
+    ctrl->result = result;
     mclist.pop_front();
-    evWake.signal();
+    (void)wakeup();
 }
 
 static ExWatch exWatchDflt("exWatchDflt");

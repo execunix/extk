@@ -19,14 +19,10 @@
 
 #ifdef __linux__
 //#define IOMUX_PPOLL
+  #if __GLIBC_PREREQ(2, 35)
+  //#define IOMUX_EPOLL2
+  #endif // __GLIBC_PREREQ(2, 35)
 #endif // __linux__
-
-// OsaFd: OS Adaptation File Descriptor
-#ifdef WIN32
-typedef HANDLE  OsaFd;
-#else // __linux__
-typedef int32   OsaFd;
-#endif
 
 class ExTimer;
 
@@ -103,17 +99,17 @@ protected:
     // IomuxMap
     struct Iomux {
         ExNotify        notify;
-        OsaFd           mux_fd;
+        ExOsFd          mux_fd;
         epoll_event     arg_ev;
-        Iomux(OsaFd mux_fd) noexcept : notify(), mux_fd(mux_fd), arg_ev{0U,} {}
+        Iomux(ExOsFd mux_fd) noexcept : notify(), mux_fd(mux_fd), arg_ev{0U,} {}
         //mutable enum : int32 { NONE, ADD, MOD, DEL, RUN } status;
     };
-    class IomuxMap : protected std::map<OsaFd, Iomux> {
+    class IomuxMap : protected std::map<ExOsFd, Iomux> {
     protected:
         ExWatch*        watch;
 #ifdef WIN32
         int32           dirty;
-        OsaFd           handles[MAXIMUM_WAIT_OBJECTS];
+        ExOsFd          handles[MAXIMUM_WAIT_OBJECTS];
 #else // __linux__
         #if defined(IOMUX_PPOLL)
         int32           dirty;
@@ -129,17 +125,17 @@ protected:
             fini();
         }
 #ifdef WIN32
-        IomuxMap(ExWatch* watch) noexcept : std::map<OsaFd, Iomux>()
+        IomuxMap(ExWatch* watch) noexcept : std::map<ExOsFd, Iomux>()
             , watch(watch), dirty(0) {
             memset(handles, 0, sizeof(handles));
         }
 #else // __linux__
         #if defined(IOMUX_PPOLL)
-        IomuxMap(ExWatch* watch) noexcept : std::map<OsaFd, Iomux>()
+        IomuxMap(ExWatch* watch) noexcept : std::map<ExOsFd, Iomux>()
             , watch(watch), dirty(0), fds(nullptr), max_fds(0U) {
         }
         #else // !IOMUX_PPOLL
-        IomuxMap(ExWatch* watch) noexcept : std::map<OsaFd, Iomux>()
+        IomuxMap(ExWatch* watch) noexcept : std::map<ExOsFd, Iomux>()
             , watch(watch), ep_fd(-1), evrepo(nullptr), max_fds(0U) {
         }
         #endif // IOMUX_PPOLL
@@ -148,18 +144,18 @@ protected:
         void fini();
         void init(size_t max);
         // inherit void clear();
-        // inherit iterator find(OsaFd mux_fd);
+        // inherit iterator find(ExOsFd mux_fd);
         #ifdef WIN32
         DWORD setup();
         #endif
         #if defined(IOMUX_PPOLL)
         nfds_t setup();
         #endif // IOMUX_PPOLL
-        const Iomux* search(OsaFd mux_fd) const;
+        const Iomux* search(ExOsFd mux_fd) const;
         uint32 probe(const ExCallback& callback, void* cbinfo);
-        bool add(OsaFd mux_fd, uint32 events, const ExNotify& notify);
-        bool mod(OsaFd mux_fd, uint32 events, const ExNotify& notify);
-        bool del(OsaFd mux_fd);
+        bool add(ExOsFd mux_fd, uint32 events, const ExNotify& notify);
+        bool mod(ExOsFd mux_fd, uint32 events, const ExNotify& notify);
+        bool del(ExOsFd mux_fd);
         int64 invoke(int64 waittick = 60000000L);
     };
 public:
@@ -238,23 +234,23 @@ public:
     void* modalBlock(ExModalCtrl* const ctrl);
     void modalUnblock(ExModalCtrl* const ctrl, void* result = nullptr);
 public:
-    bool ioAdd(uint32 (*f)(void*, const epoll_event*), void* d, const OsaFd mux_fd, const uint32 events = EPOLLIN | EPOLLERR) { // lambda
+    bool ioAdd(uint32 (*f)(void*, const epoll_event*), void* d, const ExOsFd mux_fd, const uint32 events = EPOLLIN | EPOLLERR) { // lambda
         return iomuxmap.add(mux_fd, events, ExNotify(f, d));
     }
-    bool ioMod(uint32 (*f)(void*, const epoll_event*), void* d, const OsaFd mux_fd, const uint32 events = EPOLLIN | EPOLLERR) { // lambda
+    bool ioMod(uint32 (*f)(void*, const epoll_event*), void* d, const ExOsFd mux_fd, const uint32 events = EPOLLIN | EPOLLERR) { // lambda
         return iomuxmap.mod(mux_fd, events, ExNotify(f, d));
     }
     template <typename A, typename T>
-    bool ioAdd(A* d, uint32 (A::*f)(T*), const OsaFd mux_fd, const uint32 events = EPOLLIN | EPOLLERR) {
+    bool ioAdd(A* d, uint32 (A::*f)(T*), const ExOsFd mux_fd, const uint32 events = EPOLLIN | EPOLLERR) {
         static_assert(std::is_base_of<epoll_event, T>::value, "T must be derived from epoll_event");
         return iomuxmap.add(mux_fd, events, ExNotify(d, f));
     }
     template <typename A, typename T>
-    bool ioMod(A* d, uint32 (A::*f)(T*), const OsaFd mux_fd, const uint32 events = EPOLLIN | EPOLLERR) {
+    bool ioMod(A* d, uint32 (A::*f)(T*), const ExOsFd mux_fd, const uint32 events = EPOLLIN | EPOLLERR) {
         static_assert(std::is_base_of<epoll_event, T>::value, "T must be derived from epoll_event");
         return iomuxmap.mod(mux_fd, events, ExNotify(d, f));
     }
-    bool ioDel(const OsaFd mux_fd) {
+    bool ioDel(const ExOsFd mux_fd) {
         return (getHalt() == 0U) ? iomuxmap.del(mux_fd) : false;
     }
 protected:
@@ -266,7 +262,7 @@ protected:
     int64 timerset_invoke(uint64 tick_count) { return timerset.invoke(tick_count); }
     int64 iomuxmap_invoke(int64 waittick = 60000000L) { return iomuxmap.invoke(waittick); }
 #endif // tbd
-    friend void ExMainLoop();
+    friend int32 ExMainLoop();
     friend class ExMutex;
     friend class ExTimer;
 public:

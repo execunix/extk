@@ -933,6 +933,8 @@ public:
 
 int WndMain::start() {
     ExRect rc;
+
+    dprint("%s() %s\n", __func__, Ex_STRLOC);
     // initEnv();
     // initRes();
     this->init("AppDemoWndMain", env.wnd.w, env.wnd.h);

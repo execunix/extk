@@ -37,6 +37,13 @@ struct epoll_event {
 #define EPOLLERR    0x008U
 #endif // __linux__
 
+// ExOsFd: OS Adaptation File Descriptor
+#ifdef WIN32
+typedef HANDLE  ExOsFd;
+#else // __linux__
+typedef int32   ExOsFd;
+#endif
+
 #ifdef __linux__
 #define LOBYTE(w)           ((uint8)(((uint64)(w)) & 0xff))
 #define HIBYTE(w)           ((uint8)((((uint64)(w)) >> 8) & 0xff))

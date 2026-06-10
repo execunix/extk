@@ -702,6 +702,7 @@ int main(int argc, char* argv[])
     //app_test();
     //flt_test();
 
+    ExApp::init(argc, argv);
     (void)init_signal();
 
     (void)initEnv();
@@ -745,8 +746,8 @@ int main(int argc, char* argv[])
     //(void)module.init();
     //
 
-    //(void)gWatchApp.guiloop();
-    ExMainLoop();
+    //result = gWatchApp.guiloop();
+    result = ExMainLoop();
 
     //
     //(void)module.fini();
@@ -781,6 +782,7 @@ int main(int argc, char* argv[])
     (void)finiRes();
     (void)saveEnv();
     sync();
+    ExApp::fini(result);
 on_failure:
     dprint("exit %d\n", result);
     return result;
@@ -793,7 +795,7 @@ int APIENTRY WinMain(_In_ HINSTANCE hInstance,
                      _In_ LPSTR     lpCmdLine,
                      _In_ int       nCmdShow)
 {
-    ExApp::retCode = EXIT_SUCCESS;
+    int32 retCode = EXIT_SUCCESS;
 
     ExWatch::setTlsSpecific(&gWatchApp);
     SetConsoleOutputCP(CP_UTF8); // CP_UTF8 | CP_ACP
@@ -826,14 +828,14 @@ int APIENTRY WinMain(_In_ HINSTANCE hInstance,
     (void)gWndMain->setFlags(Ex_FreeMemory); // tbd
     //gWndMain->flushFunc = ExFlushFunc(&gLcdOut, &LcdOut::onFlush);
     if (gWndMain->start() != 0) {
-        ExApp::retCode = EXIT_FAILURE;
+        retCode = EXIT_FAILURE;
         goto on_failure;
     }
     (void)gWndMain->flush();
     exassert(ExApp::mainWnd == gWndMain);
 
-    //(void)gWatchApp.guiloop();
-    ExMainLoop();
+    //retCode = gWatchApp.guiloop();
+    retCode = ExMainLoop();
 
 #if 1
     //
@@ -855,8 +857,9 @@ int APIENTRY WinMain(_In_ HINSTANCE hInstance,
     (void)gWatchApp.cleanup();
     (void)finiRes();
     (void)saveEnv();
-    ExApp::exit(ExApp::retCode);
+    ExApp::fini(retCode);
 on_failure:
-    return ExApp::retCode;
+    dprint("exit %d\n", retCode);
+    return retCode;
 }
 #endif // WIN32

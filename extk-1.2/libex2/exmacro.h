@@ -15,24 +15,22 @@
 #define Ex_PASTE_ARGS(identifier1,identifier2)  identifier1 ## identifier2
 #define Ex_PASTE_DEFS(identifier1,identifier2)  Ex_PASTE_ARGS(identifier1, identifier2)
 
-#if 0//defined(__GNUC__)
+#if defined(__GNUC__) || defined(__clang__)
 # define __func__       ((const char*)(__PRETTY_FUNCTION__))
-# define __funcw__      ((const wchar*)(__PRETTY_FUNCTIONW__))
+#elif defined(_MSC_VER)
+# define __func__       ((const char*)(__FUNCSIG__))
+# define __funcw__      ((const wchar*)Ex_WSTRINGIFY(__FUNCSIG__))
 #elif defined(__STDC_VERSION__) && __STDC_VERSION__ >= 19901L
 # define __func__       ((const char*)(__func__))
-# define __funcw__      ((const wchar*)Ex_WSTRINGIFY(__func__))
 #else
 # define __func__       ((const char*)(__FUNCTION__))
-# define __funcw__      ((const wchar*)Ex_WSTRINGIFY(__FUNCTION__))
 #endif
 
 /* Provide a string identifying the current code position */
 #if defined(__GNUC__) && (__GNUC__ < 3) && !defined(__cplusplus)
 # define Ex_STRLOC      __FILE__ ":" Ex_STRINGIFY(__LINE__) ":" __PRETTY_FUNCTION__ "()"
-# define Ex_WCSLOC      Ex_WSTRINGIFY(__FILE__) L":" Ex_WSTRINGIFY(__LINE__) L":" __PRETTY_FUNCTIONW__ L"()"
 #else
 # define Ex_STRLOC      __FILE__ ":" Ex_STRINGIFY(__LINE__)
-# define Ex_WCSLOC      Ex_WSTRINGIFY(__FILE__) L":" Ex_WSTRINGIFY(__LINE__)
 #endif
 
 #ifndef NULL

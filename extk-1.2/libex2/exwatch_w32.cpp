@@ -9,7 +9,7 @@
 #ifdef WIN32
 
 //#define IOMUX_WAIT_NO_GWES
-#define USE_SLEEP_BUSYWAIT
+//#define USE_SLEEP_BUSYWAIT
 
 int32 exmsleep(const uint32 msec) {
     Sleep((DWORD)msec);
@@ -72,7 +72,7 @@ DWORD ExWatch::IomuxMap::setup() {
     return static_cast<DWORD>(ret);
 }
 
-const ExWatch::Iomux* ExWatch::IomuxMap::search(OsaFd mux_fd) const {
+const ExWatch::Iomux* ExWatch::IomuxMap::search(ExOsFd mux_fd) const {
     const Iomux* iomux = nullptr;
     const_iterator i = find(mux_fd);
     if (i != end()) {
@@ -93,7 +93,7 @@ uint32 ExWatch::IomuxMap::probe(const ExCallback& callback, void* cbinfo) {
     return r;
 }
 
-bool ExWatch::IomuxMap::add(OsaFd mux_fd, uint32 events, const ExNotify& notify) {
+bool ExWatch::IomuxMap::add(ExOsFd mux_fd, uint32 events, const ExNotify& notify) {
     int32 r = -1;
     (void)watch->enter();
     if (size() < MAXIMUM_WAIT_OBJECTS) {
@@ -115,7 +115,7 @@ bool ExWatch::IomuxMap::add(OsaFd mux_fd, uint32 events, const ExNotify& notify)
     return (r == 0);
 }
 
-bool ExWatch::IomuxMap::mod(OsaFd mux_fd, uint32 events, const ExNotify& notify) {
+bool ExWatch::IomuxMap::mod(ExOsFd mux_fd, uint32 events, const ExNotify& notify) {
     int32 r = -1;
     (void)watch->enter();
     iterator i = find(mux_fd);
@@ -131,7 +131,7 @@ bool ExWatch::IomuxMap::mod(OsaFd mux_fd, uint32 events, const ExNotify& notify)
     return (r == 0);
 }
 
-bool ExWatch::IomuxMap::del(OsaFd mux_fd) {
+bool ExWatch::IomuxMap::del(ExOsFd mux_fd) {
     int32 r = -1;
     (void)watch->enter();
     iterator i = find(mux_fd);
