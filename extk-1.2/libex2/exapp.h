@@ -81,10 +81,10 @@ public:
     static void collect();
     static void fini(int32 retCode); // 0:EXIT_SUCCESS,1:EXIT_FAILURE
 #ifdef WIN32
-    static void init(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int32 nCmdShow);
+    static void init(ExWatch* self, HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int32 nCmdShow);
 #endif
 #ifdef __linux__
-    static void init(int argc, char* argv[]);
+    static void init(ExWatch* self, int argc, char* argv[]);
 #endif
     static bool initX11(ExWatch* watch);
     static bool finiX11(ExWatch* watch);
@@ -154,7 +154,7 @@ void start(...) {
 
 int main(int argc, char* argv[]) {
     int32 retCode = EXIT_SUCCESS;
-    ExApp::init(argc, argv);
+    ExApp::init(nullptr, argc, argv);
     start(...);
     retCode = ExMainLoop();
     // cleanup

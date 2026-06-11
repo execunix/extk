@@ -172,7 +172,7 @@ void ExApp::collect()
 void ExApp::fini(int32 retCode)
 {
     dprint("%s(%d)\n", _func_, retCode);
-    exassert2(ExThreadSelf() == &exMainThread, _fileline_); // trap
+    exassert2(ExThreadSelf() == exWatchMain, _fileline_); // trap
 #ifdef WIN32
     // When the system window manager closed the app, mainWnd was destroyed.
     #if 1 // It's not essential, but it's better to keep it clean.
@@ -191,13 +191,14 @@ void ExApp::fini(int32 retCode)
 }
 
 #ifdef WIN32
-void ExApp::init(HINSTANCE hInstance,
+void ExApp::init(ExWatch* self,
+                 HINSTANCE hInstance,
                  HINSTANCE hPrevInstance,
                  LPSTR lpCmdLine,
                  int32 nCmdShow)
 {
     // init lib
-    ExInitProcess();
+    ExInitProcess(self);
 
     // init args
     ExApp::hInstance = hInstance;
@@ -225,10 +226,10 @@ void ExApp::init(HINSTANCE hInstance,
 #endif // WIN32
 
 #ifdef __linux
-void ExApp::init(int argc, char* argv[])
+void ExApp::init(ExWatch* self, int argc, char* argv[])
 {
     // init lib
-    ExInitProcess(argv[0]);
+    ExInitProcess(self, argv[0]);
 
     // init args
     ExApp::argc = argc;

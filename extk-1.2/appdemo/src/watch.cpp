@@ -193,19 +193,13 @@ bool WatchApp::startup()
 {
     int32 r = 0;
 
-    exWatchMain = this;
-    exWatchLast = this;
-    exWatchDisp = this;
-
-    exassert2(tid == 0U, _fileline_);
+    exassert2(tid != 0U, _fileline_);
     iomuxmap.init(256UL);
 
-    evWake.init();
+    (void)evWake.init();
     (void)ioAdd(this, &WatchApp::onEvent, evWake);
 
     tickCount = ExGetTickCount(); // update tick
-
-    tid = pthread_self();
 
     fini_fifo();
     init_fifo();
@@ -322,19 +316,13 @@ bool WatchApp::startup()
 {
     int32 r = 0;
 
-    exWatchMain = this;
-    exWatchLast = this;
-    exWatchDisp = this;
-
-    exassert2(idThread == 0U, _fileline_);
+    exassert2(idThread != 0U, _fileline_);
     iomuxmap.init(256UL);
 
-    evWake.init();
+    (void)evWake.init();
     (void)ioAdd((ExWatch*)this, &ExWatch::onEvent, evWake);
 
     tickCount = ExGetTickCount(); // update tick
-
-    idThread = GetCurrentThreadId();
 
     return (r == 0);
 }

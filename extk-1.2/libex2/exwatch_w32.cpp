@@ -243,8 +243,8 @@ bool ExWatch::init(size_t max_iomux, size_t stacksize) {
     exassert(hThread == nullptr);
     iomuxmap.init(max_iomux);
 
-    evWake.init();
-    ioAdd(this, &ExWatch::onEvent, evWake);
+    (void)evWake.init();
+    (void)ioAdd(this, &ExWatch::onEvent, evWake);
 
     tickCount = ExGetTickCount(); // update tick
 

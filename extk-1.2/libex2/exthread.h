@@ -133,6 +133,7 @@ public:
 #endif // __linux__
     static ExThread* self() { return getTlsSelf(); }
 public:
+    friend void ExInitProcess(ExWatch* self, const char* pathname);
     friend class ExMutex;
     friend class ExWatch;
 public:
@@ -151,14 +152,12 @@ typedef ExThread::Mutex ExThreadMutex;
 extern const char* exModulePath;
 extern const char* exModuleName;
 
-extern ExThread exMainThread;
-
 // functions for the exlib
 //
 bool ExIsValidAddress(const void* addr, int32 bytes, bool readwrite = true);
 void ExGetCurrentTime(ExTimeVal* result);
 uint64 ExThreadGetTime();
 void ExFiniProcess();
-void ExInitProcess(const char* pathname = nullptr);
+void ExInitProcess(ExWatch* self, const char* pathname = nullptr);
 
 #endif//__exthread_h__

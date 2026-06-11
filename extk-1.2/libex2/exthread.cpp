@@ -5,6 +5,7 @@
 
 #include "exthread.h"
 #include "exmemory.h"
+#include "exwatch.h"
 #include <algorithm>
 #include <assert.h>
 
@@ -250,8 +251,6 @@ void ExThread::exit(void* retval) { // static
 const char* exModulePath = NULL;
 const char* exModuleName = NULL;
 
-ExThread exMainThread("MainThread");
-
 // functions for the exlib
 //
 bool ExIsValidAddress(const void* addr, int32 bytes, bool readwrite)
@@ -331,11 +330,18 @@ void ExFiniProcess()
 #endif // __linux__
 }
 
-void ExInitProcess(const char* pathname)
+void ExInitProcess(ExWatch* self, const char* pathname)
 {
-    // init exMainThread
-    ExThread* self = &exMainThread;
+    // init exWatchMain
+    if (self == nullptr) {
+        self = exWatchMain; // default
+    } else {
+        exWatchMain = self;
+    }
+    exWatchLast = self;
+    exWatchDisp = self;
 
+    self->joinable = false; // tbd
 #ifdef WIN32
     self->hThread = GetCurrentThread();
     self->idThread = GetCurrentThreadId();
@@ -344,17 +350,14 @@ void ExInitProcess(const char* pathname)
     #else
     self->priority = GetThreadPriority(self->hThread); // ExThread::PrioNormal
     #endif
-    self->joinable = false; // tbd
     dprint1("ExMainThread: hThread=%p idThread=%p priority=%d joinable=%d\n",
             self->hThread, self->idThread, self->priority, self->joinable);
 #endif // WIN32
 #ifdef __linux__
-    // self->hThread = GetCurrentThread();
-    // self->idThread = GetCurrentThreadId();
+    self->tid = pthread_self();
     // self->priority = 0;
-    // self->joinable = false; // tbd
-    // dprint1("ExMainThread: hThread=%p idThread=%p priority=%d joinable=%d\n",
-    //         self->hThread, self->idThread, self->priority, self->joinable);
+    dprint1("ExMainThread: tid=%p priority=%d joinable=%d\n",
+             self->tid, self->priority, self->joinable);
 #endif // __linux__
     ExThread::setTlsSelf(self);
 

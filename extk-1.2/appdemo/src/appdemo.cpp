@@ -675,7 +675,7 @@ int main(int argc, char* argv[])
 {
     int32 result = EXIT_SUCCESS;
 
-    ExThread::setTlsSelf(&gWatchApp);
+    ExApp::init(&gWatchApp, argc, argv);
 #ifdef DPRINT
     dprint_verbose = 3;
     if (setlocale(LC_ALL, "en_US.UTF-8") == nullptr) {
@@ -702,7 +702,6 @@ int main(int argc, char* argv[])
     //app_test();
     //flt_test();
 
-    ExApp::init(argc, argv);
     (void)init_signal();
 
     (void)initEnv();
@@ -797,7 +796,7 @@ int APIENTRY WinMain(_In_ HINSTANCE hInstance,
 {
     int32 retCode = EXIT_SUCCESS;
 
-    ExThread::setTlsSelf(&gWatchApp);
+    ExApp::init(&gWatchApp, hInstance, hPrevInstance, lpCmdLine, nCmdShow);
     SetConsoleOutputCP(CP_UTF8); // CP_UTF8 | CP_ACP
 #ifdef DPRINT
     dprint_verbose = 3;
@@ -814,7 +813,6 @@ int APIENTRY WinMain(_In_ HINSTANCE hInstance,
     //app_test();
     //flt_test();
 
-    ExApp::init(hInstance, hPrevInstance, lpCmdLine, nCmdShow);
     (void)initEnv();
     (void)initRes();
     (void)gWatchApp.startup();
