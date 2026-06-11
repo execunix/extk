@@ -675,7 +675,7 @@ int main(int argc, char* argv[])
 {
     int32 result = EXIT_SUCCESS;
 
-    ExWatch::setTlsSpecific(&gWatchApp);
+    ExThread::setTlsSelf(&gWatchApp);
 #ifdef DPRINT
     dprint_verbose = 3;
     if (setlocale(LC_ALL, "en_US.UTF-8") == nullptr) {
@@ -797,7 +797,7 @@ int APIENTRY WinMain(_In_ HINSTANCE hInstance,
 {
     int32 retCode = EXIT_SUCCESS;
 
-    ExWatch::setTlsSpecific(&gWatchApp);
+    ExThread::setTlsSelf(&gWatchApp);
     SetConsoleOutputCP(CP_UTF8); // CP_UTF8 | CP_ACP
 #ifdef DPRINT
     dprint_verbose = 3;

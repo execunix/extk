@@ -7,7 +7,7 @@
 #define __exwatch_h__
 
 #include "excallback.h"
-#include "exobject.h"
+#include "exthread.h"
 #include "exevent.h"
 #ifdef __linux__
 #include <sys/poll.h>
@@ -31,7 +31,6 @@ class ExTimer;
 struct ExModalCtrl {
     uint32          flags;
     void*           result;
-    //ExThreadCond*   cond;
     ExModalCtrl() noexcept : flags(Ex_Continue), result(nullptr) {}
 };
 
@@ -81,7 +80,7 @@ struct ExHookProc : public ExPolyFunc<uint32, uint32> {
 
 // Watch thread
 //
-class ExWatch : public ExObject {
+class ExWatch : public ExThread {
 protected:
     // TimerSet
     struct TickCompare { // less traits
@@ -159,29 +158,10 @@ protected:
         int64 invoke(int64 waittick = 60000000L);
     };
 public:
-    const char* name; // for debug
     static uint64 tickAppLaunch;
-    #ifdef WIN32
-    static DWORD keyTlsSpecific;
-    #else // __linux__
-    static pthread_key_t keyTlsSpecific;
-    #endif
-    static const ExWatch* getTlsSpecific();
-    static void setTlsSpecific(const ExWatch* watch);
 protected:
-    #ifdef WIN32
-    static DWORD WINAPI start(_In_ LPVOID arg);
-    #else // __linux__
-    static void* start(void* arg);
-    #endif
     IomuxMap        iomuxmap;
     TimerSet        timerset;
-    #ifdef WIN32
-    DWORD           idThread;
-    HANDLE          hThread;
-    #else // __linux__
-    pthread_t       tid;
-    #endif
     ExEvent         evWake; // event to wakeup this watch
     uint32          halt;
     uint32          __pad00;
@@ -193,27 +173,17 @@ public:
     ExHookProc      hookProcess;    // process
     ExHookProc      hookCleanup;    // cleanup
 public:
-    #ifdef WIN32
     virtual ~ExWatch() noexcept {
         fini();
     }
-    explicit ExWatch(const char* name) noexcept : name(name)
-        , iomuxmap(this), timerset(), idThread(0U), hThread(nullptr)
-        , evWake(), halt(0U), tickCount(0UL), mutex(), mclist()
+    explicit ExWatch(const char* name) noexcept : ExThread(name)
+        , iomuxmap(this), timerset(), evWake(), halt(0U), tickCount(0UL), mutex(), mclist()
         , hookStartup(), hookProcess(this, &ExWatch::process), hookCleanup() {
         tickCount = tickAppLaunch;
     }
+    #ifdef WIN32
     DWORD id() const noexcept { return idThread; }
     #else // __linux__
-    virtual ~ExWatch() noexcept {
-        fini();
-    }
-    explicit ExWatch(const char* name) noexcept : name(name)
-        , iomuxmap(this), timerset(), tid(0U)
-        , evWake(), halt(0U), tickCount(0UL), mutex(), mclist()
-        , hookStartup(), hookProcess(this, &ExWatch::process), hookCleanup() {
-        tickCount = tickAppLaunch;
-    }
     pthread_t id() const noexcept { return tid; }
     #endif
     bool fini();
@@ -227,7 +197,7 @@ public:
     uint32 getTickMs() const { return static_cast<uint32>(tickCount / 1000U); }
 public:
     uint32 onEvent(const epoll_event* ev);
-    uint32 proc();
+    uint32 proc(const ExWatch* const self);
     uint32 process(uint32 hook = ExHookProc::Process);
     uint32 guiloop(uint32 hook = ExHookProc::Process);
     void* dispatch(ExModalCtrl* const ctrl);
@@ -262,11 +232,12 @@ protected:
     int64 timerset_invoke(uint64 tick_count) { return timerset.invoke(tick_count); }
     int64 iomuxmap_invoke(int64 waittick = 60000000L) { return iomuxmap.invoke(waittick); }
 #endif // tbd
+public:
     friend int32 ExMainLoop();
     friend class ExMutex;
     friend class ExTimer;
 public:
-    Ex_DECLARE_TYPEINFO(ExWatch, ExObject);
+    Ex_DECLARE_TYPEINFO(ExWatch, ExThread);
 };
 
 extern ExWatch* exWatchMain;

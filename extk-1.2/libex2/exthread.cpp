@@ -9,196 +9,252 @@
 #include <assert.h>
 
 #ifndef TLS_OUT_OF_INDEXES
-#define TLS_OUT_OF_INDEXES 0xFFFFFFFF
-#endif//_WIN32_WCE
+#define TLS_OUT_OF_INDEXES 0xFFFFFFFFU
+#endif // _WIN32_WCE
 
 #ifdef WIN32
+DWORD ExThread::keyTlsSelf = TLS_OUT_OF_INDEXES;
+#endif // WIN32
+#ifdef __linux__
+pthread_key_t ExThread::keyTlsSelf = (pthread_key_t)-1;
+#endif // __linux__
 
-static DWORD exThreadSelfTls = TLS_OUT_OF_INDEXES;
-static DWORD exCondEventTls = TLS_OUT_OF_INDEXES;
-
-static void ExThreadFiniWin32Impl()
+ExThread* ExThread::getTlsSelf()
 {
-    if (TLS_OUT_OF_INDEXES != exCondEventTls)
-        TlsFree(exCondEventTls);
-    if (TLS_OUT_OF_INDEXES != exThreadSelfTls)
-        TlsFree(exThreadSelfTls);
-}
-
-static void ExThreadInitWin32Impl()
-{
-    exThreadSelfTls = TlsAlloc();
-    assert(TLS_OUT_OF_INDEXES != exThreadSelfTls);
-    exCondEventTls = TlsAlloc();
-    assert(TLS_OUT_OF_INDEXES != exCondEventTls);
-
-    // init exMainThread
-    ExThread* self = &exMainThread;
-    self->hThread = GetCurrentThread();
-    self->idThread = GetCurrentThreadId();
-#ifdef _WIN32_WCE
-    self->priority = CeGetThreadPriority(self->hThread); // ExThread::PrioNormal
-#else
-    self->priority = GetThreadPriority(self->hThread); // ExThread::PrioNormal
-#endif
-    self->joinable = false; // tbd
-    dprint1("ExMainThread: hThread=%p idThread=%p priority=%d joinable=%d\n",
-            self->hThread, self->idThread, self->priority, self->joinable);
-    TlsSetValue(exThreadSelfTls, self);
-}
-
-static DWORD WINAPI
-ExThreadProcWin32Impl(LPVOID lpParameter)
-{
-    DWORD dwExitCode;
-    HANDLE condEvent;
-    ExThread* self = (ExThread*)lpParameter;
-    assert(self && self->userproc);
-    if (self && self->userproc) {
-        TlsSetValue(exThreadSelfTls, self);
-        dwExitCode = self->userproc(self);
-        condEvent = (HANDLE)TlsGetValue(exCondEventTls);
-        if (condEvent) {
-            CloseHandle(condEvent);
-            TlsSetValue(exCondEventTls, NULL);
-        }
-        if (self->joinable == false) // is detached thread ?
-            CloseHandle(self->hThread);
-        TlsSetValue(exThreadSelfTls, NULL);
+#ifdef WIN32
+    ExThread* self = nullptr;
+    if (TLS_OUT_OF_INDEXES != keyTlsSelf) {
+        self = (ExThread*)TlsGetValue(keyTlsSelf);
     }
-    return dwExitCode;
+    return self;
+#endif // WIN32
+#ifdef __linux__
+    ExThread* self = nullptr;
+    if ((pthread_key_t)-1 != keyTlsSelf) {
+        self = (ExThread*)pthread_getspecific(keyTlsSelf);
+    }
+    return self;
+#endif // __linux__
+}
+
+void ExThread::setTlsSelf(ExThread* self)
+{
+#ifdef WIN32
+    if (TLS_OUT_OF_INDEXES == keyTlsSelf) {
+        keyTlsSelf = TlsAlloc();
+    }
+    exassert(TLS_OUT_OF_INDEXES != keyTlsSelf);
+    void* prev = TlsGetValue(keyTlsSelf);
+    if (prev == self) {
+        dprint1("%s: duplicate %p\n", _func_, self);
+    } else {
+        dprint1("%s: %p to %p\n", _func_, prev, self);
+        (void)TlsSetValue(keyTlsSelf, (LPVOID)self);
+    }
+#endif // WIN32
+#ifdef __linux__
+    if ((pthread_key_t)-1 == keyTlsSelf) {
+        (void)pthread_key_create(&keyTlsSelf, nullptr);
+    }
+    exassert((pthread_key_t)-1 != keyTlsSelf);
+    void* prev = pthread_getspecific(keyTlsSelf);
+    if (prev == self) {
+        dprint1("%s: duplicate %p\n", _func_, self);
+    } else {
+        dprint1("%s: %p to %p\n", _func_, prev, self);
+        (void)pthread_setspecific(keyTlsSelf, (void*)self);
+    }
+#endif // __linux__
+}
+
+// class Mutex
+//
+ExThread::Mutex::~Mutex() noexcept
+{
+#ifdef WIN32
+    DeleteCriticalSection(&cs);
+#endif // WIN32
+#ifdef __linux__
+    (void)pthread_mutex_destroy(&mtx);
+#endif // __linux__
+}
+
+ExThread::Mutex::Mutex() noexcept
+{
+#ifdef WIN32
+    InitializeCriticalSection(&cs);
+#endif // WIN32
+#ifdef __linux__
+    pthread_mutexattr_t attr;
+    (void)pthread_mutexattr_init(&attr);
+    (void)pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
+    (void)pthread_mutex_init(&mtx, &attr);
+    (void)pthread_mutexattr_destroy(&attr);
+#endif // __linux__
+}
+
+bool ExThread::Mutex::lock() const noexcept
+{
+#ifdef WIN32
+    EnterCriticalSection(&cs);
+    return true;
+#endif // WIN32
+#ifdef __linux__
+    return (0 == pthread_mutex_lock(&mtx));
+#endif // __linux__
+}
+
+bool ExThread::Mutex::unlock() const noexcept
+{
+#ifdef WIN32
+    LeaveCriticalSection(&cs);
+    return true;
+#endif // WIN32
+#ifdef __linux__
+    return (0 == pthread_mutex_unlock(&mtx));
+#endif // __linux__
+}
+
+bool ExThread::Mutex::trylock() const noexcept
+{
+#ifdef WIN32
+    return TryEnterCriticalSection(&cs);
+#endif // WIN32
+#ifdef __linux__
+    return (0 == pthread_mutex_trylock(&mtx));
+#endif // __linux__
 }
 
 // class ExThread
 //
-void ExThread::Cond::signal() {
-    mutex.lock();
-    if (!hevs.empty()) {
-        SetEvent(hevs.front());
-        hevs.pop_front();
+#ifdef WIN32
+DWORD WINAPI ExThread::start(_In_ LPVOID lpParameter)
+{
+    DWORD dwExitCode;
+    ExThread* self = (ExThread*)lpParameter;
+    assert(self && self->userproc);
+    ExThread::setTlsSelf(self);
+    dwExitCode = self->userproc(self);
+    exassert(dwExitCode == 0U);
+    if (self->joinable == false) { // is detached thread ?
+        dprint("finish detached thread...\n");
+        CloseHandle(self->hThread);
     }
-    mutex.unlock();
+    ExThread::setTlsSelf(nullptr);
+    return dwExitCode;
 }
-
-void ExThread::Cond::broadcast() {
-    mutex.lock();
-    std::list<HANDLE>::iterator it = hevs.begin();
-    while (it != hevs.end()) {
-        SetEvent(*it);
-        ++it;
+#endif // WIN32
+#ifdef __linux__
+void* ExThread::start(void* arg)
+{
+    uint32 ret;
+    ExThread* self = (ExThread*)arg;
+    assert(self && self->userproc);
+    ExThread::setTlsSelf(self);
+    ret = self->userproc(self);
+    exassert(ret == 0U);
+    if (self->joinable == false) { // is detached thread ?
+        dprint("finish detached thread...\n");
     }
-    hevs.clear();
-    mutex.unlock();
+    ExThread::setTlsSelf(nullptr);
+    return nullptr; // tbd
 }
+#endif // __linux__
 
-bool ExThread::Cond::timedWait(Mutex* enteredMutex, ExTimeVal* absTime) {
-    assert(this != NULL);
-    assert(enteredMutex != NULL);
+bool ExThread::join(uint wait)
+{
+    int32 ret = 0;
 
-    uint32 milliseconds = INFINITE;
-    if (absTime) {
-        ExTimeVal currentTime;
-        ExGetCurrentTime(&currentTime);
-        if ((absTime->tv_sec < currentTime.tv_sec) ||
-            (absTime->tv_sec == currentTime.tv_sec &&
-             absTime->tv_usec <= currentTime.tv_usec)) {
-            milliseconds = 0;
-        } else {
-            milliseconds = (absTime->tv_sec - currentTime.tv_sec) * 1000 +
-                           (absTime->tv_usec - currentTime.tv_usec) / 1000;
-        }
-    }
-    uint32 retval;
-    HANDLE condEvent;
-    condEvent = (HANDLE)TlsGetValue(exCondEventTls);
-    if (condEvent == NULL) {
-        condEvent = CreateEvent(0, FALSE, FALSE, NULL);
-        TlsSetValue(exCondEventTls, condEvent);
-        assert(condEvent != NULL);
-    }
-    mutex.lock();
-    retval = WaitForSingleObject(condEvent, 0U);
-    assert(retval == WAIT_TIMEOUT);
-    hevs.push_back(condEvent);
-    mutex.unlock();
-
-    enteredMutex->unlock();
-    retval = WaitForSingleObject(condEvent, milliseconds);
-    assert(retval != WAIT_FAILED);
-    enteredMutex->lock();
-    if (retval == WAIT_TIMEOUT) {
-        mutex.lock();
-        hevs.erase(std::find(hevs.begin(), hevs.end(), condEvent));
-        retval = WaitForSingleObject(condEvent, 0U);
-        assert(retval != WAIT_FAILED);
-        mutex.unlock();
-    }
-#ifdef DEBUG // for debug...
-    mutex.lock();
-    assert(std::find(hevs.begin(), hevs.end(), condEvent) == hevs.end());
-    mutex.unlock();
-#endif
-    return retval != WAIT_TIMEOUT;
-}
-
-int ExThread::join(uint wait) {
-    assert(this->hThread);
-    if (this->joinable == false) {
+    if (joinable == false) {
+        ret--;
         exerror("%s - not joinable.\n", _func_);
-        return -1;
+        goto end_join;
     }
-    if (WaitForSingleObject(this->hThread, wait) == WAIT_FAILED) {
+#ifdef WIN32
+    exassert(hThread != nullptr);
+    if (WaitForSingleObject(hThread, wait) == WAIT_FAILED) {
         exerror("%s - WaitForSingleObject fail.\n", _func_);
+        ret--;
     }
-    if (CloseHandle(this->hThread) == 0) {
+    if (CloseHandle(hThread) == 0) {
         exerror("%s - CloseHandle fail.\n", _func_);
+        ret--;
     }
-    this->joinable = false;
-    this->hThread = NULL;
-    return 0;
+    hThread = nullptr;
+#endif // WIN32
+#ifdef __linux__
+    exassert(tid != 0U);
+    ret = pthread_join(tid, nullptr);
+    tid = 0U;
+#endif // __linux__
+    joinable = false;
+end_join:
+    exassert(ret == 0);
+    return (ret == 0);
 }
 
-int ExThread::create(Proc& proc, bool joinable) {
-    this->userproc = proc;
+bool ExThread::create(const Proc& proc, size_t stacksize, bool joinable)
+{
+    userproc = proc;
     this->joinable = joinable;
-    hThread = CreateThread(NULL, 0, ExThreadProcWin32Impl, this, 0, &idThread);
+#ifdef WIN32
+    hThread = CreateThread(nullptr, stacksize, &ExThread::start, this, 0U, &idThread);
     dprint1("CreateThread: hThread=%p idThread=%p\n", hThread, idThread);
-    return hThread == NULL ? -1 : 0;
+    exassert(hThread != nullptr);
+    return (hThread != nullptr);
+#endif // WIN32
+#ifdef __linux__
+    int32 ret;
+    pthread_attr_t attr;
+    (void)pthread_attr_init(&attr);
+    (void)pthread_attr_setstacksize(&attr, stacksize);
+    // tbd - set prio
+    if (joinable == false) { // is detached thread ?
+        (void)pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+    }
+    ret = pthread_create(&tid, &attr, &ExThread::start, this);
+    (void)pthread_attr_destroy(&attr);
+    exassert(ret == 0);
+    return (ret == 0);
+#endif // __linux__
 }
 
+#ifdef WIN32
 void ExThread::exit(DWORD dwExitCode) { // static
-    HANDLE condEvent;
-    ExThread* self;
-    self = (ExThread*)TlsGetValue(exThreadSelfTls);
-    if (self) {
-        condEvent = (HANDLE)TlsGetValue(exCondEventTls);
-        if (condEvent) {
-            CloseHandle(condEvent);
-            TlsSetValue(exCondEventTls, NULL);
-        }
-        if (self->joinable == false) // is detached thread ?
+    ExThread* self = getTlsSelf();
+    if (self != nullptr) {
+        if (self->joinable == false) { // is detached thread ?
+            dprint("exit detached thread...\n");
             CloseHandle(self->hThread);
-        TlsSetValue(exThreadSelfTls, NULL);
+        }
+        setTlsSelf(nullptr);
     }
     ExitThread(dwExitCode);
 }
-
-ExThread* ExThread::self() { // static
-    return (ExThread*)TlsGetValue(exThreadSelfTls);
-}
-
 #endif // WIN32
+#ifdef __linux__
+void ExThread::exit(void* retval) { // static
+    ExThread* self = getTlsSelf();
+    if (self != nullptr) {
+        if (self->joinable == false) { // is detached thread ?
+            dprint("exit detached thread...\n");
+        }
+        setTlsSelf(nullptr);
+    }
+    pthread_exit(retval);
+}
+#endif // __linux__
 
 // variables for the exlib
 //
 const char* exModulePath = NULL;
 const char* exModuleName = NULL;
 
-ExThread exMainThread;
+ExThread exMainThread("MainThread");
 
 // functions for the exlib
 //
-bool ExIsValidAddress(const void* addr, int bytes, bool readwrite)
+bool ExIsValidAddress(const void* addr, int32 bytes, bool readwrite)
 {
 #ifdef WIN32
     //static const char _func_[] = "ExIsValidAddress";
@@ -220,9 +276,9 @@ void ExGetCurrentTime(ExTimeVal* result)
     SYSTEMTIME st;
     GetSystemTime(&st);
     SystemTimeToFileTime(&st, &ft);
-#else//_WIN32_WCE
+#else // _WIN32_WCE
     GetSystemTimeAsFileTime(&ft);
-#endif//_WIN32_WCE
+#endif // _WIN32_WCE
     *time64 -= 116444736000000000ULL;
     *time64 /= 10;
     result->tv_sec = (long)(*time64 / 1000000);
@@ -242,9 +298,9 @@ uint64 ExThreadGetTime()
     SYSTEMTIME st;
     GetSystemTime(&st);
     SystemTimeToFileTime(&st, (FILETIME*)&v);
-#else//_WIN32_WCE
+#else // _WIN32_WCE
     GetSystemTimeAsFileTime((FILETIME*)&v);
-#endif//_WIN32_WCE
+#endif // _WIN32_WCE
     // Offset to Unix epoch
     v -= 116444736000000000ULL;
     // Convert to nanoseconds
@@ -258,12 +314,6 @@ uint64 ExThreadGetTime()
 
 void ExFiniProcess()
 {
-#ifdef WIN32
-    ExThreadFiniWin32Impl();
-#endif // WIN32
-#ifdef __linux__
-    // tbd - ExThreadFiniWin32Impl();
-#endif // __linux__
     dprint1("%s(%s\\%s)\n", _func_, exModulePath, exModuleName);
     assert(exModulePath != nullptr);
     assert(exModuleName != nullptr);
@@ -271,21 +321,54 @@ void ExFiniProcess()
     free((void*)exModulePath);
     exModulePath = nullptr;
     exModuleName = nullptr;
+#ifdef WIN32
+    exassert(TLS_OUT_OF_INDEXES != ExThread::keyTlsSelf);
+    (void)TlsFree(ExThread::keyTlsSelf);
+#endif // WIN32
+#ifdef __linux__
+    exassert((pthread_key_t)-1 != ExThread::keyTlsSelf);
+    (void)pthread_key_delete(ExThread::keyTlsSelf);
+#endif // __linux__
 }
 
 void ExInitProcess(const char* pathname)
 {
+    // init exMainThread
+    ExThread* self = &exMainThread;
+
+#ifdef WIN32
+    self->hThread = GetCurrentThread();
+    self->idThread = GetCurrentThreadId();
+    #ifdef _WIN32_WCE
+    self->priority = CeGetThreadPriority(self->hThread); // ExThread::PrioNormal
+    #else
+    self->priority = GetThreadPriority(self->hThread); // ExThread::PrioNormal
+    #endif
+    self->joinable = false; // tbd
+    dprint1("ExMainThread: hThread=%p idThread=%p priority=%d joinable=%d\n",
+            self->hThread, self->idThread, self->priority, self->joinable);
+#endif // WIN32
+#ifdef __linux__
+    // self->hThread = GetCurrentThread();
+    // self->idThread = GetCurrentThreadId();
+    // self->priority = 0;
+    // self->joinable = false; // tbd
+    // dprint1("ExMainThread: hThread=%p idThread=%p priority=%d joinable=%d\n",
+    //         self->hThread, self->idThread, self->priority, self->joinable);
+#endif // __linux__
+    ExThread::setTlsSelf(self);
+
     assert(exModulePath == nullptr);
     assert(exModuleName == nullptr);
     char buf[256];
 #ifdef WIN32
-    int len = GetModuleFileName(nullptr, buf, 256);
-    while (len > 0 && buf[len] != '\\') {
+    DWORD len = GetModuleFileName(nullptr, buf, 256);
+    while (len > 0U && buf[len] != '\\') {
         len--;
     }
 #endif // WIN32
 #ifdef __linux__
-    int len = snprintf(buf, 256UL, "%s", pathname);
+    int32 len = snprintf(buf, 256UL, "%s", pathname);
     while (len > 0 && buf[len] != '/') {
         len--;
     }
@@ -294,10 +377,4 @@ void ExInitProcess(const char* pathname)
     exModulePath = exstrdup(buf);
     exModuleName = exstrdup(buf + len + 1);
     dprint1("%s(%s\\%s)\n", _func_, exModulePath, exModuleName);
-#ifdef WIN32
-    ExThreadInitWin32Impl();
-#endif // WIN32
-#ifdef __linux__
-    // tbd - ExThreadInitWin32Impl();
-#endif // __linux__
 }

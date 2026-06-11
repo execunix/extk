@@ -102,7 +102,7 @@ bool ExMutex::unlock() const noexcept {
     if (owner != self) {
         dprint1("ExMutex::unlock() invalid owner:%zu recurs:%u\n",
                 (size_t)owner, recurs);
-        exassert2(owner != self); // trap
+        exassert2(owner != self, _fileline_); // trap
         return false;
     }
     recurs--;
@@ -137,7 +137,7 @@ bool ExMutex::lock() const noexcept {
     }
     dprint1("ExMutex::lock() %s TID:%p err#%d:%s\n", "detect deadlock", self,
             dwWaitRet, dwWaitRet == WAIT_TIMEOUT ? "WAIT_TIMEOUT" : "WAIT_FAILED");
-    exassert2(WAIT_OBJECT_0 != dwWaitRet); // trap
+    exassert2(WAIT_OBJECT_0 != dwWaitRet, _fileline_); // trap
     #else
     if (WAIT_OBJECT_0 == WaitForSingleObject(mutex, INFINITE)) {
         owner = self;
@@ -158,7 +158,7 @@ bool ExMutex::unlock() const noexcept {
     if ((recurs == 0U) || (0 == pthread_equal(owner, pthread_self()))) {
         dprint1("ExMutex::unlock() invalid owner:%zu recurs:%u\n",
                 (size_t)owner, recurs);
-        exassert2(recurs == 0U); // trap
+        exassert2(recurs == 0U, _fileline_); // trap
     } else {
         recurs--;
         if (recurs == 0U) {
@@ -183,7 +183,7 @@ bool ExMutex::lock() const noexcept {
     if (r != 0) {
         dprint1("ExMutex::lock() %s TID:%p err#%d:%s\n",
                 "detect deadlock", self, r, exstrerr());
-        exassert2(r != 0); // trap
+        exassert2(r != 0, _fileline_); // trap
     }
     #else
     r = pthread_mutex_lock(&mutex);

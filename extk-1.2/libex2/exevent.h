@@ -65,12 +65,12 @@ public:
     #endif // WIN32
     #ifdef __linux__
     ~ExMutex() noexcept {
-        pthread_cond_destroy(&cond);
-        pthread_mutex_destroy(&mutex);
+        (void)pthread_cond_destroy(&cond);
+        (void)pthread_mutex_destroy(&mutex);
     }
     explicit ExMutex() noexcept : mutex(), cond(), owner(0U), recurs(0U) {
-        pthread_mutex_init(&mutex, nullptr);
-        pthread_cond_init(&cond, nullptr);
+        (void)pthread_mutex_init(&mutex, nullptr);
+        (void)pthread_cond_init(&cond, nullptr);
     }
     #endif // __linux__
     bool isowner() const noexcept;

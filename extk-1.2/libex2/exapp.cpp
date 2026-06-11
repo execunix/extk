@@ -172,8 +172,8 @@ void ExApp::collect()
 void ExApp::fini(int32 retCode)
 {
     dprint("%s(%d)\n", _func_, retCode);
+    exassert2(ExThreadSelf() == &exMainThread, _fileline_); // trap
 #ifdef WIN32
-    exassert2(ExThreadSelf() == &exMainThread); // trap
     // When the system window manager closed the app, mainWnd was destroyed.
     #if 1 // It's not essential, but it's better to keep it clean.
     if (ExApp::mainWnd != nullptr) { // When the halt flag is set inside the app.
@@ -185,7 +185,6 @@ void ExApp::fini(int32 retCode)
     ExitProcess(retCode);
 #endif // WIN32
 #ifdef __linux__
-    // tbd - exassert2(ExThreadSelf() == &exMainThread); // trap
     ExFiniProcess();
     exit(retCode);
 #endif // __linux__

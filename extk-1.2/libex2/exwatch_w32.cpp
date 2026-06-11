@@ -224,53 +224,19 @@ int64 ExWatch::IomuxMap::invoke(int64 waittick) {
 //
 uint64 ExWatch::tickAppLaunch = ExGetTickCount();
 
-DWORD ExWatch::keyTlsSpecific = TLS_OUT_OF_INDEXES;
-
-const ExWatch* ExWatch::getTlsSpecific() {
-    const ExWatch* watch = nullptr;
-    if (keyTlsSpecific != TLS_OUT_OF_INDEXES) {
-        watch = (const ExWatch*)TlsGetValue(keyTlsSpecific);
-    }
-    return watch;
-}
-
-void ExWatch::setTlsSpecific(const ExWatch* watch) {
-    if (keyTlsSpecific == TLS_OUT_OF_INDEXES) {
-        keyTlsSpecific = TlsAlloc();
-    }
-    exassert(keyTlsSpecific != TLS_OUT_OF_INDEXES);
-    exassert(TlsGetValue(keyTlsSpecific) == nullptr);
-    TlsSetValue(keyTlsSpecific, (LPVOID)watch);
-}
-
-DWORD WINAPI ExWatch::start(_In_ LPVOID arg) {
-    ExWatch* watch = (ExWatch*)arg;
-    uint32 r = watch->proc();
-    exassert(r == 0U);
-    return 0U;
-}
-
 bool ExWatch::fini() {
-    int32 r = 0;
+    bool ret = false;
     idThread = 0U;
     if (hThread != nullptr) {
         setHalt(Ex_Halt);
         //(void)leave();
-        if (WaitForSingleObject(hThread, INFINITE) == WAIT_FAILED) {
-            exerror("%s - WaitForSingleObject fail.\n", _func_);
-            r -= 1;
-        }
+        ret = join(INFINITE);
         //(void)enter();
-        if (CloseHandle(hThread) == 0) {
-            exerror("%s - CloseHandle fail.\n", _func_);
-            r -= 1;
-        }
-        hThread = nullptr;
     }
     iomuxmap.fini();
     timerset.fini();
     evWake.fini();
-    return (r == 0);
+    return ret;
 }
 
 bool ExWatch::init(size_t max_iomux, size_t stacksize) {
@@ -282,11 +248,7 @@ bool ExWatch::init(size_t max_iomux, size_t stacksize) {
 
     tickCount = ExGetTickCount(); // update tick
 
-    hThread = CreateThread(nullptr, stacksize, start, this, 0, &idThread);
-    dprint1("CreateThread: hThread=%p idThread=%p\n", hThread, idThread);
-    exassert(hThread != nullptr);
-
-    return (hThread != nullptr);
+    return create(Proc(this, &ExWatch::proc));
 }
 
 uint32 ExWatch::onEvent(const epoll_event* ev) {

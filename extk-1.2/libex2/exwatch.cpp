@@ -271,56 +271,27 @@ int64 ExWatch::IomuxMap::invoke(int64 waittick) {
 //
 uint64 ExWatch::tickAppLaunch = ExGetTickCount();
 
-pthread_key_t ExWatch::keyTlsSpecific = (pthread_key_t)-1;
-
-const ExWatch* ExWatch::getTlsSpecific() {
-    const ExWatch* watch = nullptr;
-    if (keyTlsSpecific != (pthread_key_t)-1) {
-        watch = (const ExWatch*)pthread_getspecific(keyTlsSpecific);
-    }
-    return watch;
-}
-
-void ExWatch::setTlsSpecific(const ExWatch* watch) {
-    if (keyTlsSpecific == (pthread_key_t)-1) {
-        pthread_key_create(&keyTlsSpecific, nullptr);
-    }
-    exassert(keyTlsSpecific != (pthread_key_t)-1);
-    exassert(pthread_getspecific(keyTlsSpecific) == nullptr);
-    pthread_setspecific(keyTlsSpecific, watch);
-}
-
-void* ExWatch::start(void* arg) {
-    ExWatch* watch = (ExWatch*)arg;
-    uint32 r = watch->proc();
-    exassert(r == 0U);
-    return nullptr;
-}
-
 bool ExWatch::fini() {
-    int32 r = 0;
+    bool ret = false;
     if (tid != 0U) {
         #if 1
         setHalt(Ex_Halt);
         #else
+        int32 r;
         r = pthread_cancel(tid);
         exassert(r == 0);
         #endif
         //(void)leave();
-        r = pthread_join(tid, nullptr);
+        ret = join();
         //(void)enter();
-        exassert(r == 0);
-        tid = 0U;
     }
     iomuxmap.fini();
     timerset.fini();
     evWake.fini();
-    return (r == 0);
+    return ret;
 }
 
 bool ExWatch::init(size_t max_iomux, size_t stacksize) {
-    int32 r = 0;
-
     exassert(tid == 0U);
     iomuxmap.init(max_iomux);
 
@@ -329,14 +300,7 @@ bool ExWatch::init(size_t max_iomux, size_t stacksize) {
 
     tickCount = ExGetTickCount(); // update tick
 
-    pthread_attr_t attr;
-    pthread_attr_init(&attr);
-    pthread_attr_setstacksize(&attr, stacksize);
-    r = pthread_create(&tid, &attr, start, this);
-    exassert(r == 0);
-    pthread_attr_destroy(&attr);
-
-    return (r == 0);
+    return create(Proc(this, &ExWatch::proc));
 }
 
 uint32 ExWatch::onEvent(const epoll_event* const ev) {
@@ -362,11 +326,10 @@ uint32 ExWatch::setHalt(uint32 r) {
     return halt;
 }
 
-uint32 ExWatch::proc() {
+uint32 ExWatch::proc(const ExWatch* const self) {
 #ifdef __linux__
     pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, nullptr);
 #endif // __linux__
-    setTlsSpecific(this);
     dprint("ExWatch::proc(%s) tickAppLaunch=%lu tickCount=%lu\n", name, tickAppLaunch, tickCount);
     (void)enter();
     // seq-1 : prepare resources
