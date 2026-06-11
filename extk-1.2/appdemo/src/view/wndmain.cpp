@@ -345,7 +345,7 @@ void WndMain::onDrawBackBuf(ExCanvas* canvas, const ExWgtRes* w, const ExRegion*
 }
 
 uint32 WndMain::onLayout(WndMain* widget, ExCbInfo* cbinfo) {
-    dprint("%s(%s) %d (%d,%d-%dx%d)\n", __func__, widget->getName(),
+    dprint("%s(%s) %d (%d,%d-%dx%d)\n", _func_, widget->getName(),
            cbinfo->subtype, widget->area.x, widget->area.y, widget->area.w, widget->area.h);
     ExRect ar(0, 0, widget->area.w, widget->area.h);
     ExRect rc;
@@ -597,7 +597,7 @@ uint32 WndMain::onTimer(ExTimer* timer, ExCbInfo* cbinfo)
     int dy = state ? -1 : 1;
     panes[1].area.x += dx;
     panes[1].area.y += dy;
-    dprint0("%s: %d,%d\n", __func__, panes[1].area.x, panes[1].area.y);
+    dprint0("%s: %d,%d\n", _func_, panes[1].area.x, panes[1].area.y);
     if ((state == 0 && panes[1].area.y > 480) ||
         (state != 0 && panes[1].area.y < 0)) {
         state = !state;
@@ -654,7 +654,7 @@ bool WndMain::initBtn(ExWidget* parent, ExWidget* btn, const char* name) {
 }
 
 uint32 WndMain::onDestroyed(WndMain* w, ExCbInfo* cbinfo) {
-    dprint("%s()\n", __func__);
+    dprint("%s()\n", _func_);
     exassert(w == this);
     timerToy.stop();
     timer.stop();
@@ -726,7 +726,7 @@ uint32 WndMain::onFilter(WndMain* w, ExCbInfo* cbinfo) {
         //margins.cyTopHeight = 20;
         HRESULT hr = DwmExtendFrameIntoClientArea(hwnd, &margins);
         if (!SUCCEEDED(hr)) {
-            dprint("%s: %s fail.\n", __func__, "DwmExtendFrameIntoClientArea");
+            dprint("%s: %s fail.\n", _func_, "DwmExtendFrameIntoClientArea");
         }
         #endif
         //cbinfo->exmsg->lResult = 0;
@@ -934,7 +934,7 @@ public:
 int WndMain::start() {
     ExRect rc;
 
-    dprint("%s() %s\n", __func__, Ex_STRLOC);
+    dprint("%s() %s\n", _fsig_, _fileline_);
     // initEnv();
     // initRes();
     this->init("AppDemoWndMain", env.wnd.w, env.wnd.h);
@@ -1136,7 +1136,7 @@ int WndMain::start() {
         ShowWindow(hwnd, SW_SHOWMAXIMIZED);
     }
     #else
-    exassert2(gWndMain == this, __FILE__ "@" Ex_STRINGIFY(__LINE__));
+    exassert2(gWndMain == this, _fileline_);
     showWindow(0UL, 0, 100);
     //this->setVisible(true);
     //(void)this->damage();

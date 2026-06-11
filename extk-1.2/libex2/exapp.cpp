@@ -171,7 +171,7 @@ void ExApp::collect()
 
 void ExApp::fini(int32 retCode)
 {
-    dprint("%s(%d)\n", __func__, retCode);
+    dprint("%s(%d)\n", _func_, retCode);
 #ifdef WIN32
     exassert2(ExThreadSelf() == &exMainThread); // trap
     // When the system window manager closed the app, mainWnd was destroyed.
@@ -217,10 +217,10 @@ void ExApp::init(HINSTANCE hInstance,
         smSize.h = GetDeviceCaps(hdc, VERTRES);
     }
 #endif
-    dprint("%s() width=%d height=%d\n", __func__, smSize.w, smSize.h);
+    dprint("%s() width=%d height=%d\n", _func_, smSize.w, smSize.h);
 
     if (ExWindow::initClass(hInstance) == 0) {
-        dprint1("%s() initClass(0x%p) failed.\n", __func__, hInstance);
+        dprint1("%s() initClass(0x%p) failed.\n", _func_, hInstance);
     }
 }
 #endif // WIN32
@@ -239,7 +239,7 @@ void ExApp::init(int argc, char* argv[])
     smSize.w = 0; // tbd
     smSize.h = 0; // tbd
 
-    dprint("%s() width=%d height=%d\n", __func__, smSize.w, smSize.h);
+    dprint("%s() width=%d height=%d\n", _func_, smSize.w, smSize.h);
 }
 #endif // __linux
 
@@ -334,7 +334,7 @@ uint32 onXeventSample(void* data, const epoll_event* const ev)
     ExApp::EnvX11& x11 = ExApp::x11;
     ExWatch* watch = static_cast<ExWatch*>(data);
     const int32 xd_fd = ConnectionNumber(x11.display);
-    dprint0("%s: xd_fd=%d\n", __func__, xd_fd);
+    dprint0("%s: xd_fd=%d\n", _func_, xd_fd);
     exassert(ev->data.fd == xd_fd);
 
     //XLockDisplay(x11.display);

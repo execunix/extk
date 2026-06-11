@@ -142,11 +142,11 @@ xinit_error:
     const int32 stride = cr_format_stride_for_width(format, env.fb0_w);
     crs = cr_image_surface_create_for_data(env.fb0_bits, format,
                                            env.fb0_w, env.fb0_h, stride);
-    exassert2(stride == env.fb0_bpl, __FILE__ "@" Ex_STRINGIFY(__LINE__));
+    exassert2(stride == env.fb0_bpl, _fileline_);
     //static const cr_user_data_key_t key;
     //cr_surface_set_user_data(gc->crs, &key, gc->bits, (cr_destroy_func_t)free);
     //cr_content_t crc_image = cr_surface_get_content(gc->crs);
-    //exassert2(crc_image == CR_CONTENT_COLOR_ALPHA, __FILE__ "@" Ex_STRINGIFY(__LINE__));
+    //exassert2(crc_image == CR_CONTENT_COLOR_ALPHA, _fileline_);
     status = cr_surface_status(crs);
     if (status == CR_STATUS_SUCCESS) {
         cr = cr_create(crs);

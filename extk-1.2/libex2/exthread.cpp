@@ -144,14 +144,14 @@ bool ExThread::Cond::timedWait(Mutex* enteredMutex, ExTimeVal* absTime) {
 int ExThread::join(uint wait) {
     assert(this->hThread);
     if (this->joinable == false) {
-        exerror("%s - not joinable.\n", __func__);
+        exerror("%s - not joinable.\n", _func_);
         return -1;
     }
     if (WaitForSingleObject(this->hThread, wait) == WAIT_FAILED) {
-        exerror("%s - WaitForSingleObject fail.\n", __func__);
+        exerror("%s - WaitForSingleObject fail.\n", _func_);
     }
     if (CloseHandle(this->hThread) == 0) {
-        exerror("%s - CloseHandle fail.\n", __func__);
+        exerror("%s - CloseHandle fail.\n", _func_);
     }
     this->joinable = false;
     this->hThread = NULL;
@@ -201,7 +201,7 @@ ExThread exMainThread;
 bool ExIsValidAddress(const void* addr, int bytes, bool readwrite)
 {
 #ifdef WIN32
-    //static const char __func__[] = "ExIsValidAddress";
+    //static const char _func_[] = "ExIsValidAddress";
     // simple version using Win-32 APIs for pointer validation.
     return (addr != NULL && !IsBadReadPtr(addr, bytes) &&
            (!readwrite || !IsBadWritePtr((LPVOID)addr, bytes)));
@@ -264,7 +264,7 @@ void ExFiniProcess()
 #ifdef __linux__
     // tbd - ExThreadFiniWin32Impl();
 #endif // __linux__
-    dprint1("%s(%s\\%s)\n", __func__, exModulePath, exModuleName);
+    dprint1("%s(%s\\%s)\n", _func_, exModulePath, exModuleName);
     assert(exModulePath != nullptr);
     assert(exModuleName != nullptr);
     free((void*)exModuleName);
@@ -293,7 +293,7 @@ void ExInitProcess(const char* pathname)
     buf[len] = '\0';
     exModulePath = exstrdup(buf);
     exModuleName = exstrdup(buf + len + 1);
-    dprint1("%s(%s\\%s)\n", __func__, exModulePath, exModuleName);
+    dprint1("%s(%s\\%s)\n", _func_, exModulePath, exModuleName);
 #ifdef WIN32
     ExThreadInitWin32Impl();
 #endif // WIN32

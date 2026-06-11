@@ -178,7 +178,7 @@ void WndMain::onDrawBkgd(ExCanvas* canvas, const ExVision* widget, const ExRegio
 
 int WndMain::onLayout(ExWidget* widget, ExCbInfo* cbinfo)
 {
-    dprintf(L"%s(%s) %d (%d,%d-%dx%d)\n", __funcw__, widget->getName(),
+    dprintf(L"%s(%s) %d (%d,%d-%dx%d)\n", _funcw_, widget->getName(),
             cbinfo->subtype, widget->area.x, widget->area.y, widget->area.w, widget->area.h);
     ExRect ar(0, 0, widget->area.w, widget->area.h);
     if (widget == this) {
@@ -277,7 +277,7 @@ int WndMain::onActMain(WndMain* widget, ExCbInfo* cbinfo)
 
 int WndMain::onDestroyed(WndMain* w, ExCbInfo* cbinfo)
 {
-    dprintf(L"%s()\n", __funcw__);
+    dprintf(L"%s()\n", _funcw_);
     assert(w == this);
     timerMain.stop();
     finiRes();
@@ -447,7 +447,7 @@ void WndMain::onDrawCamView(ExCanvas* canvas, const ExVision* widget, const ExRe
         assert(stride == tex->bpl);
         status = cairo_surface_status(crs);
         if (status != CAIRO_STATUS_SUCCESS) {
-            dprint1("%s: %s\n", __func__, cairo_status_to_string(status));
+            dprint1("%s: %s\n", _func_, cairo_status_to_string(status));
         } else {
             ExCairo cr(canvas, damage);
             ExCairo::Rect rc(widget->calcRect());
@@ -485,7 +485,7 @@ void WndMain::onDrawCamView(ExCanvas* canvas, const ExVision* widget, const ExRe
 int WndMain::onActCamInfo(ExWidget* widget, ExCbInfo* cbinfo)
 {
     ExPoint msg_pt(cbinfo->event->msg.pt);
-    dprintf(L"%s CamInfo-%d event type %d\n", __funcw__, widget->id, cbinfo->type);
+    dprintf(L"%s CamInfo-%d event type %d\n", _funcw_, widget->id, cbinfo->type);
     if (cbinfo->type == Ex_CbButPress) {
     } else if (cbinfo->type == Ex_CbPtrMove &&
                widget->getFlags(Ex_ButPressed)) {
@@ -496,7 +496,7 @@ int WndMain::onActCamInfo(ExWidget* widget, ExCbInfo* cbinfo)
 int WndMain::onActCamView(ExWidget* widget, ExCbInfo* cbinfo)
 {
     ExPoint msg_pt(cbinfo->event->msg.pt);
-    dprintf(L"%s CamInfo-%d event type %d\n", __funcw__, widget->id, cbinfo->type);
+    dprintf(L"%s CamInfo-%d event type %d\n", _funcw_, widget->id, cbinfo->type);
     if (cbinfo->type == Ex_CbActivate) {
         selected_audio_ctx_id = widget->id;
     }
@@ -548,13 +548,13 @@ int WndMain::onVideoRefresh(WndMain* w, ExCbInfo* cbinfo)
 int WndMain::build()
 {
     if (initEnv() != 0) {
-        dprintf(L"%s: %s fail.\n", __funcw__, L"initEnv");
+        dprintf(L"%s: %s fail.\n", _funcw_, L"initEnv");
         return -1;
     }
 
     // tbd - check res
     if (initRes() != 0) {
-        dprintf(L"%s: %s fail.\n", __funcw__, L"initRes");
+        dprintf(L"%s: %s fail.\n", _funcw_, L"initRes");
         return -1;
     }
 

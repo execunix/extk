@@ -257,12 +257,12 @@ bool ExWatch::fini() {
         setHalt(Ex_Halt);
         //(void)leave();
         if (WaitForSingleObject(hThread, INFINITE) == WAIT_FAILED) {
-            exerror("%s - WaitForSingleObject fail.\n", __func__);
+            exerror("%s - WaitForSingleObject fail.\n", _func_);
             r -= 1;
         }
         //(void)enter();
         if (CloseHandle(hThread) == 0) {
-            exerror("%s - CloseHandle fail.\n", __func__);
+            exerror("%s - CloseHandle fail.\n", _func_);
             r -= 1;
         }
         hThread = nullptr;
@@ -291,7 +291,7 @@ bool ExWatch::init(size_t max_iomux, size_t stacksize) {
 
 uint32 ExWatch::onEvent(const epoll_event* ev) {
     HANDLE hev = (HANDLE)ev->data;
-    dprint0("%s: hev:%p\n", __func__, hev);
+    dprint0("%s: hev:%p\n", _func_, hev);
     exassert(evWake == hev);
     #if 1 // for manual reset
     (void)evWake.reset();

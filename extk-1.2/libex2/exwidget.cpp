@@ -626,7 +626,7 @@ void ExWidget::dumpImage(const ExCanvas* canvas) {
 #if 0 // deprecated...
 uint32 ExWidget::dumpImage(const ExCanvas* canvas, const ExRegion& updateRgn) { // tbd
     uint32 call_cnt = 0;
-    logdraw("%s(%s) enter update:%d\n", __func__, getName(), updateRgn.n_boxes);
+    logdraw("%s(%s) enter update:%d\n", _func_, getName(), updateRgn.n_boxes);
     ExWidget* w = this;
     ExWidget* c;
     do { // back to front iterator

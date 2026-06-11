@@ -33,7 +33,7 @@ bool ExImage::loadJpg(HANDLE hFile, const char* fname, bool query)
     bool r = false;
 
     if ((infile = fopen(fname, "rb")) == NULL) {
-        exerror("%s(%s) - open fail.\n", __func__, fname);
+        exerror("%s(%s) - open fail.\n", _func_, fname);
         return false;
     }
     cinfo.err = jpeg_std_error(&jerr);
@@ -56,7 +56,7 @@ bool ExImage::loadJpg(HANDLE hFile, const char* fname, bool query)
     cinfo.scale_denom = 2;
     jpeg_calc_output_dimensions(&cinfo);
     if (cinfo.progressive_mode) {
-        exerror("%s(%s) - progressive_mode.\n", __func__, fname);
+        exerror("%s(%s) - progressive_mode.\n", _func_, fname);
         goto jpg_cleanup;
     }
     if (query) {
@@ -101,7 +101,7 @@ bool ExImage::loadJpg(int32 fd, const char* fname, bool query)
     bool r = false;
 
     if ((infile = fopen(fname, "rb")) == NULL) {
-        exerror("%s(%s) - open fail.\n", __func__, fname);
+        exerror("%s(%s) - open fail.\n", _func_, fname);
         return false;
     }
     cinfo.err = jpeg_std_error(&jerr);
@@ -124,7 +124,7 @@ bool ExImage::loadJpg(int32 fd, const char* fname, bool query)
     cinfo.scale_denom = 2;
     jpeg_calc_output_dimensions(&cinfo);
     if (cinfo.progressive_mode) {
-        exerror("%s(%s) - progressive_mode.\n", __func__, fname);
+        exerror("%s(%s) - progressive_mode.\n", _func_, fname);
         goto jpg_cleanup;
     }
     if (query) {

@@ -31,12 +31,12 @@ ExShmemCreate(size_t size, const char* name) {
     Shmem* shmem;
     hmap = CreateFileMapping(INVALID_HANDLE_VALUE, NULL, PAGE_READWRITE, 0, sizeof(Shmem) + size, name);
     if (hmap == NULL) {
-        exerror("%s(%d,%s) - CreateFileMapping fail.\n", __func__, size, name);
+        exerror("%s(%d,%s) - CreateFileMapping fail.\n", _func_, size, name);
         return NULL;
     }
     addr = (uchar*)MapViewOfFile(hmap, FILE_MAP_ALL_ACCESS, 0, 0, sizeof(Shmem) + size);
     if (addr == NULL) {
-        exerror("%s(%d,%s) - MapViewOfFile fail.\n", __func__, size, name);
+        exerror("%s(%d,%s) - MapViewOfFile fail.\n", _func_, size, name);
         CloseHandle(hmap);
         return NULL;
     }

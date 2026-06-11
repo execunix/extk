@@ -42,7 +42,7 @@ static int64 procPtrLeaveEnter(ExWindow* const window, ExWidget* const widget, E
             }
         }
         if (widget != nullptr) {
-            exassert2(widget == window->getEntered(), __FILE__ "@" Ex_STRINGIFY(__LINE__));
+            exassert2(widget == window->getEntered(), _fileline_);
             (void)widget->setFlags(Ex_PtrEntered, Ex_PtrEntered);
             (void)widget->invokeListener(Ex_CbActivate, cbinfo->set(Ex_CbPtrEnter, 0U));
             // tbd - check halt and result code

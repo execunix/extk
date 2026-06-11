@@ -340,7 +340,7 @@ bool ExWatch::init(size_t max_iomux, size_t stacksize) {
 }
 
 uint32 ExWatch::onEvent(const epoll_event* const ev) {
-    dprint0("%s: fd:%d ev:%d\n", __func__, ev->data.fd, ev->events);
+    dprint0("%s: fd:%d ev:%d\n", _func_, ev->data.fd, ev->events);
     exassert(evWake == ev->data.fd);
     (void)evWake.reset();
     return 0U;

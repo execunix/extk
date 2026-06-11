@@ -234,13 +234,13 @@ VideoTexInfo* VideoTexInfoCreate(HANDLE* hmap, const wchar_t* name)
 
     *hmap = CreateFileMapping(INVALID_HANDLE_VALUE, NULL, PAGE_READWRITE, 0, size, name);
     if (*hmap == NULL) {
-        dprintf(L"%s(%d,%s) %s fail.\n", __funcw__, size, name, L"CreateFileMapping");
+        dprintf(L"%s(%d,%s) %s fail.\n", _funcw_, size, name, L"CreateFileMapping");
         return NULL;
     }
 
     VideoTexInfo* vtinfo = (VideoTexInfo*)MapViewOfFile(*hmap, FILE_MAP_ALL_ACCESS, 0, 0, size);
     if (vtinfo == NULL) {
-        dprintf(L"%s(%d,%s) %s fail.\n", __funcw__, size, name, L"MapViewOfFile");
+        dprintf(L"%s(%d,%s) %s fail.\n", _funcw_, size, name, L"MapViewOfFile");
         CloseHandle(*hmap);
         return NULL;
     }

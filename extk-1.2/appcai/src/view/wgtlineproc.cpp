@@ -17,14 +17,14 @@ void WgtLineProc::onDrawBkgd(ExCanvas* canvas, const ExVision* widget, const ExR
 
 int WgtLineProc::onDestroyed(WgtLineProc* w, ExCbInfo* cbinfo)
 {
-    dprintf(L"%s()\n", __funcw__);
+    dprintf(L"%s()\n", _funcw_);
 
     return Ex_Continue;
 }
 
 int WgtLineProc::onLayout(ExWidget* widget, ExCbInfo* cbinfo)
 {
-    dprintf(L"%s(%s) %d (%d,%d-%dx%d)\n", __funcw__, widget->getName(),
+    dprintf(L"%s(%s) %d (%d,%d-%dx%d)\n", _funcw_, widget->getName(),
             cbinfo->subtype, widget->area.x, widget->area.y, widget->area.w, widget->area.h);
     ExRect ar(0, 0, widget->area.w, widget->area.h);
     if (widget == this) {
@@ -107,7 +107,7 @@ void WgtLineProc::onDrawCamView(ExCanvas* canvas, const ExVision* widget, const 
         assert(stride == tex->bpl);
         status = cairo_surface_status(crs);
         if (status != CAIRO_STATUS_SUCCESS) {
-            dprint1("%s: %s\n", __func__, cairo_status_to_string(status));
+            dprint1("%s: %s\n", _func_, cairo_status_to_string(status));
         } else {
             ExCairo cr(canvas, damage);
             ExCairo::Rect rc(widget->calcRect());
@@ -145,7 +145,7 @@ void WgtLineProc::onDrawCamView(ExCanvas* canvas, const ExVision* widget, const 
 int WgtLineProc::onActCamInfo(ExWidget* widget, ExCbInfo* cbinfo)
 {
     ExPoint msg_pt(cbinfo->event->msg.pt);
-    dprintf(L"%s CamInfo-%d event type %d\n", __funcw__, widget->id, cbinfo->type);
+    dprintf(L"%s CamInfo-%d event type %d\n", _funcw_, widget->id, cbinfo->type);
     if (cbinfo->type == Ex_CbButPress) {
     } else if (cbinfo->type == Ex_CbPtrMove &&
                widget->getFlags(Ex_ButPressed)) {
@@ -156,7 +156,7 @@ int WgtLineProc::onActCamInfo(ExWidget* widget, ExCbInfo* cbinfo)
 int WgtLineProc::onActCamView(ExWidget* widget, ExCbInfo* cbinfo)
 {
     ExPoint msg_pt(cbinfo->event->msg.pt);
-    dprintf(L"%s CamInfo-%d event type %d\n", __funcw__, widget->id, cbinfo->type);
+    dprintf(L"%s CamInfo-%d event type %d\n", _funcw_, widget->id, cbinfo->type);
     if (cbinfo->type == Ex_CbActivate) {
         selected_audio_ctx_id = widget->id;
     }

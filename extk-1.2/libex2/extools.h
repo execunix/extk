@@ -29,61 +29,61 @@ constexpr char** const __restrict_endptr = static_cast<char** const>(nullptr);
 
 inline int8 atoi8(const char* const str)
 {
-    exassert2(str != nullptr, __FILE__ "@" Ex_STRINGIFY(__LINE__));
+    exassert2(str != nullptr, _fileline_);
     const int64 val64 = strtol(str, __restrict_endptr, 10);
     return static_cast<int8>(val64);
 }
 
 inline uint8 atou8(const char* const str)
 {
-    exassert2(str != nullptr, __FILE__ "@" Ex_STRINGIFY(__LINE__));
+    exassert2(str != nullptr, _fileline_);
     const uint64 val64 = strtoul(str, __restrict_endptr, 10);
     return static_cast<uint8>(val64);
 }
 
 inline int16 atoi16(const char* const str)
 {
-    exassert2(str != nullptr, __FILE__ "@" Ex_STRINGIFY(__LINE__));
+    exassert2(str != nullptr, _fileline_);
     const int64 val64 = strtol(str, __restrict_endptr, 10);
     return static_cast<int16>(val64);
 }
 
 inline uint16 atou16(const char* const str)
 {
-    exassert2(str != nullptr, __FILE__ "@" Ex_STRINGIFY(__LINE__));
+    exassert2(str != nullptr, _fileline_);
     const uint64 val64 = strtoul(str, __restrict_endptr, 10);
     return static_cast<uint16>(val64);
 }
 
 inline int32 atoi32(const char* const str)
 {
-    exassert2(str != nullptr, __FILE__ "@" Ex_STRINGIFY(__LINE__));
+    exassert2(str != nullptr, _fileline_);
     const int64 val64 = strtol(str, __restrict_endptr, 10);
     return static_cast<int32>(val64);
 }
 
 inline uint32 atou32(const char* const str)
 {
-    exassert2(str != nullptr, __FILE__ "@" Ex_STRINGIFY(__LINE__));
+    exassert2(str != nullptr, _fileline_);
     const uint64 val64 = strtoul(str, __restrict_endptr, 10);
     return static_cast<uint32>(val64);
 }
 
 inline int64 atoi64(const char* const str)
 {
-    exassert2(str != nullptr, __FILE__ "@" Ex_STRINGIFY(__LINE__));
+    exassert2(str != nullptr, _fileline_);
     return strtol(str, __restrict_endptr, 10);
 }
 
 inline uint64 atou64(const char* const str)
 {
-    exassert2(str != nullptr, __FILE__ "@" Ex_STRINGIFY(__LINE__));
+    exassert2(str != nullptr, _fileline_);
     return strtoul(str, __restrict_endptr, 10);
 }
 
 inline float32 atof32(const char* const str)
 {
-    exassert2(str != nullptr, __FILE__ "@" Ex_STRINGIFY(__LINE__));
+    exassert2(str != nullptr, _fileline_);
     #ifdef __linux__
     return strtof32(str, __restrict_endptr);
     #else // __linux__
@@ -93,7 +93,7 @@ inline float32 atof32(const char* const str)
 
 inline float64 atof64(const char* const str)
 {
-    exassert2(str != nullptr, __FILE__ "@" Ex_STRINGIFY(__LINE__));
+    exassert2(str != nullptr, _fileline_);
     #ifdef __linux__
     return strtof64(str, __restrict_endptr);
     #else // __linux__
@@ -218,7 +218,7 @@ public:
     // [Return Values]
     //  - return tocken count
     size_t strsplit(char* src, const char del) {
-        exassert2(src != nullptr, __FILE__ "@" Ex_STRINGIFY(__LINE__));
+        exassert2(src != nullptr, _fileline_);
         tcount = 0UL; // tocken counter
         while (tcount < Size) {
             this->at(tcount++) = src; // store tocken pointer

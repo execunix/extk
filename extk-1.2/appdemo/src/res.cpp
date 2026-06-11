@@ -14,7 +14,7 @@ static bool img_init(ExImage* const img, const char* const name) noexcept
     snprintf(pathname, 512U, "%s/%s", res.path, name);
     bool result = img->load(pathname);
     if (result != true) {
-        dprint("%s: %s fail.\n", __func__, pathname);
+        dprint("%s: %s fail.\n", _func_, pathname);
     }
     return result;
 }
@@ -40,7 +40,7 @@ bool initRes() noexcept
             break;
         }
     }
-    dprint("%s: res.path = %s\n", __func__, res.path);
+    dprint("%s: res.path = %s\n", _func_, res.path);
 
     ExCairo::Face::initFtLib();
 

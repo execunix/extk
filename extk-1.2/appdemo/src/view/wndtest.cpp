@@ -73,7 +73,7 @@ void WndTest::onDrawBtns(ExCanvas* canvas, const ExWgtRes* wgtres, const ExRegio
 }
 
 uint32 WndTest::onLayout(WndTest* widget, ExCbInfo* cbinfo) {
-    dprint("%s(%s) %d (%d,%d-%dx%d)\n", __func__, widget->getName(),
+    dprint("%s(%s) %d (%d,%d-%dx%d)\n", _func_, widget->getName(),
            cbinfo->subtype, widget->area.x, widget->area.y, widget->area.w, widget->area.h);
     ExRect ar(0, 0, widget->area.w, widget->area.h);
     if (widget == this) {
@@ -140,7 +140,7 @@ uint32 WndTest::onActBtns(ExWidget* widget, ExCbInfo* cbinfo) {
 
 uint32 WndTest::onTimer(ExTimer* timer, ExCbInfo* cbinfo)
 {
-    dprint0("%s: %d\n", __func__, timer->u32[0]);
+    dprint0("%s: %d\n", _func_, timer->u32[0]);
 
     return Ex_Continue;
 }
@@ -156,7 +156,7 @@ bool WndTest::initBtn(ExWidget* parent, ExWidget* btn, const char* name) {
 }
 
 uint32 WndTest::onDestroyed(WndTest* w, ExCbInfo* cbinfo) {
-    dprint("%s()\n", __func__);
+    dprint("%s()\n", _func_);
     exassert(w == this);
     timer.stop();
     return Ex_Continue;

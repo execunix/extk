@@ -1240,13 +1240,13 @@ bool ExCairo::Face::load(const char* path, const char* name)
     snprintf(faceName, 256, "%s/%s", path, name);
 
     if (FT_New_Face(ftLib, faceName, 0, &ftFace) != FT_Err_Ok) {
-        dprint1("%s(%s) FT_New_Face fail\n", __func__, faceName);
+        dprint1("%s(%s) FT_New_Face fail\n", _func_, faceName);
         return false;
     }
     // create cairo font
 	crf = cairo_ft_font_face_create_for_ft_face(ftFace, FT_LOAD_DEFAULT | FT_LOAD_NO_BITMAP);
     if (crf == NULL) {
-        dprint1("%s(%s) cairo_ft_font_face_create_for_ft_face fail\n", __func__, faceName);
+        dprint1("%s(%s) cairo_ft_font_face_create_for_ft_face fail\n", _func_, faceName);
         return false;
     }
     return true;

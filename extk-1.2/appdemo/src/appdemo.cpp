@@ -739,7 +739,7 @@ int main(int argc, char* argv[])
 #else
     CreateWindowEx(klass, name, style, x, y, ...);
 #endif
-    exassert2(ExApp::mainWnd == gWndMain, __FILE__ "@" Ex_STRINGIFY(__LINE__));
+    exassert2(ExApp::mainWnd == gWndMain, _fileline_);
 
     //
     //gWndMain->addFilter(&app, &CApp::onFilter);
@@ -761,7 +761,7 @@ int main(int argc, char* argv[])
         // call XDestroyWindow, emit WM_DESTROY, and post WM_QUIT.
         ExApp::collect(); // call delete gWndMain
     }
-    exassert2(ExApp::mainWnd == nullptr, __FILE__ "@" Ex_STRINGIFY(__LINE__));
+    exassert2(ExApp::mainWnd == nullptr, _fileline_);
     wndmain_allocator.destroy(gWndMain);
     wndmain_allocator.deallocate(gWndMain, 1U);
     gWndMain = nullptr;
@@ -846,7 +846,7 @@ int APIENTRY WinMain(_In_ HINSTANCE hInstance,
         // call XDestroyWindow, emit WM_DESTROY, and post WM_QUIT.
         ExApp::collect(); // call delete gWndMain
     }
-    exassert2(ExApp::mainWnd == nullptr, __FILE__ "@" Ex_STRINGIFY(__LINE__));
+    exassert2(ExApp::mainWnd == nullptr, _fileline_);
     //delete gWndMain;
     gWndMain = nullptr;
 #endif
