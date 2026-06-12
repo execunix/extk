@@ -10,6 +10,7 @@
 #include <ctype.h>
 #include <locale.h>
 #include <execinfo.h>
+#include <sys/resource.h>
 #endif // __linux__
 #include <functional>
 #include <exdebug.h>
@@ -711,6 +712,17 @@ int main(int argc, char* argv[])
     (void)gWatchDev.init(); // start watch thread for gps and etc
     (void)gWatchMap.init();
     (void)gWatchdog.init();
+    #if 0
+    sched_param param;
+    param.sched_priority = 70;
+    if (0 != pthread_setschedparam(gWatchMap.id(), SCHED_FIFO, &param)) {
+        dprint1("pthread_setschedparam fail.\n");
+    }
+    // pthread_t tid = gWatchMap.id();
+    // if (setpriority(PRIO_PROCESS, tid, 1) == -1) {
+    //     dprint1("setpriority fail.\n");
+    // }
+    #endif
     // app startup begin
     //
     //CApp app;

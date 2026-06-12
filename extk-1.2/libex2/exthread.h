@@ -52,13 +52,16 @@ public:
 #ifdef __linux__
     static void* start(void* arg);
 #endif // __linux__
+    //typedef ExNotify Proc;
     struct Proc : public ExPolyFunc<uint32, const void*> {
         template <typename A, typename B>
         Proc(A* d, uint32 (A::*f)(B*)) noexcept : ExPolyFunc(d) {
+            static_assert(std::is_base_of<ExThread, B>::value, "B must be derived from ExThread");
             func = reinterpret_cast<ThisFunc>(f);
         }
         template <typename A, typename B>
         Proc(uint32 (*f)(A*, B*), A* d) noexcept : ExPolyFunc(d) {
+            static_assert(std::is_base_of<ExThread, B>::value, "B must be derived from ExThread");
             vfunc = reinterpret_cast<FuncPtr>(f);
             #if EX2CONF_DISABLE_STDCALL
             invoker = &funcptr;
@@ -106,11 +109,13 @@ public:
     explicit ExThread(const char* name) noexcept : ExObject()
         , name(name), idThread(0U), hThread(nullptr)
         , joinable(false), priority(PrioNormal), userproc(), userdata(nullptr) {}
+    DWORD id() const noexcept { return idThread; }
 #endif // WIN32
 #ifdef __linux__
     explicit ExThread(const char* name) noexcept : ExObject()
         , name(name), tid(0U)
         , joinable(false), priority(PrioNormal), userproc(), userdata(nullptr) {}
+    pthread_t id() const noexcept { return tid; }
 #endif // __linux__
 public:
     bool join(uint wait = 4000U/*INFINITE*/);

@@ -89,6 +89,9 @@ public:
     explicit ExAutoLock(const ExMutex& mutex) noexcept : mutex(mutex) {
         (void)mutex.lock();
     }
+    // prevent copy
+    ExAutoLock(const ExAutoLock&) = delete;
+    ExAutoLock& operator = (const ExAutoLock&) = delete;
 };
 
 #endif//__exevent_h__

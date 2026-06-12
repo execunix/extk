@@ -3,6 +3,7 @@
  * SPDX-License-Identifier:     GPL-2.0+
  */
 
+#include <sys/prctl.h>
 #include "exthread.h"
 #include "exmemory.h"
 #include "exwatch.h"
@@ -151,6 +152,7 @@ void* ExThread::start(void* arg)
     uint32 ret;
     ExThread* self = (ExThread*)arg;
     assert(self && self->userproc);
+    //prctl(PR_SET_TIMERSLACK, 1); // tbd
     ExThread::setTlsSelf(self);
     ret = self->userproc(self);
     exassert(ret == 0U);

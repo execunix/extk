@@ -240,18 +240,21 @@ bool ExWatch::fini() {
 }
 
 bool ExWatch::init(size_t max_iomux, size_t stacksize) {
+    int32 r = 0;
     exassert(hThread == nullptr);
-    iomuxmap.init(max_iomux);
-
-    (void)evWake.init();
-    (void)ioAdd(this, &ExWatch::onEvent, evWake);
-
+    if (max_iomux > 0UL) {
+        iomuxmap.init(max_iomux);
+        r -= evWake.init() ? 0 : 1;
+        r -= ioAdd(this, &ExWatch::onWake, evWake) ? 0 : 1;
+    }
     tickCount = ExGetTickCount(); // update tick
-
-    return create(Proc(this, &ExWatch::proc));
+    if (stacksize > 0UL) {
+        r -= create(Proc(this, &ExWatch::proc), stacksize) ? 0 : 1;
+    }
+    return (r == 0);
 }
 
-uint32 ExWatch::onEvent(const epoll_event* ev) {
+uint32 ExWatch::onWake(const epoll_event* ev) {
     HANDLE hev = (HANDLE)ev->data;
     dprint0("%s: hev:%p\n", _func_, hev);
     exassert(evWake == hev);

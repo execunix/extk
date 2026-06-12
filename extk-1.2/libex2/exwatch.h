@@ -114,6 +114,7 @@ protected:
         int32           dirty;
         pollfd*         fds;
         #else // !IOMUX_PPOLL
+        int32           tm_fd;  // timer fd
         int32           ep_fd;  // epoll fd
         epoll_event*    evrepo;
         #endif // IOMUX_PPOLL
@@ -135,8 +136,11 @@ protected:
         }
         #else // !IOMUX_PPOLL
         IomuxMap(ExWatch* watch) noexcept : std::map<ExOsFd, Iomux>()
-            , watch(watch), ep_fd(-1), evrepo(nullptr), max_fds(0U) {
+            , watch(watch), tm_fd(-1), ep_fd(-1), evrepo(nullptr), max_fds(0U) {
         }
+    protected:
+        uint32 on_timerfd(const epoll_event* ev);
+        void set_timerfd_usec(const int64 wait_usec);
         #endif // IOMUX_PPOLL
 #endif
     public:
@@ -181,11 +185,6 @@ public:
         , hookStartup(), hookProcess(this, &ExWatch::process), hookCleanup() {
         tickCount = tickAppLaunch;
     }
-    #ifdef WIN32
-    DWORD id() const noexcept { return idThread; }
-    #else // __linux__
-    pthread_t id() const noexcept { return tid; }
-    #endif
     bool fini();
     bool init(size_t max_iomux = 256UL, size_t stacksize = 1048576UL);
     bool leave() const { return mutex.unlock(); }
@@ -196,8 +195,8 @@ public:
     uint64 getTick() const { return tickCount; }
     uint32 getTickMs() const { return static_cast<uint32>(tickCount / 1000U); }
 public:
-    uint32 onEvent(const epoll_event* ev);
-    uint32 proc(const ExWatch* const self);
+    uint32 onWake(const epoll_event* ev);
+    uint32 proc(const ExThread* const self);
     uint32 process(uint32 hook = ExHookProc::Process);
     uint32 guiloop(uint32 hook = ExHookProc::Process);
     void* dispatch(ExModalCtrl* const ctrl);

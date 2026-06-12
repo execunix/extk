@@ -68,9 +68,6 @@ private:
     bool fini() = delete;
     bool init(size_t, size_t) = delete;
 #ifdef __linux__
-    uint32 onEvent(const epoll_event* const ev) {
-        return ExWatch::onEvent(ev);
-    }
 private:
     uint32 on_ev2dev(const epoll_event* const ev);
     uint32 on_cmdline(const epoll_event* const ev);
