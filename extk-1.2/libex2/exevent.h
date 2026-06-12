@@ -21,7 +21,7 @@ protected:
     #endif // __linux__
     mutable uint64  u64;
 public:
-    ~ExEvent() noexcept { (void)fini(); }
+    ~ExEvent() noexcept { fini(); }
     #ifdef WIN32
     explicit ExEvent() noexcept : hev(nullptr), u64(0UL) {}
     operator HANDLE () const { return hev; }
@@ -31,7 +31,7 @@ public:
     operator int32 () const { return efd; }
     #endif // __linux__
 public:
-    bool fini() noexcept;
+    void fini() noexcept;
     bool init() noexcept;
     bool reset() const { return getEvent(&u64); };
     bool signal() const { return setEvent(1UL); };

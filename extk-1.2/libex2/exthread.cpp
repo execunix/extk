@@ -3,10 +3,12 @@
  * SPDX-License-Identifier:     GPL-2.0+
  */
 
-#include <sys/prctl.h>
 #include "exthread.h"
 #include "exmemory.h"
 #include "exwatch.h"
+#ifdef __linux__
+#include <sys/prctl.h>
+#endif // __linux__
 #include <algorithm>
 #include <assert.h>
 

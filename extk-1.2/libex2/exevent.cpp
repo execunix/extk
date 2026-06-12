@@ -9,13 +9,11 @@
 #endif // __linux__
 
 #ifdef WIN32
-bool ExEvent::fini() noexcept {
-    BOOL r = TRUE;
+void ExEvent::fini() noexcept {
     if (hev != nullptr) {
-        r = CloseHandle(hev);
+        (void)CloseHandle(hev);
         hev = nullptr;
     }
-    return (r != FALSE);
 }
 
 bool ExEvent::init() noexcept {
@@ -50,13 +48,11 @@ bool ExEvent::isSignaled() const {
 #endif // WIN32
 
 #ifdef __linux__
-bool ExEvent::fini() noexcept {
-    int32 r = 0;
+void ExEvent::fini() noexcept {
     if (efd != -1) {
-        r = close(efd);
+        (void)close(efd);
         efd = -1;
     }
-    return (r == 0);
 }
 
 bool ExEvent::init() noexcept {

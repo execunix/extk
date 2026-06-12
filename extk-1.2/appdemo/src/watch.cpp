@@ -183,10 +183,8 @@ bool WatchApp::cleanup()
     fini_fifo();
 
     tid = 0U;
-    iomuxmap.fini();
-    timerset.fini();
-    evWake.fini();
-    return true;
+    exassert(joinable == false);
+    return ExWatch::fini();
 }
 
 bool WatchApp::startup()
@@ -299,11 +297,9 @@ WatchMap gWatchMap;
 
 bool WatchApp::cleanup()
 {
-    idThread = 0U;
-    iomuxmap.fini();
-    timerset.fini();
-    evWake.fini();
-    return true;
+    hThread = nullptr;
+    exassert(joinable == false);
+    return ExWatch::fini();
 }
 
 bool WatchApp::startup()

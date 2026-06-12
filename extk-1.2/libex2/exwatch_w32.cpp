@@ -225,7 +225,7 @@ int64 ExWatch::IomuxMap::invoke(int64 waittick) {
 uint64 ExWatch::tickAppLaunch = ExGetTickCount();
 
 bool ExWatch::fini() {
-    bool ret = false;
+    bool ret = true;
     idThread = 0U;
     if (hThread != nullptr) {
         setHalt(Ex_Halt);
@@ -241,7 +241,6 @@ bool ExWatch::fini() {
 
 bool ExWatch::init(size_t max_iomux, size_t stacksize) {
     int32 r = 0;
-    exassert(hThread == nullptr);
     if (max_iomux > 0UL) {
         iomuxmap.init(max_iomux);
         r -= evWake.init() ? 0 : 1;
@@ -249,6 +248,7 @@ bool ExWatch::init(size_t max_iomux, size_t stacksize) {
     }
     tickCount = ExGetTickCount(); // update tick
     if (stacksize > 0UL) {
+        exassert(hThread == nullptr);
         r -= create(Proc(this, &ExWatch::proc), stacksize) ? 0 : 1;
     }
     return (r == 0);
