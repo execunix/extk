@@ -43,7 +43,7 @@ int APIENTRY wWinMain(_In_      HINSTANCE hInstance,
 
     env.sm_w = GetSystemMetrics(SM_CXSCREEN);
     env.sm_h = GetSystemMetrics(SM_CYSCREEN);
-    dprintf(L"%s() width=%d height=%d\n", __funcw__, env.sm_w, env.sm_h);
+    dprintf(L"%s() width=%d height=%d\n", _funcw_, env.sm_w, env.sm_h);
     if (env.sm_w < 1920 ||
         env.sm_h < 1080) {
         MessageBox(NULL,

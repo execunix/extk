@@ -36,7 +36,7 @@ void ExCallbackList::CallbackList::push(const Callback& cb) {
     //remove(cb);
     iterator di = std::find(begin(), end(), cb);
     if (di != end()) {
-        exerror("%s - remove duplicate callback.\n", __func__);
+        exerror("%s - remove duplicate callback.\n", _func_);
         erase(di);
     }
 #endif
@@ -292,7 +292,7 @@ void ExWindow::CallbackList::push(const Callback& cb) {
     //remove(cb);
     iterator di = std::find(begin(), end(), cb);
     if (di != end()) {
-        exerror("%s - remove duplicate callback.\n", __func__);
+        exerror("%s - remove duplicate callback.\n", _func_);
         erase(di);
     }
 #endif

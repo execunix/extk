@@ -9,7 +9,7 @@
 #ifdef WIN32
 
 //#define IOMUX_WAIT_NO_GWES
-#define USE_SLEEP_BUSYWAIT
+//#define USE_SLEEP_BUSYWAIT
 
 int32 exmsleep(const uint32 msec) {
     Sleep((DWORD)msec);
@@ -72,7 +72,7 @@ DWORD ExWatch::IomuxMap::setup() {
     return static_cast<DWORD>(ret);
 }
 
-const ExWatch::Iomux* ExWatch::IomuxMap::search(OsaFd mux_fd) const {
+const ExWatch::Iomux* ExWatch::IomuxMap::search(ExOsFd mux_fd) const {
     const Iomux* iomux = nullptr;
     const_iterator i = find(mux_fd);
     if (i != end()) {
@@ -93,7 +93,7 @@ uint32 ExWatch::IomuxMap::probe(const ExCallback& callback, void* cbinfo) {
     return r;
 }
 
-bool ExWatch::IomuxMap::add(OsaFd mux_fd, uint32 events, const ExNotify& notify) {
+bool ExWatch::IomuxMap::add(ExOsFd mux_fd, uint32 events, const ExNotify& notify) {
     int32 r = -1;
     (void)watch->enter();
     if (size() < MAXIMUM_WAIT_OBJECTS) {
@@ -115,7 +115,7 @@ bool ExWatch::IomuxMap::add(OsaFd mux_fd, uint32 events, const ExNotify& notify)
     return (r == 0);
 }
 
-bool ExWatch::IomuxMap::mod(OsaFd mux_fd, uint32 events, const ExNotify& notify) {
+bool ExWatch::IomuxMap::mod(ExOsFd mux_fd, uint32 events, const ExNotify& notify) {
     int32 r = -1;
     (void)watch->enter();
     iterator i = find(mux_fd);
@@ -131,7 +131,7 @@ bool ExWatch::IomuxMap::mod(OsaFd mux_fd, uint32 events, const ExNotify& notify)
     return (r == 0);
 }
 
-bool ExWatch::IomuxMap::del(OsaFd mux_fd) {
+bool ExWatch::IomuxMap::del(ExOsFd mux_fd) {
     int32 r = -1;
     (void)watch->enter();
     iterator i = find(mux_fd);
@@ -224,85 +224,43 @@ int64 ExWatch::IomuxMap::invoke(int64 waittick) {
 //
 uint64 ExWatch::tickAppLaunch = ExGetTickCount();
 
-DWORD ExWatch::keyTlsSpecific = TLS_OUT_OF_INDEXES;
-
-const ExWatch* ExWatch::getTlsSpecific() {
-    const ExWatch* watch = nullptr;
-    if (keyTlsSpecific != TLS_OUT_OF_INDEXES) {
-        watch = (const ExWatch*)TlsGetValue(keyTlsSpecific);
-    }
-    return watch;
-}
-
-void ExWatch::setTlsSpecific(const ExWatch* watch) {
-    if (keyTlsSpecific == TLS_OUT_OF_INDEXES) {
-        keyTlsSpecific = TlsAlloc();
-    }
-    exassert(keyTlsSpecific != TLS_OUT_OF_INDEXES);
-    exassert(TlsGetValue(keyTlsSpecific) == nullptr);
-    TlsSetValue(keyTlsSpecific, (LPVOID)watch);
-}
-
-DWORD WINAPI ExWatch::start(_In_ LPVOID arg) {
-    ExWatch* watch = (ExWatch*)arg;
-    uint32 r = watch->proc();
-    exassert(r == 0U);
-    return 0U;
-}
-
 bool ExWatch::fini() {
-    int32 r = 0;
+    bool ret = true;
     idThread = 0U;
     if (hThread != nullptr) {
         setHalt(Ex_Halt);
         //(void)leave();
-        if (WaitForSingleObject(hThread, INFINITE) == WAIT_FAILED) {
-            exerror("%s - WaitForSingleObject fail.\n", __func__);
-            r -= 1;
-        }
+        ret = join(INFINITE);
         //(void)enter();
-        if (CloseHandle(hThread) == 0) {
-            exerror("%s - CloseHandle fail.\n", __func__);
-            r -= 1;
-        }
-        hThread = nullptr;
     }
     iomuxmap.fini();
     timerset.fini();
     evWake.fini();
-    return (r == 0);
+    return ret;
 }
 
 bool ExWatch::init(size_t max_iomux, size_t stacksize) {
-    exassert(hThread == nullptr);
-    iomuxmap.init(max_iomux);
-
-    evWake.init();
-    ioAdd(this, &ExWatch::onEvent, evWake);
-
+    int32 r = 0;
+    if (max_iomux > 0UL) {
+        iomuxmap.init(max_iomux);
+        r -= evWake.init() ? 0 : 1;
+        r -= ioAdd(this, &ExWatch::onWake, evWake) ? 0 : 1;
+    }
     tickCount = ExGetTickCount(); // update tick
-
-    hThread = CreateThread(nullptr, stacksize, start, this, 0, &idThread);
-    dprint1("CreateThread: hThread=%p idThread=%p\n", hThread, idThread);
-    exassert(hThread != nullptr);
-
-    return (hThread != nullptr);
+    if (stacksize > 0UL) {
+        exassert(hThread == nullptr);
+        r -= create(Proc(this, &ExWatch::proc), stacksize) ? 0 : 1;
+    }
+    return (r == 0);
 }
 
-uint32 ExWatch::onEvent(const epoll_event* ev) {
+uint32 ExWatch::onWake(const epoll_event* ev) {
     HANDLE hev = (HANDLE)ev->data;
-    dprint0("%s: hev:%p\n", __func__, hev);
+    dprint0("%s: hev:%p\n", _func_, hev);
     exassert(evWake == hev);
     #if 1 // for manual reset
     (void)evWake.reset();
     #endif
-
-    #if 0 // tbd - cond wait and signal
-    pthread_cond_wait(&cond, &mutex);
-    ...
-    pthread_cond_signal(&cond);
-    #endif
-
     return 0U;
 }
 

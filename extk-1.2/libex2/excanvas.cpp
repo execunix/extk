@@ -60,7 +60,7 @@ bool ExCanvas::createMemGC(int32 width, int32 height) {
     deleteMemGC();
     gc = ExImage::create(width, height, Ex_IMAGE_DIRECT_8888);
     if (!gc) {
-        dprint1("%s(%d,%d) %s\n", __func__, width, height, "ExImage::create fail");
+        dprint1("%s(%d,%d) %s\n", _func_, width, height, "ExImage::create fail");
         return false;
     }
     cairo_status_t status;
@@ -85,7 +85,7 @@ bool ExCanvas::createMemGC(int32 width, int32 height) {
         wnd->damage(); // tbd
         return true;
     }
-    dprint1("%s(%d,%d) %s\n", __func__, width, height, cairo_status_to_string(status));
+    dprint1("%s(%d,%d) %s\n", _func_, width, height, cairo_status_to_string(status));
     deleteMemGC();
     return false;
 }

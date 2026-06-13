@@ -19,8 +19,8 @@ dprint_appinfo(char* const mbs, const int32 len)
 {
 #if 1
     char buf[32];
-    const ExWatch* const watch = ExWatch::getTlsSpecific();
-    const char* name = (watch != nullptr) ? watch->name : nullptr;
+    const ExThread* const self = ExThread::getTlsSelf();
+    const char* name = (self != nullptr) ? self->name : nullptr;
     if (name == nullptr) {
         uint32 tid;
         #ifdef __linux__

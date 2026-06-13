@@ -86,8 +86,8 @@ uint32 WatchApp::on_ev2dev(const epoll_event* const ev)
     em.pt.x = em0.pt.x;
     em.pt.y = em0.pt.y;
 
-    exassert2(ev->data.fd == ev2dev_fd, __FILE__ "@" Ex_STRINGIFY(__LINE__));
-    dprint0("%s: ev2dev_fd=%d\n", __func__, ev2dev_fd);
+    exassert2(ev->data.fd == ev2dev_fd, _fileline_);
+    dprint0("%s: ev2dev_fd=%d\n", _func_, ev2dev_fd);
 
     while (true) {
         ssize_t rsize;
@@ -97,10 +97,10 @@ uint32 WatchApp::on_ev2dev(const epoll_event* const ev)
             break; // no more input
         }
         if (rsize != ssizeof(ev2)) {
-            dprint("%s: rsize=%d, %s\n", __func__, rsize, exstrerr());
+            dprint("%s: rsize=%d, %s\n", _func_, rsize, exstrerr());
             goto done; // size error
         }
-        dprint0("%s: rsize=%d type:%d code:%d value:%d\n", __func__, rsize, ev2.type, ev2.code, ev2.value);
+        dprint0("%s: rsize=%d type:%d code:%d value:%d\n", _func_, rsize, ev2.type, ev2.code, ev2.value);
         packet_count++;
 
         if (ev2.type == static_cast<uint16>(EV_KEY)) {
@@ -122,7 +122,7 @@ uint32 WatchApp::on_ev2dev(const epoll_event* const ev)
                 // defense code
             }
         } else if ((ev2.type == static_cast<uint16>(EV_SYN)) || (((em.pt.x != em0.pt.x) || (em.pt.y != em0.pt.y)) && (xy == 3U))) {
-            dprint0("%s.%d: %d - %d,%d\n", __func__, tickCount, em.message, em.pt.x, em.pt.y);
+            dprint0("%s.%d: %d - %d,%d\n", _func_, tickCount, em.message, em.pt.x, em.pt.y);
             (void)EmitPtrEvent(em);
             em0.pt.x = em.pt.x;
             em0.pt.y = em.pt.y;
@@ -142,7 +142,7 @@ uint32 WatchApp::on_ev2dev(const epoll_event* const ev)
     }
 
     if (((em.pt.x != em0.pt.x) || (em.pt.y != em0.pt.y)) && (xy != 0U)) { // check broken event
-        dprint0("%s.%d: %d - %d,%d\n", __func__, tickCount, em.message, em.pt.x, em.pt.y);
+        dprint0("%s.%d: %d - %d,%d\n", _func_, tickCount, em.message, em.pt.x, em.pt.y);
         (void)EmitPtrEvent(em);
         em0.pt.x = em.pt.x;
         em0.pt.y = em.pt.y;
@@ -183,29 +183,15 @@ bool WatchApp::cleanup()
     fini_fifo();
 
     tid = 0U;
-    iomuxmap.fini();
-    timerset.fini();
-    evWake.fini();
-    return true;
+    exassert(joinable == false);
+    return ExWatch::fini();
 }
 
 bool WatchApp::startup()
 {
     int32 r = 0;
 
-    exWatchMain = this;
-    exWatchLast = this;
-    exWatchDisp = this;
-
-    exassert2(tid == 0U, __FILE__ "@" Ex_STRINGIFY(__LINE__));
-    iomuxmap.init(256UL);
-
-    evWake.init();
-    (void)ioAdd(this, &WatchApp::onEvent, evWake);
-
-    tickCount = ExGetTickCount(); // update tick
-
-    tid = pthread_self();
+    (void)ExWatch::init(16UL, 0UL); // skip create-thread
 
     fini_fifo();
     init_fifo();
@@ -311,30 +297,16 @@ WatchMap gWatchMap;
 
 bool WatchApp::cleanup()
 {
-    idThread = 0U;
-    iomuxmap.fini();
-    timerset.fini();
-    evWake.fini();
-    return true;
+    hThread = nullptr;
+    exassert(joinable == false);
+    return ExWatch::fini();
 }
 
 bool WatchApp::startup()
 {
     int32 r = 0;
 
-    exWatchMain = this;
-    exWatchLast = this;
-    exWatchDisp = this;
-
-    exassert2(idThread == 0U, __FILE__ "@" Ex_STRINGIFY(__LINE__));
-    iomuxmap.init(256UL);
-
-    evWake.init();
-    (void)ioAdd((ExWatch*)this, &ExWatch::onEvent, evWake);
-
-    tickCount = ExGetTickCount(); // update tick
-
-    idThread = GetCurrentThreadId();
+    (void)ExWatch::init(16UL, 0UL); // skip create-thread
 
     return (r == 0);
 }
@@ -347,10 +319,10 @@ uint32 WatchApp::on_cmdline(const epoll_event* const ev)
     char cmdline[512];
     char* str;
 
-    //dprint("%s\n", __func__);
+    //dprint("%s\n", _func_);
     if (ev->data.fd != 0) { // fifo
         ssize_t n;
-        exassert2(app_fifo > 0, __FILE__ "@" Ex_STRINGIFY(__LINE__));
+        exassert2(app_fifo > 0, _fileline_);
         n = read(app_fifo, &cmdline[0], 511UL);
         if (n <= 0) {
             goto done;

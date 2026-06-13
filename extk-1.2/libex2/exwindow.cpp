@@ -94,7 +94,7 @@ uint32 ExWindow::destroy() {
         hwnd = None;
         if (ExApp::mainWnd == this) {
             ExApp::mainWnd = nullptr; // stop timer/flush/input exlib proc
-            (void)ExEmitMessage(WM_QUIT, ExApp::retCode); // stop main loop
+            (void)ExEmitMessage(WM_QUIT, EXIT_SUCCESS); // stop main loop
         }
 #endif // __linux__
     }

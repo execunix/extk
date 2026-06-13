@@ -21,7 +21,7 @@ protected:
     #endif // __linux__
     mutable uint64  u64;
 public:
-    ~ExEvent() noexcept { (void)fini(); }
+    ~ExEvent() noexcept { fini(); }
     #ifdef WIN32
     explicit ExEvent() noexcept : hev(nullptr), u64(0UL) {}
     operator HANDLE () const { return hev; }
@@ -31,7 +31,7 @@ public:
     operator int32 () const { return efd; }
     #endif // __linux__
 public:
-    bool fini() noexcept;
+    void fini() noexcept;
     bool init() noexcept;
     bool reset() const { return getEvent(&u64); };
     bool signal() const { return setEvent(1UL); };
@@ -65,12 +65,12 @@ public:
     #endif // WIN32
     #ifdef __linux__
     ~ExMutex() noexcept {
-        pthread_cond_destroy(&cond);
-        pthread_mutex_destroy(&mutex);
+        (void)pthread_cond_destroy(&cond);
+        (void)pthread_mutex_destroy(&mutex);
     }
     explicit ExMutex() noexcept : mutex(), cond(), owner(0U), recurs(0U) {
-        pthread_mutex_init(&mutex, nullptr);
-        pthread_cond_init(&cond, nullptr);
+        (void)pthread_mutex_init(&mutex, nullptr);
+        (void)pthread_cond_init(&cond, nullptr);
     }
     #endif // __linux__
     bool isowner() const noexcept;
@@ -80,16 +80,18 @@ public:
     friend class ExWatch;
 };
 
-#if 0 // deprecated
 class ExAutoLock {
-protected:
     const ExMutex& mutex;
 public:
-    ~ExAutoLock() noexcept { mutex.unlock(); }
-    explicit ExAutoLock(const ExMutex& mutex) noexcept : mutex(mutex) {
-        mutex.lock();
+    ~ExAutoLock() noexcept {
+        (void)mutex.unlock();
     }
+    explicit ExAutoLock(const ExMutex& mutex) noexcept : mutex(mutex) {
+        (void)mutex.lock();
+    }
+    // prevent copy
+    ExAutoLock(const ExAutoLock&) = delete;
+    ExAutoLock& operator = (const ExAutoLock&) = delete;
 };
-#endif
 
 #endif//__exevent_h__

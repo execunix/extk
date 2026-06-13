@@ -9,7 +9,7 @@
 
 void ExImage::fillBoxAlphaEx(const ExBox* box, uint8 alpha, uint8 a_out)
 {
-    dprint("%s\n", __func__);
+    dprint("%s\n", _func_);
     if (!(this->bits && this->bpp == 32))
         return;
     ExBox bx;
@@ -89,7 +89,7 @@ void ExImage::fillBoxAlpha(const ExBox* box, uint8 alpha)
 
 void ExImage::fillBoxRgbEx(const ExBox* box, uint32 rgb, uint32 rgb_out)
 {
-    dprint("%s\n", __func__);
+    dprint("%s\n", _func_);
     if (!(this->bits && this->bpp == 32))
         return;
     ExBox bx;
@@ -169,7 +169,7 @@ void ExImage::fillBoxRgb(const ExBox* box, uint32 rgb)
 
 void ExImage::fillBoxEx(const ExBox* box, uint32 color, uint32 c_out)
 {
-    dprint("%s\n", __func__);
+    dprint("%s\n", _func_);
     if (!(this->bits && this->bpp == 32))
         return;
     ExBox bx;

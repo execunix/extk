@@ -34,6 +34,10 @@ public:
     static LPSTR        lpCmdLine;
     static int32        nCmdShow;
 #endif
+#ifdef __linux__
+    static int32        argc;
+    static char**       argv;
+#endif
 #ifdef CONF_X11
     enum : int32 {
         WM_PROTOCOLS,
@@ -53,7 +57,6 @@ public:
     };
     static EnvX11       x11;
 #endif // CONF_X11
-    static int32        retCode;                    // 0:EXIT_SUCCESS,1:EXIT_FAILURE
     static ExSize       smSize;                     // SystemMetrics
     static ExTimer      but_timer;
     static ExTimer      key_timer;
@@ -76,12 +79,12 @@ public:
     static void addCollectWidget(ExWidget* widget);
     static void addCollectWindow(ExWindow* window);
     static void collect();
-    static void exit(int32 retCode);
+    static void fini(int32 retCode); // 0:EXIT_SUCCESS,1:EXIT_FAILURE
 #ifdef WIN32
-    static bool init(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int32 nCmdShow);
+    static void init(ExWatch* self, HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int32 nCmdShow);
 #endif
 #ifdef __linux__
-    static bool init(int argc, char* argv[]);
+    static void init(ExWatch* self, int argc, char* argv[]);
 #endif
     static bool initX11(ExWatch* watch);
     static bool finiX11(ExWatch* watch);
@@ -123,7 +126,7 @@ Returns:
 */
 void ExModalUnblock(ExModalCtrl* const ctrl, void* result);
 
-void ExMainLoop();
+int32 ExMainLoop();
 void ExQuitMainLoop();
 
 #ifdef OSAL_WIN32
@@ -150,12 +153,13 @@ void start(...) {
 }
 
 int main(int argc, char* argv[]) {
-    ExApp::init(argc, argv);
+    int32 retCode = EXIT_SUCCESS;
+    ExApp::init(nullptr, argc, argv);
     start(...);
-    ExMainLoop();
+    retCode = ExMainLoop();
     // cleanup
-    ExApp::exit(1);
-    return ExApp::retCode;
+    ExApp::fini(retCode);
+    return retCode;
 }
 */
 

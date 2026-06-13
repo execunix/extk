@@ -191,7 +191,7 @@ uint32 WgtSetup::onLayout(ExWidget* widget, ExCbInfo* cbinfo) {
 }
 
 void WgtSetup::fini() {
-    dprint("WgtSetup::%s\n", __func__);
+    dprint("WgtSetup::%s\n", _func_);
 }
 
 void WgtSetup::init(ExWidget* parent, int x, int y) {

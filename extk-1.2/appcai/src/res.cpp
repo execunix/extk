@@ -16,11 +16,11 @@ int Face::load(const char* name)
     sprintf_s(faceName, 256, "%S/%s", res.path, "font/NanumGothic.ttf");
 
     if (FT_New_Face(ftLib, faceName, 0, &ftFace) != FT_Err_Ok) {
-        dprint1("%s(%s) FT_New_Face fail", __func__, faceName);
+        dprint1("%s(%s) FT_New_Face fail", _func_, faceName);
         return -1;
     }
     if ((crf = cairo_ft_font_face_create_for_ft_face(ftFace, FT_LOAD_DEFAULT | FT_LOAD_NO_BITMAP)) == NULL) {
-        dprint1("%s(%s) cairo_ft_font_face_create_for_ft_face fail", __func__, faceName);
+        dprint1("%s(%s) cairo_ft_font_face_create_for_ft_face fail", _func_, faceName);
         return -1;
     }
     return 0;
@@ -45,7 +45,7 @@ static int load(ExImage* img, wchar* name)
     wchar pathname[256];
     swprintf_s(pathname, 256, L"%s/%s", res.path, name);
     if (img->load(pathname) != 0) {
-        dprintf(L"%s: load %s fail.\n", __funcw__, pathname);
+        dprintf(L"%s: load %s fail.\n", _funcw_, pathname);
         return -1;
     }
     return 0;
@@ -58,7 +58,7 @@ int initRes()
     if (_wstat(res.path, &statbuf))
         swprintf_s(res.path, 256, L"%s/../../res", exModulePath);
     if (_wstat(res.path, &statbuf)) {
-        dprintf(L"%s: cant open res path\n", __funcw__);
+        dprintf(L"%s: cant open res path\n", _funcw_);
         return -1;
     }
 

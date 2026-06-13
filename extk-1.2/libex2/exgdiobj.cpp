@@ -41,7 +41,7 @@ ExGdiBmp::Create(int32 w, int32 h, int32 bpp, const void* lpvBits)
 #endif
     hbmp = CreateDIBSection(NULL, &bmi, DIB_RGB_COLORS, (void**)&bits, NULL, NULL);
     if (hbmp == NULL) {
-        exerror("%s - CreateDIBSection fail.\n", __func__);
+        exerror("%s - CreateDIBSection fail.\n", _func_);
         return -1;
     }
     GetObject(hbmp, sizeof(bm), &bm);
@@ -70,7 +70,7 @@ ExGdiBmp::Create(ExImage& img, int32 bpp/*[0:DDB],[15,16,24,32:DIB],[Others:Inva
         ExWndDC wnddc(GetDesktopWindow());
         ExMemDC memdc(wnddc, img.width, img.height);
         if (memdc.hbmMem == NULL) {
-            exerror("%s - CreateCompatibleBitmap fail.\n", __func__);
+            exerror("%s - CreateCompatibleBitmap fail.\n", _func_);
             return -1;
         }
         BITMAPINFO bmi;
@@ -150,7 +150,7 @@ ExGdiBmp::Create(ExImage& img, int32 bpp/*[0:DDB],[15,16,24,32:DIB],[Others:Inva
             }
         return 0;
     }
-    exerror("%s - invalid param. bpp=%d\n", __func__, bpp);
+    exerror("%s - invalid param. bpp=%d\n", _func_, bpp);
     return -1;
 }
 

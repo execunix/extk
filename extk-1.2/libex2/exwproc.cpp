@@ -42,7 +42,7 @@ static int64 procPtrLeaveEnter(ExWindow* const window, ExWidget* const widget, E
             }
         }
         if (widget != nullptr) {
-            exassert2(widget == window->getEntered(), __FILE__ "@" Ex_STRINGIFY(__LINE__));
+            exassert2(widget == window->getEntered(), _fileline_);
             (void)widget->setFlags(Ex_PtrEntered, Ex_PtrEntered);
             (void)widget->invokeListener(Ex_CbActivate, cbinfo->set(Ex_CbPtrEnter, 0U));
             // tbd - check halt and result code
@@ -421,7 +421,7 @@ DefWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         ExApp::addCollectWindow(window);
         if (ExApp::mainWnd == window) {
             ExApp::mainWnd = nullptr; // stop timer/flush/input exlib proc
-            PostQuitMessage(ExApp::retCode); // stop main loop
+            PostQuitMessage(EXIT_SUCCESS); // stop main loop
         }
         // An application should return zero if it processes this message.
         goto leave_proc;

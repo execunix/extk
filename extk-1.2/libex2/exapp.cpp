@@ -43,6 +43,10 @@ HINSTANCE    ExApp::hPrevInstance = 0;
 LPSTR        ExApp::lpCmdLine = NULL;
 int32        ExApp::nCmdShow = 0;
 #endif
+#ifdef __linux__
+int32        ExApp::argc = 0;
+char**       ExApp::argv = nullptr;
+#endif
 #ifdef CONF_X11
 ExApp::EnvX11 ExApp::x11 = {
     .wm_atom = { None },
@@ -54,7 +58,6 @@ ExApp::EnvX11 ExApp::x11 = {
     .ximg = nullptr,
 };
 #endif // CONF_X11
-int32        ExApp::retCode = 0;                // 0:EXIT_SUCCESS,1:EXIT_FAILURE
 ExSize       ExApp::smSize(0);                  // SystemMetrics
 ExTimer      ExApp::but_timer;
 ExTimer      ExApp::key_timer;
@@ -91,9 +94,9 @@ Description:
     This is a convenience function that implements an application main loop using
     ExEventNext() and ExEventHandler().
 */
-void ExMainLoop()
+int32 ExMainLoop()
 {
-    (void)exWatchDisp->guiloop(ExHookProc::Process);
+    return (int32)exWatchDisp->guiloop(ExHookProc::Process);
 }
 
 /**
@@ -109,9 +112,9 @@ Returns:
 void ExQuitMainLoop()
 {
 #ifdef WIN32
-    PostQuitMessage(0);
+    PostQuitMessage(EXIT_SUCCESS);
 #else
-    (void)ExEmitMessage(WM_QUIT, ExApp::retCode); // stop main loop
+    (void)ExEmitMessage(WM_QUIT, EXIT_SUCCESS); // stop main loop
 #endif
 }
 
@@ -166,36 +169,36 @@ void ExApp::collect()
     // tbd etc...
 }
 
-void ExApp::exit(int32 retCode)
+void ExApp::fini(int32 retCode)
 {
-    dprint("%s(%d)\n", __func__, retCode);
+    dprint("%s(%d)\n", _func_, retCode);
+    exassert2(ExThreadSelf() == exWatchMain, _fileline_); // trap
 #ifdef WIN32
-    if (!ExIsMainThread()) {
-        dprint("pause main thread\n");
-    }
     // When the system window manager closed the app, mainWnd was destroyed.
-#if 1 // It's not essential, but it's better to keep it clean.
+    #if 1 // It's not essential, but it's better to keep it clean.
     if (ExApp::mainWnd != nullptr) { // When the halt flag is set inside the app.
         ExApp::mainWnd->destroy();
         ExApp::collect();
     }
-#endif
+    #endif
     ExFiniProcess();
     ExitProcess(retCode);
-#endif
+#endif // WIN32
 #ifdef __linux__
-    ::exit(retCode);
-#endif
+    ExFiniProcess();
+    exit(retCode);
+#endif // __linux__
 }
 
 #ifdef WIN32
-bool ExApp::init(HINSTANCE hInstance,
+void ExApp::init(ExWatch* self,
+                 HINSTANCE hInstance,
                  HINSTANCE hPrevInstance,
                  LPSTR lpCmdLine,
                  int32 nCmdShow)
 {
     // init lib
-    ExInitProcess();
+    ExInitProcess(self);
 
     // init args
     ExApp::hInstance = hInstance;
@@ -204,7 +207,6 @@ bool ExApp::init(HINSTANCE hInstance,
     ExApp::nCmdShow = nCmdShow;
 
     // init vars
-    ExApp::retCode = EXIT_FAILURE;
 #if 1
     smSize.w = GetSystemMetrics(SM_CXSCREEN);
     smSize.h = GetSystemMetrics(SM_CYSCREEN);
@@ -215,22 +217,29 @@ bool ExApp::init(HINSTANCE hInstance,
         smSize.h = GetDeviceCaps(hdc, VERTRES);
     }
 #endif
-    dprint("%s() width=%d height=%d\n", __func__, smSize.w, smSize.h);
+    dprint("%s() width=%d height=%d\n", _func_, smSize.w, smSize.h);
 
-    if (ExWindow::initClass(hInstance) != 0) {
-        retCode = EXIT_SUCCESS;
+    if (ExWindow::initClass(hInstance) == 0) {
+        dprint1("%s() initClass(0x%p) failed.\n", _func_, hInstance);
     }
-    return (retCode == EXIT_SUCCESS);
 }
 #endif // WIN32
 
 #ifdef __linux
-bool ExApp::init(int argc, char* argv[])
+void ExApp::init(ExWatch* self, int argc, char* argv[])
 {
-    // init vars
-    ExApp::retCode = EXIT_FAILURE;
+    // init lib
+    ExInitProcess(self, argv[0]);
 
-    return (retCode == EXIT_SUCCESS);
+    // init args
+    ExApp::argc = argc;
+    ExApp::argv = argv;
+
+    // init vars
+    smSize.w = 0; // tbd
+    smSize.h = 0; // tbd
+
+    dprint("%s() width=%d height=%d\n", _func_, smSize.w, smSize.h);
 }
 #endif // __linux
 
@@ -325,7 +334,7 @@ uint32 onXeventSample(void* data, const epoll_event* const ev)
     ExApp::EnvX11& x11 = ExApp::x11;
     ExWatch* watch = static_cast<ExWatch*>(data);
     const int32 xd_fd = ConnectionNumber(x11.display);
-    dprint0("%s: xd_fd=%d\n", __func__, xd_fd);
+    dprint0("%s: xd_fd=%d\n", _func_, xd_fd);
     exassert(ev->data.fd == xd_fd);
 
     //XLockDisplay(x11.display);
@@ -464,7 +473,7 @@ uint32 onXeventSample(void* data, const epoll_event* const ev)
     //XUnlockDisplay(x11.display);
     return 0U;
 }
-#else // CONF_X11
+#else // !CONF_X11
 bool ExApp::initX11(ExWatch* watch)
 {
     return true;

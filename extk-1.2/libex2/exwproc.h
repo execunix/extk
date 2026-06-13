@@ -11,13 +11,13 @@
 
 struct ExWindowMap : public std::map<const HWND, const ExWindow*> {
     bool detach(const HWND hwnd) {
-        dprint("%s: hwnd=0x%p addr=0x%p\n", __func__, hwnd, (*this)[hwnd]);
+        dprint("%s: hwnd=0x%p addr=0x%p\n", _func_, hwnd, (*this)[hwnd]);
         //SetWindowLong(hwnd, GWL_USERDATA, (LONG)NULL); // detach window handle
         return this->erase(hwnd) > 0;
     }
     bool attach(const HWND hwnd, const ExWindow* window) {
         exassert(this->find(hwnd) == this->end());
-        dprint("%s: hwnd=0x%p addr=0x%p name=%s\n", __func__, hwnd, window, window->getName());
+        dprint("%s: hwnd=0x%p addr=0x%p name=%s\n", _func_, hwnd, window, window->getName());
         //SetWindowLong(hwnd, GWL_USERDATA, (LONG)this); // attach window handle
         #if 1
         const std::pair<const_iterator, bool> pr = this->insert(value_type(hwnd, window));

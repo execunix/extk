@@ -10,6 +10,7 @@
 #include <ctype.h>
 #include <locale.h>
 #include <execinfo.h>
+#include <sys/resource.h>
 #endif // __linux__
 #include <functional>
 #include <exdebug.h>
@@ -675,7 +676,7 @@ int main(int argc, char* argv[])
 {
     int32 result = EXIT_SUCCESS;
 
-    ExWatch::setTlsSpecific(&gWatchApp);
+    ExApp::init(&gWatchApp, argc, argv);
 #ifdef DPRINT
     dprint_verbose = 3;
     if (setlocale(LC_ALL, "en_US.UTF-8") == nullptr) {
@@ -711,6 +712,17 @@ int main(int argc, char* argv[])
     (void)gWatchDev.init(); // start watch thread for gps and etc
     (void)gWatchMap.init();
     (void)gWatchdog.init();
+    #if 0
+    sched_param param;
+    param.sched_priority = 70;
+    if (0 != pthread_setschedparam(gWatchMap.id(), SCHED_FIFO, &param)) {
+        dprint1("pthread_setschedparam fail.\n");
+    }
+    // pthread_t tid = gWatchMap.id();
+    // if (setpriority(PRIO_PROCESS, tid, 1) == -1) {
+    //     dprint1("setpriority fail.\n");
+    // }
+    #endif
     // app startup begin
     //
     //CApp app;
@@ -738,15 +750,15 @@ int main(int argc, char* argv[])
 #else
     CreateWindowEx(klass, name, style, x, y, ...);
 #endif
-    exassert2(ExApp::mainWnd == gWndMain, __FILE__ "@" Ex_STRINGIFY(__LINE__));
+    exassert2(ExApp::mainWnd == gWndMain, _fileline_);
 
     //
     //gWndMain->addFilter(&app, &CApp::onFilter);
     //(void)module.init();
     //
 
-    //(void)gWatchApp.guiloop();
-    ExMainLoop();
+    //result = gWatchApp.guiloop();
+    result = ExMainLoop();
 
     //
     //(void)module.fini();
@@ -760,7 +772,7 @@ int main(int argc, char* argv[])
         // call XDestroyWindow, emit WM_DESTROY, and post WM_QUIT.
         ExApp::collect(); // call delete gWndMain
     }
-    exassert2(ExApp::mainWnd == nullptr, __FILE__ "@" Ex_STRINGIFY(__LINE__));
+    exassert2(ExApp::mainWnd == nullptr, _fileline_);
     wndmain_allocator.destroy(gWndMain);
     wndmain_allocator.deallocate(gWndMain, 1U);
     gWndMain = nullptr;
@@ -781,6 +793,7 @@ int main(int argc, char* argv[])
     (void)finiRes();
     (void)saveEnv();
     sync();
+    ExApp::fini(result);
 on_failure:
     dprint("exit %d\n", result);
     return result;
@@ -793,9 +806,9 @@ int APIENTRY WinMain(_In_ HINSTANCE hInstance,
                      _In_ LPSTR     lpCmdLine,
                      _In_ int       nCmdShow)
 {
-    ExApp::retCode = EXIT_SUCCESS;
+    int32 retCode = EXIT_SUCCESS;
 
-    ExWatch::setTlsSpecific(&gWatchApp);
+    ExApp::init(&gWatchApp, hInstance, hPrevInstance, lpCmdLine, nCmdShow);
     SetConsoleOutputCP(CP_UTF8); // CP_UTF8 | CP_ACP
 #ifdef DPRINT
     dprint_verbose = 3;
@@ -812,7 +825,6 @@ int APIENTRY WinMain(_In_ HINSTANCE hInstance,
     //app_test();
     //flt_test();
 
-    ExApp::init(hInstance, hPrevInstance, lpCmdLine, nCmdShow);
     (void)initEnv();
     (void)initRes();
     (void)gWatchApp.startup();
@@ -826,14 +838,14 @@ int APIENTRY WinMain(_In_ HINSTANCE hInstance,
     (void)gWndMain->setFlags(Ex_FreeMemory); // tbd
     //gWndMain->flushFunc = ExFlushFunc(&gLcdOut, &LcdOut::onFlush);
     if (gWndMain->start() != 0) {
-        ExApp::retCode = EXIT_FAILURE;
+        retCode = EXIT_FAILURE;
         goto on_failure;
     }
     (void)gWndMain->flush();
     exassert(ExApp::mainWnd == gWndMain);
 
-    //(void)gWatchApp.guiloop();
-    ExMainLoop();
+    //retCode = gWatchApp.guiloop();
+    retCode = ExMainLoop();
 
 #if 1
     //
@@ -844,7 +856,7 @@ int APIENTRY WinMain(_In_ HINSTANCE hInstance,
         // call XDestroyWindow, emit WM_DESTROY, and post WM_QUIT.
         ExApp::collect(); // call delete gWndMain
     }
-    exassert2(ExApp::mainWnd == nullptr, __FILE__ "@" Ex_STRINGIFY(__LINE__));
+    exassert2(ExApp::mainWnd == nullptr, _fileline_);
     //delete gWndMain;
     gWndMain = nullptr;
 #endif
@@ -855,8 +867,9 @@ int APIENTRY WinMain(_In_ HINSTANCE hInstance,
     (void)gWatchApp.cleanup();
     (void)finiRes();
     (void)saveEnv();
-    ExApp::exit(ExApp::retCode);
+    ExApp::fini(retCode);
 on_failure:
-    return ExApp::retCode;
+    dprint("exit %d\n", retCode);
+    return retCode;
 }
 #endif // WIN32

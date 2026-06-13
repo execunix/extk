@@ -116,7 +116,7 @@ bool ExImage::loadBmp(HANDLE hFile, const char* fname, bool query)
     return true;
 
 bmp_cleanup:
-    exerror("%s(%s) - error.\n", __func__, fname);
+    exerror("%s(%s) - error.\n", _func_, fname);
     if (src_buf)
         delete[] src_buf;
     this->clear();
@@ -141,11 +141,11 @@ bool ExImage::loadBmp(int32 fd, const char* fname, bool query)
             goto bmp_cleanup;
         }
         if (bi.biBitCount < 8) {
-            exerror("%s(%s) %d-bpp not support\n", __func__, fname, bi.biBitCount);
+            exerror("%s(%s) %d-bpp not support\n", _func_, fname, bi.biBitCount);
             goto bmp_cleanup;
         } else if (bi.biBitCount == 8) {
             if (read(fd, cmap, sizeof(cmap)) != sizeof(cmap)) {
-                exerror("%s(%s) invalid colormap\n", __func__, fname);
+                exerror("%s(%s) invalid colormap\n", _func_, fname);
                 goto bmp_cleanup;
             }
             chroma &= 0xfefefe; // tolerant 1-bit
@@ -160,7 +160,7 @@ bool ExImage::loadBmp(int32 fd, const char* fname, bool query)
             }
         }
         if (bi.biCompression != BI_RGB) {
-            exerror("%s(%s) not rgb bitmap\n", __func__, fname);
+            exerror("%s(%s) not rgb bitmap\n", _func_, fname);
             goto bmp_cleanup;
         }
         if (query) {
@@ -171,7 +171,7 @@ bool ExImage::loadBmp(int32 fd, const char* fname, bool query)
         }
 
         if (lseek(fd, bf.bfOffBits, SEEK_SET) < 0)
-            exerror("%s(%s) - %s fail. %s\n", __func__, fname, "seek", exstrerr());
+            exerror("%s(%s) - %s fail. %s\n", _func_, fname, "seek", exstrerr());
 
         int32 src_bpl = BMP_BPL(bi.biWidth, bi.biBitCount);
         int32 src_width = bi.biWidth;
@@ -274,7 +274,7 @@ bool ExImage::loadBmp(int32 fd, const char* fname, bool query)
     } while (0);
 
 bmp_cleanup:
-    exerror("%s(%s) - error.\n", __func__, fname);
+    exerror("%s(%s) - error.\n", _func_, fname);
     if (src_buf)
         delete[] src_buf;
     this->clear();

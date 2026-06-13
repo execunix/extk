@@ -35,7 +35,7 @@ bool ExImage::init(int32 width, int32 height, uint32 type)
     setInfo(width, height, type);
     this->flags |= Ex_ImageAlloc;
     if ((this->bits = (uint8*)malloc(getBitsSize())) == NULL) {
-        exerror("%s(%d,%d,%08x) - malloc fail.\n", __func__, width, height, type);
+        exerror("%s(%d,%d,%08x) - malloc fail.\n", _func_, width, height, type);
         this->clear();
         return false;
     }
@@ -65,7 +65,7 @@ bool ExImage::setInfo(int32 width, int32 height, uint32 type)
     exassert(this->bits == NULL);
     int32 bpp = getBitsPerPixel(type);
     if (bpp == 0 || width <= 0 || height <= 0) {
-        exerror("%s(%d,%d,%08x) - invalid param.\n", __func__, width, height, type);
+        exerror("%s(%d,%d,%08x) - invalid param.\n", _func_, width, height, type);
         return false;
     }
     this->flags |= Ex_ImageQuery;
@@ -81,24 +81,25 @@ bool ExImage::setInfo(int32 width, int32 height, uint32 type)
 bool ExImage::load(const char* fname, bool query)
 {
     if (crs != NULL || bits != NULL) {
-        exerror("%s - loaded\n", __func__);
+        exerror("%s - loaded\n", _func_);
         clear();
     }
     if (!(fname && *fname)) {
-        exerror("%s - invalid filename.\n", __func__);
+        exerror("%s - invalid filename.\n", _func_);
         return false;
     }
     const char* ext = NULL;
-    for (const char* p = fname; *p; p++)
+    for (const char* p = fname; *p; p++) {
         if (*p == '.') ext = p + 1;
+    }
     if (ext == NULL) {
-        exerror("%s(%s) - invalid extension.\n", __func__, fname);
+        exerror("%s(%s) - invalid extension.\n", _func_, fname);
         return false;
     }
     HANDLE hFile = CreateFile(fname, GENERIC_READ, 0, NULL,
                               OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
     if (hFile == INVALID_HANDLE_VALUE) {
-        exerror("%s(%s) - CreateFile fail.\n", __func__, fname);
+        exerror("%s(%s) - CreateFile fail.\n", _func_, fname);
         return false;
     }
     bool r = false;
@@ -127,7 +128,7 @@ bool ExImage::load(const char* fname, bool query)
         goto done;
     }
 #endif
-    exerror("%s(%s) - unknown image format.\n", __func__, fname);
+    exerror("%s(%s) - unknown image format.\n", _func_, fname);
 clean:
     CloseHandle(hFile);
 done:
@@ -144,7 +145,7 @@ done:
         exassert(stride == bpl);
         status = cairo_surface_status(crs);
         if (status != CAIRO_STATUS_SUCCESS) {
-            exerror("%s: %s\n", __func__, cairo_status_to_string(status));
+            exerror("%s: %s\n", _func_, cairo_status_to_string(status));
             //cairo_surface_destroy(crs);
             clear();
             return false;
@@ -156,31 +157,34 @@ done:
 bool ExImage::load(const char* fname, bool query)
 {
     if (crs != NULL || bits != NULL) {
-        exerror("%s - loaded\n", __func__);
+        exerror("%s - loaded\n", _func_);
         clear();
     }
     if (!(fname && *fname)) {
-        exerror("%s - invalid filename.\n", __func__);
+        exerror("%s - invalid filename.\n", _func_);
         return false;
     }
     const char* ext = NULL;
-    for (const char* p = fname; *p; p++)
+    for (const char* p = fname; *p; p++) {
         if (*p == '.') ext = p + 1;
+    }
     if (ext == NULL) {
-        exerror("%s(%s) - invalid extension.\n", __func__, fname);
+        exerror("%s(%s) - invalid extension.\n", _func_, fname);
         return false;
     }
     int32 fd = open(fname, O_RDONLY);
     if (fd < 0) {
-        exerror("%s(%s) - %s fail. %s\n", __func__, fname, "open", exstrerr());
+        exerror("%s(%s) - %s fail. %s\n", _func_, fname, "open", exstrerr());
         return false;
     }
     bool r = false;
     uint8 hdr[8];
-    if (read(fd, hdr, 8) < 4)
-        exerror("%s(%s) - %s fail. %s\n", __func__, fname, "read", exstrerr());
-    if (lseek(fd, 0, SEEK_SET) != 0)
-        exerror("%s(%s) - %s fail. %s\n", __func__, fname, "seek", exstrerr());
+    if (read(fd, hdr, 8) < 4) {
+        exerror("%s(%s) - %s fail. %s\n", _func_, fname, "read", exstrerr());
+    }
+    if (lseek(fd, 0, SEEK_SET) != 0) {
+        exerror("%s(%s) - %s fail. %s\n", _func_, fname, "seek", exstrerr());
+    }
     if (strncasecmp(ext, "png", 3) == 0) {
         exassert(hdr[0] == 0x89 && hdr[1] == 'P' && hdr[2] == 'N' && hdr[3] == 'G');
         this->format = Ex_IMM_PNG;
@@ -202,7 +206,7 @@ bool ExImage::load(const char* fname, bool query)
         goto done;
     }
 #endif
-    exerror("%s(%s) - unknown image format.\n", __func__, fname);
+    exerror("%s(%s) - unknown image format.\n", _func_, fname);
 clean:
     close(fd);
 done:
@@ -219,7 +223,7 @@ done:
         exassert(stride == bpl);
         status = cairo_surface_status(crs);
         if (status != CAIRO_STATUS_SUCCESS) {
-            exerror("%s: %s\n", __func__, cairo_status_to_string(status));
+            exerror("%s: %s\n", _func_, cairo_status_to_string(status));
             //cairo_surface_destroy(crs);
             clear();
             return false;

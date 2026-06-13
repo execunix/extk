@@ -130,20 +130,20 @@ bool loadEnv(const char* const envfile) noexcept
         if (!fp.good()) { // good is !(bad|eof|fail)
             #if 0 // for debug
             if (!fp.eof()) {
-                dprint1("%s - warning: expect eof but...\n", __func__);
+                dprint1("%s - warning: expect eof but...\n", _func_);
             }
             #endif
             break;
         }
-        exassert2(fp.gcount() > 0, __FILE__ "@" Ex_STRINGIFY(__LINE__)); // Signed integral type
+        exassert2(fp.gcount() > 0, _fileline_); // Signed integral type
         char* const str = strtrim(&line[0], " \t\r\n"); // trim white char...
-        exassert2(str != nullptr, __FILE__ "@" Ex_STRINGIFY(__LINE__));
+        exassert2(str != nullptr, _fileline_);
         char* tocken[32];
         const size_t cnt = strsplit(tocken, 32, str, '=');
         if (cnt == 2UL) {
             const char* const key = strtrim(tocken[0], " ='\"\t\r\n");
             const char* const val = strtrim(tocken[1], " ='\"\t\r\n");
-            exassert2(val != nullptr, __FILE__ "@" Ex_STRINGIFY(__LINE__));
+            exassert2(val != nullptr, _fileline_);
             if (0 == exstrcmp(key, "wnd.show")) {
                 env.wnd.show = atoi32(val);
             }

@@ -127,25 +127,30 @@ bool ExInitTimer(DWORD duetime, DWORD period) {
 // ExTimer
 //
 ExTimer::~ExTimer() noexcept {
+    fini();
+}
+
+void ExTimer::fini() {
     if (watch != nullptr) {
-        stop();
+        if (fActived != 0U) {
+            watch->timerset.remove(this);
+        }
+        watch = nullptr;
     }
 }
 
 void ExTimer::stop() {
-    exassert(watch != nullptr);
-    //AutoLockAnoWatch lock(watch);
-    (void)watch->enter();
-    if (fActived != 0U) {
-        exassert(watch != nullptr);
-        watch->timerset.remove(this);
+    if (watch != nullptr) {
+        (void)watch->enter();
+        if (fActived != 0U) {
+            watch->timerset.remove(this);
+        }
+        (void)watch->leave();
     }
-    (void)watch->leave();
 }
 
 void ExTimer::start(uint32 initial, uint32 repeat) {
     exassert(watch != nullptr);
-    //AutoLockAnoWatch lock(watch);
     (void)watch->enter();
     if (fActived != 0U) { // stop()
         watch->timerset.remove(this);
