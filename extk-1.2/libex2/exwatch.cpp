@@ -338,6 +338,8 @@ bool ExWatch::init(size_t max_iomux, size_t stacksize) {
     if (stacksize > 0UL) {
         exassert(tid == 0U);
         r -= create(Proc(this, &ExWatch::proc), stacksize) ? 0 : 1;
+    } else {
+        exassert(0 != pthread_equal(tid, pthread_self()));
     }
     return (r == 0);
 }

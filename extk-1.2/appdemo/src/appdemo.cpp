@@ -13,6 +13,7 @@
 #include <sys/resource.h>
 #endif // __linux__
 #include <functional>
+#include <exmemory.h>
 #include <exdebug.h>
 #include "appdemo.h"
 #include "lcdout.h"
@@ -671,26 +672,31 @@ static uint32 cmdline_halt(void* /*data*/, const int32* argc, const char** argv)
     return ret;
 }
 
-#ifdef __linux__
-int main(int argc, char* argv[])
+static int app_main_proc()
 {
     int32 result = EXIT_SUCCESS;
 
-    ExApp::init(&gWatchApp, argc, argv);
-#ifdef DPRINT
+#ifndef DPRINT
+    dprint_verbose = 0;
+#else // DPRINT
     dprint_verbose = 3;
+#ifdef __linux__
     if (setlocale(LC_ALL, "en_US.UTF-8") == nullptr) {
         dprint("setlocale(LC_ALL, en_US.UTF-8) failed.\n");
     }
-    #if 1 // test
     dprint(dprint_verbose, "mbs 한글 %s\n", "mbs 한글");
     dprint(dprint_verbose, "mbs 한글 %ls\n", L"wcs 한글");
     dprint(dprint_verbose, L"wcs 한글 %s\n", "mbs 한글");
     dprint(dprint_verbose, L"wcs 한글 %ls\n", L"wcs 한글");
-    #endif
-#else
-    dprint_verbose = 0;
-#endif
+#endif // __linux__
+#ifdef WIN32
+    SetConsoleOutputCP(CP_UTF8); // CP_UTF8 | CP_ACP
+    dprint(dprint_verbose, "mbs 한글 %s\n", "mbs 한글");
+    dprint(dprint_verbose, "mbs 한글 %s\n", ExCPACP0(L"wcs 한글"));
+    dprint(dprint_verbose, L"wcs 한글 %s\n", ExCPACP0("mbs 한글"));
+    dprint(dprint_verbose, L"wcs 한글 %s\n", L"wcs 한글");
+#endif // WIN32
+#endif // DPRINT
     printf("Welcome to callbacks world 콜백 세계로...\n");
     //printf("errno 35 - %s\n", strerror(35)); // test
     poly_test();
@@ -702,15 +708,16 @@ int main(int argc, char* argv[])
     //cb_test();
     //app_test();
     //flt_test();
-
+#ifdef __linux__
     (void)init_signal();
-
+#endif // __linux__
     (void)initEnv();
     (void)initRes();
     (void)gWatchApp.startup();
     (void)gWatchApp.enter();
     (void)gWatchDev.init(); // start watch thread for gps and etc
     (void)gWatchMap.init();
+#ifdef __linux__
     (void)gWatchdog.init();
     #if 0
     sched_param param;
@@ -723,33 +730,41 @@ int main(int argc, char* argv[])
     //     dprint1("setpriority fail.\n");
     // }
     #endif
+#endif // __linux__
+
     // app startup begin
     //
+#ifdef __linux__
     //CApp app;
     cmdline_callback_list.add(cmdline_halt, (void*)0);
     cmdline_callback_list.add(cmdline_dprint, (void*)0);
     cmdline_callback_list.add(cmdline_coverage, (void*)0);
     //(void)app.startup();
+#endif // __linux__
     //
     // app startup end
 
+#ifdef __linux__
     (void)gLcdOut.init();
+#endif // __linux__
 
-    std::allocator<WndMain> wndmain_allocator;
-    gWndMain = wndmain_allocator.allocate(1U);
-    wndmain_allocator.construct(gWndMain);
-    // gWndMain = new WndMain;
-    // (void)gWndMain->setFlags(Ex_FreeMemory); // dealloc by extk
+    #if defined(_MSC_VER) || (__cplusplus >= 202002L) // test
+    std::allocator<WndMain> alloc;
+    gWndMain = alloc.allocate(1U);
+    std::construct_at(gWndMain);
+    #else
+    gWndMain = new WndMain; // gWndMain = WndMain::create(...); // test
+    // tbd - CreateWindowEx(klass, name, style, x, y, ...);
+    #endif
+    //(void)gWndMain->setFlags(Ex_FreeMemory); // dealloc by extk
+#ifdef __linux__
     gWndMain->flushFunc = ExFlushFunc(&gLcdOut, &LcdOut::onFlush);
+#endif // __linux__
     if (gWndMain->start() != 0) {
         result = EXIT_FAILURE;
         goto on_failure;
     }
-#ifdef __linux__
     (void)gWndMain->flush();
-#else
-    CreateWindowEx(klass, name, style, x, y, ...);
-#endif
     exassert2(ExApp::mainWnd == gWndMain, _fileline_);
 
     //
@@ -757,8 +772,7 @@ int main(int argc, char* argv[])
     //(void)module.init();
     //
 
-    //result = gWatchApp.guiloop();
-    result = ExMainLoop();
+    result = ExMainLoop(); // gWatchApp.guiloop(...)
 
     //
     //(void)module.fini();
@@ -773,12 +787,18 @@ int main(int argc, char* argv[])
         ExApp::collect(); // call delete gWndMain
     }
     exassert2(ExApp::mainWnd == nullptr, _fileline_);
-    wndmain_allocator.destroy(gWndMain);
-    wndmain_allocator.deallocate(gWndMain, 1U);
+    #if defined(_MSC_VER) || (__cplusplus >= 202002L) // test (!Ex_FreeMemory)
+    std::destroy_at(gWndMain);
+    alloc.deallocate(gWndMain, 1U);
+    #else
+    delete gWndMain;
+    #endif
     gWndMain = nullptr;
 
+#ifdef __linux__
     (void)stopTouchRecord();
     (void)gWatchdog.fini();
+#endif // __linux__
 
     // app cleanup begin
     //
@@ -786,90 +806,44 @@ int main(int argc, char* argv[])
     //
     // app cleanup end
 
+#ifdef __linux__
     (void)gLcdOut.fini();
+#endif // __linux__
     (void)gWatchMap.fini();
     (void)gWatchDev.fini();
     (void)gWatchApp.cleanup();
     (void)finiRes();
     (void)saveEnv();
+#ifdef __linux__
     sync();
-    ExApp::fini(result);
+#endif // __linux__
 on_failure:
-    dprint("exit %d\n", result);
     return result;
 }
-#endif // __linux__
 
+#ifdef __linux__
+int main(int argc, char* argv[])
+#endif // __linux__
 #ifdef WIN32
 int APIENTRY WinMain(_In_ HINSTANCE hInstance,
                      _In_opt_ HINSTANCE hPrevInstance,
                      _In_ LPSTR     lpCmdLine,
                      _In_ int       nCmdShow)
+#endif // WIN32
 {
-    int32 retCode = EXIT_SUCCESS;
+    int32 retCode;
 
+#ifdef __linux__
+    ExApp::init(&gWatchApp, argc, argv);
+#endif // __linux__
+#ifdef WIN32
     ExApp::init(&gWatchApp, hInstance, hPrevInstance, lpCmdLine, nCmdShow);
-    SetConsoleOutputCP(CP_UTF8); // CP_UTF8 | CP_ACP
-#ifdef DPRINT
-    dprint_verbose = 3;
-    #if 1 // test
-    dprint(dprint_verbose, "mbs 한글 %s\n", "mbs 한글");
-    dprint(dprint_verbose, "mbs 한글 %s\n", ExCPACP0(L"wcs 한글"));
-    dprint(dprint_verbose, L"wcs 한글 %s\n", ExCPACP0("mbs 한글"));
-    dprint(dprint_verbose, L"wcs 한글 %s\n", L"wcs 한글");
-    #endif
-#else
-    dprint_verbose = 0;
-#endif
-    //cb_test();
-    //app_test();
-    //flt_test();
-
-    (void)initEnv();
-    (void)initRes();
-    (void)gWatchApp.startup();
-    (void)gWatchApp.enter();
-    (void)gWatchDev.init();
-    (void)gWatchMap.init();
-
-    // startup
-    gWndMain = new WndMain;
-    //gWndMain = WndMain::create(...); // test
-    (void)gWndMain->setFlags(Ex_FreeMemory); // tbd
-    //gWndMain->flushFunc = ExFlushFunc(&gLcdOut, &LcdOut::onFlush);
-    if (gWndMain->start() != 0) {
+#endif // WIN32
+    try {
+        retCode = app_main_proc(); // EXIT_SUCCESS
+    } catch (...) {
         retCode = EXIT_FAILURE;
-        goto on_failure;
     }
-    (void)gWndMain->flush();
-    exassert(ExApp::mainWnd == gWndMain);
-
-    //retCode = gWatchApp.guiloop();
-    retCode = ExMainLoop();
-
-#if 1
-    //
-    // When the system window manager closed the app, mainWnd was destroyed.
-    //
-    if (ExApp::mainWnd != nullptr) { // If the halt flag is set inside the app,
-        (void)ExApp::mainWnd->destroy(); // then, mainWnd was not destroyed yet.
-        // call XDestroyWindow, emit WM_DESTROY, and post WM_QUIT.
-        ExApp::collect(); // call delete gWndMain
-    }
-    exassert2(ExApp::mainWnd == nullptr, _fileline_);
-    //delete gWndMain;
-    gWndMain = nullptr;
-#endif
-
-    // cleanup
-    (void)gWatchMap.fini();
-    (void)gWatchDev.fini();
-    (void)gWatchApp.cleanup();
-    (void)finiRes();
-    (void)saveEnv();
     ExApp::fini(retCode);
-on_failure:
-    dprint("exit %d\n", retCode);
     return retCode;
 }
-#endif // WIN32
