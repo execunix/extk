@@ -106,7 +106,7 @@ bool LcdOut::init()
     // If bytes_per_line = 0, then Xlib calculates the value of bytes_per_line itself.
     // After use XImage, call free(ximage->data) and XDestroyImage(ximage);
     XImage* ximage = nullptr;
-    int32 bitmap_pad = 8; // 8-bits alignment
+    int32 bitmap_pad = 32; // 32-bits alignment
     int32 bytes_per_line = 0;
     size_t buf_size;
 

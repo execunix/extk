@@ -73,8 +73,8 @@ void WndMain::onDrawBkgd(ExCanvas* canvas, const ExWgtRes* wgtres, const ExRegio
         rgn.subtract(ExBox(img_pt0.x, img_pt0.y, res.i.bg0.width + img_pt0.x, res.i.bg0.height + img_pt0.y));
 #if 1
         for (int i = 0; i < rgn.n_boxes; i++) {
-            //canvas->gc->fillBox(&rgn.boxes[i], 0U);
-            canvas->gc->fillBox(&rgn.boxes[i], ((uint64)wgtres) & 0xffffff);
+            uint32 fill = ((uint64)wgtres) & 0xffffffU;
+            canvas->gc->fillBox(&rgn.boxes[i], fill);
         }
 #endif
 #if 1
