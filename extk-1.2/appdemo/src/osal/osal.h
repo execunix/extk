@@ -7,10 +7,9 @@
 #define _osal_h_
 
 #ifdef WIN32
-
 #include <stdint.h>
 #include "framework.h"
-
 #endif // WIN32
+#include <extypes.h>
 
 #endif // _osal_h_

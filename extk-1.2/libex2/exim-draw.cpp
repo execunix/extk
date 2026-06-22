@@ -111,7 +111,7 @@ void ExImage::fillBoxRgbEx(const ExBox* box, uint32 rgb, uint32 rgb_out)
     for (; y < bx.t; y++) {
         uint8* p_end = p + this->bpl;
         for (; p < p_end; p += 4)
-            *(uint32*)p = (0xff000000 & *(uint32*)p) | rgb_out;
+            *(uint32*)p = (0xff000000U & *(uint32*)p) | rgb_out;
     }
     int32 rc_lx4 = (int32)bx.l * 4;
     int32 rc_rx4 = (int32)bx.r * 4;
@@ -120,16 +120,16 @@ void ExImage::fillBoxRgbEx(const ExBox* box, uint32 rgb, uint32 rgb_out)
         uint8* p_endr = p + rc_rx4;
         uint8* p_endw = p + this->bpl;
         for (; p < p_endl; p += 4)
-            *(uint32*)p = (0xff000000 & *(uint32*)p) | rgb_out;
+            *(uint32*)p = (0xff000000U & *(uint32*)p) | rgb_out;
         for (; p < p_endr; p += 4)
-            *(uint32*)p = (0xff000000 & *(uint32*)p) | rgb;
+            *(uint32*)p = (0xff000000U & *(uint32*)p) | rgb;
         for (; p < p_endw; p += 4)
-            *(uint32*)p = (0xff000000 & *(uint32*)p) | rgb_out;
+            *(uint32*)p = (0xff000000U & *(uint32*)p) | rgb_out;
     }
     for (; y < this->height; y++) {
         uint8* p_end = p + this->bpl;
         for (; p < p_end; p += 4)
-            *(uint32*)p = (0xff000000 & *(uint32*)p) | rgb_out;
+            *(uint32*)p = (0xff000000U & *(uint32*)p) | rgb_out;
     }
 }
 
@@ -162,7 +162,7 @@ void ExImage::fillBoxRgb(const ExBox* box, uint32 rgb)
         uint8* p = p_y + rc_lx4;
         uint8* q = p_y + rc_rx4;
         for (; p < q; p += 4)
-            *(uint32*)p = (0xff000000 & *(uint32*)p) | rgb;
+            *(uint32*)p = (0xff000000U & *(uint32*)p) | rgb;
         p_y += this->bpl;
     }
 }
@@ -241,8 +241,14 @@ void ExImage::fillBox(const ExBox* box, uint32 color)
     for (; y < bx.b; y++) {
         uint8* p = p_y + rc_lx4;
         uint8* q = p_y + rc_rx4;
-        for (; p < q; p += 4)
+        for (; p < q; p += 4) {
+            #if 1 // __linux__
+            uint32 alpha = 0xff000000U & *(uint32*)p;
+            *(uint32*)p = (alpha | color);
+            #else
             *(uint32*)p = color;
+            #endif
+        }
         p_y += this->bpl;
     }
 }
@@ -352,9 +358,13 @@ void ExImage::BlitRgb(ExImage* dstimg, int32 dx, int32 dy, int32 w, int32 h,
     while (h--) {
         int32 width = w;
         while (width--) {
-            uint32 src = 0x00ffffff & *(uint32*)sp;
-            uint32 dst = 0xff000000 & *(uint32*)dp;
+            #if 1 // __linux__
+            *(uint32*)dp = *(uint32*)sp;
+            #else
+            uint32 src = (~0xff000000U) & *(uint32*)sp;
+            uint32 dst = 0xff000000U & *(uint32*)dp;
             *(uint32*)dp = src | dst;
+            #endif
             sp += 4;
             dp += 4;
         }
