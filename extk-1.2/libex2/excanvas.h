@@ -16,8 +16,9 @@
 //
 class ExCanvas : public ExObject {
 public:
-    ExRegion    update; // update region
-    ExRegion    opaque; // opaque region
+    ExPoint     origin;     // origin point to translate
+    ExRegion    update;     // update region
+    ExRegion    opaque;     // opaque region
     ExImage     gc;
 #ifdef WIN32
     ExMemDC*    dc; // tbd

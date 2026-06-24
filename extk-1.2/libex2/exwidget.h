@@ -138,6 +138,7 @@ protected:
     uint32      _ra_1;      // reserved for align
     void*       data;       // This resource is used internally by FrameWorks as well as by compound widgets.
 public:
+    ExCanvas*   canvas;
     ExDrawFunc  drawFunc;   // Function for draw
     ExRect      area;       // relative to the parent
     int32       id;         // identity, index, etc.
@@ -176,8 +177,6 @@ public:
 // class ExWidget
 //
 class ExWidget : public ExWgtRes {
-public:
-    ExCanvas* canvas;
 protected:
     ExWidget* parent;
     ExWidget* broNext;

@@ -1276,6 +1276,7 @@ ExCairo::~ExCairo() noexcept
 ExCairo::ExCairo(const ExCanvas* const canvas, const ExRegion* const damage) noexcept : canvas(canvas)
 {
     cairo_save(canvas->cr);
+    cairo_translate(canvas->cr, -canvas->origin.x, -canvas->origin.y);
     set_region(damage);
     cairo_clip(canvas->cr);
 }

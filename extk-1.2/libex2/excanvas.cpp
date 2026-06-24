@@ -17,6 +17,7 @@ ExCanvas::~ExCanvas() {
 
 ExCanvas::ExCanvas()
     : ExObject()
+    , origin(0)
     , update()
     , opaque()
     , gc()

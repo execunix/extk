@@ -374,7 +374,7 @@ void ExWindow::onExFlush(ExWindow* window, const ExRegion* updateRgn) {
     // updateRgn is filled after render call.
     this->render();
 
-    if (!(hwnd && canvas && canvas->gc))
+    if (!(hwnd && canvas))
         return;
 
     HDC hdc = GetDC(hwnd);
@@ -415,7 +415,7 @@ void ExWindow::onWmPaint(ExWindow* window, const ExRegion* updateRgn) {
     // updateRgn is filled after render call.
     this->render();
 
-    exassert(hwnd && canvas && canvas->gc);
+    exassert(hwnd && canvas);
 
     PAINTSTRUCT ps;
     HDC hdc = BeginPaint(hwnd, &ps);

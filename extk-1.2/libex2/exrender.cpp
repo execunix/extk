@@ -146,6 +146,7 @@ void ExRender::Drawing::drawRecurs(ExWidget* w) {
             if (c->getFlags(Ex_HasOwnGC) != 0U) {
                 // if the canvas owner is self, then repair the widget's contents.
                 // else, just need to copy the widget's contents to the canvas.
+                c->canvas->origin = c->origin;
                 Drawing draw(c->canvas);
                 draw.startDraw(c); // repair the widget's contents.
                 drawWidget(c); // copy the widget's contents to the canvas.

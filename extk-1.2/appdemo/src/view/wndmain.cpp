@@ -193,6 +193,11 @@ void WndMain::onDrawBtns(ExCanvas* canvas, const ExWgtRes* wgtres, const ExRegio
 void WndMain::onDrawPane(ExCanvas* canvas, const ExWgtRes* wgtres, const ExRegion* damage) {
     ExCairo cr(canvas, damage);
     ExCairo::Rect rc(wgtres->calcRect());
+    if (wgtres->canvas != nullptr && wgtres->canvas != canvas) {
+        cr_set_source_surface(cr, wgtres->canvas->gc.crs, rc.x, rc.y);
+        cr_paint(cr);
+        return;
+    }
     ExCairo::Point p2(rc.p2());
 
     cr_new_path(cr);
@@ -363,7 +368,7 @@ uint32 WndMain::onLayout(WndMain* widget, ExCbInfo* cbinfo) {
         panes[2].layout(a2); // do recurs here
         toy.setPos(ExPoint(ar.center().x - toy.area.w / 2,
                            ar.center().y - toy.area.h / 2));
-#if 1
+#if 1 // test opaque
         ExBox opaqBox(0, 0, a0.w, a0.h);
         opaqBox.l += 8; opaqBox.t += 2;
         opaqBox.r -= 8; opaqBox.b -= 2;
@@ -1006,8 +1011,11 @@ int WndMain::start() {
     panes[1].setFlags(Ex_FocusRender);
     panes[2].setFlags(Ex_FocusRender);
 
+    panes[0].canvas = new ExCanvas;
+    panes[0].canvas->init(&panes[0]);
+
     panes[0].addListener(this, &WndMain::onActMain, Ex_CbActivate);
-    panes[0].setFlags(Ex_Selectable);
+    panes[0].setFlags(Ex_HasOwnGC | Ex_Selectable);
     panes[2].setFlags(Ex_Visible, Ex_BitFalse);
     FLUSH_TEST();
 

@@ -58,6 +58,9 @@ ExWgtRes::~ExWgtRes() noexcept {
     if (name != nullptr) {
         free(name);
     }
+    if (canvas != nullptr) {
+        delete canvas;
+    }
 }
 
 ExWgtRes::ExWgtRes() noexcept
@@ -71,6 +74,7 @@ ExWgtRes::ExWgtRes() noexcept
     , flags(Ex_Destroyed)
     , _ra_1(0)
     , data(nullptr)
+    , canvas(nullptr)
     , drawFunc()
     , area(0)
     , id(0)
@@ -123,14 +127,11 @@ ExRect& ExWgtRes::calcRect(ExRect& rc) const {
 // class ExWidget
 //
 ExWidget::~ExWidget() noexcept {
-    if (canvas != nullptr) {
-        delete canvas;
-    }
+    // clean
 }
 
 ExWidget::ExWidget() noexcept
     : ExWgtRes()
-    , canvas(nullptr)
     , parent(nullptr)
     , broNext(nullptr)
     , broPrev(nullptr)
