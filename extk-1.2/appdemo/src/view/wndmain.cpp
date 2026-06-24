@@ -74,14 +74,14 @@ void WndMain::onDrawBkgd(ExCanvas* canvas, const ExWgtRes* wgtres, const ExRegio
 #if 1
         for (int i = 0; i < rgn.n_boxes; i++) {
             uint32 fill = ((uint64)wgtres) & 0xffffffU;
-            canvas->gc->fillBox(&rgn.boxes[i], fill);
+            canvas->gc.fillBox(&rgn.boxes[i], fill);
         }
 #endif
 #if 1
         if (res.i.bg0.bits) {
             for (int i = 0; i < damage->n_boxes; i++) {
                 const ExBox& bx = damage->boxes[i];
-                canvas->gc->blitRgb(bx.l, bx.t, bx.width(), bx.height(),
+                canvas->gc.blitRgb(bx.l, bx.t, bx.width(), bx.height(),
                                     &res.i.bg0, bx.l - img_pt0.x, bx.t - img_pt0.y);
             }
         }
@@ -92,7 +92,7 @@ void WndMain::onDrawBkgd(ExCanvas* canvas, const ExWgtRes* wgtres, const ExRegio
             const ExPoint& pt = wgtres->calcRect().u.pt;
             for (int i = 0; i < damage->n_boxes; i++) {
                 const ExBox& bx = damage->boxes[i];
-                canvas->gc->blitRgb(bx.l, bx.t, bx.width(), bx.height(),
+                canvas->gc.blitRgb(bx.l, bx.t, bx.width(), bx.height(),
                                     &res.i.bg1, bx.l - pt.x, bx.t - pt.y);
             }
         } else if (res.i.bg1.crs) {
@@ -109,7 +109,7 @@ void WndMain::onDrawTrap(ExCanvas* canvas, const ExWgtRes* wgtres, const ExRegio
     static uint32 color[7] = { 0xff, 0xff00, 0xff0000, 0xffff, 0xff00ff, 0xffff00, 0xffffff };
     for (int i = 0; i < damage->n_boxes; i++) {
         const ExBox& bx = damage->boxes[i];
-        canvas->gc->drawBox(&bx, color[id]);
+        canvas->gc.drawBox(&bx, color[id]);
     }
     id = (id < 6) ? id + 1 : 0;
 }
@@ -327,10 +327,10 @@ uint32 WndMain::onTimerToy(WndMain* wnd, ExCbInfo* cbinfo) {
 
 void WndMain::onDrawBackBuf(ExCanvas* canvas, const ExWgtRes* w, const ExRegion* damage) {
     if (w == &wgtBackViewer &&
-        wndBackBuf.canvas->gc->crs) {
+        wndBackBuf.canvas->gc.crs) {
         ExCairo cr(canvas, damage);
         ExCairo::Rect rc(w->calcRect());
-        cr_set_source_surface(cr, wndBackBuf.canvas->gc->crs, rc.x, rc.y);
+        cr_set_source_surface(cr, wndBackBuf.canvas->gc.crs, rc.x, rc.y);
         cr_paint_with_alpha(cr, .75); // for alpha blend
         return;
     }
@@ -941,8 +941,8 @@ int WndMain::start() {
 
     // init canvas
     canvas = new ExCanvas;
-    //canvas->init(this, &ExApp::smSize);
-    canvas->init(this, ExSize(env.sm_w, env.sm_h));
+    //canvas->init(ExApp::smSize.w, ExApp::smSize.h);
+    canvas->init(env.sm_w, env.sm_h);
 
     ExApp::mainWnd = this;
 

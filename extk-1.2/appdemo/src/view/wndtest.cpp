@@ -14,7 +14,7 @@ void WndTest::onDrawBkgd(ExCanvas* canvas, const ExWgtRes* wgtres, const ExRegio
     if (wgtres == this) {
         ExRegion rgn(*damage);
         for (int i = 0; i < rgn.n_boxes; i++)
-            canvas->gc->fillBox(&rgn.boxes[i], ((uint64)wgtres) & 0xffffff);
+            canvas->gc.fillBox(&rgn.boxes[i], ((uint64)wgtres) & 0xffffff);
     }
 }
 
@@ -214,7 +214,7 @@ int WndTest::start() {
     this->init("WndTest", 1280, 720);
 
     canvas = new ExCanvas;
-    canvas->init(this, ExApp::smSize);
+    canvas->init(ExApp::smSize.w, ExApp::smSize.h);
 
     drawFunc = ExDrawFunc(this, &WndTest::onDrawBkgd);
 

@@ -144,16 +144,16 @@ void WndMain::onDrawBkgd(ExCanvas* canvas, const ExVision* widget, const ExRegio
 #if 1
         ExRegion rgn(*damage);
         for (int i = 0; i < rgn.n_boxes; i++)
-            canvas->gc->fillBox(&rgn.boxes[i], res.c.bg);
+            canvas->gc.fillBox(&rgn.boxes[i], res.c.bg);
 #else
         ExRegion rgn(*damage);
         rgn.subtract(ExBox(img_pt0.x, img_pt0.y, res.i.bg0.width + img_pt0.x, res.i.bg0.height + img_pt0.y));
         for (int i = 0; i < rgn.n_boxes; i++)
-            canvas->gc->fillBox(&rgn.boxes[i], res.c.bg);
+            canvas->gc.fillBox(&rgn.boxes[i], res.c.bg);
         if (res.i.bg0.bits) {
             for (int i = 0; i < damage->n_boxes; i++) {
                 const ExBox& bx = damage->boxes[i];
-                canvas->gc->blitRgb(bx.l, bx.t, bx.width(), bx.height(),
+                canvas->gc.blitRgb(bx.l, bx.t, bx.width(), bx.height(),
                                     &res.i.bg0, bx.l - img_pt0.x, bx.t - img_pt0.y);
             }
         }
@@ -164,7 +164,7 @@ void WndMain::onDrawBkgd(ExCanvas* canvas, const ExVision* widget, const ExRegio
             const ExPoint& pt = widget->calcRect().pt;
             for (int i = 0; i < damage->n_boxes; i++) {
                 const ExBox& bx = damage->boxes[i];
-                canvas->gc->blitRgb(bx.l, bx.t, bx.width(), bx.height(),
+                canvas->gc.blitRgb(bx.l, bx.t, bx.width(), bx.height(),
                                     &res.i.bg1, bx.l - pt.x, bx.t - pt.y);
             }
         } else if (res.i.bg1.crs) {
@@ -559,8 +559,8 @@ int WndMain::build()
     }
 
     canvas = new ExCanvas;
-    //canvas->init(this, &ExSize(MAX_W, MAX_H));
-    canvas->init(this, &ExSize(env.sm_w, env.sm_h));
+    //canvas->init(MAX_W, MAX_H);
+    canvas->init(env.sm_w, env.sm_h);
 
     drawFunc = ExDrawFunc(this, &WndMain::onDrawBkgd);
 

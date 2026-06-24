@@ -144,8 +144,8 @@ xinit_error:
                                            env.fb0_w, env.fb0_h, stride);
     exassert2(stride == env.fb0_bpl, _fileline_);
     //static const cr_user_data_key_t key;
-    //cr_surface_set_user_data(gc->crs, &key, gc->bits, (cr_destroy_func_t)free);
-    //cr_content_t crc_image = cr_surface_get_content(gc->crs);
+    //cr_surface_set_user_data(gc.crs, &key, gc.bits, (cr_destroy_func_t)free);
+    //cr_content_t crc_image = cr_surface_get_content(gc.crs);
     //exassert2(crc_image == CR_CONTENT_COLOR_ALPHA, _fileline_);
     status = cr_surface_status(crs);
     if (status == CR_STATUS_SUCCESS) {

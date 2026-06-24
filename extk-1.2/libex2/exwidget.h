@@ -129,12 +129,10 @@ class ExWgtRes : public ExObject {
 protected:
     char*       name;
     // ExLayoutInfo
-    ExBox       extent;     // the origin is the nearest canvas. intersect with parent
+    ExBox       extent;     // the origin is the disjoint. intersect with parent
     ExBox       select;     // read-only
-    ExPoint     deploy;     // tbd - translate to window
-    ExPoint     origin;     // translate to the nearest canvas.
-    ExRegion    damageRgn;  // the origin is the nearest canvas.
-    ExRegion    exposeRgn;  // the origin is the nearest canvas. visible or repair
+    ExPoint     origin;     // translate point to the disjoint for window events.
+    ExRegion    visualRgn;  // the origin is the disjoint. visible or repair
     ExRegion    opaqueRgn;  // the origin is the widget's left-top.
     uint32      flags;      // Common flags used by all widgets.
     uint32      _ra_1;      // reserved for align
@@ -178,6 +176,8 @@ public:
 // class ExWidget
 //
 class ExWidget : public ExWgtRes {
+public:
+    ExCanvas* canvas;
 protected:
     ExWidget* parent;
     ExWidget* broNext;
@@ -233,7 +233,7 @@ protected:
     void resetArea();
 public:
     virtual void setVisible(bool show);
-    bool isVisible();
+    bool isVisible() const;
     bool isFlagVisible() const { return ((flags & Ex_Visible) != 0U); }
     bool isClassDisjoint() const { return ((getClassFlags() & Ex_DISJOINT) != 0U); }
     uint32 vanish(ExWindow* window);
@@ -320,16 +320,16 @@ public: // widget callback operation
 protected:
     bool calcExtent();
     void calcOpaque(ExRegion& opaqueAcc);
-    void buildExtent();
-    void buildRegion();
+    // void buildExtent();
+    // void buildRegion();
     #if 0 // tbd
     struct Build {
         ExRegion exposeAcc;
         ExRegion opaqueAcc;
 
-        void checkExtent(ExWidget* w);
+        void stackExpose(ExWidget* w);
         void buildExtent(ExWidget* w);
-        void buildOpaque(ExWidget* w);
+        void stackOpaque(ExWidget* w);
         Build(ExWidget* w);
     };
     struct Draw {

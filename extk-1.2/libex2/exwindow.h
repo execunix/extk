@@ -47,7 +47,6 @@ public:
 public:
     ExFlushFunc flushFunc;
     ExFlushFunc paintFunc;
-    ExCanvas*   canvas;
     ExMsg*      exmsg;
 #if 0 // Instance management will depend entirely on the programmer.
 protected: // now allow new & delete

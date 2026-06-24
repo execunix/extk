@@ -11,27 +11,29 @@
 // ExRender
 //
 struct ExRender {
-    struct Build4MT {
-        static void checkExtent(ExWidget* w);
-        static void buildRegion(ExWidget* w);
-        Build4MT(ExWidget* w);
+    struct Culling4MT { // multi-thread version
+        Culling4MT(ExWidget* w) noexcept;
+        static void stackExpose(ExWidget* w); // recurs - back to front
+        static void buildRegion(ExWidget* w); // recurs - front to back
     };
-    struct Build {
-        ExRegion exposeAcc;
-        ExRegion opaqueAcc;
-
-        void checkExtent(ExWidget* w);
-        void buildExtent(ExWidget* w);
-        void buildOpaque(ExWidget* w);
-        Build(ExWidget* w);
+    struct Culling {
+        ExRegion exposeAcc; // repair on show/hide/move
+        ExRegion opaqueAcc; // repair on show/hide/move
+        Culling() noexcept : exposeAcc(), opaqueAcc() {}
+        void startCull(ExWidget* w, ExCanvas* canvas);
+        void stackExpose(ExWidget* w, int32 flag); // recurs - back to front
+        void stackOpaque(ExWidget* w); // recurs - front to back
     };
-    struct Draw {
+    struct Drawing {
         ExCanvas* canvas;
-        ExRegion& updateRgn;
-        void draw(ExWidget* w);
-        Draw(ExCanvas*, ExWidget*);
+        ExRegion damageRgn;
+        Drawing(ExCanvas* canvas) noexcept : canvas(canvas), damageRgn() {}
+        void startDraw(ExWidget* w);
+        void drawWidget(ExWidget* w);
+        void drawRecurs(ExWidget* w); // back to front
     };
     static void render(ExCanvas* canvas, ExWidget* widget, uint32 flags);
+    static void render4MT(ExCanvas* canvas, ExWidget* widget, uint32 flags);
     static void renderOwnGC(ExCanvas* canvas, ExWidget* widget);
 };
 

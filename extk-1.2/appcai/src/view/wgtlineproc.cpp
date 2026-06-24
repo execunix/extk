@@ -11,7 +11,7 @@ void WgtLineProc::onDrawBkgd(ExCanvas* canvas, const ExVision* widget, const ExR
     if (widget == this) {
         ExRegion rgn(*damage);
         for (int i = 0; i < rgn.n_boxes; i++)
-            canvas->gc->fillBox(&rgn.boxes[i], res.c.bg);
+            canvas->gc.fillBox(&rgn.boxes[i], res.c.bg);
     }
 }
 

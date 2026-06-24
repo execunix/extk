@@ -17,8 +17,9 @@ ExCanvas::~ExCanvas() {
 
 ExCanvas::ExCanvas()
     : ExObject()
-    , wnd(NULL)
-    , gc(NULL)
+    , update()
+    , opaque()
+    , gc()
 #ifdef WIN32
     , dc(NULL)
 #endif
@@ -26,18 +27,16 @@ ExCanvas::ExCanvas()
     memset(&fe, 0, sizeof(fe));
 }
 
-bool ExCanvas::init(ExWindow* window) {
-    ExSize sz = window ? window->area.u.sz : ExApp::smSize;
-    return init(window, sz);
+bool ExCanvas::init(ExWidget* widget) {
+    ExSize sz = (widget != nullptr) ? widget->area.u.sz : ExApp::smSize;
+    return init(sz.w, sz.h);
 }
 
-bool ExCanvas::init(ExWindow* window, ExSize sz) {
-    wnd = window;
-    wnd->canvas = this;
+bool ExCanvas::init(int32 w, int32 h) {
     //if (ftLib == NULL &&
     //    FT_Init_FreeType(&ftLib))
     //    dprint1("FT_Init_FreeType fail.");
-    return createMemGC(sz.w, sz.h);
+    return createMemGC(w, h);
 }
 
 bool ExCanvas::resize(int32 w, int32 h) {
@@ -50,39 +49,34 @@ void ExCanvas::deleteMemGC() {
         cairo_destroy(cr);
         cr = NULL;
     }
-    if (gc) {
-        delete gc;
-        gc = NULL;
-    }
+    gc.clear();
 }
 
 bool ExCanvas::createMemGC(int32 width, int32 height) {
     deleteMemGC();
-    gc = ExImage::create(width, height, Ex_IMAGE_DIRECT_8888);
-    if (!gc) {
+    if (gc.init(width, height, Ex_IMAGE_DIRECT_8888) != true) {
         dprint1("%s(%d,%d) %s\n", _func_, width, height, "ExImage::create fail");
         return false;
     }
     cairo_status_t status;
     cairo_format_t format = CAIRO_FORMAT_ARGB32;
-    int32 stride = cairo_format_stride_for_width(format, gc->width);
-    gc->crs = cairo_image_surface_create_for_data(
-        gc->bits, format, gc->width, gc->height, stride);
-    exassert(stride == gc->bpl);
+    int32 stride = cairo_format_stride_for_width(format, gc.width);
+    gc.crs = cairo_image_surface_create_for_data(gc.bits, format, gc.width, gc.height, stride);
+    exassert(stride == gc.bpl);
     //static const cairo_user_data_key_t key;
-    //cairo_surface_set_user_data(gc->crs, &key, gc->bits, (cairo_destroy_func_t)free);
-    //cairo_content_t crc_image = cairo_surface_get_content(gc->crs);
+    //cairo_surface_set_user_data(gc.crs, &key, gc.bits, (cairo_destroy_func_t)free);
+    //cairo_content_t crc_image = cairo_surface_get_content(gc.crs);
     //exassert(crc_image == CAIRO_CONTENT_COLOR_ALPHA);
-    status = cairo_surface_status(gc->crs);
+    status = cairo_surface_status(gc.crs);
     if (status == CAIRO_STATUS_SUCCESS) {
-        cr = cairo_create(gc->crs);
+        cr = cairo_create(gc.crs);
         status = cairo_status(cr);
     }
 #ifdef WIN32x
-    cairo_surface_destroy(gc->crs); // unref
+    cairo_surface_destroy(gc.crs); // unref
 #endif
     if (status == CAIRO_STATUS_SUCCESS) {
-        wnd->damage(); // tbd
+        update.combine(ExBox(0, 0, gc.width, gc.height)); // add gc box
         return true;
     }
     dprint1("%s(%d,%d) %s\n", _func_, width, height, cairo_status_to_string(status));

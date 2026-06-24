@@ -11,10 +11,12 @@
 
 ExImage::~ExImage()
 {
-    if (crs)
+    if (crs) {
         cairo_surface_destroy(crs);
-    if (bits)
+    }
+    if (bits) {
         free(bits);
+    }
 }
 
 ExImage* // static
@@ -44,13 +46,13 @@ bool ExImage::init(int32 width, int32 height, uint32 type)
 
 void ExImage::clear()
 {
-    if (bits != NULL) {
-        free(bits);
-        bits = NULL;
-    }
     if (crs != NULL) {
         cairo_surface_destroy(crs);
         crs = NULL;
+    }
+    if (bits != NULL) {
+        free(bits);
+        bits = NULL;
     }
     type = 0U;
     bpp = bpl = 0;

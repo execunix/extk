@@ -16,8 +16,9 @@
 //
 class ExCanvas : public ExObject {
 public:
-    ExWindow*   wnd;
-    ExImage*    gc;
+    ExRegion    update; // update region
+    ExRegion    opaque; // opaque region
+    ExImage     gc;
 #ifdef WIN32
     ExMemDC*    dc; // tbd
 #endif
@@ -29,8 +30,8 @@ public:
     virtual ~ExCanvas();
     explicit ExCanvas();
 public:
-    bool init(ExWindow* window);
-    bool init(ExWindow* window, ExSize sz);
+    bool init(ExWidget* widget);
+    bool init(int32 w, int32 h);
     bool resize(int32 w, int32 h);
     virtual void deleteMemGC();
     virtual bool createMemGC(int32 width, int32 height); // sample

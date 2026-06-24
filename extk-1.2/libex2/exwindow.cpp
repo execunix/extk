@@ -18,9 +18,6 @@
 // class ExWindow
 //
 ExWindow::~ExWindow() noexcept {
-    if (canvas != nullptr) {
-        delete canvas;
-    }
     //handlerList.clear();
     //filterList.clear();
 }
@@ -40,7 +37,6 @@ ExWindow::ExWindow() noexcept
     , wgtFocused(nullptr)
     , flushFunc()
     , paintFunc()
-    , canvas(nullptr)
     , exmsg(nullptr)
     , filterList()
     , handlerList() {
@@ -348,7 +344,6 @@ uint32 ExWindow::render() {
 #if 0
     buildExtent();
     buildRegion();
-    damageRgn.setRect(extent);
     ExWidget::render(canvas);
 #else
     ExRender::render(canvas, this, renderFlags);
@@ -358,12 +353,16 @@ uint32 ExWindow::render() {
 }
 
 uint32 ExWindow::flush() {
-    flushFunc(this, &damageRgn);
+    exassert(canvas != nullptr);
+    flushFunc(this, &canvas->update);
+    canvas->update.setEmpty();
     return 0;
 }
 
 uint32 ExWindow::paint() {
-    paintFunc(this, &damageRgn);
+    exassert(canvas != nullptr);
+    paintFunc(this, &canvas->update);
+    canvas->update.setEmpty();
     return 0;
 }
 
@@ -385,14 +384,14 @@ void ExWindow::onExFlush(ExWindow* window, const ExRegion* updateRgn) {
     BITMAPINFO bmi;
     memset(&bmi, 0, sizeof(BITMAPINFO));
     bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
-    bmi.bmiHeader.biWidth = canvas->gc->width;
-    bmi.bmiHeader.biHeight = -canvas->gc->height;
+    bmi.bmiHeader.biWidth = canvas->gc.width;
+    bmi.bmiHeader.biHeight = -canvas->gc.height;
     bmi.bmiHeader.biPlanes = 1;/*planes=1*/
-    bmi.bmiHeader.biBitCount = canvas->gc->bpp;/*16,24,32*/
+    bmi.bmiHeader.biBitCount = canvas->gc.bpp;/*16,24,32*/
     bmi.bmiHeader.biCompression = BI_RGB;/*BI_RGB,BI_ALPHABITFIELDS*/
     bmi.bmiHeader.biSizeImage = 0; // This may be set to zero for BI_RGB bitmaps
-    SetDIBitsToDevice(hdc, 0, 0, canvas->gc->width, canvas->gc->height,
-                      0, 0, 0, canvas->gc->height, canvas->gc->bits, &bmi, DIB_RGB_COLORS);
+    SetDIBitsToDevice(hdc, 0, 0, canvas->gc.width, canvas->gc.height,
+                      0, 0, 0, canvas->gc.height, canvas->gc.bits, &bmi, DIB_RGB_COLORS);
 #ifdef GDICLIP_FLUSH
     SelectClipRgn(hdc, nullptr);
     DeleteObject(hrgn);
@@ -433,14 +432,14 @@ void ExWindow::onWmPaint(ExWindow* window, const ExRegion* updateRgn) {
     BITMAPINFO bmi;
     memset(&bmi, 0, sizeof(BITMAPINFO));
     bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
-    bmi.bmiHeader.biWidth = canvas->gc->width;
-    bmi.bmiHeader.biHeight = -canvas->gc->height;
+    bmi.bmiHeader.biWidth = canvas->gc.width;
+    bmi.bmiHeader.biHeight = -canvas->gc.height;
     bmi.bmiHeader.biPlanes = 1;/*planes=1*/
-    bmi.bmiHeader.biBitCount = canvas->gc->bpp;/*16,24,32*/
+    bmi.bmiHeader.biBitCount = canvas->gc.bpp;/*16,24,32*/
     bmi.bmiHeader.biCompression = BI_RGB;/*BI_RGB,BI_ALPHABITFIELDS*/
     bmi.bmiHeader.biSizeImage = 0; // This may be set to zero for BI_RGB bitmaps
-    SetDIBitsToDevice(hdc, 0, 0, canvas->gc->width, canvas->gc->height,
-                      0, 0, 0, canvas->gc->height, canvas->gc->bits, &bmi, DIB_RGB_COLORS);
+    SetDIBitsToDevice(hdc, 0, 0, canvas->gc.width, canvas->gc.height,
+                      0, 0, 0, canvas->gc.height, canvas->gc.bits, &bmi, DIB_RGB_COLORS);
 
 #ifdef GDICLIP_PAINT
     SelectClipRgn(hdc, nullptr);
