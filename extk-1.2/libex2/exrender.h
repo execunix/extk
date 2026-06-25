@@ -32,8 +32,8 @@ struct ExRender {
         void drawWidget(ExWidget* w);
         void drawRecurs(ExWidget* w); // back to front
     };
-    static void render(ExCanvas* canvas, ExWidget* widget, uint32 flags);
-    static void render4MT(ExCanvas* canvas, ExWidget* widget, uint32 flags);
+    static void render(ExCanvas* canvas, ExWidget* widget);
+    static void render4MT(ExCanvas* canvas, ExWidget* widget);
     static void renderOwnGC(ExCanvas* canvas, ExWidget* widget);
 };
 

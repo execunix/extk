@@ -129,10 +129,10 @@ class ExWgtRes : public ExObject {
 protected:
     char*       name;
     // ExLayoutInfo
-    ExBox       extent;     // the origin is the disjoint. intersect with parent
+    ExBox       extent;     // the origin is the disjoint. intersect with parent.
     ExBox       select;     // read-only
     ExPoint     origin;     // translate point to the disjoint for window events.
-    ExRegion    visualRgn;  // the origin is the disjoint. visible or repair
+    ExRegion    visualRgn;  // the origin is the disjoint. (visible or repair)
     ExRegion    opaqueRgn;  // the origin is the widget's left-top.
     uint32      flags;      // Common flags used by all widgets.
     uint32      _ra_1;      // reserved for align
@@ -226,9 +226,9 @@ protected:
         this->~ExWidget(); // nonvirtual explicit destructor calls
         new (this) ExWidget(); // nonvirtual explicit constructor calls
     }
-    void addRenderFlags(uint32 value); // Ex_RenderRebuild
     void addUpdateRegion(const ExRegion& rgn);
     void subUpdateRegion(const ExRegion& rgn);
+    void setRebuildFlag(); // for setup visualRgn
     void resetArea();
 public:
     virtual void setVisible(bool show);
@@ -258,7 +258,7 @@ public:
     void setSelect(const ExBox& box) { select = box; }
     void setArea(const ExRect& area) { this->area = area; resetArea(); }
     void setSize(const ExSize& size) { area.u.sz = size; resetArea(); }
-    void setPos(const ExPoint& pos) { area.u.pt = pos; resetArea(); }
+    void setPos(const ExPoint& pos);
     void toBack() { if (parent) parent->attachHead(this); }
     void toFront() { if (parent) parent->attachTail(this); }
 public: // widget flags operation
@@ -319,26 +319,6 @@ public: // widget callback operation
 protected:
     bool calcExtent();
     void calcOpaque(ExRegion& opaqueAcc);
-    // void buildExtent();
-    // void buildRegion();
-    #if 0 // tbd
-    struct Build {
-        ExRegion exposeAcc;
-        ExRegion opaqueAcc;
-
-        void stackExpose(ExWidget* w);
-        void buildExtent(ExWidget* w);
-        void stackOpaque(ExWidget* w);
-        Build(ExWidget* w);
-    };
-    struct Draw {
-        ExCanvas* canvas;
-        ExRegion& updateRgn;
-        void draw(ExWidget* w);
-        Draw(const ExCanvas*, const ExWidget*);
-    };
-    static void render(const ExCanvas* canvas, const ExWgtRes* wgtres, uint32 flags);
-    #endif
 public:
     void dumpImage(const ExCanvas* canvas); // for dumping images to a temporary canvas
     //uint32 dumpImage(const ExCanvas* canvas, const ExRegion& updateRgn);

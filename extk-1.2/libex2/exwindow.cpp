@@ -29,8 +29,6 @@ ExWindow::ExWindow() noexcept
     , dwStyle(0)
     , dwExStyle(0)
 #endif
-    , notifyFlags(0)
-    , renderFlags(0)
     , wgtCapture(nullptr)
     , wgtEntered(nullptr)
     , wgtPressed(nullptr)
@@ -48,7 +46,7 @@ ExWindow::ExWindow() noexcept
 uint32 ExWindow::init(const char* name, int32 w, int32 h) {
     ExRect rc(0, 0, w, h);
     ExWidget::init(nullptr/*parent*/, name, &rc);
-    renderFlags |= Ex_RenderRebuild;
+    flags |= Ex_Rebuild;
     return 0;
 }
 
@@ -99,9 +97,9 @@ uint32 ExWindow::destroy() {
 
 #ifdef WIN32
 bool ExWindow::showWindow(DWORD dwExStyle, DWORD dwStyle, int32 x, int32 y) {
-    renderFlags |= Ex_RenderRebuild;
     this->dwExStyle = dwExStyle;
     this->dwStyle = dwStyle;
+    flags |= Ex_Rebuild;
 
     HWND hwnd = nullptr;
     HWND hwndParent = nullptr;
@@ -341,14 +339,8 @@ ExWidget* ExWindow::moveFocus(uint32 dir) { // sample
 }
 
 uint32 ExWindow::render() {
-#if 0
-    buildExtent();
-    buildRegion();
-    ExWidget::render(canvas);
-#else
-    ExRender::render(canvas, this, renderFlags);
-#endif
-    renderFlags = 0;
+    ExRender::render(canvas, this);
+    flags &= ~Ex_Rebuild;
     return 0;
 }
 

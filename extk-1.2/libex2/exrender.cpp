@@ -75,6 +75,7 @@ void ExRender::Culling::stackExpose(ExWidget* w, int32 flag) {
     if (isVisible && (flag > 0)) {
         if (w->calcExtent()) { // is valid ?
             if (flag == 1) {
+                w->flags |= Ex_Exposed;
                 exposeAcc.combine(w->extent); // add new extent
             } // else, exposeAcc is merged, so need to call calcExtent only
             flag++;
@@ -85,9 +86,12 @@ void ExRender::Culling::stackExpose(ExWidget* w, int32 flag) {
     if (isVisible) {
         for (ExWidget* c = w->getChildHead(); c != nullptr; c = c->getBroNext()) {
             if (c->getFlags(Ex_HasOwnGC) != 0U) {
-                Culling cull;
                 exassert(c->canvas != nullptr);
-                cull.startCull(c, c->canvas);
+                if ((c->flags & Ex_Rebuild) != 0U) {
+                    Culling cull;
+                    cull.startCull(c, c->canvas);
+                    exposeAcc.combine(cull.exposeAcc);
+                }
             } else {
                 stackExpose(c, flag); // recurs - back to front
             }
@@ -98,10 +102,15 @@ void ExRender::Culling::stackExpose(ExWidget* w, int32 flag) {
 void ExRender::Culling::stackOpaque(ExWidget* w) { // remove hidden areas
     // exassert(w->isFlagVisible() && w->extent.valid());
     for (ExWidget* c = w->getChildTail(); c != nullptr; c = c->getBroPrev()) {
-        // tbd : check canvas opaque for Ex_HasOwnGC
         if (c->isFlagVisible() &&
             c->extent.valid()) {
-            stackOpaque(c); // recurs - front to back
+            if (c->getFlags(Ex_HasOwnGC) != 0U) {
+                exassert(c->canvas != nullptr);
+                //opaqueAcc.combine(c->canvas->opaque);
+                c->calcOpaque(opaqueAcc);
+            } else {
+                stackOpaque(c); // recurs - front to back
+            }
         }
     }
     // now, the widget flag is visible and no more child widget
@@ -118,6 +127,7 @@ void ExRender::Drawing::startDraw(ExWidget* w) {
     if (w->isFlagVisible()) {
         drawRecurs(w);
     }
+    canvas->update.setEmpty();
 }
 
 void ExRender::Drawing::drawWidget(ExWidget* w) {
@@ -144,11 +154,13 @@ void ExRender::Drawing::drawRecurs(ExWidget* w) {
     for (ExWidget* c = w->getChildHead(); c != nullptr; c = c->getBroNext()) {
         if (c->isFlagVisible()) {
             if (c->getFlags(Ex_HasOwnGC) != 0U) {
-                // if the canvas owner is self, then repair the widget's contents.
-                // else, just need to copy the widget's contents to the canvas.
-                c->canvas->origin = c->origin;
-                Drawing draw(c->canvas);
-                draw.startDraw(c); // repair the widget's contents.
+                if (!c->canvas->update.empty()) {
+                    // if the canvas owner is self, then repair the widget's contents.
+                    // else, just need to copy the widget's contents to the canvas.
+                    c->canvas->origin = c->origin;
+                    Drawing draw(c->canvas);
+                    draw.startDraw(c); // repair the widget's contents.
+                }
                 drawWidget(c); // copy the widget's contents to the canvas.
             } else {
                 drawRecurs(c);
@@ -159,8 +171,8 @@ void ExRender::Drawing::drawRecurs(ExWidget* w) {
 
 // ExRender
 //
-void ExRender::render(ExCanvas* canvas, ExWidget* w, uint32 flags) {
-    if ((flags & Ex_RenderRebuild) != 0U) {
+void ExRender::render(ExCanvas* canvas, ExWidget* w) {
+    if ((w->flags & Ex_Rebuild) != 0U) {
         Culling cull;
         cull.startCull(w, canvas);
     }
@@ -170,8 +182,8 @@ void ExRender::render(ExCanvas* canvas, ExWidget* w, uint32 flags) {
     }
 }
 
-void ExRender::render4MT(ExCanvas* canvas, ExWidget* w, uint32 flags) {
-    if ((flags & Ex_RenderRebuild) != 0U) {
+void ExRender::render4MT(ExCanvas* canvas, ExWidget* w) {
+    if ((w->flags & Ex_Rebuild) != 0U) {
         Culling4MT cull(w);
         canvas->update.copy(w->visualRgn); // tbd
     }

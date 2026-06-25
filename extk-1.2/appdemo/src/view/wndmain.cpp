@@ -108,7 +108,8 @@ void WndMain::onDrawTrap(ExCanvas* canvas, const ExWgtRes* wgtres, const ExRegio
     static int id = 0;
     static uint32 color[7] = { 0xff, 0xff00, 0xff0000, 0xffff, 0xff00ff, 0xffff00, 0xffffff };
     for (int i = 0; i < damage->n_boxes; i++) {
-        const ExBox& bx = damage->boxes[i];
+        ExBox bx = damage->boxes[i];
+        bx.move(-canvas->origin.x, -canvas->origin.y);
         canvas->gc.drawBox(&bx, color[id]);
     }
     id = (id < 6) ? id + 1 : 0;

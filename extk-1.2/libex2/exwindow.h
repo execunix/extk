@@ -26,10 +26,6 @@ protected:
     DWORD       dwStyle;
     DWORD       dwExStyle;
 #endif
-    uint32      notifyFlags;    // tbd - remove
-    uint32      renderFlags;    // tbd - remove
-    //ExRegion    exposeAcc;  // tbd - replace Ex_RenderRebuild
-    //ExRegion    opaqueAcc;
 protected:
     ExWidget*   wgtCapture;
     ExWidget*   wgtEntered;
