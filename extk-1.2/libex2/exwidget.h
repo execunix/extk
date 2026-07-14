@@ -96,7 +96,7 @@ enum class ExWidgetFlags : uint32 {
     Opaque           = 1U << 15, // RW
     Damaged          = 1U << 27, // RO
     Exposed          = 1U << 28, // RO
-    Rebuild          = 1U << 29, // RO tbd - used only by OwnGC.
+    Rebuild          = 1U << 29, // RO need culling
     SkipLayout       = 1U << 30, // RO tbd
     FreeMemory       = 1U << 31, // RW
 };

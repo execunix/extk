@@ -339,22 +339,25 @@ ExWidget* ExWindow::moveFocus(uint32 dir) { // sample
 }
 
 uint32 ExWindow::render() {
+    #if 0
+    ExRender::render4MT(canvas, this);
+    #else
     ExRender::render(canvas, this);
-    flags &= ~Ex_Rebuild;
+    #endif
     return 0;
 }
 
 uint32 ExWindow::flush() {
     exassert(canvas != nullptr);
     flushFunc(this, &canvas->update);
-    canvas->update.setEmpty();
+    //canvas->update.setEmpty();
     return 0;
 }
 
 uint32 ExWindow::paint() {
     exassert(canvas != nullptr);
     paintFunc(this, &canvas->update);
-    canvas->update.setEmpty();
+    //canvas->update.setEmpty();
     return 0;
 }
 

@@ -422,37 +422,26 @@ void ExWidget::setRebuildFlag() {
 
 void ExWidget::resetArea() {
     if (isVisible() && ((getFlags(Ex_Exposed) == 0U))) {
-        // marks that the old area should be updated
-        if (extent.valid()) {
-            addUpdateRegion(ExRegion(extent));
-        }
-        setRebuildFlag();
+        setRebuildFlag(); // for resize
     }
-    // tbd - distinguish between move and resize
-    flags |= Ex_Exposed;
+    flags |= Ex_Exposed; // for show, hide, move, resize, rebuild
 }
 
 void ExWidget::setPos(const ExPoint& pos)
 {
     area.u.pt = pos;
-    if (canvas == nullptr) {
-        resetArea();
-    } else {
-        resetArea();
-        // if (isVisible() && ((getFlags(Ex_Exposed) == 0U))) {
-        //     if (extent.valid()) {
-        //         // marks that the old area should be updated
-        //         addUpdateRegion(ExRegion(extent));
-        //     }
-        //     calcExtent();
-        //     if (extent.valid()) {
-        //         flags |= Ex_Damaged;
-        //     }
-        //     canvas->origin = origin;
-        // }
+    #if 1 // tbd - distinguish between move and resize
+    if ((canvas != nullptr) && (parent != nullptr)) {
+        exassert(getFlags(Ex_HasOwnGC) != 0U);
+        if (isVisible() && ((getFlags(Ex_Exposed) == 0U))) {
+            parent->setRebuildFlag(); // for move
+            flags |= Ex_Exposed; // for move
+        }
+        return;
     }
+    #endif
+    resetArea();
 }
-
 
 void ExWidget::setVisible(bool show) {
     if (!isFlagVisible() == !show) {

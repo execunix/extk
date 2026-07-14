@@ -25,6 +25,15 @@ CC = $(CCPREFIX)gcc $(SDKFLAGS) --sysroot=$(SDKTARGETSYSROOT)
 ARCH = aarch64
 endif
 
+ifeq ($(CONF_SDK), MX9)
+SDKTARGETSYSROOT = /opt/fsl-imx-xwayland/6.12-walnascar/sysroots/armv8a-poky-linux
+SDKFLAGS = -march=armv8-a+crc+crypto -mbranch-protection=standard -fstack-protector-strong -Wformat -Wformat-security -Werror=format-security
+CCPREFIX = /opt/fsl-imx-xwayland/6.12-walnascar/sysroots/x86_64-pokysdk-linux/usr/bin/aarch64-poky-linux/aarch64-poky-linux-
+CXX = $(CCPREFIX)g++ $(SDKFLAGS) --sysroot=$(SDKTARGETSYSROOT)
+CC = $(CCPREFIX)gcc $(SDKFLAGS) --sysroot=$(SDKTARGETSYSROOT)
+ARCH = arm64
+endif
+
 ifeq ($(CONF_SDK), ZYNQ)
 SDKTARGETSYSROOT = /opt/petalinux/2019.2/sysroots/cortexa9t2hf-neon-xilinx-linux-gnueabi
 SDKFLAGS = -march=armv7-a -mthumb -mfpu=neon -mfloat-abi=hard -mcpu=cortex-a9
